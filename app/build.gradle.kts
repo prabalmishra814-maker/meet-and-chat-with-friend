@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.roomchatapps.Pmishra"
+        applicationId = "com.roomchatapps.amstudio"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

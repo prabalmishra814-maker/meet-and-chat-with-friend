@@ -21,7 +21,7 @@
             android:layout_height="88dp"
             android:layout_marginStart="24dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/common_default_avatar_ic"
+            android:src="@drawable/app_create_room_ic"
             app:layout_constraintStart_toStartOf="parent"
             app:shapeAppearanceOverlay="@style/CircleImage"
             app:strokeColor="#33FFFFFF"

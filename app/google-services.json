@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:686945289016:android:604d09ab3ef828451ef7cd",
         "android_client_info": {
-          "package_name": "com.roomchatapps.Pmishra"
+          "package_name": "com.roomchatapps.amstudio"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "686945289016-5kujr0jbn6t9iv69b9hv5u3o7j4lv7o4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.roomchatapps.Pmishra",
+            "package_name": "com.roomchatapps.amstudio",
             "certificate_hash": "fadb718baa27abbf950aea4c960862bea6c699eb"
           }
         },
