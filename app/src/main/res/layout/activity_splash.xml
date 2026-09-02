@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/app_logo" />
+        app:srcCompat="@drawable/_1786381850350" />
 
     <TextView
         android:id="@+id/textViewAppName"
@@ -32,6 +32,7 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
     <TextView
+        android:id="@+id/textViewSlogan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"

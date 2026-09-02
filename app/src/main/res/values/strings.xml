@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VOXORA</string>
+    <string name="app_name">Room Chat</string>
     <string name="cat_all">All</string>
     <string name="cat_india">India</string>
     <string name="cat_saudi">Saudi</string>
@@ -27,5 +27,5 @@
     <string name="svip">SVIP</string>
     <string name="unlock_privileges">Unlock special privileges</string>
     <string name="level">Level</string>
-    <string name="default_web_client_id">1046922122069-ivupev8q7ufu7ndg7ge7tkv340e4om1d.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com</string>
 </resources>

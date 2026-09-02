@@ -1,63 +1,41 @@
 {
   "project_info": {
-    "project_number": "1046922122069",
-    "firebase_url": "https://sports-bet-cb7e6-default-rtdb.firebaseio.com",
-    "project_id": "sports-bet-cb7e6",
-    "storage_bucket": "sports-bet-cb7e6.appspot.com"
+    "project_number": "686945289016",
+    "project_id": "meet-and-chat-3abdb",
+    "storage_bucket": "meet-and-chat-3abdb.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1046922122069:android:fcfcbc54e12937ca6b15dc",
+        "mobilesdk_app_id": "1:686945289016:android:604d09ab3ef828451ef7cd",
         "android_client_info": {
-          "package_name": "com.SportsBet"
+          "package_name": "com.roomchatapps.Pmishra"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1046922122069-ivupev8q7ufu7ndg7ge7tkv340e4om1d.apps.googleusercontent.com",
+          "client_id": "686945289016-5kujr0jbn6t9iv69b9hv5u3o7j4lv7o4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.roomchatapps.Pmishra",
+            "certificate_hash": "fadb718baa27abbf950aea4c960862bea6c699eb"
+          }
+        },
+        {
+          "client_id": "686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAM6uq0iKM0DoTyFtr7z7vSE2JgQFUPq5o"
+          "current_key": "AIzaSyDO8H1cGyL757e2I8bwyOjrwFN2YSfqq40"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1046922122069-ivupev8q7ufu7ndg7ge7tkv340e4om1d.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1046922122069:android:e359e948ff7cca2c6b15dc",
-        "android_client_info": {
-          "package_name": "com.roomchatapps.amstudio"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "1046922122069-ivupev8q7ufu7ndg7ge7tkv340e4om1d.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAM6uq0iKM0DoTyFtr7z7vSE2JgQFUPq5o"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1046922122069-ivupev8q7ufu7ndg7ge7tkv340e4om1d.apps.googleusercontent.com",
+              "client_id": "686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
