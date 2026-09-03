@@ -62,18 +62,20 @@
             app:layout_constraintTop_toBottomOf="@+id/userId">
 
             <ImageView
+                android:id="@+id/ivUserGender"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
                 android:src="@drawable/common_gender_female_pink_16_ic" />
 
             <TextView
+                android:id="@+id/tvUserLevel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:background="@drawable/chip_room_bg"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="1dp"
-                android:text="Lv.15"
+                android:text="Lv.1"
                 android:textColor="@color/white"
                 android:textSize="10sp" />
         </LinearLayout>

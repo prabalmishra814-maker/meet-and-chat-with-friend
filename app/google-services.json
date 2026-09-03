@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "686945289016",
+    "firebase_url": "https://meet-and-chat-3abdb-default-rtdb.firebaseio.com",
     "project_id": "meet-and-chat-3abdb",
     "storage_bucket": "meet-and-chat-3abdb.firebasestorage.app"
   },
