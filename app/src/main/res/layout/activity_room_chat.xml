@@ -13,6 +13,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Overlay Container for Animations -->
     <FrameLayout
         android:id="@+id/giftOverlayContainer"
         android:layout_width="match_parent"
@@ -22,5 +23,26 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:clickable="false"
         android:focusable="false" />
+
+    <!-- Gift Button placed right next to the Message/Chat Icon on the bottom bar -->
+    <FrameLayout
+        android:id="@+id/btnGiftNextToMessage"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginStart="72dp"
+        android:background="@drawable/bg_glass_card"
+        android:clickable="true"
+        android:elevation="12dp"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/message_home_entry_gift_ic" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
