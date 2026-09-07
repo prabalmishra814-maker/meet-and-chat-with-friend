@@ -27,6 +27,14 @@
             app:strokeColor="@color/glass_white"
             app:strokeWidth="2dp" />
 
+        <!-- Profile Frame Overlay -->
+        <ImageView
+            android:id="@+id/ivSpeakerFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/_1000092461_removebg_preview" />
+
         <!-- Speaking indicator (visible when talking) -->
         <View
             android:id="@+id/speakingIndicator"

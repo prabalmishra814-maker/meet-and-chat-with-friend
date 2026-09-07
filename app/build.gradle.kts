@@ -17,6 +17,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        ndk {
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+        }
     }
 
     buildFeatures {
@@ -25,7 +28,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -37,6 +41,7 @@ android {
     packaging {
         resources {
             pickFirsts.add("**/libc++_shared.so")
+            excludes.addAll(listOf("META-INF/*.kotlin_module", "META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/NOTICE"))
         }
     }
 }
@@ -51,6 +56,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
+    implementation("com.google.firebase:firebase-messaging:24.0.0")
     implementation(libs.googleid)
     implementation(libs.material)
     implementation(libs.recyclerview)

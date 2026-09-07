@@ -79,14 +79,14 @@
                             android:layout_width="28dp"
                             android:layout_height="28dp"
                             android:layout_gravity="center"
-                            android:src="@drawable/ic_plus_gradient" />
+                            android:src="@drawable/message_home_entry_friend_ic" />
                     </FrameLayout>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Create Room"
+                        android:text="Requests"
                         android:textColor="#B3FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -147,6 +147,42 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
+            </LinearLayout>
+
+            <!-- Category Content Section -->
+            <LinearLayout
+                android:id="@+id/llCategorySection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvCategoryTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="25dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Category"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCategoryContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tvEmptyCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:gravity="center"
+                    android:text="No items found"
+                    android:textColor="#80FFFFFF"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- Message List Section -->
