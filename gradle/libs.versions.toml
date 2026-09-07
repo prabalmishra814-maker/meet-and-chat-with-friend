@@ -17,6 +17,10 @@ firebaseDatabase = "22.0.1"
 firebaseStorage = "22.0.1"
 recyclerview = "1.4.0"
 zegoUikitPrebuiltLiveAudioRoom = "2.6.1"
+svgaPlayer = "2.6.1"
+zegoExpress = "3.21.0"
+glide = "4.16.0"
+gson = "2.10.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -35,6 +39,10 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 zego-uikit-prebuilt-live-audio-room = { group = "com.github.ZEGOCLOUD", name = "zego_uikit_prebuilt_live_audio_room_android", version.ref = "zegoUikitPrebuiltLiveAudioRoom" }
+svga-player = { group = "com.github.yyued", name = "SVGAPlayer-Android", version.ref = "svgaPlayer" }
+zego-express = { group = "im.zego", name = "express-video", version.ref = "zegoExpress" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

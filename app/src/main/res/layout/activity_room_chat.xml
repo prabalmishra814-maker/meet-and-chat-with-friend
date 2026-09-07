@@ -2,28 +2,112 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_room_gradient">
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <!-- Custom Background View (Ambient bubbles, header, etc.) -->
+    <com.roomchatapps.Pmishra.AudioRoomBackgroundView
+        android:id="@+id/audioRoomBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 16 Seats Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSeats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.45" />
 
-    <!-- Overlay Container for Animations -->
+    <!-- Chat Area -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatMessages"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="80dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Bottom Menu Bar -->
+    <LinearLayout
+        android:id="@+id/bottomMenuBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/btnChat"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/baseline_email_24" />
+
+        <ImageView
+            android:id="@+id/btnSpeaker"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/ic_speaker_on" />
+
+        <ImageView
+            android:id="@+id/btnMic"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/ic_mic_on" />
+
+        <ImageView
+            android:id="@+id/btnMore"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/room_more_ic" />
+
+        <ImageView
+            android:id="@+id/btnGame"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/room_game_setting_ic" />
+
+        <ImageView
+            android:id="@+id/btnGift"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/message_home_entry_gift_ic" />
+
+        <ImageView
+            android:id="@+id/btnSettings"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginHorizontal="4dp"
+            android:src="@drawable/ic_hexagon_settings"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Overlay for Animations -->
     <FrameLayout
         android:id="@+id/giftOverlayContainer"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clickable="false"
         android:elevation="10dp"
-        android:focusable="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:focusable="false" />
+
+    <com.opensource.svgaplayer.SVGAImageView
+        android:id="@+id/svgaPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp"
+        android:visibility="gone"
+        app:autoPlay="false"
+        app:loopCount="1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,17 @@
+- [x] Add ID to "Effect settings" in `dialog_room_menu.xml`
+- [x] Create `dialog_effect_settings.xml` with all 24 toggle items
+- [x] Implement `showEffectSettingsDialog()` in `RoomChatActivity.java`
+- [x] Link "Effect settings" button to the new dialog
+- [x] Implement `SharedPreferences` persistence for all 24 switches
+- [x] Create `FriendRequestModel.java` and `item_friend_request.xml`
+- [x] Create `FriendRequestAdapter.java`
+- [x] Update `dialog_message_center.xml` with content list area
+- [x] Implement loading logic in `RoomChatActivity.java` for Friend Requests, Gifts, and Rewards
+- [x] Update `fragment_message.xml` to include category content section
+- [x] Implement shortcut logic in `MessageFragment.java` to show relevant data
+- [x] Add IDs and visibility to Notification Banner in `dialog_message_center.xml`
+- [x] Implement Notification permission check and Banner logic in `RoomChatActivity.java`
+- [x] Remove top settings icon from `AudioRoomBackgroundView.java`
+- [x] Update Room Welcome message text to "Welcome"
+- [x] Add show/hide animation logic for Welcome message (3 seconds duration)
+- [x] Verify UI and Logic

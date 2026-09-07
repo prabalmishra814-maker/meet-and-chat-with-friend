@@ -54,6 +54,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".SvgaTestActivity"
+            android:exported="true"
+            android:theme="@style/Theme.RoomChat" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.RoomChat">
@@ -63,6 +67,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".AudioRoomActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.RoomChat" />
         <activity
             android:name=".RoomChatActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection|smallestScreenSize|screenLayout|uiMode|density"
@@ -82,6 +90,7 @@
         <activity android:name=".UserDetailActivity" />
         <activity android:name=".ChatActivity" />
         <activity android:name=".SettingsActivity" />
+        <activity android:name=".RoomSettingsActivity" />
         <activity android:name=".NotificationActivity" />
         <activity android:name=".WalletActivity" />
         <activity android:name=".StoreActivity" />

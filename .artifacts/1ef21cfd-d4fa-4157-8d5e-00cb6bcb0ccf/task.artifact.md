@@ -1,0 +1,5 @@
+- [x] Add `SVGAPlayer-Android` to `libs.versions.toml`
+- [x] Add dependency to `app/build.gradle.kts`
+- [x] Add `SVGAImageView` to `activity_room.xml`
+- [x] Update `AudioRoomActivity.java` to play animation
+- [x] Verify implementation

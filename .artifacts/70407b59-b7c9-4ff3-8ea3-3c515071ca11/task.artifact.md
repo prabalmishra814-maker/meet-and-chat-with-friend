@@ -1,0 +1,11 @@
+- [x] Create Layout
+    - [x] `dialog_effect_settings.xml` (Comprehensive list of toggles)
+- [x] Update Styles
+    - [x] `themes.xml` (EffectSettingRowStyle, EffectSettingLabelStyle)
+- [x] Update Props Store Menu
+    - [x] Make "Effect settings" row clickable in `dialog_room_menu.xml`
+- [x] Update `RoomChatActivity.java`
+    - [x] Handle click and show `showEffectSettingsDialog()`
+- [ ] Verification
+    - [ ] Build and deploy
+    - [ ] Test the full flow: Grid -> Effect settings -> Toggle switches

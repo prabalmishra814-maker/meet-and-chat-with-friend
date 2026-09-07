@@ -1,0 +1,24 @@
+# Task - ZEGO UI Kit to SDK Migration
+
+- [x] **Phase 1: Dependency Management**
+    - [x] Update `libs.versions.toml` with ZEGO Express SDK
+    - [x] Modify `app/build.gradle.kts` (Remove UI Kit, Add Express SDK)
+    - [x] Sync Gradle
+- [x] **Phase 2: Core SDK Logic**
+    - [x] Implement `ZegoManager.java` (Engine init, Room login/logout, Audio control)
+    - [x] Implement `SeatManager.java` (Custom seat logic via Room Extra Info)
+    - [x] Implement `ChatManager.java` (In-room messaging - integrated in ZegoManager)
+- [x] **Phase 3: UI Components**
+    - [x] Create `SeatModel.java`
+    - [x] Create `item_seat.xml` layout
+    - [x] Implement `SeatAdapter.java` and `SeatViewHolder`
+    - [x] Implement `ChatAdapter.java` (binding to `item_room_chat_message.xml`)
+- [x] **Phase 4: RoomChatActivity Refactoring**
+    - [x] Modify `activity_room_chat.xml` (Full custom layout)
+    - [x] Update `RoomChatActivity.java` (Initialize ZegoManager, Bind UI, Handle Callbacks)
+    - [x] Re-implement bottom button logic (Mic, Speaker, etc.)
+    - [x] Integrate existing Gift/Reaction logic with new UI
+- [x] **Phase 5: Cleanup & Verification**
+    - [x] Remove unused `CustomSeatForegroundView.java`
+    - [x] Update `AudioRoomBackgroundView.java` (Remove UIKit imports)
+    - [x] Build and Verify Room functionality

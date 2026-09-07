@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardBackgroundColor="#141E33"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Gift Icon -->
+        <ImageView
+            android:id="@+id/ivGiftIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/_1000092343_removebg_preview" />
+
+        <!-- Gift Name -->
+        <TextView
+            android:id="@+id/tvGiftName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-bold"
+            android:maxLines="1"
+            android:text="Diamond 💎"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <!-- Price -->
+        <TextView
+            android:id="@+id/tvGiftPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif"
+            android:text="100 🪙"
+            android:textColor="#FFD700"
+            android:textSize="11sp" />
+
+        <!-- Received / Sent Badges Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Received Badge -->
+            <TextView
+                android:id="@+id/tvReceivedCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/chip_charm_bg"
+                android:fontFamily="sans-serif-bold"
+                android:gravity="center"
+                android:paddingVertical="4dp"
+                android:text="📥 0"
+                android:textColor="#00FF7F"
+                android:textSize="11sp" />
+
+            <!-- Sent Badge -->
+            <TextView
+                android:id="@+id/tvSentCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/chip_room_bg"
+                android:fontFamily="sans-serif-bold"
+                android:gravity="center"
+                android:paddingVertical="4dp"
+                android:text="📤 0"
+                android:textColor="#FF69B4"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,13 @@
+- [x] Modify `activity_room.xml` to add dropdown icon to header
+- [x] Update `AudioRoomActivity.java`:
+    - [x] Initialize `ivTitleDropdown`
+    - [x] Set click listener for `ivTitleDropdown`
+- [x] Open BottomSheet on dropdown click:
+    - [x] Create `dialog_room_details.xml`
+    - [x] Implement `showRoomDetailsDialog()` in `AudioRoomActivity.java`
+    - [x] Handle "Themed Change" button click
+- [x] Implement Background Video Theme:
+    - [x] Add `VideoView` to `activity_room.xml`
+    - [x] Implement `startVideoTheme()` in `AudioRoomActivity.java`
+    - [x] Link "Change Theme" button to `startVideoTheme()`
+- [x] Verify build

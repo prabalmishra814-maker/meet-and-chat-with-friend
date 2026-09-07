@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.material)
     implementation(libs.recyclerview)
+    implementation(libs.svga.player)
 
 
 
@@ -68,9 +69,10 @@ dependencies {
     implementation("com.github.denzcoskun:ImageSlideshow:0.1.2")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("im.zego:zego_uikit_prebuilt_live_audio_room_android:+")
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation(libs.glide)
+    implementation(libs.gson)
+    implementation(libs.zego.express)
+    implementation(libs.activity.ktx)
     implementation("com.snap.loginkit:loginkit:2.1.0")
 
     testImplementation(libs.junit)
