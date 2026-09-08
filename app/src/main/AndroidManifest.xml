@@ -68,10 +68,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AudioRoomActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.RoomChat" />
-        <activity
             android:name=".RoomChatActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection|smallestScreenSize|screenLayout|uiMode|density"
             android:screenOrientation="portrait"

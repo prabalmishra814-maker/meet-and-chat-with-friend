@@ -27,10 +27,13 @@ public class ZegoManager {
     private ZegoExpressEngine engine;
     private ZegoUser currentUser;
     private String currentRoomID;
+    private boolean isInRoom = false;
+    private final List<ZegoUser> roomUsers = new ArrayList<>();
 
     private final List<ZegoManagerListener> listeners = new ArrayList<>();
 
     public interface ZegoManagerListener {
+        default void onLoginResult(int errorCode) {}
         default void onRoomStateChanged(String roomID, ZegoRoomStateChangedReason reason, int errorCode, JSONObject extendedData) {}
         default void onUserJoined(ZegoUser user) {}
         default void onUserLeft(ZegoUser user) {}
@@ -55,9 +58,21 @@ public class ZegoManager {
         ZegoEngineConfig config = new ZegoEngineConfig();
         ZegoExpressEngine.setEngineConfig(config);
 
-        engine = ZegoExpressEngine.createEngine(appID, appSign, true, ZegoScenario.DEFAULT, application, eventHandler);
-        engine.startSoundLevelMonitor(200);
-        Log.d(TAG, "ZegoExpressEngine initialized");
+        // DEFAULT scenario in Production Env
+        engine = ZegoExpressEngine.createEngine(appID, appSign, false, ZegoScenario.DEFAULT, application, eventHandler);
+        
+        im.zego.zegoexpress.entity.ZegoAudioConfig audioConfig = new im.zego.zegoexpress.entity.ZegoAudioConfig(im.zego.zegoexpress.constants.ZegoAudioConfigPreset.STANDARD_QUALITY);
+        engine.setAudioConfig(audioConfig);
+        
+        engine.startSoundLevelMonitor(100); // Faster update (100ms) for speaking animations
+        
+        // Ensure volumes are maxed
+        engine.setCaptureVolume(100);
+        engine.setAllPlayStreamVolume(100);
+        
+        // Ensure speaker is on by default
+        engine.setAudioRouteToSpeaker(true);
+        Log.d(TAG, "ZegoExpressEngine initialized in Production Env");
     }
 
     public void loginRoom(String roomID, String userID, String userName, boolean isHost) {
@@ -70,11 +85,16 @@ public class ZegoManager {
         engine.loginRoom(roomID, currentUser, config, (errorCode, extendedData) -> {
             if (errorCode == 0) {
                 Log.d(TAG, "Login successful");
+                isInRoom = true;
+                engine.muteAllPlayStreamAudio(false); // Ensure audio playback is enabled
                 if (isHost) {
                     startPublishing();
                 }
             } else {
                 Log.e(TAG, "Login failed: " + errorCode);
+            }
+            for (ZegoManagerListener listener : listeners) {
+                listener.onLoginResult(errorCode);
             }
         });
     }
@@ -83,13 +103,18 @@ public class ZegoManager {
         if (engine != null && currentRoomID != null) {
             engine.logoutRoom(currentRoomID);
             currentRoomID = null;
+            isInRoom = false;
+            roomUsers.clear();
         }
     }
 
     public void startPublishing() {
         if (engine != null && currentUser != null) {
-            engine.startPublishingStream(currentRoomID + "_" + currentUser.userID);
+            String streamID = currentUser.userID;
+            Log.d(TAG, "Starting to publish stream: " + streamID);
+            engine.muteMicrophone(false);
             engine.mutePublishStreamAudio(false);
+            engine.startPublishingStream(streamID);
         }
     }
 
@@ -101,6 +126,8 @@ public class ZegoManager {
 
     public void setMicEnabled(boolean enabled) {
         if (engine != null) {
+            Log.d(TAG, "Setting mic enabled: " + enabled);
+            engine.muteMicrophone(!enabled);
             engine.mutePublishStreamAudio(!enabled);
         }
     }
@@ -116,6 +143,10 @@ public class ZegoManager {
             return engine.getAudioRouteType() == ZegoAudioRoute.SPEAKER;
         }
         return false;
+    }
+
+    public int getRoomUserCount() {
+        return roomUsers.size() + 1; // +1 for self if not in list
     }
 
     public void sendInRoomTextMessage(String message) {
@@ -140,17 +171,23 @@ public class ZegoManager {
 
     public void setRoomExtraInfo(String key, String value) {
         if (engine != null && currentRoomID != null) {
+            Log.d(TAG, "Setting RoomExtraInfo: " + key + " = " + value);
             engine.setRoomExtraInfo(currentRoomID, key, value, (errorCode) -> {
                 if (errorCode != 0) {
-                    Log.e(TAG, "Set RoomExtraInfo failed: " + errorCode);
+                    Log.e(TAG, "Set RoomExtraInfo failed: " + errorCode + " for key: " + key);
+                } else {
+                    Log.d(TAG, "Set RoomExtraInfo success for key: " + key);
                 }
             });
+        } else {
+            Log.e(TAG, "Cannot set RoomExtraInfo: engine=" + (engine != null) + ", room=" + currentRoomID);
         }
     }
 
     private final IZegoEventHandler eventHandler = new IZegoEventHandler() {
         @Override
         public void onRoomStateChanged(String roomID, ZegoRoomStateChangedReason reason, int errorCode, JSONObject extendedData) {
+            Log.d(TAG, "Room state changed: " + roomID + ", reason=" + reason + ", errorCode=" + errorCode);
             for (ZegoManagerListener listener : listeners) {
                 listener.onRoomStateChanged(roomID, reason, errorCode, extendedData);
             }
@@ -158,10 +195,21 @@ public class ZegoManager {
 
         @Override
         public void onRoomUserUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoUser> userList) {
-            for (ZegoUser user : userList) {
-                if (updateType == ZegoUpdateType.ADD) {
+            if (updateType == ZegoUpdateType.ADD) {
+                for (ZegoUser user : userList) {
+                    boolean exists = false;
+                    for (ZegoUser u : roomUsers) if (u.userID.equals(user.userID)) { exists = true; break; }
+                    if (!exists) roomUsers.add(user);
                     for (ZegoManagerListener listener : listeners) listener.onUserJoined(user);
-                } else {
+                }
+            } else {
+                for (ZegoUser user : userList) {
+                    for (int i = 0; i < roomUsers.size(); i++) {
+                        if (roomUsers.get(i).userID.equals(user.userID)) {
+                            roomUsers.remove(i);
+                            break;
+                        }
+                    }
                     for (ZegoManagerListener listener : listeners) listener.onUserLeft(user);
                 }
             }
@@ -171,8 +219,30 @@ public class ZegoManager {
         public void onRoomStreamUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoStream> streamList, JSONObject extendedData) {
             if (updateType == ZegoUpdateType.ADD) {
                 for (ZegoStream stream : streamList) {
+                    Log.d(TAG, "Starting to play stream: " + stream.streamID);
                     engine.startPlayingStream(stream.streamID, (ZegoCanvas) null);
                 }
+            } else {
+                for (ZegoStream stream : streamList) {
+                    Log.d(TAG, "Stopping play stream: " + stream.streamID);
+                    engine.stopPlayingStream(stream.streamID);
+                }
+            }
+        }
+
+        @Override
+        public void onPublisherStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoPublisherState state, int errorCode, JSONObject extendedData) {
+            Log.d(TAG, "Publisher state update: " + streamID + ", state=" + state + ", errorCode=" + errorCode);
+            if (errorCode != 0) {
+                Log.e(TAG, "Publisher error: " + errorCode);
+            }
+        }
+
+        @Override
+        public void onPlayerStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoPlayerState state, int errorCode, JSONObject extendedData) {
+            Log.d(TAG, "Player state update: " + streamID + ", state=" + state + ", errorCode=" + errorCode);
+            if (errorCode != 0) {
+                Log.e(TAG, "Player error: " + errorCode);
             }
         }
 
@@ -185,13 +255,10 @@ public class ZegoManager {
 
         @Override
         public void onRemoteMicStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoRemoteDeviceState state) {
-            String[] parts = streamID.split("_");
-            if (parts.length > 1) {
-                String userID = parts[parts.length - 1];
-                boolean isOn = state == im.zego.zegoexpress.constants.ZegoRemoteDeviceState.OPEN;
-                for (ZegoManagerListener listener : listeners) {
-                    listener.onRemoteMicStatusUpdate(userID, isOn);
-                }
+            // Since streamID == userID
+            boolean isOn = state == im.zego.zegoexpress.constants.ZegoRemoteDeviceState.OPEN;
+            for (ZegoManagerListener listener : listeners) {
+                listener.onRemoteMicStatusUpdate(streamID, isOn);
             }
         }
 
@@ -207,13 +274,9 @@ public class ZegoManager {
         @Override
         public void onRemoteSoundLevelUpdate(java.util.HashMap<String, Float> soundLevels) {
             for (java.util.Map.Entry<String, Float> entry : soundLevels.entrySet()) {
-                String streamID = entry.getKey();
-                String[] parts = streamID.split("_");
-                if (parts.length > 1) {
-                    String userID = parts[parts.length - 1];
-                    for (ZegoManagerListener listener : listeners) {
-                        listener.onAudioLevelUpdate(userID, entry.getValue());
-                    }
+                String streamID = entry.getKey(); // streamID == userID
+                for (ZegoManagerListener listener : listeners) {
+                    listener.onAudioLevelUpdate(streamID, entry.getValue());
                 }
             }
         }

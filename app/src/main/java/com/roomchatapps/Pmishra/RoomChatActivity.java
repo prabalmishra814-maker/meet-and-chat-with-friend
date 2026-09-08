@@ -1,7 +1,9 @@
 package com.roomchatapps.Pmishra;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -115,7 +118,13 @@ public class RoomChatActivity extends AppCompatActivity {
 
         initParams();
         initViews();
-        initZego();
+        
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 102);
+        } else {
+            initZego();
+        }
+        
         setupFirebaseListeners();
 
         if (notificationAnimator != null) {
@@ -159,6 +168,7 @@ public class RoomChatActivity extends AppCompatActivity {
         rvSeats.setLayoutManager(new GridLayoutManager(this, 4));
         seatAdapter = new SeatAdapter(this::onSeatClicked);
         rvSeats.setAdapter(seatAdapter);
+        seatAdapter.setSeats(SeatManager.getInstance().getSeats());
 
         rvChat = findViewById(R.id.rvChatMessages);
         rvChat.setLayoutManager(new LinearLayoutManager(this));
@@ -209,12 +219,24 @@ public class RoomChatActivity extends AppCompatActivity {
         ZegoManager.getInstance().loginRoom(roomID, userID, userName, isHost);
 
         SeatManager.getInstance().addListener(seatListener);
-        if (isHost) {
-            SeatManager.getInstance().takeSeat(0, userID, userName);
-        }
+        updateGlobalUserCount();
     }
 
     private final ZegoManager.ZegoManagerListener zegoListener = new ZegoManager.ZegoManagerListener() {
+        @Override
+        public void onLoginResult(int errorCode) {
+            if (errorCode == 0) {
+                if (isHost) {
+                    SeatManager.getInstance().takeSeat(0, userID, userName);
+                    ZegoManager.getInstance().startPublishing();
+                    Toast.makeText(RoomChatActivity.this, "Host joined. Mic active.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(RoomChatActivity.this, "Failed to join room: " + errorCode, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+
         @Override
         public void onUserJoined(ZegoUser user) {
             backgroundView.showWelcomeAnimation();
@@ -232,6 +254,14 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         @Override
+        public void onAudioLevelUpdate(String userID, float soundLevel) {
+            runOnUiThread(() -> {
+                // soundLevel > 5 is usually enough to consider someone speaking
+                seatAdapter.setSpeaking(userID, soundLevel > 5);
+            });
+        }
+
+        @Override
         public void onIMRecvBroadcastMessage(String roomID, List<ZegoBroadcastMessageInfo> messageList) {
             runOnUiThread(() -> {
                 chatAdapter.addMessages(messageList);
@@ -245,37 +275,129 @@ public class RoomChatActivity extends AppCompatActivity {
         // Sync local mic icon if self seat changed
         int myIndex = SeatManager.getInstance().findUserSeatIndex(userID);
         if (myIndex != -1) {
-            boolean isMicOn = seats.get(myIndex).isMicOn;
+            SeatModel mySeat = seats.get(myIndex);
+            boolean isMicOn = mySeat.isMicOn;
+            
+            // Host enforcement: if muted, force mic off locally
+            if (mySeat.isMuted) {
+                isMicOn = false;
+                ZegoManager.getInstance().setMicEnabled(false);
+            } else {
+                ZegoManager.getInstance().setMicEnabled(isMicOn);
+            }
+            
             btnMic.setImageResource(isMicOn ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
-            ZegoManager.getInstance().setMicEnabled(isMicOn);
+        } else {
+            // Not on seat, ensure mic is off
+            ZegoManager.getInstance().stopPublishing();
         }
     });
 
     private void updateGlobalUserCount() {
-        // Since we don't have UIKit's getAllUsers(), we might need a more complex way or just 
-        // trust RoomUserUpdate. 
-        // For simplicity, I'll add a counter if needed or just use 1/16 placeholder.
+        runOnUiThread(() -> {
+            int count = ZegoManager.getInstance().getRoomUserCount();
+            if (backgroundView != null) {
+                backgroundView.setUserCount(count);
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permission granted. Click the seat again.", Toast.LENGTH_SHORT).show();
+        } else if (requestCode == 102 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            initZego();
+        }
     }
 
     private void onSeatClicked(SeatModel model) {
-        if (model.userID.isEmpty()) {
-            // Join seat
-            int currentIndex = SeatManager.getInstance().findUserSeatIndex(userID);
-            if (currentIndex != -1) {
-                SeatManager.getInstance().leaveSeat(currentIndex);
-            }
-            SeatManager.getInstance().takeSeat(model.index, userID, userName);
-            ZegoManager.getInstance().startPublishing();
-        } else if (model.userID.equals(userID)) {
-            // Leave seat
-            SeatManager.getInstance().leaveSeat(model.index);
-            ZegoManager.getInstance().stopPublishing();
-        } else {
-            // Show user profile
-            Intent intent = new Intent(this, UserDetailActivity.class);
-            intent.putExtra("uid", model.userID);
-            startActivity(intent);
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+            return;
         }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
+        layout.setPadding(padding, padding, padding, padding);
+        layout.setBackgroundColor(Color.WHITE);
+        
+        // Ensure menu is large enough
+        layout.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
+
+        if (model.userID.isEmpty()) {
+            if (model.isClosed) {
+                if (isHost) {
+                    addOption(layout, "Open Seat", v -> {
+                        SeatManager.getInstance().closeSeat(model.index, false);
+                        dialog.dismiss();
+                    });
+                } else {
+                    Toast.makeText(this, "This seat is locked", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else {
+                addOption(layout, "Take Seat", v -> {
+                    int currentIndex = SeatManager.getInstance().findUserSeatIndex(userID);
+                    if (currentIndex != -1) {
+                        SeatManager.getInstance().leaveSeat(currentIndex);
+                    }
+                    SeatManager.getInstance().takeSeat(model.index, userID, userName);
+                    ZegoManager.getInstance().startPublishing();
+                    Toast.makeText(this, "Mic ON: Joining seat " + (model.index + 1), Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+                if (isHost) {
+                    addOption(layout, "Close Seat", v -> {
+                        SeatManager.getInstance().closeSeat(model.index, true);
+                        dialog.dismiss();
+                    });
+                }
+            }
+        } else if (model.userID.equals(userID)) {
+            addOption(layout, "Leave Seat", v -> {
+                SeatManager.getInstance().leaveSeat(model.index);
+                ZegoManager.getInstance().stopPublishing();
+                dialog.dismiss();
+            });
+        } else {
+            // Other user's seat
+            addOption(layout, "View Profile", v -> {
+                Intent intent = new Intent(this, UserDetailActivity.class);
+                intent.putExtra("uid", model.userID);
+                startActivity(intent);
+                dialog.dismiss();
+            });
+            if (isHost) {
+                addOption(layout, model.isMuted ? "Unmute User" : "Mute User", v -> {
+                    SeatManager.getInstance().muteSeat(model.index, !model.isMuted);
+                    dialog.dismiss();
+                });
+                addOption(layout, "Kick User", v -> {
+                    SeatManager.getInstance().kickUser(model.index);
+                    dialog.dismiss();
+                });
+            }
+        }
+
+        if (layout.getChildCount() > 0) {
+            dialog.setContentView(layout);
+            dialog.show();
+        }
+    }
+
+    private void addOption(LinearLayout parent, String text, View.OnClickListener listener) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(16);
+        tv.setPadding(0, 24, 0, 24);
+        tv.setTextColor(Color.BLACK);
+        tv.setGravity(android.view.Gravity.CENTER);
+        tv.setOnClickListener(listener);
+        parent.addView(tv);
     }
 
     private void leaveRoom() {

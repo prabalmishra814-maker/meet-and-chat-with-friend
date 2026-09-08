@@ -18,7 +18,9 @@
     - [x] Update `RoomChatActivity.java` (Initialize ZegoManager, Bind UI, Handle Callbacks)
     - [x] Re-implement bottom button logic (Mic, Speaker, etc.)
     - [x] Integrate existing Gift/Reaction logic with new UI
-- [x] **Phase 5: Cleanup & Verification**
-    - [x] Remove unused `CustomSeatForegroundView.java`
-    - [x] Update `AudioRoomBackgroundView.java` (Remove UIKit imports)
-    - [x] Build and Verify Room functionality
+- [x] **Phase 6: Advanced Seat Management (Host Controls)**
+    - [x] Update `SeatModel.java` (Add `isClosed`)
+    - [x] Update `SeatManager.java` (Add Kick, Mute, Close logic)
+    - [x] Update `item_seat.xml` (Add Locked/Muted icons)
+    - [x] Update `SeatAdapter.java` (Render Locked/Muted states)
+    - [x] Update `RoomChatActivity.java` (Implement Seat Options Dialog & Enforcement)
