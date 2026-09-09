@@ -5,18 +5,22 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -32,6 +36,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -47,10 +52,11 @@ import com.opensource.svgaplayer.SVGACallback;
 import com.opensource.svgaplayer.SVGAImageView;
 import com.opensource.svgaplayer.SVGAParser;
 import com.opensource.svgaplayer.SVGAVideoEntity;
+import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.models.FriendRequestModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
-import com.roomchatapps.Pmishra.ui.ChatAdapter;
-import com.roomchatapps.Pmishra.ui.SeatAdapter;
+import com.roomchatapps.Pmishra.adapters.ChatAdapter;
+import com.roomchatapps.Pmishra.adapters.SeatAdapter;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 import com.roomchatapps.Pmishra.zego.SeatManager;
@@ -127,10 +133,6 @@ public class RoomChatActivity extends AppCompatActivity {
         
         setupFirebaseListeners();
 
-        if (notificationAnimator != null) {
-            notificationAnimator.showNotification("Welcome 🚪", userName + " joined the room!", R.drawable.img_20260904_135725);
-        }
-
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -164,8 +166,49 @@ public class RoomChatActivity extends AppCompatActivity {
         backgroundView.setRoomID(roomID);
         backgroundView.setBackgroundImage(roomImg);
 
+        TextView tvRoomName = findViewById(R.id.tvRoomName);
+        TextView tvRoomId = findViewById(R.id.tvRoomId);
+        ImageView ivRoomAvatar = findViewById(R.id.ivRoomAvatar);
+
+        if (tvRoomName != null && roomNameLabel != null && !roomNameLabel.isEmpty()) {
+            tvRoomName.setText(roomNameLabel);
+        }
+        if (tvRoomId != null && roomID != null && !roomID.isEmpty()) {
+            tvRoomId.setText("ID:" + roomID);
+        }
+        if (ivRoomAvatar != null && roomImg != null && !roomImg.isEmpty()) {
+            Glide.with(this)
+                    .load(roomImg)
+                    .placeholder(R.drawable.logo_placeholder)
+                    .error(R.drawable.logo_placeholder)
+                    .into(ivRoomAvatar);
+        }
+
+        View btnRoomClose = findViewById(R.id.btnRoomClose);
+        if (btnRoomClose != null) {
+            btnRoomClose.setOnClickListener(v -> leaveRoom());
+        }
+
+
+        View btnRoomShare = findViewById(R.id.btnRoomShare);
+        if (btnRoomShare != null) {
+            btnRoomShare.setOnClickListener(v -> {
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "Join my room ID: " + roomID);
+                startActivity(Intent.createChooser(shareIntent, "Share Room"));
+            });
+        }
+
         rvSeats = findViewById(R.id.rvSeats);
-        rvSeats.setLayoutManager(new GridLayoutManager(this, 4));
+        GridLayoutManager seatLayoutManager = new GridLayoutManager(this, 4);
+        seatLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return (position == 0) ? 4 : 1;
+            }
+        });
+        rvSeats.setLayoutManager(seatLayoutManager);
         seatAdapter = new SeatAdapter(this::onSeatClicked);
         rvSeats.setAdapter(seatAdapter);
         seatAdapter.setSeats(SeatManager.getInstance().getSeats());
@@ -179,13 +222,17 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void setupBottomButtons() {
-        findViewById(R.id.btnChat).setOnClickListener(v -> showMessageCenterDialog());
+        findViewById(R.id.btnChat).setOnClickListener(v -> showCommentInputDialog());
         
         btnSpeaker = findViewById(R.id.btnSpeaker);
         btnSpeaker.setOnClickListener(v -> {
             boolean newState = !ZegoManager.getInstance().isSpeakerOn();
-            ZegoManager.getInstance().setSpeakerOn(newState);
             btnSpeaker.setImageResource(newState ? R.drawable.ic_speaker_on : R.drawable.ic_speaker_off);
+            
+            // Execute setSpeakerOn on a background thread so audio route changes do not freeze/lag the UI video playback
+            new Thread(() -> {
+                ZegoManager.getInstance().setSpeakerOn(newState);
+            }).start();
         });
 
         btnMic = findViewById(R.id.btnMic);
@@ -202,14 +249,23 @@ public class RoomChatActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btnMore).setOnClickListener(v -> showRoomMenuDialog());
+        View moreView = findViewById(R.id.more);
+        if (moreView != null) {
+            moreView.setOnClickListener(v -> showThemeSelectionDialog());
+        }
+
+        View btnMore = findViewById(R.id.btnMore);
+        if (btnMore != null) {
+            btnMore.setVisibility(View.VISIBLE);
+            btnMore.setOnClickListener(v -> showThemeSelectionDialog());
+        }
+
         findViewById(R.id.btnGame).setOnClickListener(v -> showRoomGameDialog());
         findViewById(R.id.btnGift).setOnClickListener(v -> showGiftDialog());
 
         ImageView btnSettings = findViewById(R.id.btnSettings);
-        if (isHost) {
-            btnSettings.setVisibility(View.VISIBLE);
-            btnSettings.setOnClickListener(v -> openRoomSettings());
+        if (btnSettings != null) {
+            btnSettings.setOnClickListener(v -> showThemeSelectionDialog());
         }
     }
 
@@ -226,6 +282,7 @@ public class RoomChatActivity extends AppCompatActivity {
         @Override
         public void onLoginResult(int errorCode) {
             if (errorCode == 0) {
+                showUserEnteredMessage(userName);
                 if (isHost) {
                     SeatManager.getInstance().takeSeat(0, userID, userName);
                     ZegoManager.getInstance().startPublishing();
@@ -239,8 +296,11 @@ public class RoomChatActivity extends AppCompatActivity {
 
         @Override
         public void onUserJoined(ZegoUser user) {
-            backgroundView.showWelcomeAnimation();
             updateGlobalUserCount();
+            if (user != null) {
+                String displayName = user.userName != null && !user.userName.isEmpty() ? user.userName : user.userID;
+                showUserEnteredMessage(displayName);
+            }
         }
 
         @Override
@@ -395,7 +455,7 @@ public class RoomChatActivity extends AppCompatActivity {
         tv.setTextSize(16);
         tv.setPadding(0, 24, 0, 24);
         tv.setTextColor(Color.BLACK);
-        tv.setGravity(android.view.Gravity.CENTER);
+        tv.setGravity(Gravity.CENTER);
         tv.setOnClickListener(listener);
         parent.addView(tv);
     }
@@ -517,20 +577,155 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
-    private void showRoomMenuDialog() {
+    private void showThemeSelectionDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_room_menu, null, false);
-        if (dialogView != null) {
-            dialog.setContentView(dialogView);
-            View layoutRoomSettings = dialogView.findViewById(R.id.layoutRoomSettings);
-            if (layoutRoomSettings != null) {
-                layoutRoomSettings.setVisibility(isHost ? View.VISIBLE : View.GONE);
-                layoutRoomSettings.setOnClickListener(v -> {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_theme_selection, null, false);
+        if (dialogView == null) return;
+
+        // Theme 1: Cyber Neon Party (theme1_img / theme1.mp4)
+        View cardCyber = dialogView.findViewById(R.id.cardThemeCyber);
+        View tvUseCyber = dialogView.findViewById(R.id.tvUseCyber);
+        View imgPosterTheme1 = dialogView.findViewById(R.id.imgPosterTheme1);
+        View.OnClickListener applyCyber = v -> {
+            if (backgroundView != null) {
+                backgroundView.setThemeVideo("theme/theme1.mp4");
+            }
+            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        };
+        if (cardCyber != null) cardCyber.setOnClickListener(applyCyber);
+        if (tvUseCyber != null) tvUseCyber.setOnClickListener(applyCyber);
+        if (imgPosterTheme1 != null) imgPosterTheme1.setOnClickListener(applyCyber);
+
+        // Theme 2: theme2_img / theme2.mp4
+        View cardGalaxy = dialogView.findViewById(R.id.cardThemeGalaxy);
+        View tvUseGalaxy = dialogView.findViewById(R.id.tvUseGalaxy);
+        View imgPosterTheme2 = dialogView.findViewById(R.id.imgPosterTheme2);
+        View.OnClickListener applyTheme2 = v -> {
+            if (backgroundView != null) {
+                backgroundView.setThemeVideo("theme/theme2.mp4");
+            }
+            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        };
+        if (cardGalaxy != null) cardGalaxy.setOnClickListener(applyTheme2);
+        if (tvUseGalaxy != null) tvUseGalaxy.setOnClickListener(applyTheme2);
+        if (imgPosterTheme2 != null) imgPosterTheme2.setOnClickListener(applyTheme2);
+
+        // Theme 3: theme3_img / theme3.mp4
+        View cardSunset = dialogView.findViewById(R.id.cardThemeSunset);
+        View tvUseSunset = dialogView.findViewById(R.id.tvUseSunset);
+        View imgPosterTheme3 = dialogView.findViewById(R.id.imgPosterTheme3);
+        View.OnClickListener applyTheme3 = v -> {
+            if (backgroundView != null) {
+                backgroundView.setThemeVideo("theme/theme3.mp4");
+            }
+            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        };
+        if (cardSunset != null) cardSunset.setOnClickListener(applyTheme3);
+        if (tvUseSunset != null) tvUseSunset.setOnClickListener(applyTheme3);
+        if (imgPosterTheme3 != null) imgPosterTheme3.setOnClickListener(applyTheme3);
+
+        // Theme 4: Aurora Glass
+        View cardAurora = dialogView.findViewById(R.id.cardThemeAurora);
+        View tvUseAurora = dialogView.findViewById(R.id.tvUseAurora);
+        View.OnClickListener applyAurora = v -> {
+            if (backgroundView != null) {
+                backgroundView.setThemeImage(R.drawable.bg_main_gradient);
+            }
+            Toast.makeText(this, "Theme Applied! 💎", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        };
+        if (cardAurora != null) cardAurora.setOnClickListener(applyAurora);
+        if (tvUseAurora != null) tvUseAurora.setOnClickListener(applyAurora);
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private void showUserEnteredMessage(String displayUserName) {
+        if (displayUserName == null || displayUserName.trim().isEmpty()) return;
+        ChatMessage entryMsg = new ChatMessage();
+        entryMsg.setSenderId("");
+        entryMsg.setMessage(displayUserName + " Enter the room");
+        entryMsg.setTimestamp(System.currentTimeMillis());
+
+        if (chatAdapter != null) {
+            chatAdapter.addAutoExpiringMessage(entryMsg, 5000);
+        }
+        if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
+            rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+        }
+    }
+
+    private void showCommentInputDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_comment_input, null, false);
+        if (dialogView == null) return;
+
+        EditText etInput = dialogView.findViewById(R.id.etCommentInput);
+        View btnSend = dialogView.findViewById(R.id.btnSendComment);
+
+        // Quick Phrase Chips
+        int[] chipIds = {R.id.chipHi, R.id.chipWelcome, R.id.chipWave, R.id.chipRose, R.id.chipClap};
+        for (int id : chipIds) {
+            View chip = dialogView.findViewById(id);
+            if (chip instanceof TextView) {
+                chip.setOnClickListener(v -> {
+                    String chipText = ((TextView) chip).getText().toString();
+                    sendUserComment(chipText);
                     dialog.dismiss();
-                    openRoomSettings();
                 });
             }
-            dialog.show();
+        }
+
+        // Send Button Click
+        if (btnSend != null) {
+            btnSend.setOnClickListener(v -> {
+                if (etInput != null) {
+                    String text = etInput.getText().toString().trim();
+                    if (!text.isEmpty()) {
+                        sendUserComment(text);
+                        dialog.dismiss();
+                    }
+                }
+            });
+        }
+
+        // Keyboard Action Send
+        if (etInput != null) {
+            etInput.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    String text = etInput.getText().toString().trim();
+                    if (!text.isEmpty()) {
+                        sendUserComment(text);
+                        dialog.dismiss();
+                    }
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private void sendUserComment(String text) {
+        if (text == null || text.trim().isEmpty()) return;
+        ZegoManager.getInstance().sendInRoomTextMessage(text);
+
+        ChatMessage myMsg = new ChatMessage();
+        myMsg.setSenderId(userID);
+        myMsg.setMessage(userName + " : " + text);
+        myMsg.setTimestamp(System.currentTimeMillis());
+
+        if (chatAdapter != null) {
+            chatAdapter.addAutoExpiringMessage(myMsg, 5000);
+        }
+        if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
+            rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
         }
     }
 

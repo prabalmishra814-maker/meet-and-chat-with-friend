@@ -2,6 +2,9 @@ package com.roomchatapps.Pmishra.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,15 +14,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.roomchatapps.Pmishra.R;
+import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageReceivedBinding;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageSentBinding;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -30,10 +37,46 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final String currentUserId;
     private int lastAnimatedPosition = -1;
 
+    public ChatAdapter() {
+        this(new ArrayList<>());
+    }
+
     public ChatAdapter(List<ChatMessage> chatMessages) {
-        this.chatMessages = chatMessages;
+        this.chatMessages = chatMessages != null ? chatMessages : new ArrayList<>();
         String uid = FirebaseAuth.getInstance().getUid();
         this.currentUserId = uid != null ? uid : "";
+    }
+
+    private final Handler expireHandler = new Handler(Looper.getMainLooper());
+
+    public void addAutoExpiringMessage(ChatMessage chatMsg, long expireMs) {
+        if (chatMsg == null) return;
+        chatMessages.add(chatMsg);
+        int position = chatMessages.size() - 1;
+        notifyItemInserted(position);
+
+        expireHandler.postDelayed(() -> {
+            int index = chatMessages.indexOf(chatMsg);
+            if (index != -1) {
+                chatMessages.remove(index);
+                notifyItemRemoved(index);
+            }
+        }, expireMs > 0 ? expireMs : 5000);
+    }
+
+    public void addMessages(List<ZegoBroadcastMessageInfo> zegoMessages) {
+        if (zegoMessages == null || zegoMessages.isEmpty()) return;
+        for (ZegoBroadcastMessageInfo msg : zegoMessages) {
+            if (msg != null) {
+                String sender = msg.fromUser != null ? msg.fromUser.userName : "User";
+                String text = msg.message != null ? msg.message : "";
+                ChatMessage chatMsg = new ChatMessage();
+                chatMsg.setSenderId(msg.fromUser != null ? msg.fromUser.userID : "");
+                chatMsg.setMessage(sender + " : " + text);
+                chatMsg.setTimestamp(msg.sendTime > 0 ? msg.sendTime : System.currentTimeMillis());
+                addAutoExpiringMessage(chatMsg, 5000);
+            }
+        }
     }
 
     @Override
@@ -112,12 +155,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
             binding.tvTime.setText(formatDate(message.getTimestamp()));
 
+            if (binding.ivAvatar != null) {
+                binding.ivAvatar.setVisibility(View.VISIBLE);
+                binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+            }
+
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
                 View.OnClickListener openProfile = v -> {
                     Context ctx = itemView.getContext();
                     if (ctx != null) {
-                        android.content.Intent intent = new android.content.Intent(ctx, com.roomchatapps.Pmishra.UserDetailActivity.class);
+                        Intent intent = new Intent(ctx, UserDetailActivity.class);
                         intent.putExtra("uid", senderId);
                         ctx.startActivity(intent);
                     }
@@ -133,24 +181,42 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         if (act.isFinishing() || act.isDestroyed()) return;
                     }
 
-                    if (profile != null) {
-                        if (profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                    if (binding.ivAvatar != null) {
+                        if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
                             Glide.with(ctx)
                                     .load(profile.avatarUrl)
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
+                        } else {
+                            Glide.with(ctx)
+                                    .load(R.drawable.logo_placeholder)
+                                    .into(binding.ivAvatar);
                         }
+                    }
 
-                        int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
-                        if (frameRes != 0) {
-                            binding.ivFrame.setImageResource(frameRes);
-                            binding.ivFrame.setVisibility(View.VISIBLE);
+                    if (binding.ivFrame != null) {
+                        if (profile != null) {
+                            int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
+                            if (frameRes != 0) {
+                                binding.ivFrame.setImageResource(frameRes);
+                                binding.ivFrame.setVisibility(View.VISIBLE);
+                            } else {
+                                binding.ivFrame.setVisibility(View.GONE);
+                            }
                         } else {
                             binding.ivFrame.setVisibility(View.GONE);
                         }
                     }
                 });
+            } else {
+                if (binding.ivAvatar != null) {
+                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                    binding.ivAvatar.setVisibility(View.VISIBLE);
+                }
+                if (binding.ivFrame != null) {
+                    binding.ivFrame.setVisibility(View.GONE);
+                }
             }
         }
     }
@@ -168,12 +234,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
             binding.tvTime.setText(formatDate(message.getTimestamp()));
 
+            if (binding.ivAvatar != null) {
+                binding.ivAvatar.setVisibility(View.VISIBLE);
+                binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+            }
+
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
                 View.OnClickListener openProfile = v -> {
                     Context ctx = itemView.getContext();
                     if (ctx != null) {
-                        android.content.Intent intent = new android.content.Intent(ctx, com.roomchatapps.Pmishra.UserDetailActivity.class);
+                        Intent intent = new Intent(ctx, UserDetailActivity.class);
                         intent.putExtra("uid", senderId);
                         ctx.startActivity(intent);
                     }
@@ -189,24 +260,42 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         if (act.isFinishing() || act.isDestroyed()) return;
                     }
 
-                    if (profile != null) {
-                        if (profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                    if (binding.ivAvatar != null) {
+                        if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
                             Glide.with(ctx)
                                     .load(profile.avatarUrl)
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
+                        } else {
+                            Glide.with(ctx)
+                                    .load(R.drawable.logo_placeholder)
+                                    .into(binding.ivAvatar);
                         }
+                    }
 
-                        int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
-                        if (frameRes != 0) {
-                            binding.ivFrame.setImageResource(frameRes);
-                            binding.ivFrame.setVisibility(View.VISIBLE);
+                    if (binding.ivFrame != null) {
+                        if (profile != null) {
+                            int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
+                            if (frameRes != 0) {
+                                binding.ivFrame.setImageResource(frameRes);
+                                binding.ivFrame.setVisibility(View.VISIBLE);
+                            } else {
+                                binding.ivFrame.setVisibility(View.GONE);
+                            }
                         } else {
                             binding.ivFrame.setVisibility(View.GONE);
                         }
                     }
                 });
+            } else {
+                if (binding.ivAvatar != null) {
+                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                    binding.ivAvatar.setVisibility(View.VISIBLE);
+                }
+                if (binding.ivFrame != null) {
+                    binding.ivFrame.setVisibility(View.GONE);
+                }
             }
         }
     }

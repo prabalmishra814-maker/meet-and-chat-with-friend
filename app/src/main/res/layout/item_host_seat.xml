@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="12dp">
+
+    <!-- Avatar & Seat Container -->
+    <FrameLayout
+        android:id="@+id/avatarContainer"
+        android:layout_width="68dp"
+        android:layout_height="68dp">
+
+        <!-- Empty Seat Background / Circle -->
+        <View
+            android:id="@+id/vEmptySeatBg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_empty_seat" />
+
+        <!-- Empty Seat Chair Icon -->
+        <ImageView
+            android:id="@+id/ivAddIcon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:contentDescription="Seat"
+            android:src="@drawable/seat"
+            android:visibility="visible" />
+
+        <!-- Speaking Indicator Pulsing Ring Overlay -->
+        <View
+            android:id="@+id/speakingIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_empty_seat"
+            android:visibility="gone" />
+
+        <!-- Occupied User Circular Avatar -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivSeatAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/logo_placeholder"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+            app:strokeColor="#FFD700"
+            app:strokeWidth="2dp" />
+
+        <!-- Profile Frame / Horns Overlay -->
+        <ImageView
+            android:id="@+id/ivSeatFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/_1000092461_removebg_preview"
+            android:visibility="gone" />
+
+        <!-- Locked / Closed Seat Overlay -->
+        <ImageView
+            android:id="@+id/ivSeatLocked"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_lock"
+            android:visibility="gone"
+            app:tint="#FF5252" />
+
+        <!-- Mic Status Icon (bottom-right of avatar) -->
+        <ImageView
+            android:id="@+id/ivMicStatus"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom|end"
+            android:elevation="4dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_mic_on"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Host User Name -->
+    <TextView
+        android:id="@+id/tvSeatName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="❤️ N O B I T A ❤️"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

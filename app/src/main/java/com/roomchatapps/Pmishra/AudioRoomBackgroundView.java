@@ -5,17 +5,24 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.GradientDrawable;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.TextUtils.TruncateAt;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,13 +30,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+
 import java.util.Random;
 
 public class AudioRoomBackgroundView extends FrameLayout {
 
+    private static final String TAG = "AudioRoomBackgroundView";
+
     private TextView roomName;
     private TextView roomID;
     private ImageView backgroundImageView;
+    private TextureView backgroundVideoView;
+    private MediaPlayer mediaPlayer;
+
     private View overlayView;
     private FrameLayout bubbleContainer;
     private OnGameIconClickListener gameIconClickListener;
@@ -74,10 +88,12 @@ public class AudioRoomBackgroundView extends FrameLayout {
     }
 
     private void initView() {
+        initBackgroundVideo();
+
         backgroundImageView = new ImageView(getContext());
         backgroundImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         backgroundImageView.setImageResource(R.drawable.bg_room_gradient);
-        addView(backgroundImageView, new FrameLayout.LayoutParams(-1, -1));
+        addView(backgroundImageView, new LayoutParams(-1, -1));
 
         overlayView = new View(getContext());
         GradientDrawable overlayGradient = new GradientDrawable(
@@ -85,74 +101,10 @@ public class AudioRoomBackgroundView extends FrameLayout {
                 new int[]{Color.parseColor("#70000000"), Color.parseColor("#30000000"), Color.parseColor("#800A0F1D")}
         );
         overlayView.setBackground(overlayGradient);
-        addView(overlayView, new FrameLayout.LayoutParams(-1, -1));
+        addView(overlayView, new LayoutParams(-1, -1));
 
         bubbleContainer = new FrameLayout(getContext());
-        addView(bubbleContainer, new FrameLayout.LayoutParams(-1, -1));
-
-        FrameLayout topHeaderContainer = new FrameLayout(getContext());
-        FrameLayout.LayoutParams topHeaderParams = new FrameLayout.LayoutParams(-1, -2);
-        topHeaderParams.setMargins(dp2px(12), dp2px(36), dp2px(12), 0);
-        addView(topHeaderContainer, topHeaderParams);
-
-        LinearLayout leftInfo = new LinearLayout(getContext());
-        leftInfo.setOrientation(LinearLayout.HORIZONTAL);
-        leftInfo.setGravity(Gravity.CENTER_VERTICAL);
-        leftInfo.setBackgroundResource(R.drawable.bg_glass_card);
-        leftInfo.setPadding(dp2px(6), dp2px(4), dp2px(12), dp2px(4));
-
-        ImageView avatar = new ImageView(getContext());
-        avatar.setImageResource(R.drawable.img_20260904_135725);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp2px(36), dp2px(36));
-        avatarParams.setMarginEnd(dp2px(8));
-        leftInfo.addView(avatar, avatarParams);
-
-        LinearLayout textLayout = new LinearLayout(getContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-
-        roomName = new TextView(getContext());
-        roomName.setTextColor(Color.WHITE);
-        roomName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        roomName.setEllipsize(TruncateAt.END);
-        roomName.setSingleLine(true);
-        roomName.getPaint().setFakeBoldText(true);
-        textLayout.addView(roomName);
-
-        roomID = new TextView(getContext());
-        roomID.setTextColor(Color.parseColor("#B0FFFFFF"));
-        roomID.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        textLayout.addView(roomID);
-
-        leftInfo.addView(textLayout);
-        topHeaderContainer.addView(leftInfo, new FrameLayout.LayoutParams(-2, -2));
-
-        LinearLayout rightActions = new LinearLayout(getContext());
-        rightActions.setOrientation(LinearLayout.HORIZONTAL);
-        rightActions.setGravity(Gravity.CENTER_VERTICAL);
-
-        ImageView ivShare = createHeaderIcon(android.R.drawable.ic_menu_share);
-        ImageView ivPower = createHeaderIcon(android.R.drawable.ic_lock_power_off);
-
-        rightActions.addView(ivShare);
-        rightActions.addView(ivPower);
-
-        FrameLayout.LayoutParams actionsParams = new FrameLayout.LayoutParams(-2, -2);
-        actionsParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-        topHeaderContainer.addView(rightActions, actionsParams);
-
-        LinearLayout badgesRow = new LinearLayout(getContext());
-        badgesRow.setOrientation(LinearLayout.HORIZONTAL);
-        badgesRow.setGravity(Gravity.CENTER_VERTICAL);
-        
-        TextView tvTrophy = createBadge("🏆 0");
-        TextView tvMusic = createBadge("🎙️ Music");
-
-        badgesRow.addView(tvTrophy);
-        badgesRow.addView(tvMusic);
-
-        FrameLayout.LayoutParams badgesParams = new FrameLayout.LayoutParams(-2, -2);
-        badgesParams.setMargins(dp2px(16), dp2px(88), 0, 0);
-        addView(badgesRow, badgesParams);
+        addView(bubbleContainer, new LayoutParams(-1, -1));
 
         messageArea = new LinearLayout(getContext());
         messageArea.setBackgroundResource(R.drawable.bg_yellow_welcome_box);
@@ -168,7 +120,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
         tvWelcome.setGravity(Gravity.CENTER);
         messageArea.addView(tvWelcome);
 
-        FrameLayout.LayoutParams msgParams = new FrameLayout.LayoutParams(dp2px(180), LayoutParams.WRAP_CONTENT);
+        LayoutParams msgParams = new LayoutParams(dp2px(180), LayoutParams.WRAP_CONTENT);
         msgParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
         msgParams.setMargins(0, 0, 0, dp2px(220));
         addView(messageArea, msgParams);
@@ -183,20 +135,133 @@ public class AudioRoomBackgroundView extends FrameLayout {
         });
         seatSpotlightAura.setBackground(spotDrawable);
 
-        FrameLayout.LayoutParams spotParams = new FrameLayout.LayoutParams(dp2px(330), dp2px(280));
+        LayoutParams spotParams = new LayoutParams(dp2px(330), dp2px(280));
         spotParams.gravity = Gravity.CENTER;
         spotParams.setMargins(0, dp2px(80), 0, 0);
         addView(seatSpotlightAura, spotParams);
 
         AnimationHelper.pulseGlowAnimation(seatSpotlightAura);
+    }
 
-        setupPartyEqualizerBars();
+    private void initBackgroundVideo() {
+        backgroundVideoView = new TextureView(getContext());
+        addView(backgroundVideoView, new LayoutParams(-1, -1));
 
-        topHeaderContainer.setAlpha(0f);
-        topHeaderContainer.setTranslationY(-20f);
-        topHeaderContainer.animate().alpha(1f).translationY(0f).setDuration(500).start();
+        backgroundVideoView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+                playThemeVideo(surface);
+            }
 
-        postDelayed(this::showWelcomeAnimation, 800);
+            @Override
+            public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {}
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                releaseMediaPlayer();
+                return true;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {}
+        });
+    }
+
+    private void playThemeVideo(SurfaceTexture surface) {
+        playThemeVideo(surface, "theme/theme1.mp4");
+    }
+
+    private void playThemeVideo(SurfaceTexture surface, String assetPath) {
+        try {
+            releaseMediaPlayer();
+            Surface s = new Surface(surface);
+            mediaPlayer = new MediaPlayer();
+
+            String path = assetPath != null && !assetPath.isEmpty() ? assetPath : "theme/theme1.mp4";
+            AssetFileDescriptor afd = getContext().getAssets().openFd(path);
+            mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+
+            mediaPlayer.setSurface(s);
+            mediaPlayer.setLooping(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build();
+                mediaPlayer.setAudioAttributes(audioAttributes);
+            }
+
+            mediaPlayer.setVolume(0f, 0f); // Muted for background video so voice audio remains crystal clear
+
+            mediaPlayer.setOnPreparedListener(mp -> {
+                try {
+                    mp.start();
+                    if (backgroundImageView != null) {
+                        backgroundImageView.animate().alpha(0f).setDuration(500).start();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting video playback", e);
+                }
+            });
+
+            mediaPlayer.prepareAsync();
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading background theme video from assets", e);
+        }
+    }
+
+    public void setThemeVideo(String assetPath) {
+        final String videoPath = assetPath != null && !assetPath.isEmpty() ? assetPath : "theme/theme1.mp4";
+        if (backgroundVideoView != null) {
+            backgroundVideoView.setVisibility(View.VISIBLE);
+            if (backgroundVideoView.isAvailable() && backgroundVideoView.getSurfaceTexture() != null) {
+                playThemeVideo(backgroundVideoView.getSurfaceTexture(), videoPath);
+            } else {
+                backgroundVideoView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                    @Override
+                    public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+                        playThemeVideo(surface, videoPath);
+                    }
+
+                    @Override
+                    public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {}
+
+                    @Override
+                    public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                        releaseMediaPlayer();
+                        return true;
+                    }
+
+                    @Override
+                    public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {}
+                });
+            }
+        }
+    }
+
+    public void setThemeImage(int resId) {
+        releaseMediaPlayer();
+        if (backgroundVideoView != null) {
+            backgroundVideoView.setVisibility(View.GONE);
+        }
+        if (backgroundImageView != null) {
+            backgroundImageView.setImageResource(resId);
+            backgroundImageView.setAlpha(1f);
+        }
+    }
+
+    public void releaseMediaPlayer() {
+        if (mediaPlayer != null) {
+            try {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.release();
+            } catch (Exception ignored) {}
+            mediaPlayer = null;
+        }
     }
 
     public void showWelcomeAnimation() {
@@ -213,7 +278,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
                 .scaleX(1f)
                 .scaleY(1f)
                 .setDuration(600)
-                .setInterpolator(new android.view.animation.OvershootInterpolator())
+                .setInterpolator(new OvershootInterpolator())
                 .withEndAction(() -> {
                     messageArea.postDelayed(() -> {
                         messageArea.animate()
@@ -232,49 +297,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
     }
 
     private void setupPartyEqualizerBars() {
-        LinearLayout eqLayout = new LinearLayout(getContext());
-        eqLayout.setOrientation(LinearLayout.HORIZONTAL);
-        eqLayout.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-
-        String[] eqColors = {"#40E0D0", "#FFD700", "#FF1493", "#9D4EDD", "#00FFFF", "#FF4500", "#40E0D0", "#FFD700"};
-        int barCount = 10;
-        int barWidth = dp2px(4);
-        int barMargin = dp2px(3);
-
-        for (int i = 0; i < barCount; i++) {
-            View bar = new View(getContext());
-            GradientDrawable barDrawable = new GradientDrawable();
-            barDrawable.setCornerRadius(dp2px(2));
-            barDrawable.setColor(Color.parseColor(eqColors[i % eqColors.length]));
-            bar.setBackground(barDrawable);
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(barWidth, dp2px(12));
-            params.setMargins(barMargin, 0, barMargin, 0);
-            eqLayout.addView(bar, params);
-
-            int minH = dp2px(6);
-            int maxH = dp2px(22 + random.nextInt(14));
-            long animDuration = 250 + random.nextInt(350);
-
-            android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofInt(minH, maxH);
-            anim.setDuration(animDuration);
-            anim.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-            anim.setRepeatMode(android.animation.ValueAnimator.REVERSE);
-            anim.addUpdateListener(animation -> {
-                int val = (int) animation.getAnimatedValue();
-                ViewGroup.LayoutParams p = bar.getLayoutParams();
-                if (p != null) {
-                    p.height = val;
-                    bar.setLayoutParams(p);
-                }
-            });
-            anim.start();
-        }
-
-        FrameLayout.LayoutParams eqParams = new FrameLayout.LayoutParams(-2, -2);
-        eqParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-        eqParams.setMargins(0, 0, 0, dp2px(82));
-        addView(eqLayout, eqParams);
+        // Equalizer bars removed as requested
     }
 
     private void startBubbleAnimation() {
@@ -302,6 +325,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         stopBubbleAnimation();
+        releaseMediaPlayer();
     }
 
     private void spawnAmbientBubble() {
@@ -309,7 +333,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
 
         View bubble = new View(getContext());
         int size = dp2px(12 + random.nextInt(36));
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+        LayoutParams params = new LayoutParams(size, size);
         bubble.setLayoutParams(params);
 
         GradientDrawable circle = new GradientDrawable();
@@ -436,12 +460,24 @@ public class AudioRoomBackgroundView extends FrameLayout {
         if (roomName != null) {
             this.roomName.setText(name != null ? name : "Audio Room");
         }
+        if (getRootView() != null) {
+            TextView tv = getRootView().findViewById(R.id.tvRoomName);
+            if (tv != null && name != null && !name.isEmpty()) {
+                tv.setText(name);
+            }
+        }
     }
 
     public void setRoomID(String id) {
         if (roomID != null) {
             String displayId = id != null ? id : "N/A";
             this.roomID.setText("ID: " + displayId + "  👥 1/16");
+        }
+        if (getRootView() != null) {
+            TextView tv = getRootView().findViewById(R.id.tvRoomId);
+            if (tv != null && id != null && !id.isEmpty()) {
+                tv.setText("ID:" + id);
+            }
         }
     }
 
@@ -457,7 +493,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
 
     public void setBackgroundImage(String imageUrl) {
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            com.bumptech.glide.Glide.with(getContext())
+            Glide.with(getContext())
                     .load(imageUrl)
                     .placeholder(R.drawable.bg_room_gradient)
                     .error(R.drawable.bg_room_gradient)
