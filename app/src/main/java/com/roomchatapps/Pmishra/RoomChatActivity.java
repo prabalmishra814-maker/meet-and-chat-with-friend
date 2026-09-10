@@ -1,16 +1,25 @@
 package com.roomchatapps.Pmishra;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -39,6 +48,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
@@ -283,6 +293,7 @@ public class RoomChatActivity extends AppCompatActivity {
         public void onLoginResult(int errorCode) {
             if (errorCode == 0) {
                 showUserEnteredMessage(userName);
+                playEntrySceneVideo();
                 if (isHost) {
                     SeatManager.getInstance().takeSeat(0, userID, userName);
                     ZegoManager.getInstance().startPublishing();
@@ -590,7 +601,6 @@ public class RoomChatActivity extends AppCompatActivity {
             if (backgroundView != null) {
                 backgroundView.setThemeVideo("theme/theme1.mp4");
             }
-            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
         if (cardCyber != null) cardCyber.setOnClickListener(applyCyber);
@@ -605,7 +615,6 @@ public class RoomChatActivity extends AppCompatActivity {
             if (backgroundView != null) {
                 backgroundView.setThemeVideo("theme/theme2.mp4");
             }
-            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
         if (cardGalaxy != null) cardGalaxy.setOnClickListener(applyTheme2);
@@ -620,7 +629,6 @@ public class RoomChatActivity extends AppCompatActivity {
             if (backgroundView != null) {
                 backgroundView.setThemeVideo("theme/theme3.mp4");
             }
-            Toast.makeText(this, "Theme Applied! ✨", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
         if (cardSunset != null) cardSunset.setOnClickListener(applyTheme3);
@@ -634,7 +642,6 @@ public class RoomChatActivity extends AppCompatActivity {
             if (backgroundView != null) {
                 backgroundView.setThemeImage(R.drawable.bg_main_gradient);
             }
-            Toast.makeText(this, "Theme Applied! 💎", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
         if (cardAurora != null) cardAurora.setOnClickListener(applyAurora);
@@ -738,41 +745,288 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    private String selectedGiftSvga = "gift/aladdin.svga";
+
     private void showGiftDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_svga_play, null, false);
-        if (dialogView != null) {
-            dialog.setContentView(dialogView);
-            View sendBtn = dialogView.findViewById(R.id.btnSendAnimation);
-            if (sendBtn != null) {
-                sendBtn.setOnClickListener(v -> {
-                    playSvgaAnimation("gift/aladdin.svga");
-                    dialog.dismiss();
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_gift_store, null, false);
+        if (dialogView == null) return;
+
+        selectedGiftSvga = "gift/aladdin.svga";
+
+        MaterialCardView[] allCards = {
+                dialogView.findViewById(R.id.cardGiftAladdin),
+                dialogView.findViewById(R.id.cardGiftHeart),
+                dialogView.findViewById(R.id.cardGiftBox),
+                dialogView.findViewById(R.id.cardGiftRose),
+                dialogView.findViewById(R.id.cardGiftCrown),
+                dialogView.findViewById(R.id.cardGiftRocket),
+                dialogView.findViewById(R.id.cardGiftSvip)
+        };
+
+        ImageView[] allStaticImgs = {
+                dialogView.findViewById(R.id.imgGiftAladdin),
+                dialogView.findViewById(R.id.imgGiftHeart),
+                dialogView.findViewById(R.id.imgGiftBox),
+                dialogView.findViewById(R.id.imgGiftRose),
+                dialogView.findViewById(R.id.imgGiftCrown),
+                dialogView.findViewById(R.id.imgGiftRocket),
+                dialogView.findViewById(R.id.imgGiftSvip)
+        };
+
+        SVGAImageView[] allPreviewSvgas = {
+                dialogView.findViewById(R.id.svgaPreviewAladdin),
+                dialogView.findViewById(R.id.svgaPreviewHeart),
+                dialogView.findViewById(R.id.svgaPreviewBox),
+                dialogView.findViewById(R.id.svgaPreviewRose),
+                dialogView.findViewById(R.id.svgaPreviewCrown),
+                dialogView.findViewById(R.id.svgaPreviewRocket),
+                dialogView.findViewById(R.id.svgaPreviewSvip)
+        };
+
+        String[] allSvgaFiles = {
+                "gift/aladdin.svga",
+                "gift/Walkthrough.svga",
+                "gift/angel.svga",
+                "gift/rose.svga",
+                "gift/Rocket.svga",
+                "gift/posche.svga",
+                "gift/halloween.svga"
+        };
+
+        String[] giftNames = {
+                "Aladdin Lamp 🧞",
+                "Walkthrough 🚶",
+                "Angel 👼",
+                "Magic Rose 🌹",
+                "Porsche Car 🏎️",
+                "Super Rocket 🚀",
+                "Halloween 🎃"
+        };
+
+        View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
+
+        // Selection Handler
+        for (int i = 0; i < allCards.length; i++) {
+            final int index = i;
+            if (allCards[index] != null) {
+                allCards[index].setOnClickListener(v -> {
+                    selectedGiftSvga = allSvgaFiles[index];
+
+                    // Reset all cards to unselected state
+                    for (int j = 0; j < allCards.length; j++) {
+                        if (allCards[j] != null) {
+                            allCards[j].setStrokeColor(Color.parseColor("#20FFFFFF"));
+                            allCards[j].setStrokeWidth(dp2px(1));
+                        }
+                        if (allStaticImgs[j] != null) {
+                            allStaticImgs[j].setVisibility(View.VISIBLE);
+                        }
+                        if (allPreviewSvgas[j] != null) {
+                            allPreviewSvgas[j].setVisibility(View.GONE);
+                            allPreviewSvgas[j].stopAnimation();
+                        }
+                    }
+
+                    // Highlight selected card
+                    allCards[index].setStrokeColor(Color.parseColor("#FF007A"));
+                    allCards[index].setStrokeWidth(dp2px(2));
+
+                    // Show SVGA preview inside selected card
+                    if (allStaticImgs[index] != null) {
+                        allStaticImgs[index].setVisibility(View.GONE);
+                    }
+                    if (allPreviewSvgas[index] != null && svgaParser != null) {
+                        SVGAImageView previewPlayer = allPreviewSvgas[index];
+                        previewPlayer.setVisibility(View.VISIBLE);
+                        svgaParser.decodeFromAssets(allSvgaFiles[index], new SVGAParser.ParseCompletion() {
+                            @Override
+                            public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                                previewPlayer.setVideoItem(videoItem);
+                                previewPlayer.startAnimation();
+                            }
+                            @Override
+                            public void onError() {}
+                        }, null);
+                    }
                 });
             }
-            dialog.show();
         }
+
+        // Auto-select first gift (Aladdin) on open
+        if (allCards[0] != null) {
+            allCards[0].performClick();
+        }
+
+        // Send Button Click
+        if (btnSendAction != null) {
+            btnSendAction.setOnClickListener(v -> {
+                playSvgaAnimation(selectedGiftSvga);
+                dialog.dismiss();
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private int dp2px(float dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
 
     private void playSvgaAnimation(String fileName) {
-        if (svgaPlayer == null || svgaParser == null) return;
+        if (svgaPlayer == null || svgaParser == null || fileName == null) return;
+
+        runOnUiThread(() -> {
+            try {
+                svgaPlayer.stopAnimation();
+                svgaPlayer.clear();
+            } catch (Exception ignored) {}
+        });
+
         svgaParser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                svgaPlayer.setVisibility(View.VISIBLE);
-                svgaPlayer.setVideoItem(videoItem);
-                svgaPlayer.startAnimation();
-                svgaPlayer.setCallback(new SVGACallback() {
-                    @Override public void onPause() {}
-                    @Override public void onFinished() {
-                        runOnUiThread(() -> svgaPlayer.setVisibility(View.GONE));
+                runOnUiThread(() -> {
+                    try {
+                        svgaPlayer.stopAnimation();
+                        svgaPlayer.clear();
+                        svgaPlayer.setVisibility(View.VISIBLE);
+                        svgaPlayer.setVideoItem(videoItem);
+                        svgaPlayer.startAnimation();
+                        svgaPlayer.setCallback(new SVGACallback() {
+                            @Override public void onPause() {}
+                            @Override public void onFinished() {
+                                runOnUiThread(() -> {
+                                    if (svgaPlayer != null) {
+                                        svgaPlayer.setVisibility(View.GONE);
+                                        svgaPlayer.clear();
+                                    }
+                                });
+                            }
+                            @Override public void onStep(int frame, double percentage) {}
+                            @Override public void onRepeat() {}
+                        });
+                    } catch (Exception e) {
+                        Log.e("RoomChatActivity", "Error playing SVGA animation", e);
                     }
-                    @Override public void onStep(int frame, double percentage) {}
-                    @Override public void onRepeat() {}
                 });
             }
-            @Override public void onError() {}
+
+            @Override
+            public void onError() {
+                runOnUiThread(() -> {
+                    if (svgaPlayer != null) {
+                        svgaPlayer.setVisibility(View.GONE);
+                    }
+                });
+            }
         }, null);
+    }
+
+    private void playEntrySceneVideo() {
+        try {
+            Dialog entryDialog = new Dialog(this);
+            entryDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+            int screenHeight = getResources().getDisplayMetrics().heightPixels;
+            int targetHeight = (int) (screenHeight * 0.40f);
+
+            if (entryDialog.getWindow() != null) {
+                entryDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                WindowManager.LayoutParams wlp = entryDialog.getWindow().getAttributes();
+                wlp.width = WindowManager.LayoutParams.MATCH_PARENT;
+                wlp.height = targetHeight;
+                wlp.gravity = Gravity.BOTTOM;
+                entryDialog.getWindow().setAttributes(wlp);
+                entryDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, targetHeight);
+                entryDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
+            }
+
+            TextureView textureView = new TextureView(this);
+            entryDialog.setContentView(textureView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeight));
+            entryDialog.setCancelable(true);
+
+            textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                @Override
+                public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+                    try {
+                        Surface s = new Surface(surface);
+                        MediaPlayer mp = new MediaPlayer();
+                        AssetFileDescriptor afd = getAssets().openFd("Entry Effect/entry_scene1.mp4");
+                        mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                        afd.close();
+
+                        mp.setSurface(s);
+                        mp.setLooping(false); // Play ONCE (no loop)
+                        mp.setVolume(0f, 0f); // Muted / Without voice
+
+                        mp.setOnCompletionListener(mediaPlayer -> runOnUiThread(() -> {
+                            try {
+                                mediaPlayer.release();
+                                if (entryDialog.isShowing()) {
+                                    entryDialog.dismiss();
+                                }
+                            } catch (Exception ignored) {}
+                        }));
+
+                        mp.setOnErrorListener((mediaPlayer, i, i1) -> {
+                            runOnUiThread(() -> {
+                                try {
+                                    mediaPlayer.release();
+                                    if (entryDialog.isShowing()) {
+                                        entryDialog.dismiss();
+                                    }
+                                } catch (Exception ignored) {}
+                            });
+                            return true;
+                        });
+
+                        mp.prepareAsync();
+                        mp.setOnPreparedListener(player -> {
+                            try {
+                                player.start();
+                                // Auto-dismiss after 2 seconds (2000ms)
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> runOnUiThread(() -> {
+                                    try {
+                                        if (player.isPlaying()) player.stop();
+                                        player.release();
+                                    } catch (Exception ignored) {}
+                                    try {
+                                        if (entryDialog.isShowing()) entryDialog.dismiss();
+                                    } catch (Exception ignored) {}
+                                }), 2000);
+                            } catch (Exception e) {
+                                Log.e("RoomChatActivity", "Error starting entry video", e);
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        Log.e("RoomChatActivity", "Error playing entry scene video", e);
+                        if (entryDialog.isShowing()) entryDialog.dismiss();
+                    }
+                }
+
+                @Override
+                public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {}
+
+                @Override
+                public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                    return true;
+                }
+
+                @Override
+                public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {}
+            });
+
+            textureView.setOnClickListener(v -> {
+                if (entryDialog.isShowing()) entryDialog.dismiss();
+            });
+
+            entryDialog.show();
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error opening entry scene dialog", e);
+        }
     }
 
     @Override
