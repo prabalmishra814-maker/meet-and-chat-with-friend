@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_seat"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="38dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_seat_option_item"
+        android:backgroundTint="#60FFFFFF" />
+
+    <!-- Header Section (Seat Icon / Avatar & Info) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Seat Icon / Avatar Container -->
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+
+            <!-- Glowing Ring / Background -->
+            <View
+                android:id="@+id/vSeatHeaderBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_seat_primary_btn" />
+
+            <!-- Empty Seat Chair / Lock Icon -->
+            <ImageView
+                android:id="@+id/ivSeatHeaderIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:contentDescription="Seat Icon"
+                android:src="@drawable/seat"
+                app:tint="#FFFFFF" />
+
+            <!-- Occupied User Avatar -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivSeatHeaderAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                app:strokeColor="#FFD700"
+                app:strokeWidth="2dp"
+                tools:src="@drawable/seat" />
+        </FrameLayout>
+
+        <!-- Seat Title -->
+        <TextView
+            android:id="@+id/tvSeatTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="Seat #3" />
+
+        <!-- Seat Subtitle -->
+        <TextView
+            android:id="@+id/tvSeatSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textColor="#94A3B8"
+            android:textSize="13sp"
+            tools:text="Empty Seat • Tap below to join voice" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="16dp"
+        android:background="#15FFFFFF" />
+
+    <!-- Primary Action Button (Take Seat / Leave Seat) -->
+    <LinearLayout
+        android:id="@+id/btnPrimaryAction"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_seat_primary_btn"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:id="@+id/ivPrimaryActionIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="Action Icon"
+            android:src="@drawable/ic_mic_on"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tvPrimaryActionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="Take Seat &amp; Join Voice" />
+    </LinearLayout>
+
+    <!-- Secondary Action Options Container -->
+    <LinearLayout
+        android:id="@+id/layoutSecondaryActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+
+        <!-- Option: View Profile -->
+        <LinearLayout
+            android:id="@+id/btnOptionProfile"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_seat_option_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Profile"
+                android:src="@drawable/ic_person"
+                app:tint="#40E0D0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="View Profile"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- Option: Send Gift -->
+        <LinearLayout
+            android:id="@+id/btnOptionGift"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_seat_option_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="Gift"
+                android:src="@drawable/gift_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Send Gift"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- Option: Lock / Open Seat (Host) -->
+        <LinearLayout
+            android:id="@+id/btnOptionLock"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_seat_option_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/ivOptionLockIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Lock"
+                android:src="@drawable/ic_lock"
+                app:tint="#F59E0B" />
+
+            <TextView
+                android:id="@+id/tvOptionLockText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                tools:text="Close Seat" />
+        </LinearLayout>
+
+        <!-- Option: Mute / Unmute User (Host) -->
+        <LinearLayout
+            android:id="@+id/btnOptionMute"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_seat_option_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/ivOptionMuteIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Mute"
+                android:src="@drawable/ic_mic_off"
+                app:tint="#EC4899" />
+
+            <TextView
+                android:id="@+id/tvOptionMuteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                tools:text="Mute User" />
+        </LinearLayout>
+
+        <!-- Option: Kick User (Host) -->
+        <LinearLayout
+            android:id="@+id/btnOptionKick"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_seat_option_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Kick"
+                android:src="@drawable/ic_kick_user" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Kick from Seat"
+                android:textColor="#EF4444"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

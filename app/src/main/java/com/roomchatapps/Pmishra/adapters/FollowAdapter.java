@@ -52,7 +52,7 @@ public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder
                     .alpha(1f)
                     .translationY(0f)
                     .setDuration(350)
-                    .setStartDelay(Math.min(currentPos * 40L, 300L))
+                    .setStartDelay(Math.min((long) currentPos * 40L, 300L))
                     .start();
             lastAnimatedPosition = currentPos;
         }

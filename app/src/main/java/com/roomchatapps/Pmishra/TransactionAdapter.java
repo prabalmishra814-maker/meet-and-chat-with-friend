@@ -43,7 +43,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         switch (type) {
             case "TOPUP":
-                holder.ivTxIcon.setImageResource(R.drawable.profile_entrance_wallet_img);
+            case "WELCOME_BONUS":
+                holder.ivTxIcon.setImageResource(R.drawable.coin);
                 holder.tvTxAmount.setText("+" + item.getCoinAmount() + " Coins");
                 holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F")); // Bright green
                 break;
@@ -58,9 +59,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 holder.tvTxAmount.setTextColor(Color.parseColor("#FFD700")); // Gold
                 break;
             default:
-                holder.ivTxIcon.setImageResource(R.drawable.profile_entrance_wallet_img);
-                holder.tvTxAmount.setText("+" + item.getCoinAmount() + " Coins");
-                holder.tvTxAmount.setTextColor(Color.parseColor("#40E0D0")); // Cyan
+                holder.ivTxIcon.setImageResource(R.drawable.coin);
+                if (item.getCoinAmount() >= 0) {
+                    holder.tvTxAmount.setText("+" + item.getCoinAmount() + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
+                } else {
+                    holder.tvTxAmount.setText(item.getCoinAmount() + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#FF4500"));
+                }
                 break;
         }
 

@@ -53,9 +53,9 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:src="@drawable/profile_entrance_wallet_img" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/coin" />
 
             <TextView
                 android:id="@+id/tvCoins"

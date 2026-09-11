@@ -1,5 +1,8 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -15,6 +18,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityUserDetailBinding;
+import com.roomchatapps.Pmishra.models.StoreItemModel;
+import com.roomchatapps.Pmishra.utils.NotificationHelper;
+import com.roomchatapps.Pmishra.utils.StoreManager;
+
+import java.util.List;
 
 public class UserDetailActivity extends AppCompatActivity {
 
@@ -47,16 +55,43 @@ public class UserDetailActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         binding.btnBack.setOnClickListener(v -> finish());
+
+        if (currentUid != null && currentUid.equals(targetUid)) {
+            binding.bottomBar.setVisibility(View.GONE);
+        }
         
         binding.btnMessage.setOnClickListener(v -> {
             String name = binding.userName.getText().toString();
-            android.content.Intent intent = new android.content.Intent(UserDetailActivity.this, ChatActivity.class);
+            Intent intent = new Intent(UserDetailActivity.this, ChatActivity.class);
             intent.putExtra("receiverId", targetUid);
             intent.putExtra("receiverName", name);
             startActivity(intent);
         });
 
-        binding.btnFollow.setOnClickListener(v -> toggleFollow());
+        binding.btnFollow.setOnClickListener(v -> {
+            AnimationHelper.animateFollowButton(binding.btnFollow, this::toggleFollow);
+        });
+
+        View.OnClickListener openFollowers = v -> {
+            Intent intent = new Intent(UserDetailActivity.this, FollowListActivity.class);
+            intent.putExtra("uid", targetUid);
+            intent.putExtra("type", "followers");
+            startActivity(intent);
+        };
+
+        View.OnClickListener openFollowing = v -> {
+            Intent intent = new Intent(UserDetailActivity.this, FollowListActivity.class);
+            intent.putExtra("uid", targetUid);
+            intent.putExtra("type", "following");
+            startActivity(intent);
+        };
+
+        if (binding.tvFollowCount != null && binding.tvFollowCount.getParent() instanceof View) {
+            ((View) binding.tvFollowCount.getParent()).setOnClickListener(openFollowers);
+        }
+        if (binding.tvFansCount != null && binding.tvFansCount.getParent() instanceof View) {
+            ((View) binding.tvFansCount.getParent()).setOnClickListener(openFollowing);
+        }
     }
 
     private void loadUserData() {
@@ -84,11 +119,11 @@ public class UserDetailActivity extends AppCompatActivity {
                     // Check for equipped frame
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
                     if (equippedFrame != null && !equippedFrame.isEmpty()) {
-                        com.roomchatapps.Pmishra.utils.StoreManager.getStoreCatalog(targetUid, "FRAME", new com.roomchatapps.Pmishra.utils.StoreManager.CatalogCallback() {
+                        StoreManager.getStoreCatalog(targetUid, "FRAME", new StoreManager.CatalogCallback() {
                             @Override
-                            public void onCatalogLoaded(java.util.List<com.roomchatapps.Pmishra.models.StoreItemModel> items) {
+                            public void onCatalogLoaded(List<StoreItemModel> items) {
                                 boolean found = false;
-                                for (com.roomchatapps.Pmishra.models.StoreItemModel item : items) {
+                                for (StoreItemModel item : items) {
                                     if (item.getId().equals(equippedFrame)) {
                                         found = true;
                                         int resId = 0;
@@ -164,10 +199,12 @@ public class UserDetailActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
                             binding.btnFollow.setText("Following");
-                            binding.btnFollow.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                            binding.btnFollow.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#2A3447")));
+                            binding.btnFollow.setTextColor(Color.parseColor("#A0AEC0"));
                         } else {
-                            binding.btnFollow.setText("Follow");
-                            binding.btnFollow.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+                            binding.btnFollow.setText("+ Follow");
+                            binding.btnFollow.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#00FFC2")));
+                            binding.btnFollow.setTextColor(Color.parseColor("#050E1E"));
                         }
                     }
 
@@ -177,7 +214,7 @@ public class UserDetailActivity extends AppCompatActivity {
     }
 
     private void toggleFollow() {
-        if (currentUid == null) return;
+        if (currentUid == null || currentUid.equals(targetUid)) return;
 
         DatabaseReference followingRef = FirebaseDatabase.getInstance().getReference("Follow")
                 .child(currentUid).child("following").child(targetUid);
@@ -193,7 +230,7 @@ public class UserDetailActivity extends AppCompatActivity {
                 } else {
                     followingRef.setValue(true);
                     followersRef.setValue(true);
-                    com.roomchatapps.Pmishra.utils.NotificationHelper.sendFollowNotification(targetUid);
+                    NotificationHelper.sendFollowNotification(targetUid);
                 }
             }
 

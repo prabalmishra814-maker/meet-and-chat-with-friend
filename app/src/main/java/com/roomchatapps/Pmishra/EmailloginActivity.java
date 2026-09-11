@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.roomchatapps.Pmishra.utils.WalletManager;
 
 import org.json.JSONObject;
 
@@ -252,6 +253,10 @@ public class EmailloginActivity extends AppCompatActivity {
             map.put("profileId", generatedProfileId);
             map.put("level", "1");
             map.put("premium", "no");
+            map.put("Followers", "0");
+            map.put("Following", "0");
+            map.put("money", 0);
+            map.put("coins", 500); // 500 Welcome Bonus Coins for Gifts & Theme Store
             if (avatarUrl != null) {
                 map.put("avtar", avatarUrl);
             }
@@ -259,6 +264,11 @@ public class EmailloginActivity extends AppCompatActivity {
             userRef.setValue(map).addOnCompleteListener(task -> {
                 progressBar.setVisibility(View.GONE);
                 if (task.isSuccessful()) {
+                    // Log welcome bonus transaction
+                    WalletManager.logTransaction(
+                            user.getUid(), "WELCOME_BONUS", 500, 0,
+                            "Welcome Signup Bonus", "Received 500 Free Signup Coins!"
+                    );
                     navigateToMainActivity();
                 } else {
                     Toast.makeText(EmailloginActivity.this, "Data upload failed", Toast.LENGTH_SHORT).show();

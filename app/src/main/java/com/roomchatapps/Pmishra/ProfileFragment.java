@@ -255,7 +255,13 @@ public class ProfileFragment extends Fragment {
         };
 
         binding.cardWallet.setOnClickListener(openWallet);
-        binding.cardBuyCoin.setOnClickListener(openWallet);
+        binding.cardBuyCoin.setOnClickListener(v -> {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                Intent intent = new Intent(getActivity(), CoinRechargeActivity.class);
+                startActivity(intent);
+            }
+        });
         binding.cardHistory.setOnClickListener(openWallet);
         binding.cardStore.setOnClickListener(v -> {
             if (getActivity() != null) {

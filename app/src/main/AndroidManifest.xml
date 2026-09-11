@@ -89,6 +89,7 @@
         <activity android:name=".RoomSettingsActivity" />
         <activity android:name=".NotificationActivity" />
         <activity android:name=".WalletActivity" />
+        <activity android:name=".CoinRechargeActivity" />
         <activity android:name=".StoreActivity" />
         <activity android:name=".ReferralActivity" />
         <activity android:name=".EditProfileActivity" />

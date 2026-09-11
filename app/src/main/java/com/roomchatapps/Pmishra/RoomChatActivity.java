@@ -30,6 +30,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -67,6 +68,7 @@ import com.roomchatapps.Pmishra.models.FriendRequestModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 import com.roomchatapps.Pmishra.adapters.ChatAdapter;
 import com.roomchatapps.Pmishra.adapters.SeatAdapter;
+import com.roomchatapps.Pmishra.utils.NotificationHelper;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 import com.roomchatapps.Pmishra.zego.SeatManager;
@@ -199,6 +201,19 @@ public class RoomChatActivity extends AppCompatActivity {
             btnRoomClose.setOnClickListener(v -> leaveRoom());
         }
 
+        View layoutUserInfo = findViewById(R.id.layoutUserInfo);
+        if (layoutUserInfo != null) {
+            layoutUserInfo.setOnClickListener(v -> {
+                List<SeatModel> seats = SeatManager.getInstance().getSeats();
+                if (seats != null && !seats.isEmpty()) {
+                    SeatModel hostSeat = seats.get(0);
+                    if (hostSeat != null && !hostSeat.isEmpty()) {
+                        onSeatClicked(hostSeat);
+                    }
+                }
+            });
+        }
+
 
         View btnRoomShare = findViewById(R.id.btnRoomShare);
         if (btnRoomShare != null) {
@@ -293,11 +308,9 @@ public class RoomChatActivity extends AppCompatActivity {
         public void onLoginResult(int errorCode) {
             if (errorCode == 0) {
                 showUserEnteredMessage(userName);
-                playEntrySceneVideo();
                 if (isHost) {
                     SeatManager.getInstance().takeSeat(0, userID, userName);
                     ZegoManager.getInstance().startPublishing();
-                    Toast.makeText(RoomChatActivity.this, "Host joined. Mic active.", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(RoomChatActivity.this, "Failed to join room: " + errorCode, Toast.LENGTH_LONG).show();
@@ -390,92 +403,239 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         BottomSheetDialog dialog = new BottomSheetDialog(this);
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
-        layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
-        
-        // Ensure menu is large enough
-        layout.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_seat_options, null, false);
+        dialog.setContentView(dialogView);
 
-        if (model.userID.isEmpty()) {
+        dialog.setOnShowListener(d -> {
+            BottomSheetDialog bsd = (BottomSheetDialog) d;
+            FrameLayout bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                bottomSheet.setBackgroundResource(android.R.color.transparent);
+            }
+        });
+
+        View vSeatHeaderBg = dialogView.findViewById(R.id.vSeatHeaderBg);
+        ImageView ivSeatHeaderIcon = dialogView.findViewById(R.id.ivSeatHeaderIcon);
+        ImageView ivSeatHeaderAvatar = dialogView.findViewById(R.id.ivSeatHeaderAvatar);
+        TextView tvSeatTitle = dialogView.findViewById(R.id.tvSeatTitle);
+        TextView tvSeatSubtitle = dialogView.findViewById(R.id.tvSeatSubtitle);
+
+        View btnPrimaryAction = dialogView.findViewById(R.id.btnPrimaryAction);
+        ImageView ivPrimaryActionIcon = dialogView.findViewById(R.id.ivPrimaryActionIcon);
+        TextView tvPrimaryActionText = dialogView.findViewById(R.id.tvPrimaryActionText);
+
+        View btnOptionProfile = dialogView.findViewById(R.id.btnOptionProfile);
+        View btnOptionGift = dialogView.findViewById(R.id.btnOptionGift);
+        View btnOptionLock = dialogView.findViewById(R.id.btnOptionLock);
+        ImageView ivOptionLockIcon = dialogView.findViewById(R.id.ivOptionLockIcon);
+        TextView tvOptionLockText = dialogView.findViewById(R.id.tvOptionLockText);
+        View btnOptionMute = dialogView.findViewById(R.id.btnOptionMute);
+        ImageView ivOptionMuteIcon = dialogView.findViewById(R.id.ivOptionMuteIcon);
+        TextView tvOptionMuteText = dialogView.findViewById(R.id.tvOptionMuteText);
+        View btnOptionKick = dialogView.findViewById(R.id.btnOptionKick);
+
+        boolean isEmpty = model.userID == null || model.userID.trim().isEmpty();
+
+        if (isEmpty) {
+            ivSeatHeaderAvatar.setVisibility(View.GONE);
+            ivSeatHeaderIcon.setVisibility(View.VISIBLE);
+
             if (model.isClosed) {
+                // Locked / Closed Seat
+                tvSeatTitle.setText(model.index == 0 ? "Host Seat" : "Seat #" + (model.index + 1));
+                tvSeatSubtitle.setText("Seat Locked by Host");
+                ivSeatHeaderIcon.setImageResource(R.drawable.ic_lock);
+                ivSeatHeaderIcon.setColorFilter(Color.parseColor("#EF4444"));
+
                 if (isHost) {
-                    addOption(layout, "Open Seat", v -> {
+                    btnPrimaryAction.setVisibility(View.VISIBLE);
+                    btnPrimaryAction.setBackgroundResource(R.drawable.bg_seat_primary_btn);
+                    ivPrimaryActionIcon.setImageResource(R.drawable.ic_lock_open);
+                    tvPrimaryActionText.setText("Open Seat");
+                    btnPrimaryAction.setOnClickListener(v -> {
                         SeatManager.getInstance().closeSeat(model.index, false);
                         dialog.dismiss();
                     });
                 } else {
+                    btnPrimaryAction.setVisibility(View.GONE);
                     Toast.makeText(this, "This seat is locked", Toast.LENGTH_SHORT).show();
                     return;
                 }
             } else {
-                addOption(layout, "Take Seat", v -> {
+                // Open Empty Seat
+                tvSeatTitle.setText(model.index == 0 ? "Host Seat" : "Seat #" + (model.index + 1));
+                tvSeatSubtitle.setText("Empty Seat • Tap below to join voice");
+                ivSeatHeaderIcon.setImageResource(R.drawable.ic_armchair);
+                ivPrimaryActionIcon.setColorFilter(Color.WHITE);
+
+                btnPrimaryAction.setVisibility(View.VISIBLE);
+                btnPrimaryAction.setBackgroundResource(R.drawable.bg_seat_primary_btn);
+                ivPrimaryActionIcon.setImageResource(R.drawable.ic_mic_on);
+                tvPrimaryActionText.setText("Take Seat & Speak");
+
+                btnPrimaryAction.setOnClickListener(v -> {
                     int currentIndex = SeatManager.getInstance().findUserSeatIndex(userID);
                     if (currentIndex != -1) {
                         SeatManager.getInstance().leaveSeat(currentIndex);
                     }
                     SeatManager.getInstance().takeSeat(model.index, userID, userName);
                     ZegoManager.getInstance().startPublishing();
-                    Toast.makeText(this, "Mic ON: Joining seat " + (model.index + 1), Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 });
+
                 if (isHost) {
-                    addOption(layout, "Close Seat", v -> {
+                    btnOptionLock.setVisibility(View.VISIBLE);
+                    tvOptionLockText.setText("Close Seat");
+                    ivOptionLockIcon.setImageResource(R.drawable.ic_lock);
+                    btnOptionLock.setOnClickListener(v -> {
                         SeatManager.getInstance().closeSeat(model.index, true);
                         dialog.dismiss();
                     });
                 }
             }
         } else if (model.userID.equals(userID)) {
-            addOption(layout, "Leave Seat", v -> {
+            // Self Seat
+            tvSeatTitle.setText("Your Seat (Seat #" + (model.index + 1) + ")");
+            tvSeatSubtitle.setText("You are currently on mic");
+            ivSeatHeaderIcon.setVisibility(View.GONE);
+            ivSeatHeaderAvatar.setVisibility(View.VISIBLE);
+
+            UserProfileCache.getUserProfile(userID, profile -> {
+                if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.isEmpty()) {
+                    Glide.with(this).load(profile.avatarUrl).placeholder(R.drawable.logo_placeholder).into(ivSeatHeaderAvatar);
+                } else {
+                    Glide.with(this).load(R.drawable.logo_placeholder).into(ivSeatHeaderAvatar);
+                }
+            });
+
+            btnPrimaryAction.setVisibility(View.VISIBLE);
+            btnPrimaryAction.setBackgroundResource(R.drawable.bg_seat_danger_btn);
+            ivPrimaryActionIcon.setImageResource(R.drawable.ic_leave_seat);
+            tvPrimaryActionText.setText("Leave Seat");
+
+            btnPrimaryAction.setOnClickListener(v -> {
                 SeatManager.getInstance().leaveSeat(model.index);
                 ZegoManager.getInstance().stopPublishing();
                 dialog.dismiss();
             });
         } else {
-            // Other user's seat
-            addOption(layout, "View Profile", v -> {
+            // Other User's Seat (Host or Joined Audience)
+            String name = (model.userName != null && !model.userName.isEmpty()) ? model.userName : "User";
+            tvSeatTitle.setText(name);
+            tvSeatSubtitle.setText(model.index == 0 ? "Room Host • Seat #1" : "Joined Seat #" + (model.index + 1));
+            ivSeatHeaderIcon.setVisibility(View.GONE);
+            ivSeatHeaderAvatar.setVisibility(View.VISIBLE);
+
+            if (model.userAvatar != null && !model.userAvatar.isEmpty()) {
+                Glide.with(this).load(model.userAvatar).placeholder(R.drawable.logo_placeholder).into(ivSeatHeaderAvatar);
+            } else {
+                UserProfileCache.getUserProfile(model.userID, profile -> {
+                    if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.isEmpty()) {
+                        Glide.with(this).load(profile.avatarUrl).placeholder(R.drawable.logo_placeholder).into(ivSeatHeaderAvatar);
+                    } else {
+                        Glide.with(this).load(R.drawable.logo_placeholder).into(ivSeatHeaderAvatar);
+                    }
+                });
+            }
+
+            // Real-time Follow / Following Button in Seat Dialog
+            btnPrimaryAction.setVisibility(View.VISIBLE);
+            DatabaseReference followRef = FirebaseDatabase.getInstance().getReference("Follow")
+                    .child(userID).child("following").child(model.userID);
+
+            followRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        btnPrimaryAction.setBackgroundResource(R.drawable.bg_seat_option_item);
+                        ivPrimaryActionIcon.setImageResource(R.drawable.ic_person);
+                        ivPrimaryActionIcon.setColorFilter(Color.parseColor("#A0AEC0"));
+                        tvPrimaryActionText.setText("Following");
+                        tvPrimaryActionText.setTextColor(Color.parseColor("#A0AEC0"));
+                    } else {
+                        btnPrimaryAction.setBackgroundResource(R.drawable.bg_seat_primary_btn);
+                        ivPrimaryActionIcon.setImageResource(R.drawable.ic_person);
+                        ivPrimaryActionIcon.setColorFilter(Color.WHITE);
+                        tvPrimaryActionText.setText("+ Follow User");
+                        tvPrimaryActionText.setTextColor(Color.WHITE);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+
+            btnPrimaryAction.setOnClickListener(v -> {
+                AnimationHelper.animateFollowButton(btnPrimaryAction, () -> {
+                    DatabaseReference followingRef = FirebaseDatabase.getInstance().getReference("Follow")
+                            .child(userID).child("following").child(model.userID);
+                    DatabaseReference followersRef = FirebaseDatabase.getInstance().getReference("Follow")
+                            .child(model.userID).child("followers").child(userID);
+
+                    followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                followingRef.removeValue();
+                                followersRef.removeValue();
+                            } else {
+                                followingRef.setValue(true);
+                                followersRef.setValue(true);
+                                NotificationHelper.sendFollowNotification(model.userID);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+                });
+            });
+
+            btnOptionProfile.setVisibility(View.VISIBLE);
+            btnOptionProfile.setOnClickListener(v -> {
                 Intent intent = new Intent(this, UserDetailActivity.class);
                 intent.putExtra("uid", model.userID);
                 startActivity(intent);
                 dialog.dismiss();
             });
+
+            btnOptionGift.setVisibility(View.VISIBLE);
+            btnOptionGift.setOnClickListener(v -> {
+                dialog.dismiss();
+                showGiftDialog();
+            });
+
             if (isHost) {
-                addOption(layout, model.isMuted ? "Unmute User" : "Mute User", v -> {
+                btnOptionMute.setVisibility(View.VISIBLE);
+                tvOptionMuteText.setText(model.isMuted ? "Unmute User" : "Mute User");
+                ivOptionMuteIcon.setImageResource(model.isMuted ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
+                btnOptionMute.setOnClickListener(v -> {
                     SeatManager.getInstance().muteSeat(model.index, !model.isMuted);
                     dialog.dismiss();
                 });
-                addOption(layout, "Kick User", v -> {
+
+                btnOptionKick.setVisibility(View.VISIBLE);
+                btnOptionKick.setOnClickListener(v -> {
                     SeatManager.getInstance().kickUser(model.index);
                     dialog.dismiss();
                 });
             }
         }
 
-        if (layout.getChildCount() > 0) {
-            dialog.setContentView(layout);
-            dialog.show();
-        }
-    }
-
-    private void addOption(LinearLayout parent, String text, View.OnClickListener listener) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
-        tv.setTextSize(16);
-        tv.setPadding(0, 24, 0, 24);
-        tv.setTextColor(Color.BLACK);
-        tv.setGravity(Gravity.CENTER);
-        tv.setOnClickListener(listener);
-        parent.addView(tv);
+        dialog.show();
     }
 
     private void leaveRoom() {
-        ZegoManager.getInstance().logoutRoom();
-        ZegoManager.getInstance().removeListener(zegoListener);
-        SeatManager.getInstance().removeListener(seatListener);
-        finish();
+        try {
+            ZegoManager.getInstance().logoutRoom();
+            ZegoManager.getInstance().removeListener(zegoListener);
+            SeatManager.getInstance().removeListener(seatListener);
+            if (!isFinishing() && !isDestroyed()) {
+                finish();
+            }
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error leaving room", e);
+        }
     }
 
     private void setupFirebaseListeners() {
@@ -593,7 +753,7 @@ public class RoomChatActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_theme_selection, null, false);
         if (dialogView == null) return;
 
-        // Theme 1: Cyber Neon Party (theme1_img / theme1.mp4)
+        // Theme 1: Cyber Neon Party (Free - 0 Coins)
         View cardCyber = dialogView.findViewById(R.id.cardThemeCyber);
         View tvUseCyber = dialogView.findViewById(R.id.tvUseCyber);
         View imgPosterTheme1 = dialogView.findViewById(R.id.imgPosterTheme1);
@@ -607,42 +767,72 @@ public class RoomChatActivity extends AppCompatActivity {
         if (tvUseCyber != null) tvUseCyber.setOnClickListener(applyCyber);
         if (imgPosterTheme1 != null) imgPosterTheme1.setOnClickListener(applyCyber);
 
-        // Theme 2: theme2_img / theme2.mp4
+        // Theme 2: Galaxy (50 Coins)
         View cardGalaxy = dialogView.findViewById(R.id.cardThemeGalaxy);
         View tvUseGalaxy = dialogView.findViewById(R.id.tvUseGalaxy);
         View imgPosterTheme2 = dialogView.findViewById(R.id.imgPosterTheme2);
         View.OnClickListener applyTheme2 = v -> {
-            if (backgroundView != null) {
-                backgroundView.setThemeVideo("theme/theme2.mp4");
-            }
-            dialog.dismiss();
+            WalletManager.spendCoinsForGift(userID, null, 50, "Theme: Galaxy", new WalletManager.WalletCallback() {
+                @Override
+                public void onSuccess(String message, long newCoinBalance) {
+                    if (backgroundView != null) {
+                        backgroundView.setThemeVideo("theme/theme2.mp4");
+                    }
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
+                }
+            });
         };
         if (cardGalaxy != null) cardGalaxy.setOnClickListener(applyTheme2);
         if (tvUseGalaxy != null) tvUseGalaxy.setOnClickListener(applyTheme2);
         if (imgPosterTheme2 != null) imgPosterTheme2.setOnClickListener(applyTheme2);
 
-        // Theme 3: theme3_img / theme3.mp4
+        // Theme 3: Sunset (100 Coins)
         View cardSunset = dialogView.findViewById(R.id.cardThemeSunset);
         View tvUseSunset = dialogView.findViewById(R.id.tvUseSunset);
         View imgPosterTheme3 = dialogView.findViewById(R.id.imgPosterTheme3);
         View.OnClickListener applyTheme3 = v -> {
-            if (backgroundView != null) {
-                backgroundView.setThemeVideo("theme/theme3.mp4");
-            }
-            dialog.dismiss();
+            WalletManager.spendCoinsForGift(userID, null, 100, "Theme: Sunset", new WalletManager.WalletCallback() {
+                @Override
+                public void onSuccess(String message, long newCoinBalance) {
+                    if (backgroundView != null) {
+                        backgroundView.setThemeVideo("theme/theme3.mp4");
+                    }
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
+                }
+            });
         };
         if (cardSunset != null) cardSunset.setOnClickListener(applyTheme3);
         if (tvUseSunset != null) tvUseSunset.setOnClickListener(applyTheme3);
         if (imgPosterTheme3 != null) imgPosterTheme3.setOnClickListener(applyTheme3);
 
-        // Theme 4: Aurora Glass
+        // Theme 4: Aurora Glass (150 Coins)
         View cardAurora = dialogView.findViewById(R.id.cardThemeAurora);
         View tvUseAurora = dialogView.findViewById(R.id.tvUseAurora);
         View.OnClickListener applyAurora = v -> {
-            if (backgroundView != null) {
-                backgroundView.setThemeImage(R.drawable.bg_main_gradient);
-            }
-            dialog.dismiss();
+            WalletManager.spendCoinsForGift(userID, null, 150, "Theme: Aurora", new WalletManager.WalletCallback() {
+                @Override
+                public void onSuccess(String message, long newCoinBalance) {
+                    if (backgroundView != null) {
+                        backgroundView.setThemeImage(R.drawable.bg_main_gradient);
+                    }
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
+                }
+            });
         };
         if (cardAurora != null) cardAurora.setOnClickListener(applyAurora);
         if (tvUseAurora != null) tvUseAurora.setOnClickListener(applyAurora);
@@ -804,6 +994,9 @@ public class RoomChatActivity extends AppCompatActivity {
                 "Halloween 🎃"
         };
 
+        long[] giftCosts = {50, 100, 150, 200, 300, 500, 1000};
+        final int[] selectedIndex = {0};
+
         View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
 
         // Selection Handler
@@ -811,6 +1004,7 @@ public class RoomChatActivity extends AppCompatActivity {
             final int index = i;
             if (allCards[index] != null) {
                 allCards[index].setOnClickListener(v -> {
+                    selectedIndex[0] = index;
                     selectedGiftSvga = allSvgaFiles[index];
 
                     // Reset all cards to unselected state
@@ -858,11 +1052,25 @@ public class RoomChatActivity extends AppCompatActivity {
             allCards[0].performClick();
         }
 
-        // Send Button Click
+        // Send Button Click with Coin Balance Check & Deduction
         if (btnSendAction != null) {
             btnSendAction.setOnClickListener(v -> {
-                playSvgaAnimation(selectedGiftSvga);
-                dialog.dismiss();
+                int idx = selectedIndex[0];
+                long cost = giftCosts[idx];
+                String giftName = giftNames[idx];
+
+                WalletManager.spendCoinsForGift(userID, null, cost, giftName, new WalletManager.WalletCallback() {
+                    @Override
+                    public void onSuccess(String message, long newCoinBalance) {
+                        playSvgaAnimation(selectedGiftSvga);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
+                    }
+                });
             });
         }
 
@@ -925,108 +1133,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void playEntrySceneVideo() {
-        try {
-            Dialog entryDialog = new Dialog(this);
-            entryDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-            int screenHeight = getResources().getDisplayMetrics().heightPixels;
-            int targetHeight = (int) (screenHeight * 0.40f);
-
-            if (entryDialog.getWindow() != null) {
-                entryDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                WindowManager.LayoutParams wlp = entryDialog.getWindow().getAttributes();
-                wlp.width = WindowManager.LayoutParams.MATCH_PARENT;
-                wlp.height = targetHeight;
-                wlp.gravity = Gravity.BOTTOM;
-                entryDialog.getWindow().setAttributes(wlp);
-                entryDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, targetHeight);
-                entryDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
-            }
-
-            TextureView textureView = new TextureView(this);
-            entryDialog.setContentView(textureView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeight));
-            entryDialog.setCancelable(true);
-
-            textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-                @Override
-                public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
-                    try {
-                        Surface s = new Surface(surface);
-                        MediaPlayer mp = new MediaPlayer();
-                        AssetFileDescriptor afd = getAssets().openFd("Entry Effect/entry_scene1.mp4");
-                        mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                        afd.close();
-
-                        mp.setSurface(s);
-                        mp.setLooping(false); // Play ONCE (no loop)
-                        mp.setVolume(0f, 0f); // Muted / Without voice
-
-                        mp.setOnCompletionListener(mediaPlayer -> runOnUiThread(() -> {
-                            try {
-                                mediaPlayer.release();
-                                if (entryDialog.isShowing()) {
-                                    entryDialog.dismiss();
-                                }
-                            } catch (Exception ignored) {}
-                        }));
-
-                        mp.setOnErrorListener((mediaPlayer, i, i1) -> {
-                            runOnUiThread(() -> {
-                                try {
-                                    mediaPlayer.release();
-                                    if (entryDialog.isShowing()) {
-                                        entryDialog.dismiss();
-                                    }
-                                } catch (Exception ignored) {}
-                            });
-                            return true;
-                        });
-
-                        mp.prepareAsync();
-                        mp.setOnPreparedListener(player -> {
-                            try {
-                                player.start();
-                                // Auto-dismiss after 2 seconds (2000ms)
-                                new Handler(Looper.getMainLooper()).postDelayed(() -> runOnUiThread(() -> {
-                                    try {
-                                        if (player.isPlaying()) player.stop();
-                                        player.release();
-                                    } catch (Exception ignored) {}
-                                    try {
-                                        if (entryDialog.isShowing()) entryDialog.dismiss();
-                                    } catch (Exception ignored) {}
-                                }), 2000);
-                            } catch (Exception e) {
-                                Log.e("RoomChatActivity", "Error starting entry video", e);
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        Log.e("RoomChatActivity", "Error playing entry scene video", e);
-                        if (entryDialog.isShowing()) entryDialog.dismiss();
-                    }
-                }
-
-                @Override
-                public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {}
-
-                @Override
-                public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
-                    return true;
-                }
-
-                @Override
-                public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {}
-            });
-
-            textureView.setOnClickListener(v -> {
-                if (entryDialog.isShowing()) entryDialog.dismiss();
-            });
-
-            entryDialog.show();
-        } catch (Exception e) {
-            Log.e("RoomChatActivity", "Error opening entry scene dialog", e);
-        }
+        // Entry video dialog removed
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -36,9 +37,8 @@ public class WalletActivity extends AppCompatActivity {
 
     private ImageView btnBack;
     private TextView tvCoins, tvDiamonds, tvTxSummary;
-    private View header, llBalances, glPacks;
+    private View header, llBalances;
     private CardView cvCoins, cvDiamonds;
-    private CardView cardPack100, cardPack500, cardPack1200, cardPack3000;
     private TextView tabTxAll, tabTxGiftCounts, tabTxReceived, tabTxSent, tabTxTopup;
     private RecyclerView rvTransactions, rvGiftCounts;
     private View llEmptyTransactions;
@@ -81,11 +81,6 @@ public class WalletActivity extends AppCompatActivity {
         llBalances = findViewById(R.id.llBalances);
         cvCoins = findViewById(R.id.cvCoins);
         cvDiamonds = findViewById(R.id.cvDiamonds);
-        glPacks = findViewById(R.id.glPacks);
-        cardPack100 = findViewById(R.id.cardPack100);
-        cardPack500 = findViewById(R.id.cardPack500);
-        cardPack1200 = findViewById(R.id.cardPack1200);
-        cardPack3000 = findViewById(R.id.cardPack3000);
 
         tabTxAll = findViewById(R.id.tabTxAll);
         tabTxGiftCounts = findViewById(R.id.tabTxGiftCounts);
@@ -102,27 +97,9 @@ public class WalletActivity extends AppCompatActivity {
     private void setupAnimations() {
         if (header != null) AnimationHelper.fadeIn(header, 400);
         if (llBalances != null) AnimationHelper.scaleIn(llBalances, 500);
-        if (glPacks != null) AnimationHelper.fadeIn(glPacks, 600);
 
         if (cvCoins != null) AnimationHelper.pulseGlowAnimation(cvCoins);
         if (cvDiamonds != null) AnimationHelper.pulseGlowAnimation(cvDiamonds);
-
-        CardView[] packs = {cardPack100, cardPack500, cardPack1200, cardPack3000};
-        long delay = 300;
-        for (CardView pack : packs) {
-            if (pack != null) {
-                pack.setAlpha(0f);
-                pack.setTranslationY(40f);
-                pack.animate()
-                        .alpha(1f)
-                        .translationY(0f)
-                        .setDuration(450)
-                        .setStartDelay(delay)
-                        .setInterpolator(new OvershootInterpolator(1.3f))
-                        .start();
-                delay += 80;
-            }
-        }
     }
 
     private void setupRecyclerViews() {
@@ -169,39 +146,6 @@ public class WalletActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
-
-        if (cardPack100 != null) cardPack100.setOnClickListener(v -> handleRecharge(v, 100, "Starter Pack"));
-        if (cardPack500 != null) cardPack500.setOnClickListener(v -> handleRecharge(v, 550, "Popular Pack (+50 Bonus)"));
-        if (cardPack1200 != null) cardPack1200.setOnClickListener(v -> handleRecharge(v, 1350, "Value Pack (+150 Bonus)"));
-        if (cardPack3000 != null) cardPack3000.setOnClickListener(v -> handleRecharge(v, 3500, "VIP Mega Pack (+500 Bonus)"));
-    }
-
-    private void handleRecharge(View view, long coinAmount, String packageName) {
-        AnimationHelper.bounceAnimation(view);
-        if (currentUid == null) {
-            Toast.makeText(this, "Please login to top-up wallet", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Toast.makeText(this, "Processing top-up...", Toast.LENGTH_SHORT).show();
-        WalletManager.addCoins(currentUid, coinAmount, packageName, new WalletManager.WalletCallback() {
-            @Override
-            public void onSuccess(String message, long newCoinBalance) {
-                if (lastCoinsVal >= 0 && tvCoins != null) {
-                    AnimationHelper.animateNumberCounter(tvCoins, lastCoinsVal, newCoinBalance);
-                    AnimationHelper.bounceAnimation(tvCoins);
-                } else if (tvCoins != null) {
-                    tvCoins.setText(String.valueOf(newCoinBalance));
-                }
-                lastCoinsVal = newCoinBalance;
-                Toast.makeText(WalletActivity.this, "🎉 " + message, Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(WalletActivity.this, "Top-up failed: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void loadWalletData() {
@@ -365,7 +309,7 @@ public class WalletActivity extends AppCompatActivity {
                 filteredTransactionList.add(tx);
                 totalCount++;
                 totalVal += Math.abs(tx.getCoinAmount());
-            } else if ("TOPUP".equalsIgnoreCase(activeTab) && "TOPUP".equals(type)) {
+            } else if ("TOPUP".equalsIgnoreCase(activeTab) && ("TOPUP".equals(type) || "WELCOME_BONUS".equals(type))) {
                 filteredTransactionList.add(tx);
                 totalCount++;
                 totalVal += tx.getCoinAmount();

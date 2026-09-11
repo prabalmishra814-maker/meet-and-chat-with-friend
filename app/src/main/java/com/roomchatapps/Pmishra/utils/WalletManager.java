@@ -148,7 +148,7 @@ public class WalletManager {
         });
     }
 
-    private static void logTransaction(String uid, String type, long coinAmount, long diamondAmount, String title, String description) {
+    public static void logTransaction(String uid, String type, long coinAmount, long diamondAmount, String title, String description) {
         DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(uid);
         String txId = txRef.push().getKey();
         if (txId == null) return;

@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:text="Room Gifts"
+            android:text="Room Gifts 🎁"
             android:textColor="#FFFFFF"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -60,13 +60,6 @@
 
     </RelativeLayout>
 
-    <!-- Gift Category Tabs -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:orientation="horizontal"/>
-
     <!-- Gifts Grid (4 Columns) -->
     <GridLayout
         android:layout_width="match_parent"
@@ -74,11 +67,11 @@
         android:columnCount="4"
         android:useDefaultMargins="true">
 
-        <!-- Gift Item 1: Aladdin Magic Lamp (SVGA) -->
+        <!-- Gift Item 1: Aladdin Magic Lamp (50 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftAladdin"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -94,11 +87,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftAladdin"
@@ -120,21 +113,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Aladdin"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 2: Walkthrough -->
+        <!-- Gift Item 2: Walkthrough (100 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftHeart"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -150,11 +151,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftHeart"
@@ -176,21 +177,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Walkthrough"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="100 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 3: Angel -->
+        <!-- Gift Item 3: Angel (150 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftBox"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -206,11 +215,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftBox"
@@ -232,21 +241,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Angel"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="150 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 4: Magic Rose -->
+        <!-- Gift Item 4: Magic Rose (200 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftRose"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -262,11 +279,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftRose"
@@ -288,21 +305,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Magic Rose"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="200 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 5: Crown -->
+        <!-- Gift Item 5: Crown (300 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftCrown"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -318,11 +343,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftCrown"
@@ -344,21 +369,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Rocket"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="300 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 6: Super Rocket -->
+        <!-- Gift Item 6: Super Rocket (500 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftRocket"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -374,11 +407,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftRocket"
@@ -400,21 +433,29 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
-                    android:text="Porche"
+                    android:text="Porsche"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="500 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Gift Item 7: SVIP Badge -->
+        <!-- Gift Item 7: Halloween (1000 Coins) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGiftSvip"
             android:layout_width="0dp"
-            android:layout_height="95dp"
+            android:layout_height="105dp"
             android:layout_columnWeight="1"
             android:layout_margin="4dp"
             android:clickable="true"
@@ -430,11 +471,11 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:padding="4dp">
 
                 <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
 
                     <ImageView
                         android:id="@+id/imgGiftSvip"
@@ -456,22 +497,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="Halloween"
                     android:textColor="#FFFFFF"
-                    android:textSize="11.5sp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1000 🪙"
+                    android:textColor="#FFD700"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </GridLayout>
-
-    <!-- Bottom Actions Row -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"/>
 
 </LinearLayout>

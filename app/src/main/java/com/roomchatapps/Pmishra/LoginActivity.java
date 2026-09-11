@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,8 +23,12 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.roomchatapps.Pmishra.utils.WalletManager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -150,22 +155,56 @@ public class LoginActivity extends AppCompatActivity {
                     .getReference("users")
                     .child(user.getUid());
 
-            String generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) {
+                        // New User Registration: Initialize profile and award Welcome Bonus Coins
+                        String generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
 
-            userRef.child("name").setValue(user.getDisplayName());
-            userRef.child("email").setValue(user.getEmail());
-            userRef.child("uid").setValue(user.getUid());
-            userRef.child("profileId").setValue(generatedProfileId);
-            userRef.child("premium").setValue("no");
-            userRef.child("Followers").setValue("0");
-            userRef.child("Following").setValue("0");
-            userRef.child("level").setValue("1");
-            userRef.child("money").setValue("0");
-            if (user.getPhotoUrl() != null) {
-                userRef.child("avtar").setValue(user.getPhotoUrl().toString());
-            }
+                        userRef.child("name").setValue(user.getDisplayName() != null ? user.getDisplayName() : "User");
+                        userRef.child("email").setValue(user.getEmail() != null ? user.getEmail() : "");
+                        userRef.child("uid").setValue(user.getUid());
+                        userRef.child("profileId").setValue(generatedProfileId);
+                        userRef.child("premium").setValue("no");
+                        userRef.child("Followers").setValue("0");
+                        userRef.child("Following").setValue("0");
+                        userRef.child("level").setValue("1");
+                        userRef.child("money").setValue(0);
+                        
+                        // Welcome Bonus: Give 500 initial coins for Gifts & Theme Store
+                        userRef.child("coins").setValue(500);
 
-            navigateToMainActivity();
+                        if (user.getPhotoUrl() != null) {
+                            userRef.child("avtar").setValue(user.getPhotoUrl().toString());
+                        }
+
+                        // Log welcome bonus transaction in wallet history
+                        WalletManager.logTransaction(
+                                user.getUid(), "WELCOME_BONUS", 500, 0,
+                                "Welcome Signup Bonus", "Received 500 Free Signup Coins!"
+                        );
+                    } else {
+                        // Existing User: Preserve existing coin balance, level, followers, and profile ID
+                        if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
+                            userRef.child("name").setValue(user.getDisplayName());
+                        }
+                        if (user.getPhotoUrl() != null) {
+                            userRef.child("avtar").setValue(user.getPhotoUrl().toString());
+                        }
+                        // Ensure coins field exists if missing
+                        if (!snapshot.hasChild("coins")) {
+                            userRef.child("coins").setValue(500);
+                        }
+                    }
+                    navigateToMainActivity();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    navigateToMainActivity();
+                }
+            });
         }
     }
 
