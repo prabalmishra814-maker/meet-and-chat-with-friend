@@ -9,7 +9,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -17,152 +18,177 @@
             android:orientation="vertical"
             android:paddingBottom="100dp">
 
-            <!-- Top Header / Profile Info -->
+            <!-- Header Layout (Profile Header & Avatar) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/headerLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="32dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="24dp"
                 android:paddingBottom="16dp">
 
-                <FrameLayout
-                    android:id="@+id/profileImageContainer"
-                    android:layout_width="104dp"
-                    android:layout_height="104dp"
-                    android:layout_marginStart="20dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                    <!-- Profile Image -->
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/profileImage"
-                        android:layout_width="84dp"
-                        android:layout_height="84dp"
-                        android:layout_gravity="center"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_person"
-                        app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="#00000000"
-                        app:strokeWidth="0dp" />
-
-                    <!-- Frame Overlay -->
-                    <ImageView
-                        android:id="@+id/ivProfileFrame"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/_1000092519_removebg_preview" />
-
-                </FrameLayout>
-
+                <!-- Profile Screen Bar Title -->
                 <TextView
-                    android:id="@+id/userName"
-                    android:layout_width="0dp"
+                    android:id="@+id/tvProfileTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="User Name"
+                    android:text="My Profile"
                     android:textColor="@color/white"
                     android:textSize="22sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/profileImageContainer"
-                    app:layout_constraintTop_toTopOf="@+id/profileImageContainer" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/userId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="@string/user_id"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="11sp"
-                    app:layout_constraintStart_toStartOf="@+id/userName"
-                    app:layout_constraintTop_toBottomOf="@+id/userName" />
-
+                <!-- Edit Profile Button/Chip Indicator -->
                 <LinearLayout
-                    android:id="@+id/genderLevelLayout"
+                    android:id="@+id/btnEditProfileHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
+                    android:background="@drawable/bg_glass_card"
                     android:gravity="center_vertical"
-                    app:layout_constraintStart_toStartOf="@+id/userName"
-                    app:layout_constraintTop_toBottomOf="@+id/userId">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvProfileTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/tvProfileTitle">
 
                     <ImageView
-                        android:id="@+id/ivUserGender"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/common_gender_female_pink_16_ic" />
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_edit_profile"
+                        app:tint="@color/white" />
 
                     <TextView
-                        android:id="@+id/tvUserLevel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/chip_room_bg"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="1dp"
-                        android:text="Lv.1"
+                        android:layout_marginStart="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Edit"
                         android:textColor="@color/white"
-                        android:textSize="10sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
+                <!-- Profile Main Section -->
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cardBio"
-                    android:layout_width="366dp"
-                    android:layout_height="88dp"
-                    android:layout_marginHorizontal="2dp"
+                    android:id="@+id/profileMainContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tvProfileTitle">
 
-                    android:padding="20dp"
-                    app:layout_constraintTop_toBottomOf="@+id/profileImageContainer"
-                    tools:layout_editor_absoluteX="16dp">
-
-                    <TextView
-                        android:id="@+id/tvAboutTitle"
-                        android:layout_width="47dp"
-                        android:layout_height="18dp"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="sans-serif-black"
-                        android:text="About"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
+                    <!-- Profile Image Container -->
+                    <FrameLayout
+                        android:id="@+id/profileImageContainer"
+                        android:layout_width="104dp"
+                        android:layout_height="104dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent">
 
+                        <!-- Profile Image -->
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/profileImage"
+                            android:layout_width="84dp"
+                            android:layout_height="84dp"
+                            android:layout_gravity="center"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_person"
+                            app:shapeAppearanceOverlay="@style/CircleImage"
+                            app:strokeColor="#1AFFFFFF"
+                            app:strokeWidth="2dp" />
+
+                        <!-- Frame Overlay -->
+                        <ImageView
+                            android:id="@+id/ivProfileFrame"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/_1000092519_removebg_preview" />
+
+                    </FrameLayout>
+
+                    <!-- User Name -->
                     <TextView
-                        android:id="@+id/tvBio"
+                        android:id="@+id/userName"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif"
-                        android:text="No bio available."
-                        android:textColor="#B3FFFFFF"
-                        android:textSize="14sp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif-black"
+                        android:maxLines="1"
+                        android:text="User Name"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvAboutTitle" />
+                        app:layout_constraintStart_toEndOf="@+id/profileImageContainer"
+                        app:layout_constraintTop_toTopOf="@+id/profileImageContainer" />
+
+                    <!-- User ID -->
+                    <TextView
+                        android:id="@+id/userId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/user_id"
+                        android:textColor="#B3FFFFFF"
+                        android:textSize="12sp"
+                        app:layout_constraintStart_toStartOf="@+id/userName"
+                        app:layout_constraintTop_toBottomOf="@+id/userName" />
+
+                    <!-- Gender & Level Layout -->
+                    <LinearLayout
+                        android:id="@+id/genderLevelLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        app:layout_constraintStart_toStartOf="@+id/userName"
+                        app:layout_constraintTop_toBottomOf="@+id/userId">
+
+                        <ImageView
+                            android:id="@+id/ivUserGender"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/common_gender_female_pink_16_ic" />
+
+                        <TextView
+                            android:id="@+id/tvUserLevel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_level_badge_purple"
+                            android:fontFamily="sans-serif-bold"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="2dp"
+                            android:text="Lv.1"
+                            android:textColor="@color/white"
+                            android:textSize="11sp" />
+                    </LinearLayout>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- About / Bio Card -->
-
-            <!-- Stats Row (Followers/Following) - Now below Bio -->
-
+            <!-- Stats Row (Followers / Following Card) -->
             <LinearLayout
                 android:id="@+id/statsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_glass_card"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:paddingHorizontal="40dp">
+                android:paddingVertical="16dp">
 
+                <!-- Followers Clickable Container -->
                 <LinearLayout
                     android:id="@+id/layoutFollowers"
                     android:layout_width="0dp"
@@ -181,16 +207,25 @@
                         android:fontFamily="sans-serif-black"
                         android:text="0"
                         android:textColor="@color/white"
-                        android:textSize="20sp" />
+                        android:textSize="22sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
                         android:text="Followers"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#B3FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
 
+                <!-- Divider Line -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="28dp"
+                    android:background="#20FFFFFF" />
+
+                <!-- Following Clickable Container -->
                 <LinearLayout
                     android:id="@+id/layoutFollowing"
                     android:layout_width="0dp"
@@ -209,17 +244,56 @@
                         android:fontFamily="sans-serif-black"
                         android:text="0"
                         android:textColor="@color/white"
-                        android:textSize="20sp" />
+                        android:textSize="22sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
                         android:text="Following"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#B3FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
 
             </LinearLayout>
+
+            <!-- About / Bio Card -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardBio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvAboutTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="About"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvBio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="3dp"
+                    android:text="No bio available."
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="13sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvAboutTitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Wallet & Coins Card -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -229,211 +303,352 @@
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_glass_card"
-                android:padding="20dp">
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:padding="16dp">
 
-                <ImageView
-                    android:id="@+id/ivWallet"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/wallet"
+                <!-- Wallet Icon Container -->
+                <FrameLayout
+                    android:id="@+id/walletIconContainer"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_icon_circle_accent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivWallet"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/wallet" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/tvWalletTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
                     android:fontFamily="sans-serif-black"
                     android:text="@string/wallet"
                     android:textColor="@color/white"
                     android:textSize="16sp"
-                    app:layout_constraintStart_toEndOf="@+id/ivWallet"
-                    app:layout_constraintTop_toTopOf="@+id/ivWallet" />
+                    app:layout_constraintStart_toEndOf="@+id/walletIconContainer"
+                    app:layout_constraintTop_toTopOf="@+id/walletIconContainer" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="My coins"
-                    android:textColor="#80FFFFFF"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="My coins balance"
+                    android:textColor="#B3FFFFFF"
                     android:textSize="12sp"
                     app:layout_constraintStart_toStartOf="@+id/tvWalletTitle"
                     app:layout_constraintTop_toBottomOf="@+id/tvWalletTitle" />
 
-                <TextView
-                    android:id="@+id/tvCoins"
+                <!-- Coins Count & Right Chevron Indicator -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
-                    android:text="0"
-                    android:textColor="#FFD700"
-                    android:textSize="18sp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvCoins"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="0"
+                        android:textColor="#FFD700"
+                        android:textSize="20sp" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="#B3FFFFFF" />
+                </LinearLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <GridLayout
+            <!-- Feature Cards Grid (2x2 Layout) -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="16dp"
-                android:columnCount="2"
-                android:rowCount="2">
+                android:orientation="vertical">
 
-                <!-- Buy Coin -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cardBuyCoin"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_row="0"
-                    android:layout_column="0"
-                    android:layout_columnWeight="1"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/bg_glass_card"
-                    android:padding="12dp">
+                <!-- Row 1: Buy Coin & Store -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:id="@+id/ivNobel"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/profile_entrance_nobel_img"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                    <!-- Buy Coin Card -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cardBuyCoin"
+                        android:layout_width="0dp"
+                        android:layout_height="88dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_glass_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:padding="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="Buy Coin"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        <FrameLayout
+                            android:id="@+id/buyCoinIconBg"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle_accent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
 
-                <!-- Store -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cardStore"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/bg_glass_card"
-                    android:padding="12dp">
-                    <ImageView
-                        android:id="@+id/ivStore"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/store"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="@string/store"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                            <ImageView
+                                android:id="@+id/ivNobel"
+                                android:layout_width="18dp"
+                                android:layout_height="19dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/coin" />
+                        </FrameLayout>
 
-                <!-- History -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cardHistory"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/bg_glass_card"
-                    android:padding="12dp">
-                    <ImageView
-                        android:id="@+id/ivMedal"
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/room_gift_history_ic"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="Buy Coins"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="History"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="#80FFFFFF" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Setting -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cardSetting"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_glass_card"
-                    android:padding="12dp">
-                    <ImageView
-                        android:id="@+id/ivLevel"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/room_game_setting_ic"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                    <!-- Store Card -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cardStore"
+                        android:layout_width="0dp"
+                        android:layout_height="88dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_glass_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:padding="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="Setting"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        <FrameLayout
+                            android:id="@+id/storeIconBg"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle_accent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
 
-            </GridLayout>
+                            <ImageView
+                                android:id="@+id/ivStore"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/store" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/store"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="#80FFFFFF" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </LinearLayout>
+
+                <!-- Row 2: History & Setting -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <!-- History Card -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cardHistory"
+                        android:layout_width="0dp"
+                        android:layout_height="88dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_glass_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:padding="14dp">
+
+                        <FrameLayout
+                            android:id="@+id/historyIconBg"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle_accent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <ImageView
+                                android:id="@+id/ivMedal"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/room_gift_history_ic" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="History"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="#80FFFFFF" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Setting Card -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cardSetting"
+                        android:layout_width="0dp"
+                        android:layout_height="88dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_glass_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:padding="14dp">
+
+                        <FrameLayout
+                            android:id="@+id/settingIconBg"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle_accent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <ImageView
+                                android:id="@+id/ivLevel"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/room_game_setting_ic" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="Settings"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="#80FFFFFF" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <!-- Referral Banner -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="88dp"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/bg_indicator_gradient"
-                app:backgroundTint="#FFD700"
-                android:alpha="0.9">
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_referral_banner"
+                android:paddingHorizontal="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="Refer &amp; Earn"
-                    android:textColor="#050E1E"
-                    android:textSize="18sp"
+                    android:layout_marginEnd="12dp"
+                    android:orientation="vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/btnRefer"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="Refer &amp; Earn"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Invite friends and win free coins!"
+                        android:textColor="#E0FFFFFF"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRefer"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:layout_marginEnd="16dp"
-                    android:backgroundTint="#050E1E"
-                    android:text="Refer Now"
-                    android:textColor="#FFD700"
-                    android:textSize="10sp"
+                    android:layout_height="40dp"
+                    android:backgroundTint="#0F172A"
+                    android:fontFamily="sans-serif-bold"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    app:cornerRadius="18dp"
+                    android:paddingHorizontal="16dp"
+                    android:text="Refer Now"
+                    android:textColor="#FFD700"
+                    android:textSize="12sp"
+                    app:cornerRadius="20dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

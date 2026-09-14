@@ -80,6 +80,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import im.zego.zegoexpress.constants.ZegoRoomStateChangedReason;
@@ -663,7 +665,10 @@ public class RoomChatActivity extends AppCompatActivity {
                         if (notificationAnimator != null) {
                             notificationAnimator.showNotification("🎁 Gift Received", senderName + " sent " + giftName, iconRes);
                         }
-                        if (giftName.contains("Heart")) {
+                        String giftSvga = snapshot.child("giftSvga").getValue(String.class);
+                        if (giftSvga != null) {
+                            playSvgaAnimation(giftSvga);
+                        } else if (giftName.contains("Heart")) {
                             playSvgaAnimation("gift/aladdin.svga");
                         }
                         if (giftKey != null) {
@@ -951,7 +956,8 @@ public class RoomChatActivity extends AppCompatActivity {
                 dialogView.findViewById(R.id.cardGiftRose),
                 dialogView.findViewById(R.id.cardGiftCrown),
                 dialogView.findViewById(R.id.cardGiftRocket),
-                dialogView.findViewById(R.id.cardGiftSvip)
+                dialogView.findViewById(R.id.cardGiftSvip),
+                dialogView.findViewById(R.id.cardGift8)
         };
 
         ImageView[] allStaticImgs = {
@@ -961,7 +967,8 @@ public class RoomChatActivity extends AppCompatActivity {
                 dialogView.findViewById(R.id.imgGiftRose),
                 dialogView.findViewById(R.id.imgGiftCrown),
                 dialogView.findViewById(R.id.imgGiftRocket),
-                dialogView.findViewById(R.id.imgGiftSvip)
+                dialogView.findViewById(R.id.imgGiftSvip),
+                dialogView.findViewById(R.id.imgGift8)
         };
 
         SVGAImageView[] allPreviewSvgas = {
@@ -971,7 +978,8 @@ public class RoomChatActivity extends AppCompatActivity {
                 dialogView.findViewById(R.id.svgaPreviewRose),
                 dialogView.findViewById(R.id.svgaPreviewCrown),
                 dialogView.findViewById(R.id.svgaPreviewRocket),
-                dialogView.findViewById(R.id.svgaPreviewSvip)
+                dialogView.findViewById(R.id.svgaPreviewSvip),
+                dialogView.findViewById(R.id.svgaPreview8)
         };
 
         String[] allSvgaFiles = {
@@ -981,7 +989,8 @@ public class RoomChatActivity extends AppCompatActivity {
                 "gift/rose.svga",
                 "gift/Rocket.svga",
                 "gift/posche.svga",
-                "gift/halloween.svga"
+                "gift/halloween.svga",
+                "gift/gift8sv.svga"
         };
 
         String[] giftNames = {
@@ -989,12 +998,23 @@ public class RoomChatActivity extends AppCompatActivity {
                 "Walkthrough 🚶",
                 "Angel 👼",
                 "Magic Rose 🌹",
+                "Rocket 🚀",
                 "Porsche Car 🏎️",
-                "Super Rocket 🚀",
-                "Halloween 🎃"
+                "Halloween 🎃",
+                "Super Castle 🏰"
         };
 
-        long[] giftCosts = {50, 100, 150, 200, 300, 500, 1000};
+        long[] giftCosts = {50, 100, 150, 200, 300, 500, 1000, 0};
+        int[] giftIconRes = {
+                R.drawable.aladin,
+                R.drawable.gift2,
+                R.drawable.gift3,
+                R.drawable.gift4,
+                R.drawable.gift5,
+                R.drawable.gift6,
+                R.drawable.gift7,
+                R.drawable.gift8
+        };
         final int[] selectedIndex = {0};
 
         View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
@@ -1063,6 +1083,15 @@ public class RoomChatActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(String message, long newCoinBalance) {
                         playSvgaAnimation(selectedGiftSvga);
+                        if (roomGiftsRef != null) {
+                            Map<String, Object> giftData = new HashMap<>();
+                            giftData.put("senderName", userName != null ? userName : "User");
+                            giftData.put("giftName", giftName);
+                            giftData.put("giftSvga", selectedGiftSvga);
+                            giftData.put("iconRes", (long) giftIconRes[idx]);
+                            giftData.put("timestamp", System.currentTimeMillis());
+                            roomGiftsRef.push().setValue(giftData);
+                        }
                         dialog.dismiss();
                     }
 

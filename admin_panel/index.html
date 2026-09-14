@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Chat - Web Admin Control Panel</title>
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase Compatibility Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+  <div class="admin-wrapper">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-comments"></i>
+        </div>
+        <div class="brand-text">
+          <h2>Room Chat</h2>
+          <p>Admin Control</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item active" data-target="dashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-target="recharges">
+          <i class="fa-solid fa-credit-card"></i>
+          <span>Recharge Requests</span>
+        </a>
+        <a class="nav-item" data-target="users">
+          <i class="fa-solid fa-users"></i>
+          <span>Users</span>
+        </a>
+        <a class="nav-item" data-target="rooms">
+          <i class="fa-solid fa-microphone"></i>
+          <span>Audio Rooms</span>
+        </a>
+        <a class="nav-item" data-target="posts">
+          <i class="fa-solid fa-newspaper"></i>
+          <span>Posts &amp; Feed</span>
+        </a>
+        <a class="nav-item" data-target="store">
+          <i class="fa-solid fa-store"></i>
+          <span>Store Catalog</span>
+        </a>
+        <a class="nav-item" data-target="notifications">
+          <i class="fa-solid fa-bullhorn"></i>
+          <span>Broadcast Push</span>
+        </a>
+        <a class="nav-item" data-target="transactions">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Transactions</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="connection-status">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Connecting Firebase...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1 id="activePageTitle">Dashboard Overview</h1>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="btnRefresh" title="Refresh Realtime Data">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+          <button class="btn-primary" id="btnOpenConfig">
+            <i class="fa-solid fa-gear"></i>
+            <span>Firebase Config</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <div class="content-body">
+
+        <!-- 1. DASHBOARD OVERVIEW TAB -->
+        <section id="dashboard" class="tab-pane active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-success);">
+                <i class="fa-solid fa-credit-card"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="statPendingRecharges">0</h3>
+                <p>Pending Recharges</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon users">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="statTotalUsers">0</h3>
+                <p>Total Registered Users</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon rooms">
+                <i class="fa-solid fa-microphone"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="statTotalRooms">0</h3>
+                <p>Active Audio Rooms</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon coins">
+                <i class="fa-solid fa-coins"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="statTotalCoins">0</h3>
+                <p>Total Coins Circulating</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Section -->
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>⚡ Quick Management Actions</h2>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="switchTab('recharges')">
+                <i class="fa-solid fa-check-double"></i> Verify Payment Requests
+              </button>
+              <button class="btn-primary" onclick="switchTab('users')">
+                <i class="fa-solid fa-user-plus"></i> Manage Users &amp; Topup Coins
+              </button>
+              <button class="btn-primary" onclick="switchTab('store')">
+                <i class="fa-solid fa-plus-circle"></i> Add Store Frame/Item
+              </button>
+              <button class="btn-primary" onclick="switchTab('notifications')">
+                <i class="fa-solid fa-paper-plane"></i> Send System Broadcast
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. RECHARGE REQUESTS TAB (PAYMENT VERIFICATION) -->
+        <section id="recharges" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>💳 User Payment Verification &amp; Recharge Requests</h2>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="rechargeSearch" placeholder="Search by name, UTR, or UID...">
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>User Profile</th>
+                    <th>Package &amp; Coins</th>
+                    <th>Price</th>
+                    <th>UTR / Transaction ID</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="rechargeTableBody">
+                  <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading payment requests...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. USERS MANAGEMENT TAB -->
+        <section id="users" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>👥 User Accounts Management</h2>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="userSearch" placeholder="Search by name, ID, or UID...">
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>User Profile</th>
+                    <th>User ID</th>
+                    <th>Coins</th>
+                    <th>Diamonds</th>
+                    <th>Level</th>
+                    <th>Gender</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading users from Firebase...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. AUDIO ROOMS TAB -->
+        <section id="rooms" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>🎙️ Active Audio Chat Rooms</h2>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="roomSearch" placeholder="Search rooms by name or ID...">
+              </div>
+            </div>
+
+            <div class="cards-grid" id="roomsGrid">
+              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading rooms...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. POSTS & FEED TAB -->
+        <section id="posts" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>📝 Community Feed Posts</h2>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="postSearch" placeholder="Search posts content or author...">
+              </div>
+            </div>
+
+            <div class="cards-grid" id="postsGrid">
+              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading posts...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. STORE CATALOG TAB -->
+        <section id="store" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>🛒 Store Catalog Items (Frames &amp; Themes)</h2>
+              <button class="btn-primary" id="btnAddStoreItem">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Store Item</span>
+              </button>
+            </div>
+
+            <div class="cards-grid" id="storeGrid">
+              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading store catalog...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. BROADCAST PUSH TAB -->
+        <section id="notifications" class="tab-pane">
+          <div class="glass-container" style="max-width: 600px; margin: 0 auto;">
+            <div class="section-header">
+              <h2>📢 System Notification Broadcast</h2>
+            </div>
+
+            <form id="formBroadcast">
+              <div class="form-group">
+                <label>Target Audience</label>
+                <select id="broadcastTarget" class="form-control">
+                  <option value="ALL">All Users (Broadcast)</option>
+                  <option value="SPECIFIC">Specific User UID</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="targetUidGroup" style="display: none;">
+                <label>Target User UID</label>
+                <input type="text" id="broadcastUid" class="form-control" placeholder="Enter user UID...">
+              </div>
+
+              <div class="form-group">
+                <label>Notification Title</label>
+                <input type="text" id="broadcastTitle" class="form-control" placeholder="e.g. System Reward 🎁" required>
+              </div>
+
+              <div class="form-group">
+                <label>Notification Message</label>
+                <textarea id="broadcastMessage" class="form-control" rows="4" placeholder="Enter message text..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+                <i class="fa-solid fa-paper-plane"></i> Dispatch Notification
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 8. TRANSACTIONS LOG TAB -->
+        <section id="transactions" class="tab-pane">
+          <div class="glass-container">
+            <div class="section-header">
+              <h2>💸 Wallet Transactions Log</h2>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Tx ID</th>
+                    <th>User</th>
+                    <th>Title &amp; Type</th>
+                    <th>Coin Amount</th>
+                    <th>Diamond Amount</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="txTableBody">
+                  <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Loading transactions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Top-Up Coins & Diamonds Modal -->
+  <div class="modal-overlay" id="modalTopup">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🪙 Top-Up / Edit Coins</h3>
+        <button class="btn-icon" onclick="closeModal('modalTopup')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formTopup">
+        <input type="hidden" id="topupUid">
+        <div class="form-group">
+          <label>User Name</label>
+          <input type="text" id="topupUserName" class="form-control" readonly>
+        </div>
+
+        <div class="form-group">
+          <label>Coins Amount to Add / Set</label>
+          <input type="number" id="topupCoins" class="form-control" placeholder="e.g. 1000" required>
+        </div>
+
+        <div class="form-group">
+          <label>Operation Type</label>
+          <select id="topupOpType" class="form-control">
+            <option value="ADD">Add Coins (+) </option>
+            <option value="SET">Set Exact Balance</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+          Update Balance
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="modal-overlay" id="modalEditUser">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit User Details</h3>
+        <button class="btn-icon" onclick="closeModal('modalEditUser')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formEditUser">
+        <input type="hidden" id="editUserUid">
+
+        <div class="form-group">
+          <label>Display Name</label>
+          <input type="text" id="editUserName" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Level (e.g. 1, 5, 10)</label>
+          <input type="text" id="editUserLevel" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="editUserGender" class="form-control">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Bio Notice</label>
+          <textarea id="editUserBio" class="form-control" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Store Item Modal -->
+  <div class="modal-overlay" id="modalAddStoreItem">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🛒 Add New Store Item</h3>
+        <button class="btn-icon" onclick="closeModal('modalAddStoreItem')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formAddStoreItem">
+        <div class="form-group">
+          <label>Item Name</label>
+          <input type="text" id="storeItemName" class="form-control" placeholder="e.g. Royal Gold Frame 👑" required>
+        </div>
+
+        <div class="form-group">
+          <label>Item Type</label>
+          <select id="storeItemType" class="form-control">
+            <option value="FRAME">Avatar Frame (FRAME)</option>
+            <option value="THEME">Room Theme (THEME)</option>
+            <option value="VIP">VIP Badge (VIP)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Price in Coins</label>
+          <input type="number" id="storeItemPrice" class="form-control" placeholder="500" required>
+        </div>
+
+        <div class="form-group">
+          <label>Icon Drawable Name (e.g. _1000092519_removebg_preview)</label>
+          <input type="text" id="storeItemIcon" class="form-control" placeholder="Drawable res name..." required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+          Create Store Item
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase Config Modal -->
+  <div class="modal-overlay" id="modalConfig">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ Firebase Database Config</h3>
+        <button class="btn-icon" onclick="closeModal('modalConfig')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formConfig">
+        <div class="form-group">
+          <label>Realtime Database URL</label>
+          <input type="text" id="cfgDatabaseURL" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="text" id="cfgApiKey" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Project ID</label>
+          <input type="text" id="cfgProjectId" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+          Save &amp; Reconnect
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toasts Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Admin Application Logic -->
+  <script src="admin.js"></script>
+</body>
+</html>
