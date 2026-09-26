@@ -37,7 +37,7 @@
         android:id="@+id/ivProfile"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:src="@drawable/ic_person"
         app:civ_border_color="#55FFFFFF"
         app:civ_border_width="2dp"
@@ -53,7 +53,7 @@
         android:layout_width="0dp"
         android:layout_height="@dimen/input_height"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/edittext_bg"
         android:hint="Full Name"
@@ -81,39 +81,54 @@
         android:paddingEnd="24dp"
         android:textColor="@color/white"
         android:textColorHint="#55FFFFFF"
-        app:layout_constraintBottom_toTopOf="@+id/etPassword"
+        app:layout_constraintBottom_toTopOf="@+id/flPasswordContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etName" />
 
-    <EditText
-        android:id="@+id/etPassword"
+    <FrameLayout
+        android:id="@+id/flPasswordContainer"
         android:layout_width="0dp"
         android:layout_height="@dimen/input_height"
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:background="@drawable/edittext_bg"
-        android:hint="Enter Password"
-        android:inputType="textPassword"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:textColor="@color/white"
-        android:textColorHint="#55FFFFFF"
         app:layout_constraintBottom_toTopOf="@+id/btnNext"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etEmail" />
+        app:layout_constraintTop_toBottomOf="@+id/etEmail">
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/edittext_bg"
+            android:hint="Enter Password"
+            android:inputType="textPassword"
+            android:paddingStart="24dp"
+            android:paddingEnd="50dp"
+            android:textColor="@color/white"
+            android:textColorHint="#55FFFFFF" />
+
+        <ImageView
+            android:id="@+id/ivTogglePassword"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_eye_off" />
+    </FrameLayout>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnNext"
         android:layout_width="0dp"
         android:layout_height="@dimen/button_height"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="28dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/btn_next_bg"
-        android:text="Register"
+        android:text="Login"
         android:textAllCaps="false"
         android:textColor="@color/black"
         android:textSize="16sp"
@@ -121,14 +136,15 @@
         app:layout_constraintBottom_toTopOf="@+id/tvToggleMode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etPassword" />
+        app:layout_constraintTop_toBottomOf="@+id/flPasswordContainer" />
 
     <TextView
         android:id="@+id/tvToggleMode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Already have an account? Login"
+        android:padding="8dp"
+        android:text="Don't have an account? Register"
         android:textColor="@color/white"
         android:textSize="14sp"
         app:layout_constraintBottom_toTopOf="@+id/llForgetPassword"
@@ -136,17 +152,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnNext" />
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Bottom -->
+    <!-- Bottom Forget Password -->
     <LinearLayout
         android:id="@+id/llForgetPassword"
         android:layout_width="wrap_content"
@@ -154,24 +160,26 @@
         android:layout_marginBottom="32dp"
         android:gravity="center"
         android:orientation="horizontal"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="8dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="6dp"
             android:src="@drawable/ic_help_outline"
-            app:tint="#55FFFFFF" />
+            app:tint="#88FFFFFF" />
 
         <TextView
             android:id="@+id/tvForgetPassword"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Forget password"
-            android:textColor="#55FFFFFF"
-            android:textSize="14sp" />
+            android:text="Forgot password?"
+            android:textColor="#88FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

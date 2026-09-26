@@ -19,6 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityUserDetailBinding;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
 import com.roomchatapps.Pmishra.utils.StoreManager;
 
@@ -118,47 +119,7 @@ public class UserDetailActivity extends AppCompatActivity {
 
                     // Check for equipped frame
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
-                    if (equippedFrame != null && !equippedFrame.isEmpty()) {
-                        StoreManager.getStoreCatalog(targetUid, "FRAME", new StoreManager.CatalogCallback() {
-                            @Override
-                            public void onCatalogLoaded(List<StoreItemModel> items) {
-                                boolean found = false;
-                                for (StoreItemModel item : items) {
-                                    if (item.getId().equals(equippedFrame)) {
-                                        found = true;
-                                        int resId = 0;
-                                        try {
-                                            resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
-                                        } catch (Exception e) {}
-                                        if (resId == 0) resId = R.drawable._1000092461_removebg_preview;
-                                        if (binding.ivProfileFrame != null) {
-                                            binding.ivProfileFrame.setImageResource(resId);
-                                            binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                            AnimationHelper.pulseGlowAnimation(binding.ivProfileFrame);
-                                        }
-                                        break;
-                                    }
-                                }
-                                if (!found && binding.ivProfileFrame != null) {
-                                    binding.ivProfileFrame.setImageResource(R.drawable._1000092461_removebg_preview);
-                                    binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                }
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                if (binding.ivProfileFrame != null) {
-                                    binding.ivProfileFrame.setImageResource(R.drawable._1000092461_removebg_preview);
-                                    binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                }
-                            }
-                        });
-                    } else {
-                        if (binding.ivProfileFrame != null) {
-                            binding.ivProfileFrame.setImageResource(R.drawable._1000092461_removebg_preview);
-                            binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                        }
-                    }
+                    FrameUtils.displayFrame(UserDetailActivity.this, equippedFrame, binding.ivProfileFrame, binding.svgaProfileFrame);
                 }
             }
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.roomchatapps.Pmishra.utils.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -32,7 +34,7 @@ public class SplashActivity extends AppCompatActivity {
         View mainView = findViewById(R.id.main);
         View logo = findViewById(R.id.imageView3);
         View appName = findViewById(R.id.textViewAppName);
-        View slogan = findViewById(R.id.textViewSlogan); // Need to add ID in XML
+        View slogan = findViewById(R.id.textViewSlogan);
 
         // Initial state for animation
         if (logo != null) {
@@ -56,7 +58,7 @@ public class SplashActivity extends AppCompatActivity {
                     .scaleX(1f)
                     .scaleY(1f)
                     .setDuration(1200)
-                    .setInterpolator(new android.view.animation.OvershootInterpolator())
+                    .setInterpolator(new OvershootInterpolator())
                     .start();
         }
 
@@ -83,12 +85,24 @@ public class SplashActivity extends AppCompatActivity {
         // Delay for 2.5 seconds then navigate
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            SessionManager sessionManager = SessionManager.getInstance(SplashActivity.this);
             
             Intent intent;
             if (currentUser != null) {
+                if (!sessionManager.isLoggedIn()) {
+                    sessionManager.createLoginSession(
+                            currentUser.getUid(),
+                            currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "User",
+                            currentUser.getEmail() != null ? currentUser.getEmail() : "",
+                            String.valueOf(100000 + Math.abs((long) currentUser.getUid().hashCode()) % 900000),
+                            currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "",
+                            "auth"
+                    );
+                }
                 intent = new Intent(SplashActivity.this, MainActivity.class);
-                intent.putExtra("user_name", "new");
+                intent.putExtra("user_name", sessionManager.getName());
             } else {
+                sessionManager.clearSession();
                 intent = new Intent(SplashActivity.this, LoginActivity.class);
             }
             startActivity(intent);

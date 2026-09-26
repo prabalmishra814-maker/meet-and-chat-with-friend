@@ -16,14 +16,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.opensource.svgaplayer.SVGAParser;
+import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.utils.StoreManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +40,7 @@ public class StoreActivity extends AppCompatActivity {
     private ImageView btnBack;
     private TextView tvTitle, tvCoins;
     private LinearLayout llWalletBadge, llEmptyStore;
-    private TextView tabAll, tabFrames, tabEntrances, tabBubbles, tabVip;
+    private TextView tabFrames, tabEntrances;
     private RecyclerView rvStoreItems;
     private ProgressBar progressBar;
 
@@ -41,7 +48,7 @@ public class StoreActivity extends AppCompatActivity {
     private final List<StoreItemModel> storeItemList = new ArrayList<>();
     private DatabaseReference userRef;
     private String currentUid;
-    private String activeCategory = "ALL";
+    private String activeCategory = "FRAME";
     private long lastCoinsVal = -1;
 
     @Override
@@ -66,11 +73,8 @@ public class StoreActivity extends AppCompatActivity {
         tvCoins = findViewById(R.id.tvCoins);
         llWalletBadge = findViewById(R.id.llWalletBadge);
         llEmptyStore = findViewById(R.id.llEmptyStore);
-        tabAll = findViewById(R.id.tabAll);
         tabFrames = findViewById(R.id.tabFrames);
         tabEntrances = findViewById(R.id.tabEntrances);
-        tabBubbles = findViewById(R.id.tabBubbles);
-        tabVip = findViewById(R.id.tabVip);
         rvStoreItems = findViewById(R.id.rvStoreItems);
         progressBar = findViewById(R.id.progressBar);
     }
@@ -85,18 +89,15 @@ public class StoreActivity extends AppCompatActivity {
     }
 
     private void setupTabs() {
-        if (tabAll != null) tabAll.setOnClickListener(v -> selectTab("ALL", tabAll));
         if (tabFrames != null) tabFrames.setOnClickListener(v -> selectTab("FRAME", tabFrames));
         if (tabEntrances != null) tabEntrances.setOnClickListener(v -> selectTab("ENTRANCE", tabEntrances));
-        if (tabBubbles != null) tabBubbles.setOnClickListener(v -> selectTab("BUBBLE", tabBubbles));
-        if (tabVip != null) tabVip.setOnClickListener(v -> selectTab("VIP", tabVip));
     }
 
     private void selectTab(String category, TextView selectedTab) {
         if (activeCategory.equalsIgnoreCase(category)) return;
         activeCategory = category;
 
-        TextView[] tabs = {tabAll, tabFrames, tabEntrances, tabBubbles, tabVip};
+        TextView[] tabs = {tabFrames, tabEntrances};
         for (TextView tab : tabs) {
             if (tab != null) {
                 tab.setBackgroundResource(R.drawable.chip_room_bg);
@@ -126,6 +127,11 @@ public class StoreActivity extends AppCompatActivity {
                 @Override
                 public void onItemAction(StoreItemModel item, int position) {
                     handleItemAction(item, position);
+                }
+
+                @Override
+                public void onItemClick(StoreItemModel item, int position) {
+                    showFramePreviewDialog(item);
                 }
             });
             rvStoreItems.setAdapter(adapter);
@@ -174,6 +180,101 @@ public class StoreActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void showFramePreviewDialog(StoreItemModel item) {
+        if (item == null) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_frame_preview, null, false);
+        dialog.setContentView(view);
+
+        boolean isEntrance = "ENTRANCE".equalsIgnoreCase(item.getCategory());
+
+        TextView tvDialogTitle = view.findViewById(R.id.tvTitle);
+        View ivPreviewAvatar = view.findViewById(R.id.ivPreviewAvatar);
+        TextView tvFrameName = view.findViewById(R.id.tvPreviewFrameName);
+        TextView tvBadge = view.findViewById(R.id.tvPreviewBadge);
+        TextView tvDescription = view.findViewById(R.id.tvPreviewDescription);
+        MaterialButton btnAction = view.findViewById(R.id.btnPreviewAction);
+        ImageView btnClose = view.findViewById(R.id.btnClose);
+        ImageView ivStaticFrame = view.findViewById(R.id.ivStaticFramePreview);
+        SVGAImageView svgaFrame = view.findViewById(R.id.svgaFramePreview);
+
+        if (tvDialogTitle != null) {
+            tvDialogTitle.setText(isEntrance ? "⚡ Entrance Live Preview" : "✨ Frame Live Preview");
+        }
+
+        // Hide profile avatar when previewing Entrance effects!
+        if (ivPreviewAvatar != null) {
+            ivPreviewAvatar.setVisibility(isEntrance ? View.GONE : View.VISIBLE);
+        }
+
+        if (tvFrameName != null) tvFrameName.setText(item.getName());
+        if (tvBadge != null) tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FRAME");
+        if (tvDescription != null) tvDescription.setText(item.getDescription() != null ? item.getDescription() : "Avatar Frame Preview");
+
+        if (btnAction != null) {
+            if (item.isEquipped()) {
+                btnAction.setText("Equipped ✓");
+                btnAction.setBackgroundColor(Color.parseColor("#00FF7F"));
+                btnAction.setTextColor(Color.parseColor("#050E1E"));
+            } else if (item.isOwned()) {
+                btnAction.setText("Equip Frame ✨");
+                btnAction.setBackgroundColor(Color.parseColor("#40E0D0"));
+                btnAction.setTextColor(Color.parseColor("#050E1E"));
+            } else {
+                btnAction.setText("Buy for " + item.getPriceCoins() + " 🪙");
+                btnAction.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnAction.setTextColor(Color.parseColor("#050E1E"));
+            }
+
+            btnAction.setOnClickListener(v -> {
+                dialog.dismiss();
+                handleItemAction(item, -1);
+            });
+        }
+
+        if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        if (item.getSvgaPath() != null && !item.getSvgaPath().isEmpty()) {
+            if (ivStaticFrame != null) ivStaticFrame.setVisibility(View.GONE);
+            if (svgaFrame != null) {
+                svgaFrame.setVisibility(View.VISIBLE);
+                SVGAParser parser = new SVGAParser(this);
+                parser.decodeFromAssets(item.getSvgaPath(), new SVGAParser.ParseCompletion() {
+                    @Override
+                    public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                        svgaFrame.setVideoItem(videoItem);
+                        svgaFrame.startAnimation();
+                    }
+
+                    @Override
+                    public void onError() {
+                        svgaFrame.setVisibility(View.GONE);
+                        if (ivStaticFrame != null) {
+                            ivStaticFrame.setVisibility(View.VISIBLE);
+                            int resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
+                            if (resId == 0) resId = R.drawable.family_owner_frame;
+                            ivStaticFrame.setImageResource(resId);
+                        }
+                    }
+                }, null);
+            }
+        } else {
+            if (svgaFrame != null) svgaFrame.setVisibility(View.GONE);
+            if (ivStaticFrame != null) {
+                ivStaticFrame.setVisibility(View.VISIBLE);
+                int resId = 0;
+                if (item.getIconResName() != null) {
+                    resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
+                }
+                if (resId == 0) resId = R.drawable.family_owner_frame;
+                ivStaticFrame.setImageResource(resId);
+            }
+        }
+
+        dialog.show();
     }
 
     private void setupClickListeners() {

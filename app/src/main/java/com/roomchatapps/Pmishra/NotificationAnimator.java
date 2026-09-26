@@ -4,6 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Build;
+import android.text.Html;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -12,12 +16,15 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.LinkedList;
 import java.util.Queue;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class NotificationAnimator {
 
@@ -34,21 +41,21 @@ public class NotificationAnimator {
         public String title;
         public String message;
         public int iconRes;
-        public String actionTarget;
+        public String avatarUrl;
 
         public NotificationItem(String title, String message, int iconRes) {
             this(title, message, iconRes, null);
         }
 
-        public NotificationItem(String title, String message, int iconRes, String actionTarget) {
+        public NotificationItem(String title, String message, int iconRes, String avatarUrl) {
             this.title = title;
             this.message = message;
             this.iconRes = iconRes;
-            this.actionTarget = actionTarget;
+            this.avatarUrl = avatarUrl;
         }
 
         public NotificationItem(String message) {
-            this("Notice", message, 0);
+            this("Notice", message, 0, null);
         }
     }
 
@@ -68,9 +75,9 @@ public class NotificationAnimator {
         showNotification(title, message, iconRes, null);
     }
 
-    public void showNotification(String title, String message, int iconRes, String actionTarget) {
+    public void showNotification(String title, String message, int iconRes, String avatarUrl) {
         if (containerView == null) return;
-        notificationQueue.add(new NotificationItem(title, message, iconRes, actionTarget));
+        notificationQueue.add(new NotificationItem(title, message, iconRes, avatarUrl));
         if (!isShowing) {
             processNextNotification();
         }
@@ -91,56 +98,58 @@ public class NotificationAnimator {
 
         Context context = containerView.getContext();
 
-        // Build glassmorphic banner layout
+        // Build Red Pill Banner Layout matching user's design
         LinearLayout banner = new LinearLayout(context);
         banner.setOrientation(LinearLayout.HORIZONTAL);
         banner.setGravity(Gravity.CENTER_VERTICAL);
-        banner.setBackgroundResource(R.drawable.bg_card); // Uses modern glass card background
-        banner.setPadding(dpToPx(context, 14), dpToPx(context, 10), dpToPx(context, 16), dpToPx(context, 10));
+        banner.setBackgroundResource(R.drawable.bg_notification_red_pill);
+        banner.setPadding(dpToPx(context, 8), dpToPx(context, 6), dpToPx(context, 18), dpToPx(context, 6));
 
-        if (item.iconRes != 0) {
-            ImageView icon = new ImageView(context);
-            icon.setImageResource(item.iconRes);
-            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(context, 28), dpToPx(context, 28));
-            iconParams.setMarginEnd(dpToPx(context, 10));
-            banner.addView(icon, iconParams);
+        // Circular Avatar / Icon on Left with Gold Border
+        CircleImageView ivAvatar = new CircleImageView(context);
+        ivAvatar.setBorderWidth(dpToPx(context, 1.5f));
+        ivAvatar.setBorderColor(Color.parseColor("#FFD700"));
 
-            // Icon 360 Spin + Scale bounce animation
-            icon.setRotation(-360f);
-            icon.setScaleX(0.4f);
-            icon.setScaleY(0.4f);
-            icon.animate()
-                    .rotation(0f)
-                    .scaleX(1.2f)
-                    .scaleY(1.2f)
-                    .setDuration(500)
-                    .setInterpolator(new OvershootInterpolator(2.0f))
-                    .withEndAction(() -> icon.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start())
-                    .start();
+        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dpToPx(context, 38), dpToPx(context, 38));
+        avatarParams.setMarginEnd(dpToPx(context, 10));
+
+        if (item.avatarUrl != null && !item.avatarUrl.trim().isEmpty()) {
+            Glide.with(context)
+                    .load(item.avatarUrl)
+                    .placeholder(R.drawable.logo_placeholder)
+                    .into(ivAvatar);
+        } else if (item.iconRes != 0) {
+            ivAvatar.setImageResource(item.iconRes);
+        } else {
+            ivAvatar.setImageResource(R.drawable.logo_placeholder);
         }
+        banner.addView(ivAvatar, avatarParams);
 
+        // Text Layout (Name on top line, Action/Notice on bottom line)
         LinearLayout textLayout = new LinearLayout(context);
         textLayout.setOrientation(LinearLayout.VERTICAL);
 
-        if (item.title != null && !item.title.isEmpty() && !item.title.equals("Notice")) {
-            TextView tvTitle = new TextView(context);
-            tvTitle.setText(item.title);
+        // Top Line: User Name in Gold
+        TextView tvTitle = new TextView(context);
+        tvTitle.setText(item.title != null ? item.title : "User");
+        tvTitle.setTextColor(Color.parseColor("#FFD700"));
+        tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setSingleLine(true);
+        tvTitle.setEllipsize(TextUtils.TruncateAt.END);
+        textLayout.addView(tvTitle);
 
-            // Deterministic vibrant user accent color for different users
-            String[] accentColors = {"#FF1493", "#40E0D0", "#FFD700", "#9D4EDD", "#00FF7F", "#FF4500", "#00FFFF"};
-            int colorIndex = Math.abs(item.title.hashCode()) % accentColors.length;
-            tvTitle.setTextColor(Color.parseColor(accentColors[colorIndex]));
-            tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-            tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-            textLayout.addView(tvTitle);
-        }
-
+        // Bottom Line: Message Notice in White
         TextView tvMsg = new TextView(context);
-        tvMsg.setText(item.message);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            tvMsg.setText(Html.fromHtml(item.message, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            tvMsg.setText(Html.fromHtml(item.message));
+        }
         tvMsg.setTextColor(Color.WHITE);
-        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
         tvMsg.setSingleLine(true);
-        tvMsg.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        tvMsg.setEllipsize(TextUtils.TruncateAt.END);
         textLayout.addView(tvMsg);
 
         banner.addView(textLayout);
@@ -151,7 +160,7 @@ public class NotificationAnimator {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.TOP | Gravity.START;
-        params.topMargin = dpToPx(context, 110);
+        params.topMargin = dpToPx(context, 95);
         params.leftMargin = dpToPx(context, 12);
 
         containerView.addView(banner, params);
@@ -176,27 +185,25 @@ public class NotificationAnimator {
             return false;
         });
 
-        // Initial off-screen state (Off to the LEFT with initial tilt)
+        // Initial off-screen state (Off to the LEFT)
         banner.setAlpha(0f);
         banner.setTranslationX(-dpToPx(context, 320));
         banner.setScaleX(0.7f);
         banner.setScaleY(0.7f);
-        banner.setRotation(-12f);
 
-        // Spin + Slide In from LEFT + Scale Spring Bounce
+        // Slide In from LEFT + Scale Spring Bounce
         banner.animate()
                 .alpha(1f)
                 .translationX(0f)
                 .scaleX(1.0f)
                 .scaleY(1.0f)
-                .rotation(0f)
-                .setDuration(500)
-                .setInterpolator(new OvershootInterpolator(1.3f))
+                .setDuration(450)
+                .setInterpolator(new OvershootInterpolator(1.2f))
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        // Display duration: 2.5 seconds
-                        banner.postDelayed(() -> dismissBanner(banner), 2500);
+                        // Display duration: 3.0 seconds
+                        banner.postDelayed(() -> dismissBanner(banner), 3000);
                     }
                 }).start();
     }
@@ -211,7 +218,6 @@ public class NotificationAnimator {
                 .translationX(dpToPx(banner.getContext(), 350)) // Slide out towards the RIGHT!
                 .scaleX(0.85f)
                 .scaleY(0.85f)
-                .rotation(8f)
                 .setDuration(380)
                 .setInterpolator(new AccelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {

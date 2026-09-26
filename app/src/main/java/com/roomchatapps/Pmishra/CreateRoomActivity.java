@@ -7,19 +7,25 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
@@ -42,6 +48,7 @@ public class CreateRoomActivity extends AppCompatActivity {
     EditText etRoomDescription;
     ImageView pickimg;
     ImageView ivRoomCover;
+    TextView tvTitle;
     public static final int PICK_IMAGE = 100;
     private Uri imageUri;
     private String imgUrl = "";
@@ -67,12 +74,12 @@ public class CreateRoomActivity extends AppCompatActivity {
         etRoomDescription = findViewById(R.id.etRoomDescription);
         pickimg = findViewById(R.id.pickimg);
         ivRoomCover = findViewById(R.id.ivRoomCover);
+        tvTitle = findViewById(R.id.tvTitle);
 
         // Entrance animations
         AnimationHelper.fadeIn(findViewById(R.id.ivBack), 500);
-        AnimationHelper.fadeIn(findViewById(R.id.tvTitle), 600);
+        AnimationHelper.fadeIn(tvTitle, 600);
         AnimationHelper.scaleIn(findViewById(R.id.clRoomCover), 700);
-        AnimationHelper.slideUp(etRoomDescription, 600);
         AnimationHelper.slideUp(btnCreate, 800);
         
         // Image preview subtle animation on open
@@ -92,10 +99,18 @@ public class CreateRoomActivity extends AppCompatActivity {
             startActivityForResult(intent, PICK_IMAGE);
         });
 
+        // Load existing room for current user if available
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            loadExistingRoom(userId);
+        }
+
         btnCreate.setOnClickListener(v -> {
-            String roomName = etRoomDescription.getText().toString().trim();
-            if (roomName.isEmpty()) {
-                Toast.makeText(this, "Please enter a room name", Toast.LENGTH_SHORT).show();
+            String currentUserId = getCurrentUserId();
+            if (currentUserId == null) {
+                Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(CreateRoomActivity.this, LoginActivity.class));
+                finish();
                 return;
             }
 
@@ -103,8 +118,68 @@ public class CreateRoomActivity extends AppCompatActivity {
             if (imageUri != null) {
                 uploadImageAndSaveRoom();
             } else {
-                imgUrl = DEFAULT_ROOM_IMG;
                 saveRoom();
+            }
+        });
+    }
+
+    private String getCurrentUserId() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+
+        if (currentUser != null) {
+            return currentUser.getUid();
+        } else if (account != null) {
+            return account.getId();
+        }
+        return null;
+    }
+
+    private String getCurrentUserName() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+
+        if (currentUser != null) {
+            String userName = currentUser.getDisplayName();
+            if (userName == null || userName.isEmpty()) {
+                userName = currentUser.getEmail() != null ? currentUser.getEmail().split("@")[0] : "User";
+            }
+            return userName;
+        } else if (account != null) {
+            String userName = account.getDisplayName();
+            return (userName != null && !userName.isEmpty()) ? userName : "Host";
+        }
+        return "Host";
+    }
+
+    private void loadExistingRoom(String userId) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms").child(userId);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (snapshot.exists()) {
+                    RoomModel existingRoom = snapshot.getValue(RoomModel.class);
+                    if (existingRoom != null) {
+                        if (existingRoom.getImg() != null && !existingRoom.getImg().isEmpty()) {
+                            imgUrl = existingRoom.getImg();
+                            Glide.with(CreateRoomActivity.this)
+                                    .load(imgUrl)
+                                    .placeholder(R.drawable.app_create_room_ic)
+                                    .into(ivRoomCover);
+                        }
+                        if (btnCreate != null) {
+                            btnCreate.setText("Update Room");
+                        }
+                        if (tvTitle != null) {
+                            tvTitle.setText("Update Room");
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
             }
         });
     }
@@ -115,7 +190,9 @@ public class CreateRoomActivity extends AppCompatActivity {
         try {
             InputStream inputStream = getContentResolver().openInputStream(imageUri);
             if (inputStream == null) {
-                imgUrl = DEFAULT_ROOM_IMG;
+                if (imgUrl == null || imgUrl.isEmpty()) {
+                    imgUrl = DEFAULT_ROOM_IMG;
+                }
                 saveRoom();
                 return;
             }
@@ -140,7 +217,9 @@ public class CreateRoomActivity extends AppCompatActivity {
                 public void onFailure(Call call, IOException e) {
                     runOnUiThread(() -> {
                         Toast.makeText(CreateRoomActivity.this, "Image upload failed, using default cover.", Toast.LENGTH_SHORT).show();
-                        imgUrl = DEFAULT_ROOM_IMG;
+                        if (imgUrl == null || imgUrl.isEmpty()) {
+                            imgUrl = DEFAULT_ROOM_IMG;
+                        }
                         saveRoom();
                     });
                 }
@@ -153,17 +232,23 @@ public class CreateRoomActivity extends AppCompatActivity {
                             JSONObject jsonObject = new JSONObject(responseData);
                             imgUrl = jsonObject.getJSONObject("data").getString("url");
                         } catch (Exception e) {
-                            imgUrl = DEFAULT_ROOM_IMG;
+                            if (imgUrl == null || imgUrl.isEmpty()) {
+                                imgUrl = DEFAULT_ROOM_IMG;
+                            }
                         }
                     } else {
-                        imgUrl = DEFAULT_ROOM_IMG;
+                        if (imgUrl == null || imgUrl.isEmpty()) {
+                            imgUrl = DEFAULT_ROOM_IMG;
+                        }
                     }
                     runOnUiThread(() -> saveRoom());
                 }
             });
 
         } catch (Exception e) {
-            imgUrl = DEFAULT_ROOM_IMG;
+            if (imgUrl == null || imgUrl.isEmpty()) {
+                imgUrl = DEFAULT_ROOM_IMG;
+            }
             saveRoom();
         }
     }
@@ -181,22 +266,8 @@ public class CreateRoomActivity extends AppCompatActivity {
     }
 
     private void saveRoom() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(CreateRoomActivity.this);
-
-        String userId = null;
-        String userName = null;
-
-        if (currentUser != null) {
-            userId = currentUser.getUid();
-            userName = currentUser.getDisplayName();
-            if (userName == null || userName.isEmpty()) {
-                userName = currentUser.getEmail() != null ? currentUser.getEmail().split("@")[0] : "User";
-            }
-        } else if (account != null) {
-            userId = account.getId();
-            userName = account.getDisplayName();
-        }
+        String userId = getCurrentUserId();
+        String userName = getCurrentUserName();
 
         if (userId == null) {
             btnCreate.setEnabled(true);
@@ -215,15 +286,9 @@ public class CreateRoomActivity extends AppCompatActivity {
         }
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms");
-        String roomId = ref.push().getKey();
-
-        if (roomId == null) {
-            btnCreate.setEnabled(true);
-            Toast.makeText(this, "Failed to generate room ID", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String roomName = etRoomDescription.getText().toString().trim();
+        String roomId = userId;
+        // Room Title is automatically set to the Room ID itself
+        String roomName = roomId;
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("room_name", roomName);
@@ -233,15 +298,16 @@ public class CreateRoomActivity extends AppCompatActivity {
 
         final String finalUserId = userId;
         final String finalUserName = userName;
+        final String finalRoomName = roomName;
 
         ref.child(roomId).setValue(map)
                 .addOnSuccessListener(unused -> {
-                    Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Room Saved Successfully!", Toast.LENGTH_SHORT).show();
                     
                     // Start RoomChatActivity as Host
                     Intent intent = new Intent(CreateRoomActivity.this, RoomChatActivity.class);
                     intent.putExtra("roomID", roomId);
-                    intent.putExtra("room_name", roomName);
+                    intent.putExtra("room_name", finalRoomName);
                     intent.putExtra("username", finalUserName);
                     intent.putExtra("userID", finalUserId);
                     intent.putExtra("img", imgUrl);
@@ -251,7 +317,7 @@ public class CreateRoomActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     btnCreate.setEnabled(true);
-                    Toast.makeText(this, "Failed to create room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to save room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

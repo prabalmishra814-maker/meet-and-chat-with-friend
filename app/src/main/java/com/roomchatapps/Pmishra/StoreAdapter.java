@@ -13,7 +13,12 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.opensource.svgaplayer.SVGAParser;
+import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -21,6 +26,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
 
     public interface OnStoreItemClickListener {
         void onItemAction(StoreItemModel item, int position);
+        void onItemClick(StoreItemModel item, int position);
     }
 
     private final List<StoreItemModel> itemList;
@@ -48,13 +54,45 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
         holder.tvItemDescription.setText(item.getDescription() != null ? item.getDescription() : "");
         holder.tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FEATURED");
 
-        // Resolve icon resource dynamically
-        int resId = resolveDrawableRes(context, item.getIconResName());
-        if (resId == 0) {
-            resId = R.drawable.family_owner_frame;
+        boolean isEntrance = "ENTRANCE".equalsIgnoreCase(item.getCategory());
+
+        // For ENTRANCE items: Show static icon in Store grid; play SVGA on click preview!
+        if (isEntrance) {
+            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
+            holder.ivItemIcon.setVisibility(View.VISIBLE);
+            int resId = resolveDrawableRes(context, item.getIconResName());
+            if (resId == 0) resId = R.drawable.store;
+            holder.ivItemIcon.setImageResource(resId);
+        } else if (item.getSvgaPath() != null && !item.getSvgaPath().isEmpty()) {
+            holder.ivItemIcon.setVisibility(View.GONE);
+            if (holder.svgaItemIcon != null) {
+                holder.svgaItemIcon.setVisibility(View.VISIBLE);
+                SVGAParser parser = new SVGAParser(context);
+                parser.decodeFromAssets(item.getSvgaPath(), new SVGAParser.ParseCompletion() {
+                    @Override
+                    public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                        holder.svgaItemIcon.setVideoItem(videoItem);
+                        holder.svgaItemIcon.startAnimation();
+                    }
+
+                    @Override
+                    public void onError() {
+                        holder.svgaItemIcon.setVisibility(View.GONE);
+                        holder.ivItemIcon.setVisibility(View.VISIBLE);
+                        int resId = resolveDrawableRes(context, item.getIconResName());
+                        if (resId == 0) resId = R.drawable.family_owner_frame;
+                        holder.ivItemIcon.setImageResource(resId);
+                    }
+                }, null);
+            }
+        } else {
+            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
+            holder.ivItemIcon.setVisibility(View.VISIBLE);
+            int resId = resolveDrawableRes(context, item.getIconResName());
+            if (resId == 0) resId = R.drawable.family_owner_frame;
+            holder.ivItemIcon.setImageResource(resId);
+            AnimationHelper.pulseGlowAnimation(holder.ivItemIcon);
         }
-        holder.ivItemIcon.setImageResource(resId);
-        AnimationHelper.pulseGlowAnimation(holder.ivItemIcon);
 
         // Configure button state & appearance
         if (item.isEquipped()) {
@@ -70,6 +108,16 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
             holder.btnAction.setBackgroundColor(Color.parseColor("#FFD700")); // Gold
             holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            AnimationHelper.bounceAnimation(v);
+            if (listener != null) {
+                int pos = holder.getBindingAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(item, pos);
+                }
+            }
+        });
 
         holder.btnAction.setOnClickListener(v -> {
             AnimationHelper.bounceAnimation(v);
@@ -121,6 +169,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final ImageView ivItemIcon;
+        final SVGAImageView svgaItemIcon;
         final TextView tvItemName;
         final TextView tvItemDescription;
         final TextView tvBadge;
@@ -129,6 +178,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
         ViewHolder(View itemView) {
             super(itemView);
             ivItemIcon = itemView.findViewById(R.id.ivItemIcon);
+            svgaItemIcon = itemView.findViewById(R.id.svgaItemIcon);
             tvItemName = itemView.findViewById(R.id.tvItemName);
             tvItemDescription = itemView.findViewById(R.id.tvItemDescription);
             tvBadge = itemView.findViewById(R.id.tvBadge);

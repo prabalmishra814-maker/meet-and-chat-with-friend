@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.roomchatapps.Pmishra.databinding.ActivitySettingsBinding;
+import com.roomchatapps.Pmishra.utils.SessionManager;
 
 import java.io.File;
 
@@ -52,6 +53,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         binding.btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
+            SessionManager.getInstance(SettingsActivity.this).clearSession();
             Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);

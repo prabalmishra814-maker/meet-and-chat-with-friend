@@ -95,69 +95,29 @@
             android:paddingVertical="8dp">
 
             <TextView
-                android:id="@+id/tabAll"
+                android:id="@+id/tabFrames"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/chip_charm_bg"
                 android:fontFamily="sans-serif-bold"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="All"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                android:text="Frames 🖼️"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tabFrames"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/chip_room_bg"
-                android:fontFamily="sans-serif-medium"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="Frames"
-                android:textColor="#88FFFFFF"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tabEntrances"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="12dp"
                 android:background="@drawable/chip_room_bg"
                 android:fontFamily="sans-serif-medium"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="Entrances"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                android:text="Entry Effects"
                 android:textColor="#88FFFFFF"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tabBubbles"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/chip_room_bg"
-                android:fontFamily="sans-serif-medium"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="Bubbles"
-                android:textColor="#88FFFFFF"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tabVip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/chip_room_bg"
-                android:fontFamily="sans-serif-medium"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="VIP Badges"
-                android:textColor="#88FFFFFF"
-                android:textSize="13sp" />
-
+                android:textSize="14sp" />
         </LinearLayout>
     </HorizontalScrollView>
 

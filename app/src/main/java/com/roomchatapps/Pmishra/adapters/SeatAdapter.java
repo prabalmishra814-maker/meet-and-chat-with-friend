@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
@@ -90,9 +91,18 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
             if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.VISIBLE);
-            if (holder.ivMicStatus != null) holder.ivMicStatus.setVisibility(View.GONE);
             if (holder.tvSeatName != null) holder.tvSeatName.setText("Locked");
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
+
+            if (holder.ivMicStatus != null) {
+                if (model.isMuted) {
+                    holder.ivMicStatus.setVisibility(View.VISIBLE);
+                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
+                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
+                } else {
+                    holder.ivMicStatus.setVisibility(View.GONE);
+                }
+            }
 
         } else if (model.isEmpty()) {
             // Empty Open Seat
@@ -101,7 +111,6 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
             if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
-            if (holder.ivMicStatus != null) holder.ivMicStatus.setVisibility(View.GONE);
             
             if (holder.tvSeatName != null) {
                 if (position == 0) {
@@ -111,6 +120,16 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                 }
             }
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
+
+            if (holder.ivMicStatus != null) {
+                if (model.isMuted) {
+                    holder.ivMicStatus.setVisibility(View.VISIBLE);
+                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
+                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
+                } else {
+                    holder.ivMicStatus.setVisibility(View.GONE);
+                }
+            }
 
         } else {
             // Occupied Seat
@@ -145,16 +164,25 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             }
 
             // Load Avatar & Frame
-            if (holder.ivSeatAvatar != null) {
-                if (model.userAvatar != null && !model.userAvatar.trim().isEmpty()) {
-                    Glide.with(context)
-                            .load(model.userAvatar)
-                            .placeholder(R.drawable.logo_placeholder)
-                            .into(holder.ivSeatAvatar);
-                } else {
-                    UserProfileCache.getUserProfile(model.userID, profile -> {
-                        if (profile != null) {
-                            if (profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+            if (model.isEmpty()) {
+                if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
+                if (holder.svgaSeatFrame != null) {
+                    holder.svgaSeatFrame.setTag(null);
+                    holder.svgaSeatFrame.stopAnimation();
+                    holder.svgaSeatFrame.clear();
+                    holder.svgaSeatFrame.setVisibility(View.GONE);
+                }
+            } else {
+                // 1. Avatar
+                if (holder.ivSeatAvatar != null) {
+                    if (model.userAvatar != null && !model.userAvatar.trim().isEmpty()) {
+                        Glide.with(context)
+                                .load(model.userAvatar)
+                                .placeholder(R.drawable.logo_placeholder)
+                                .into(holder.ivSeatAvatar);
+                    } else {
+                        UserProfileCache.getUserProfile(model.userID, profile -> {
+                            if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
                                 Glide.with(context)
                                         .load(profile.avatarUrl)
                                         .placeholder(R.drawable.logo_placeholder)
@@ -164,25 +192,32 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                                         .load(R.drawable.logo_placeholder)
                                         .into(holder.ivSeatAvatar);
                             }
+                        });
+                    }
+                }
 
-                            if (holder.ivSeatFrame != null) {
-                                int frameRes = FrameUtils.getFrameDrawableRes(context, profile.equippedFrame);
-                                if (frameRes != 0) {
-                                    holder.ivSeatFrame.setImageResource(frameRes);
-                                    holder.ivSeatFrame.setVisibility(View.VISIBLE);
-                                } else {
-                                    holder.ivSeatFrame.setVisibility(View.GONE);
-                                }
+                // 2. Frame
+                if (position == 0 || model.isHost()) {
+                    if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
+                    if (holder.svgaSeatFrame != null) {
+                        holder.svgaSeatFrame.setTag(null);
+                        holder.svgaSeatFrame.stopAnimation();
+                        holder.svgaSeatFrame.clear();
+                        holder.svgaSeatFrame.setVisibility(View.GONE);
+                    }
+                } else {
+                    if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+                        FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+                    } else {
+                        UserProfileCache.getUserProfile(model.userID, profile -> {
+                            if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                                model.equippedFrame = profile.equippedFrame;
+                                FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+                            } else {
+                                FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
                             }
-                        } else {
-                            Glide.with(context)
-                                    .load(R.drawable.logo_placeholder)
-                                    .into(holder.ivSeatAvatar);
-                            if (holder.ivSeatFrame != null) {
-                                holder.ivSeatFrame.setVisibility(View.GONE);
-                            }
-                        }
-                    });
+                        });
+                    }
                 }
             }
 
@@ -220,6 +255,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         ImageView ivAddIcon;
         ShapeableImageView ivSeatAvatar;
         ImageView ivSeatFrame;
+        SVGAImageView svgaSeatFrame;
         ImageView ivSeatLocked;
         ImageView ivMicStatus;
         TextView tvSeatName;
@@ -232,6 +268,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             ivAddIcon = itemView.findViewById(R.id.ivAddIcon);
             ivSeatAvatar = itemView.findViewById(R.id.ivSeatAvatar);
             ivSeatFrame = itemView.findViewById(R.id.ivSeatFrame);
+            svgaSeatFrame = itemView.findViewById(R.id.svgaSeatFrame);
             ivSeatLocked = itemView.findViewById(R.id.ivSeatLocked);
             ivMicStatus = itemView.findViewById(R.id.ivMicStatus);
             tvSeatName = itemView.findViewById(R.id.tvSeatName);

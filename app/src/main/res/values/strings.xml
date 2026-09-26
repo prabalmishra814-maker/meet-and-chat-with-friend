@@ -25,6 +25,10 @@
     <string name="medal">Medals</string>
     <string name="store">Store</string>
     <string name="svip">SVIP</string>
+    <string name="agency_center">Agency\nCenter</string>
+    <string name="bd_center">BD\nCenter</string>
+    <string name="host_center">Host\nCenter</string>
+    <string name="become_vip">Become\nVIP</string>
     <string name="unlock_privileges">Unlock special privileges</string>
     <string name="level">Level</string>
     <string name="default_web_client_id">686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com</string>

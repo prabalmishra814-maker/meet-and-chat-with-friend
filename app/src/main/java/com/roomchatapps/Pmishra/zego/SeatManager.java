@@ -2,6 +2,10 @@ package com.roomchatapps.Pmishra.zego;
 
 import android.util.Log;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
+
 import im.zego.zegoexpress.entity.ZegoRoomExtraInfo;
 
 import org.json.JSONArray;
@@ -17,6 +21,7 @@ public class SeatManager {
 
     private final List<SeatModel> seatList = new ArrayList<>();
     private final List<SeatListener> listeners = new ArrayList<>();
+    private String currentRoomID = "";
 
     public interface SeatListener {
         void onSeatsUpdated(List<SeatModel> seats);
@@ -33,9 +38,38 @@ public class SeatManager {
         return instance;
     }
 
+    public void setCurrentRoomID(String roomID) {
+        this.currentRoomID = roomID != null ? roomID : "";
+    }
+
+    private int totalSeats = 16;
+
+    public int getTotalSeats() {
+        return totalSeats;
+    }
+
+    public void setTotalSeats(int count) {
+        if (count != 8 && count != 16 && count != 24) return;
+        this.totalSeats = count;
+
+        if (seatList.size() < count) {
+            while (seatList.size() < count) {
+                seatList.add(new SeatModel(seatList.size()));
+            }
+        } else if (seatList.size() > count) {
+            while (seatList.size() > count) {
+                seatList.remove(seatList.size() - 1);
+            }
+        }
+
+        notifySeatsUpdated();
+        syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
+    }
+
     public void resetSeats() {
         seatList.clear();
-        for (int i = 0; i < TOTAL_SEATS; i++) {
+        for (int i = 0; i < totalSeats; i++) {
             seatList.add(new SeatModel(i));
         }
     }
@@ -54,12 +88,39 @@ public class SeatManager {
         return -1;
     }
 
-    public void takeSeat(int index, String userID, String userName) {
-        takeSeat(index, userID, userName, "");
+    private String hostUserID = "";
+
+    public void setHostUserID(String hostUid) {
+        this.hostUserID = hostUid != null ? hostUid.trim() : "";
     }
 
-    public void takeSeat(int index, String userID, String userName, String avatar) {
-        if (index < 0 || index >= TOTAL_SEATS) return;
+    public String getHostUserID() {
+        return hostUserID;
+    }
+
+    public boolean takeSeat(int index, String userID, String userName) {
+        return takeSeat(index, userID, userName, "", "");
+    }
+
+    public boolean takeSeat(int index, String userID, String userName, String avatar) {
+        return takeSeat(index, userID, userName, avatar, "");
+    }
+
+    public boolean takeSeat(int index, String userID, String userName, String avatar, String equippedFrame) {
+        if (index < 0 || index >= totalSeats) return false;
+
+        SeatModel model = seatList.get(index);
+        if (model.isClosed) return false;
+
+        // Seat 0 Security: Strictly reserved for Room Host ONLY
+        if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !hostUserID.equals(userID)) {
+            return false;
+        }
+
+        // Prevent 2 users on 1 seat: Check if seat is already occupied by another user
+        if (!model.isEmpty() && !userID.equals(model.userID)) {
+            return false;
+        }
 
         // Leave any existing seat first
         int existingIndex = findUserSeatIndex(userID);
@@ -67,29 +128,43 @@ public class SeatManager {
             seatList.get(existingIndex).clear();
         }
 
-        SeatModel model = seatList.get(index);
-        if (model.isClosed) return;
-
         model.userID = userID;
         model.userName = userName;
         model.userAvatar = avatar;
+        if (equippedFrame != null && !equippedFrame.trim().isEmpty()) {
+            model.equippedFrame = equippedFrame;
+        }
         model.isMicOn = true;
         model.isMuted = false;
 
+        // Automatically fetch equippedFrame from cache/DB if missing
+        if (model.equippedFrame == null || model.equippedFrame.trim().isEmpty()) {
+            UserProfileCache.getUserProfile(userID, profile -> {
+                if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                    model.equippedFrame = profile.equippedFrame;
+                    notifySeatsUpdated();
+                    syncSeatsToFirebase();
+                }
+            });
+        }
+
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
+        return true;
     }
 
     public void leaveSeat(int index) {
-        if (index < 0 || index >= TOTAL_SEATS) return;
+        if (index < 0 || index >= totalSeats) return;
 
         seatList.get(index).clear();
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
     }
 
     public void muteSeat(int index, boolean isMuted) {
-        if (index < 0 || index >= TOTAL_SEATS) return;
+        if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
         model.isMuted = isMuted;
@@ -99,10 +174,11 @@ public class SeatManager {
 
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
     }
 
     public void closeSeat(int index, boolean isClosed) {
-        if (index < 0 || index >= TOTAL_SEATS) return;
+        if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
         model.isClosed = isClosed;
@@ -113,6 +189,7 @@ public class SeatManager {
 
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
     }
 
     public void kickUser(int index) {
@@ -120,7 +197,7 @@ public class SeatManager {
     }
 
     public void updateMicStatus(int index, boolean isMicOn) {
-        if (index < 0 || index >= TOTAL_SEATS) return;
+        if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
         if (model.isMuted && isMicOn) {
@@ -131,6 +208,7 @@ public class SeatManager {
 
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
+        syncSeatsToFirebase();
     }
 
     public void setSpeaking(String userID, boolean isSpeaking, float soundLevel) {
@@ -162,6 +240,23 @@ public class SeatManager {
         }
     }
 
+    public void setSeatsFromExternal(List<SeatModel> externalSeats) {
+        if (externalSeats == null || externalSeats.isEmpty()) return;
+        for (SeatModel external : externalSeats) {
+            if (external != null && external.index >= 0 && external.index < TOTAL_SEATS) {
+                SeatModel local = seatList.get(external.index);
+                local.userID = external.userID != null ? external.userID : "";
+                local.userName = external.userName != null ? external.userName : "";
+                local.userAvatar = external.userAvatar != null ? external.userAvatar : "";
+                local.equippedFrame = external.equippedFrame != null ? external.equippedFrame : "";
+                local.isMicOn = external.isMicOn;
+                local.isMuted = external.isMuted;
+                local.isClosed = external.isClosed;
+            }
+        }
+        notifySeatsUpdated();
+    }
+
     public void updateSeatsFromExtraInfo(List<ZegoRoomExtraInfo> extraInfoList) {
         if (extraInfoList == null) return;
         for (ZegoRoomExtraInfo info : extraInfoList) {
@@ -181,6 +276,7 @@ public class SeatManager {
                 obj.put("userID", seat.userID);
                 obj.put("userName", seat.userName);
                 obj.put("userAvatar", seat.userAvatar);
+                obj.put("equippedFrame", seat.equippedFrame != null ? seat.equippedFrame : "");
                 obj.put("isMicOn", seat.isMicOn);
                 obj.put("isMuted", seat.isMuted);
                 obj.put("isClosed", seat.isClosed);
@@ -189,6 +285,16 @@ public class SeatManager {
             ZegoManager.getInstance().setRoomExtraInfo("seats", array.toString());
         } catch (Exception e) {
             Log.e(TAG, "Error serializing seats JSON", e);
+        }
+    }
+
+    public void syncSeatsToFirebase() {
+        if (currentRoomID == null || currentRoomID.trim().isEmpty()) return;
+        try {
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("room_seats").child(currentRoomID);
+            ref.setValue(seatList);
+        } catch (Exception e) {
+            Log.e(TAG, "Error syncing seats to Firebase", e);
         }
     }
 
@@ -205,6 +311,7 @@ public class SeatManager {
                 model.userID = obj.optString("userID", "");
                 model.userName = obj.optString("userName", "");
                 model.userAvatar = obj.optString("userAvatar", "");
+                model.equippedFrame = obj.optString("equippedFrame", "");
                 model.isMicOn = obj.optBoolean("isMicOn", true);
                 model.isMuted = obj.optBoolean("isMuted", false);
                 model.isClosed = obj.optBoolean("isClosed", false);

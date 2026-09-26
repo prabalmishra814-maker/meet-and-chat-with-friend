@@ -54,7 +54,20 @@ public class UserProfileCache {
                 profile.uid = cleanUid;
                 if (snapshot.exists()) {
                     profile.name = snapshot.child("name").getValue(String.class);
-                    profile.avatarUrl = snapshot.child("avtar").getValue(String.class);
+                    String avatar = snapshot.child("avtar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) {
+                        avatar = snapshot.child("avatar").getValue(String.class);
+                    }
+                    if (avatar == null || avatar.trim().isEmpty()) {
+                        avatar = snapshot.child("userIcon").getValue(String.class);
+                    }
+                    if (avatar == null || avatar.trim().isEmpty()) {
+                        avatar = snapshot.child("photoUrl").getValue(String.class);
+                    }
+                    if (avatar == null || avatar.trim().isEmpty()) {
+                        avatar = snapshot.child("image").getValue(String.class);
+                    }
+                    profile.avatarUrl = avatar;
                     profile.equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
                 }
                 cache.put(cleanUid, profile);

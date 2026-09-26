@@ -1,5 +1,7 @@
 package com.roomchatapps.Pmishra;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -60,6 +63,16 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        if (getDialog() != null) {
+            getDialog().setOnShowListener(d -> {
+                BottomSheetDialog bsd = (BottomSheetDialog) d;
+                View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+                if (bottomSheet != null) {
+                    bottomSheet.setBackground(new ColorDrawable(Color.TRANSPARENT));
+                }
+            });
+        }
 
         // Content animation
         binding.getRoot().setAlpha(0f);

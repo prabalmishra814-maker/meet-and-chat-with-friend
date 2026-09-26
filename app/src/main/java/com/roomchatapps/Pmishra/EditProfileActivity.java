@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -19,6 +20,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityEditProfileBinding;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.SessionManager;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import org.json.JSONObject;
 
@@ -105,40 +109,33 @@ public class EditProfileActivity extends AppCompatActivity {
                     }
 
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
-                    if (equippedFrame != null && !equippedFrame.isEmpty()) {
-                        selectedFrameId = equippedFrame;
-                        com.roomchatapps.Pmishra.utils.StoreManager.getStoreCatalog(mAuth.getUid(), "FRAME", new com.roomchatapps.Pmishra.utils.StoreManager.CatalogCallback() {
-                            @Override
-                            public void onCatalogLoaded(java.util.List<com.roomchatapps.Pmishra.models.StoreItemModel> items) {
-                                for (com.roomchatapps.Pmishra.models.StoreItemModel item : items) {
-                                    if (item.getId().equals(equippedFrame)) {
-                                        int resId = 0;
-                                        try {
-                                            resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
-                                        } catch (Exception e) {}
-                                        if (resId == 0) resId = R.drawable._1000092519_removebg_preview;
-                                        if (binding.ivProfileFrame != null) {
-                                            binding.ivProfileFrame.setImageResource(resId);
-                                            AnimationHelper.pulseGlowAnimation(binding.ivProfileFrame);
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                            @Override
-                            public void onError(String error) {}
-                        });
-                    } else {
-                        if (binding.ivProfileFrame != null) {
-                            binding.ivProfileFrame.setImageResource(R.drawable._1000092519_removebg_preview);
-                        }
-                    }
+                    selectedFrameId = equippedFrame;
+                    FrameUtils.displayFrame(EditProfileActivity.this, equippedFrame, binding.ivProfileFrame, binding.svgaProfileFrame);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (userRef != null) {
+            userRef.child("equipped_frame").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String equippedFrame = snapshot.getValue(String.class);
+                        selectedFrameId = equippedFrame;
+                        FrameUtils.displayFrame(EditProfileActivity.this, equippedFrame, binding.ivProfileFrame, binding.svgaProfileFrame);
+                    }
+                }
+
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
     }
 
     private String selectedFrameId = null;
@@ -150,16 +147,11 @@ public class EditProfileActivity extends AppCompatActivity {
         binding.btnEditAvatar.setOnClickListener(v -> mGetContent.launch("image/*"));
         binding.profileImage.setOnClickListener(v -> mGetContent.launch("image/*"));
 
-        // Preset Frames Click Listeners
-        binding.presetFrame1.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092517_removebg_preview, "frame_royal_gold_banner"));
-        binding.presetFrame2.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092518_removebg_preview, "frame_mystic_aura_banner"));
-        binding.presetFrame3.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092519_removebg_preview, "frame_vibrant_banner"));
-        binding.presetFrame4.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092464_removebg_preview, "frame_mystic_purple"));
-        binding.presetFrame5.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092465_removebg_preview, "frame_hot_pink"));
-        binding.presetFrame6.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092466_removebg_preview, "frame_aqua_blue"));
-        binding.presetFrame7.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092467_removebg_preview, "frame_golden_royal"));
-        binding.presetFrame8.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092469_removebg_preview, "frame_diamond_glint"));
-        binding.presetFrame9.setOnClickListener(v -> selectPresetFrame(R.drawable._1000092470_removebg_preview, "frame_ultimate_fire"));
+        // Frame Store Button
+        binding.btnOpenFrameStore.setOnClickListener(v -> {
+            Intent intent = new Intent(EditProfileActivity.this, StoreActivity.class);
+            startActivity(intent);
+        });
 
         // Preset Avatars Click Listeners
         binding.presetAvatar1.setOnClickListener(v -> selectPresetAvatar(R.drawable._1000092458_removebg_preview));
@@ -176,15 +168,6 @@ public class EditProfileActivity extends AppCompatActivity {
         String resName = getResources().getResourceEntryName(resId);
         currentAvatarUrl = "android.resource://" + getPackageName() + "/drawable/" + resName;
         Toast.makeText(this, "Preset Avatar Selected! 👤", Toast.LENGTH_SHORT).show();
-    }
-
-    private void selectPresetFrame(int resId, String frameId) {
-        if (binding.ivProfileFrame != null) {
-            AnimationHelper.bounceAnimation(binding.ivProfileFrame);
-            binding.ivProfileFrame.setImageResource(resId);
-        }
-        selectedFrameId = frameId;
-        Toast.makeText(this, "Profile Frame Selected! 🖼️", Toast.LENGTH_SHORT).show();
     }
 
     private void saveProfile() {
@@ -279,12 +262,24 @@ public class EditProfileActivity extends AppCompatActivity {
         updates.put("gender", gender);
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             updates.put("avtar", avatarUrl);
+            updates.put("avatar", avatarUrl);
+            updates.put("userIcon", avatarUrl);
+            updates.put("photoUrl", avatarUrl);
+            updates.put("image", avatarUrl);
         }
         if (selectedFrameId != null) {
             updates.put("equipped_frame", selectedFrameId);
         }
 
-        // Also update Firebase Auth profile displayName and photoUrl
+        // 1. Update SessionManager local cache for immediate room chat & message updates
+        SessionManager.getInstance(EditProfileActivity.this).updateUserProfile(name, avatarUrl);
+
+        // 2. Invalidate UserProfileCache so all user profile cards reload fresh data
+        if (mAuth.getUid() != null) {
+            UserProfileCache.invalidate(mAuth.getUid());
+        }
+
+        // 3. Also update Firebase Auth profile displayName and photoUrl
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             UserProfileChangeRequest.Builder profileUpdates = new UserProfileChangeRequest.Builder()

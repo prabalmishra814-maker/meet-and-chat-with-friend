@@ -10,7 +10,11 @@ A complete, feature-packed Web HTML/CSS/JS Single-Page Control Panel for managin
    - Double-click or open `admin_panel/index.html` in Chrome, Edge, Firefox, or Safari.
    - Or open using a local live server extension / Python `python -m http.server` in the `admin_panel/` directory.
 
-2. **Pre-configured Firebase Credentials:**
+2. **Admin Login Credentials:**
+   - 📩 **Email:** `admin@roomchat.com`
+   - 🔑 **Password:** `admin123456`
+
+3. **Pre-configured Firebase Credentials:**
    - The panel is already pre-configured with the credentials from `app/google-services.json` (`meet-and-chat-3abdb-default-rtdb.firebaseio.com`).
    - As soon as you open `index.html`, you will see **🟢 Firebase Live Connected** at the bottom-left sidebar.
 

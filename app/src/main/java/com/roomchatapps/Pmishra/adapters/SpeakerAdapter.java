@@ -70,11 +70,21 @@ public class SpeakerAdapter extends RecyclerView.Adapter<SpeakerAdapter.ViewHold
                                 .into(holder.ivSpeakerProfile);
                     }
 
-                    int frameRes = FrameUtils.getFrameDrawableRes(holder.itemView.getContext(), profile.equippedFrame);
-                    if (holder.ivSpeakerFrame != null) {
-                        holder.ivSpeakerFrame.setImageResource(frameRes);
-                        holder.ivSpeakerFrame.setVisibility(View.VISIBLE);
-                        AnimationHelper.pulseGlowAnimation(holder.ivSpeakerFrame);
+                    if (user.isHost()) {
+                        if (holder.ivSpeakerFrame != null) {
+                            holder.ivSpeakerFrame.setVisibility(View.GONE);
+                        }
+                    } else {
+                        int frameRes = FrameUtils.getFrameDrawableRes(holder.itemView.getContext(), profile.equippedFrame);
+                        if (holder.ivSpeakerFrame != null) {
+                            if (frameRes != 0) {
+                                holder.ivSpeakerFrame.setImageResource(frameRes);
+                                holder.ivSpeakerFrame.setVisibility(View.VISIBLE);
+                                AnimationHelper.pulseGlowAnimation(holder.ivSpeakerFrame);
+                            } else {
+                                holder.ivSpeakerFrame.setVisibility(View.GONE);
+                            }
+                        }
                     }
                 }
             });

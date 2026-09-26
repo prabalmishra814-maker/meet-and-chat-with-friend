@@ -301,10 +301,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
     }
 
     private void startBubbleAnimation() {
-        if (!isBubbleLoopRunning) {
-            isBubbleLoopRunning = true;
-            bubbleHandler.post(bubbleRunnable);
-        }
+        // Disabled ambient floating bubbles as requested
     }
 
     private void stopBubbleAnimation() {

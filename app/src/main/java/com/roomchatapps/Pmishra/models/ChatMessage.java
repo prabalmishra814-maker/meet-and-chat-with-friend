@@ -6,6 +6,7 @@ public class ChatMessage {
     private String senderId;
     private String receiverId;
     private String message;
+    private String senderAvatar;
     private long timestamp;
     private boolean read;
 
@@ -47,6 +48,14 @@ public class ChatMessage {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getSenderAvatar() {
+        return senderAvatar;
+    }
+
+    public void setSenderAvatar(String senderAvatar) {
+        this.senderAvatar = senderAvatar;
     }
 
     public long getTimestamp() {

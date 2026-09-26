@@ -86,23 +86,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/clRoomCover" />
 
-            <!-- Input Field -->
+            <!-- Input Field (Hidden: Room Title is auto-set to Room ID) -->
             <EditText
                 android:id="@+id/etRoomDescription"
                 android:layout_width="0dp"
-                android:layout_height="@dimen/input_height"
-                android:layout_marginStart="@dimen/screen_margin_xlarge"
-                android:layout_marginTop="@dimen/spacing_xlarge"
-                android:layout_marginEnd="@dimen/screen_margin_xlarge"
-                android:background="@drawable/edittext_bg"
-                android:gravity="center_vertical"
-                android:hint="Tell everyone what party you create"
-                android:inputType="text"
-                android:paddingStart="@dimen/spacing_large"
-                android:paddingEnd="@dimen/spacing_large"
-                android:textColor="@color/white"
-                android:textColorHint="#55FFFFFF"
-                android:textSize="@dimen/text_medium"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvSelectCover" />
@@ -125,7 +114,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/etRoomDescription"
+                app:layout_constraintTop_toBottomOf="@+id/tvSelectCover"
                 app:layout_constraintVertical_bias="0.0" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

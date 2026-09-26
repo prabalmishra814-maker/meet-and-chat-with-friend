@@ -31,13 +31,28 @@
             android:textSize="9sp"
             android:textStyle="bold" />
 
-        <!-- Preview Icon -->
-        <ImageView
-            android:id="@+id/ivItemIcon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginTop="4dp"
-            android:src="@drawable/family_owner_frame" />
+        <!-- Preview Icon Container -->
+        <FrameLayout
+            android:layout_width="68dp"
+            android:layout_height="68dp"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:id="@+id/ivItemIcon"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/family_owner_frame" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaItemIcon"
+                android:layout_width="68dp"
+                android:layout_height="68dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
+        </FrameLayout>
 
         <!-- Title -->
         <TextView

@@ -19,6 +19,7 @@ import com.roomchatapps.Pmishra.databinding.ItemChatMessageReceivedBinding;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageSentBinding;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.SessionManager;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ChatMessage message = chatMessages.get(targetPos);
         if (message == null) return;
 
-        // Animate ONLY newly added messages (Slide-in + Scale 0.97 -> 1.0 + Fade-in)
+        // Animate ONLY newly added messages
         if (targetPos > lastAnimatedPosition) {
             holder.itemView.setAlpha(0f);
             holder.itemView.setTranslationY(25f);
@@ -152,18 +153,37 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void setData(ChatMessage message) {
             if (message == null) return;
+            Context ctx = itemView.getContext();
             binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
             binding.tvTime.setText(formatDate(message.getTimestamp()));
 
             if (binding.ivAvatar != null) {
                 binding.ivAvatar.setVisibility(View.VISIBLE);
-                binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                
+                // Quick immediate avatar preview from message or session
+                String directAvatar = message.getSenderAvatar();
+                if (directAvatar == null || directAvatar.trim().isEmpty()) {
+                    directAvatar = SessionManager.getInstance(ctx).getAvatar();
+                }
+
+                if (directAvatar != null && !directAvatar.trim().isEmpty()) {
+                    Glide.with(ctx)
+                            .load(directAvatar)
+                            .placeholder(R.drawable.logo_placeholder)
+                            .error(R.drawable.logo_placeholder)
+                            .into(binding.ivAvatar);
+                } else {
+                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                }
+            }
+
+            if (binding.ivFrame != null) {
+                binding.ivFrame.setVisibility(View.GONE);
             }
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
                 View.OnClickListener openProfile = v -> {
-                    Context ctx = itemView.getContext();
                     if (ctx != null) {
                         Intent intent = new Intent(ctx, UserDetailActivity.class);
                         intent.putExtra("uid", senderId);
@@ -174,7 +194,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (binding.ivAvatar != null) binding.ivAvatar.setOnClickListener(openProfile);
 
                 UserProfileCache.getUserProfile(senderId, profile -> {
-                    Context ctx = itemView.getContext();
                     if (ctx == null) return;
                     if (ctx instanceof Activity) {
                         Activity act = (Activity) ctx;
@@ -188,32 +207,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
-                        } else {
-                            Glide.with(ctx)
-                                    .load(R.drawable.logo_placeholder)
-                                    .into(binding.ivAvatar);
                         }
                     }
 
                     if (binding.ivFrame != null) {
-                        if (profile != null) {
-                            int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
-                            if (frameRes != 0) {
-                                binding.ivFrame.setImageResource(frameRes);
-                                binding.ivFrame.setVisibility(View.VISIBLE);
-                            } else {
-                                binding.ivFrame.setVisibility(View.GONE);
-                            }
-                        } else {
-                            binding.ivFrame.setVisibility(View.GONE);
-                        }
+                        binding.ivFrame.setVisibility(View.GONE);
                     }
                 });
             } else {
-                if (binding.ivAvatar != null) {
-                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
-                    binding.ivAvatar.setVisibility(View.VISIBLE);
-                }
                 if (binding.ivFrame != null) {
                     binding.ivFrame.setVisibility(View.GONE);
                 }
@@ -231,18 +232,32 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void setData(ChatMessage message) {
             if (message == null) return;
+            Context ctx = itemView.getContext();
             binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
             binding.tvTime.setText(formatDate(message.getTimestamp()));
 
             if (binding.ivAvatar != null) {
                 binding.ivAvatar.setVisibility(View.VISIBLE);
-                binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                
+                String directAvatar = message.getSenderAvatar();
+                if (directAvatar != null && !directAvatar.trim().isEmpty()) {
+                    Glide.with(ctx)
+                            .load(directAvatar)
+                            .placeholder(R.drawable.logo_placeholder)
+                            .error(R.drawable.logo_placeholder)
+                            .into(binding.ivAvatar);
+                } else {
+                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
+                }
+            }
+
+            if (binding.ivFrame != null) {
+                binding.ivFrame.setVisibility(View.GONE);
             }
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
                 View.OnClickListener openProfile = v -> {
-                    Context ctx = itemView.getContext();
                     if (ctx != null) {
                         Intent intent = new Intent(ctx, UserDetailActivity.class);
                         intent.putExtra("uid", senderId);
@@ -253,7 +268,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (binding.ivAvatar != null) binding.ivAvatar.setOnClickListener(openProfile);
 
                 UserProfileCache.getUserProfile(senderId, profile -> {
-                    Context ctx = itemView.getContext();
                     if (ctx == null) return;
                     if (ctx instanceof Activity) {
                         Activity act = (Activity) ctx;
@@ -267,32 +281,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
-                        } else {
-                            Glide.with(ctx)
-                                    .load(R.drawable.logo_placeholder)
-                                    .into(binding.ivAvatar);
                         }
                     }
 
                     if (binding.ivFrame != null) {
-                        if (profile != null) {
-                            int frameRes = FrameUtils.getFrameDrawableRes(ctx, profile.equippedFrame);
-                            if (frameRes != 0) {
-                                binding.ivFrame.setImageResource(frameRes);
-                                binding.ivFrame.setVisibility(View.VISIBLE);
-                            } else {
-                                binding.ivFrame.setVisibility(View.GONE);
-                            }
-                        } else {
-                            binding.ivFrame.setVisibility(View.GONE);
-                        }
+                        binding.ivFrame.setVisibility(View.GONE);
                     }
                 });
             } else {
-                if (binding.ivAvatar != null) {
-                    binding.ivAvatar.setImageResource(R.drawable.logo_placeholder);
-                    binding.ivAvatar.setVisibility(View.VISIBLE);
-                }
                 if (binding.ivFrame != null) {
                     binding.ivFrame.setVisibility(View.GONE);
                 }

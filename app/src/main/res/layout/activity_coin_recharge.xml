@@ -83,6 +83,7 @@
 
             <!-- Bonus Banner Header -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBonusBanner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="12dp"
@@ -113,6 +114,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvBannerTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🔥 First Recharge Special Offer!"
@@ -121,10 +123,11 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvBannerSubtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Get up to +40% EXTRA Bonus Coins on all packages today!"
+                            android:text="Get up to +30% EXTRA Bonus Coins on available packages today!"
                             android:textColor="#D1D5DB"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -149,7 +152,7 @@
                 android:columnCount="2"
                 android:useDefaultMargins="true">
 
-                <!-- Pack 1: Starter Pack (100 Coins - ₹10) -->
+                <!-- Pack 1: ₹50 (1,800,000 Total Coins) -->
                 <FrameLayout
                     android:id="@+id/cardPack1"
                     android:layout_width="0dp"
@@ -160,86 +163,26 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
-                                android:contentDescription="Coin"
-                                android:src="@drawable/coin" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="100"
-                                android:textColor="#FFD700"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Starter Pack"
-                            android:textColor="#9CA3AF"
-                            android:textSize="11sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/chip_charm_bg"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="4dp"
-                            android:text="₹10"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </FrameLayout>
-
-                <!-- Pack 2: Popular Pack (600 Coins - ₹50) -->
-                <FrameLayout
-                    android:id="@+id/cardPack2"
-                    android:layout_width="0dp"
-                    android:layout_height="125dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="5dp"
-                    android:background="@drawable/bg_recharge_card_normal"
-                    android:clickable="true"
-                    android:focusable="true">
-
                     <TextView
+                        android:id="@+id/tvBadgePack1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|start"
                         android:background="@drawable/bg_bonus_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="+100 BONUS"
+                        android:text="Special Offer"
                         android:textColor="#FFFFFF"
                         android:textSize="9.5sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="10dp">
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -248,30 +191,33 @@
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
                                 android:contentDescription="Coin"
                                 android:src="@drawable/coin" />
 
                             <TextView
+                                android:id="@+id/tvCoinsPack1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="600"
+                                android:text="1,800,000"
                                 android:textColor="#FFD700"
-                                android:textSize="20sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvExtraPack1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="500 + 100 Extra"
+                            android:text="Total Coins"
                             android:textColor="#9CA3AF"
                             android:textSize="11sp" />
 
                         <TextView
+                            android:id="@+id/tvPricePack1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -285,9 +231,9 @@
                     </LinearLayout>
                 </FrameLayout>
 
-                <!-- Pack 3: Value Pack (1500 Coins - ₹100) -->
+                <!-- Pack 2: ₹100 (4,000,000 + 200,000 Extra = 4,200,000 Coins) -->
                 <FrameLayout
-                    android:id="@+id/cardPack3"
+                    android:id="@+id/cardPack2"
                     android:layout_width="0dp"
                     android:layout_height="125dp"
                     android:layout_columnWeight="1"
@@ -297,13 +243,14 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvBadgePack2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|start"
                         android:background="@drawable/bg_bonus_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="+300 BONUS"
+                        android:text="+5% Extra Coins"
                         android:textColor="#FFFFFF"
                         android:textSize="9.5sp"
                         android:textStyle="bold" />
@@ -313,7 +260,7 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="10dp">
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -322,30 +269,34 @@
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
                                 android:contentDescription="Coin"
                                 android:src="@drawable/coin" />
 
                             <TextView
+                                android:id="@+id/tvCoinsPack2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="1,500"
+                                android:text="4,200,000"
                                 android:textColor="#FFD700"
-                                android:textSize="20sp"
+                                android:textSize="17sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvExtraPack2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="1200 + 300 Extra"
-                            android:textColor="#9CA3AF"
-                            android:textSize="11sp" />
+                            android:text="+ 200,000 Extra Coins"
+                            android:textColor="#40E0D0"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvPricePack2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -359,7 +310,86 @@
                     </LinearLayout>
                 </FrameLayout>
 
-                <!-- Pack 4: Super Saver (4000 Coins - ₹250) -->
+                <!-- Pack 3: ₹200 (8,000,000 + 800,000 Extra = 8,800,000 Coins) -->
+                <FrameLayout
+                    android:id="@+id/cardPack3"
+                    android:layout_width="0dp"
+                    android:layout_height="125dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/bg_recharge_card_normal"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvBadgePack3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:background="@drawable/bg_bonus_badge"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="+10% Extra Coins"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
+                                android:contentDescription="Coin"
+                                android:src="@drawable/coin" />
+
+                            <TextView
+                                android:id="@+id/tvCoinsPack3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="8,800,000"
+                                android:textColor="#FFD700"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvExtraPack3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="+ 800,000 Extra Coins"
+                            android:textColor="#40E0D0"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvPricePack3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/chip_charm_bg"
+                            android:paddingHorizontal="14dp"
+                            android:paddingVertical="4dp"
+                            android:text="₹200"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- Pack 4: ₹500 (22,000,000 + 3,300,000 Extra = 25,300,000 Coins) -->
                 <FrameLayout
                     android:id="@+id/cardPack4"
                     android:layout_width="0dp"
@@ -371,13 +401,14 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvBadgePack4"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|start"
                         android:background="@drawable/bg_bonus_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="+1000 BONUS"
+                        android:text="+15% Extra Coins"
                         android:textColor="#FFFFFF"
                         android:textSize="9.5sp"
                         android:textStyle="bold" />
@@ -387,7 +418,7 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="10dp">
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -396,104 +427,34 @@
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
                                 android:contentDescription="Coin"
                                 android:src="@drawable/coin" />
 
                             <TextView
+                                android:id="@+id/tvCoinsPack4"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="4,000"
+                                android:text="25,300,000"
                                 android:textColor="#FFD700"
-                                android:textSize="20sp"
+                                android:textSize="17sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvExtraPack4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="3000 + 1000 Extra"
-                            android:textColor="#9CA3AF"
-                            android:textSize="11sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/chip_charm_bg"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="4dp"
-                            android:text="₹250"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
+                            android:text="+ 3,300,000 Extra"
+                            android:textColor="#40E0D0"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
-                    </LinearLayout>
-                </FrameLayout>
-
-                <!-- Pack 5: VIP Mega Pack (9500 Coins - ₹500) -->
-                <FrameLayout
-                    android:id="@+id/cardPack5"
-                    android:layout_width="0dp"
-                    android:layout_height="125dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="5dp"
-                    android:background="@drawable/bg_recharge_card_normal"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="top|start"
-                        android:background="@drawable/bg_bonus_badge"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
-                        android:text="+2500 BONUS"
-                        android:textColor="#FFFFFF"
-                        android:textSize="9.5sp"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
-                                android:contentDescription="Coin"
-                                android:src="@drawable/coin" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="9,500"
-                                android:textColor="#FFD700"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="7000 + 2500 Extra"
-                            android:textColor="#9CA3AF"
-                            android:textSize="11sp" />
-
-                        <TextView
+                            android:id="@+id/tvPricePack4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -507,7 +468,86 @@
                     </LinearLayout>
                 </FrameLayout>
 
-                <!-- Pack 6: Ultimate Crown (21000 Coins - ₹1000) -->
+                <!-- Pack 5: ₹1,000 (45,000,000 + 9,000,000 Extra = 54,000,000 Coins) -->
+                <FrameLayout
+                    android:id="@+id/cardPack5"
+                    android:layout_width="0dp"
+                    android:layout_height="125dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/bg_recharge_card_normal"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvBadgePack5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:background="@drawable/bg_bonus_badge"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="+20% Extra Coins"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
+                                android:contentDescription="Coin"
+                                android:src="@drawable/coin" />
+
+                            <TextView
+                                android:id="@+id/tvCoinsPack5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="54,000,000"
+                                android:textColor="#FFD700"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvExtraPack5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="+ 9,000,000 Extra"
+                            android:textColor="#40E0D0"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvPricePack5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/chip_charm_bg"
+                            android:paddingHorizontal="14dp"
+                            android:paddingVertical="4dp"
+                            android:text="₹1,000"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- Pack 6: ₹5,000 (250,000,000 + 75,000,000 Extra = 325,000,000 Coins) -->
                 <FrameLayout
                     android:id="@+id/cardPack6"
                     android:layout_width="0dp"
@@ -519,13 +559,14 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvBadgePack6"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|start"
                         android:background="@drawable/bg_bonus_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="+6000 BONUS"
+                        android:text="+30% Extra Coins"
                         android:textColor="#FFFFFF"
                         android:textSize="9.5sp"
                         android:textStyle="bold" />
@@ -535,7 +576,7 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="10dp">
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -544,37 +585,41 @@
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="6dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
                                 android:contentDescription="Coin"
                                 android:src="@drawable/coin" />
 
                             <TextView
+                                android:id="@+id/tvCoinsPack6"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="21,000"
+                                android:text="325,000,000"
                                 android:textColor="#FFD700"
-                                android:textSize="20sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvExtraPack6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="15000 + 6000 Extra"
-                            android:textColor="#9CA3AF"
-                            android:textSize="11sp" />
+                            android:text="+ 75,000,000 Extra"
+                            android:textColor="#40E0D0"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvPricePack6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:background="@drawable/chip_charm_bg"
                             android:paddingHorizontal="14dp"
                             android:paddingVertical="4dp"
-                            android:text="₹1000"
+                            android:text="₹5,000"
                             android:textColor="#FFFFFF"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -582,6 +627,36 @@
                 </FrameLayout>
 
             </GridLayout>
+
+            <!-- All Offers Claimed State Layout -->
+            <LinearLayout
+                android:id="@+id/llAllOffersClaimed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="20dp"
+                android:background="@drawable/chip_room_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎉 All Special Offers Claimed!"
+                    android:textColor="#FFD700"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="You have successfully availed all available offer packages. Each offer is limited to 1 purchase per user."
+                    android:textColor="#D1D5DB"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
             <!-- Payment Method Section -->
             <TextView

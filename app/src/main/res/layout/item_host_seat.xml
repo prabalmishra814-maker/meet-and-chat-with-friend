@@ -58,8 +58,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
-            android:src="@drawable/_1000092461_removebg_preview"
             android:visibility="gone" />
+
+        <!-- Animated SVGA Profile Frame Overlay -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaSeatFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
 
         <!-- Locked / Closed Seat Overlay -->
         <ImageView
@@ -74,11 +83,13 @@
         <!-- Mic Status Icon (bottom-right of avatar) -->
         <ImageView
             android:id="@+id/ivMicStatus"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_glass_icon_pill"
+            android:backgroundTint="#80000000"
             android:elevation="4dp"
-            android:padding="2dp"
+            android:padding="3dp"
             android:src="@drawable/ic_mic_on"
             android:visibility="gone" />
     </FrameLayout>

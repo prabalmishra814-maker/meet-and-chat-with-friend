@@ -25,6 +25,36 @@ public class WalletManager {
         void onError(String error);
     }
 
+    public interface CoinCallback {
+        void onCoinsLoaded(long coins);
+    }
+
+    public static void getUserCoins(String uid, CoinCallback callback) {
+        if (uid == null || uid.isEmpty()) {
+            if (callback != null) callback.onCoinsLoaded(0);
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("coins");
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long currentCoins = 0;
+                if (snapshot.exists() && snapshot.getValue() != null) {
+                    try {
+                        currentCoins = Long.parseLong(String.valueOf(snapshot.getValue()));
+                    } catch (Exception ignored) {}
+                }
+                if (callback != null) callback.onCoinsLoaded(currentCoins);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (callback != null) callback.onCoinsLoaded(0);
+            }
+        });
+    }
+
     /**
      * Top-up / Recharge coins for user
      */

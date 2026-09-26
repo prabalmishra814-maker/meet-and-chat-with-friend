@@ -4,11 +4,19 @@ import android.app.Application;
 import android.util.Log;
 
 import im.zego.zegoexpress.ZegoExpressEngine;
+import im.zego.zegoexpress.ZegoMediaPlayer;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
+import im.zego.zegoexpress.callback.IZegoMediaPlayerLoadResourceCallback;
+import im.zego.zegoexpress.constants.ZegoAudioConfigPreset;
 import im.zego.zegoexpress.constants.ZegoAudioRoute;
+import im.zego.zegoexpress.constants.ZegoMediaPlayerState;
+import im.zego.zegoexpress.constants.ZegoPlayerState;
+import im.zego.zegoexpress.constants.ZegoPublisherState;
+import im.zego.zegoexpress.constants.ZegoRemoteDeviceState;
 import im.zego.zegoexpress.constants.ZegoScenario;
 import im.zego.zegoexpress.constants.ZegoUpdateType;
 import im.zego.zegoexpress.constants.ZegoRoomStateChangedReason;
+import im.zego.zegoexpress.entity.ZegoAudioConfig;
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
 import im.zego.zegoexpress.entity.ZegoRoomConfig;
@@ -19,7 +27,9 @@ import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
 
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ZegoManager {
     private static final String TAG = "ZegoManager";
@@ -29,6 +39,7 @@ public class ZegoManager {
     private String currentRoomID;
     private boolean isInRoom = false;
     private final List<ZegoUser> roomUsers = new ArrayList<>();
+    private ZegoMediaPlayer mediaPlayer;
 
     private final List<ZegoManagerListener> listeners = new ArrayList<>();
 
@@ -58,21 +69,28 @@ public class ZegoManager {
         ZegoEngineConfig config = new ZegoEngineConfig();
         ZegoExpressEngine.setEngineConfig(config);
 
-        // DEFAULT scenario in Production Env
-        engine = ZegoExpressEngine.createEngine(appID, appSign, false, ZegoScenario.DEFAULT, application, eventHandler);
-        
-        im.zego.zegoexpress.entity.ZegoAudioConfig audioConfig = new im.zego.zegoexpress.entity.ZegoAudioConfig(im.zego.zegoexpress.constants.ZegoAudioConfigPreset.STANDARD_QUALITY);
+        // HIGH_QUALITY_CHATROOM scenario for crystal clear unlimited-range multi-person voice rooms
+        engine = ZegoExpressEngine.createEngine(appID, appSign, false, ZegoScenario.HIGH_QUALITY_CHATROOM, application, eventHandler);
+
+        // High Quality Audio Preset
+        ZegoAudioConfig audioConfig = new ZegoAudioConfig(ZegoAudioConfigPreset.HIGH_QUALITY);
         engine.setAudioConfig(audioConfig);
-        
+
+        // Enable Automatic Gain Control (AGC), Acoustic Echo Cancellation (AEC), and Active Noise Suppression (ANS)
+        engine.enableAEC(true);
+        engine.enableAGC(true);
+        engine.enableANS(true);
+        engine.enableHeadphoneAEC(true);
+
         engine.startSoundLevelMonitor(100); // Faster update (100ms) for speaking animations
-        
-        // Ensure volumes are maxed
+
+        // Ensure capture and playback volumes are maxed
         engine.setCaptureVolume(100);
         engine.setAllPlayStreamVolume(100);
-        
+
         // Ensure speaker is on by default
         engine.setAudioRouteToSpeaker(true);
-        Log.d(TAG, "ZegoExpressEngine initialized in Production Env");
+        Log.d(TAG, "ZegoExpressEngine initialized with HIGH_QUALITY_CHATROOM scenario & AGC enabled");
     }
 
     public void loginRoom(String roomID, String userID, String userName, boolean isHost) {
@@ -86,7 +104,9 @@ public class ZegoManager {
             if (errorCode == 0) {
                 Log.d(TAG, "Login successful");
                 isInRoom = true;
-                engine.muteAllPlayStreamAudio(false); // Ensure audio playback is enabled
+                engine.muteAllPlayStreamAudio(false); // Ensure audio playback is active
+                engine.setAllPlayStreamVolume(100);
+                engine.setAudioRouteToSpeaker(true);
                 if (isHost) {
                     startPublishing();
                 }
@@ -108,12 +128,29 @@ public class ZegoManager {
         }
     }
 
+    private boolean isMicEnabled = true;
+
+    public void setMicEnabled(boolean enabled) {
+        this.isMicEnabled = enabled;
+        if (engine != null) {
+            Log.d(TAG, "Setting mic enabled: " + enabled);
+            engine.muteMicrophone(!enabled);
+            engine.mutePublishStreamAudio(!enabled);
+            engine.setCaptureVolume(enabled ? 100 : 0);
+        }
+    }
+
+    public boolean isMicEnabled() {
+        return isMicEnabled;
+    }
+
     public void startPublishing() {
         if (engine != null && currentUser != null) {
             String streamID = currentUser.userID;
-            Log.d(TAG, "Starting to publish stream: " + streamID);
-            engine.muteMicrophone(false);
-            engine.mutePublishStreamAudio(false);
+            Log.d(TAG, "Starting to publish stream: " + streamID + " (micEnabled=" + isMicEnabled + ")");
+            engine.muteMicrophone(!isMicEnabled);
+            engine.mutePublishStreamAudio(!isMicEnabled);
+            engine.setCaptureVolume(isMicEnabled ? 100 : 0);
             engine.startPublishingStream(streamID);
         }
     }
@@ -124,29 +161,43 @@ public class ZegoManager {
         }
     }
 
-    public void setMicEnabled(boolean enabled) {
-        if (engine != null) {
-            Log.d(TAG, "Setting mic enabled: " + enabled);
-            engine.muteMicrophone(!enabled);
-            engine.mutePublishStreamAudio(!enabled);
-        }
-    }
+    private boolean isSpeakerEnabled = true;
 
     public void setSpeakerOn(boolean on) {
+        this.isSpeakerEnabled = on;
         if (engine != null) {
+            Log.d(TAG, "Setting speaker enabled: " + on);
             engine.setAudioRouteToSpeaker(on);
+            engine.muteAllPlayStreamAudio(!on);
+            if (on) {
+                engine.setAllPlayStreamVolume(100);
+            }
         }
     }
 
     public boolean isSpeakerOn() {
-        if (engine != null) {
-            return engine.getAudioRouteType() == ZegoAudioRoute.SPEAKER;
-        }
-        return false;
+        return isSpeakerEnabled;
     }
 
     public int getRoomUserCount() {
         return roomUsers.size() + 1; // +1 for self if not in list
+    }
+
+    public boolean isUserInRoom(String targetUserID) {
+        if (targetUserID == null || targetUserID.trim().isEmpty()) return false;
+        if (currentUser != null && targetUserID.equals(currentUser.userID)) return true;
+        synchronized (roomUsers) {
+            for (ZegoUser u : roomUsers) {
+                if (targetUserID.equals(u.userID)) return true;
+            }
+        }
+        return false;
+    }
+
+    public List<ZegoUser> getRoomUsers() {
+        synchronized (roomUsers) {
+            return new ArrayList<>(roomUsers);
+        }
     }
 
     public void sendInRoomTextMessage(String message) {
@@ -181,6 +232,78 @@ public class ZegoManager {
             });
         } else {
             Log.e(TAG, "Cannot set RoomExtraInfo: engine=" + (engine != null) + ", room=" + currentRoomID);
+        }
+    }
+
+    private int currentMusicVolume = 80;
+
+    public void setMusicVolume(int volume) {
+        this.currentMusicVolume = Math.max(0, Math.min(100, volume));
+        if (mediaPlayer != null) {
+            mediaPlayer.setPlayVolume(currentMusicVolume);
+            mediaPlayer.setPublishVolume(currentMusicVolume);
+        }
+    }
+
+    public int getMusicVolume() {
+        return currentMusicVolume;
+    }
+
+    public void playMusicResource(String resourcePath, String fileName) {
+        if (engine == null) return;
+
+        if (mediaPlayer == null) {
+            mediaPlayer = engine.createMediaPlayer();
+            if (mediaPlayer == null) return;
+            mediaPlayer.enableAux(true);
+            mediaPlayer.setPlayVolume(currentMusicVolume);
+            mediaPlayer.setPublishVolume(currentMusicVolume);
+        }
+
+        mediaPlayer.stop();
+        mediaPlayer.loadResource(resourcePath, errorCode -> {
+            if (errorCode == 0) {
+                mediaPlayer.enableAux(true);
+                mediaPlayer.setPlayVolume(currentMusicVolume);
+                mediaPlayer.setPublishVolume(currentMusicVolume);
+                mediaPlayer.start();
+                Log.d(TAG, "Playing music resource: " + fileName);
+            } else {
+                Log.e(TAG, "Failed to load music resource: " + errorCode);
+            }
+        });
+    }
+
+    public void pauseMusic() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+        }
+    }
+
+    public void resumeMusic() {
+        if (mediaPlayer != null) {
+            mediaPlayer.resume();
+        }
+    }
+
+    public void stopMusic() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
+    }
+
+    public boolean isMusicPlaying() {
+        if (mediaPlayer != null) {
+            return mediaPlayer.getCurrentState() == ZegoMediaPlayerState.PLAYING;
+        }
+        return false;
+    }
+
+    public void releaseMediaPlayer() {
+        if (mediaPlayer != null && engine != null) {
+            mediaPlayer.stop();
+            engine.destroyMediaPlayer(mediaPlayer);
+            mediaPlayer = null;
         }
     }
 
@@ -220,6 +343,8 @@ public class ZegoManager {
             if (updateType == ZegoUpdateType.ADD) {
                 for (ZegoStream stream : streamList) {
                     Log.d(TAG, "Starting to play stream: " + stream.streamID);
+                    engine.mutePlayStreamAudio(stream.streamID, false);
+                    engine.setPlayVolume(stream.streamID, 100);
                     engine.startPlayingStream(stream.streamID, (ZegoCanvas) null);
                 }
             } else {
@@ -231,7 +356,7 @@ public class ZegoManager {
         }
 
         @Override
-        public void onPublisherStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoPublisherState state, int errorCode, JSONObject extendedData) {
+        public void onPublisherStateUpdate(String streamID, ZegoPublisherState state, int errorCode, JSONObject extendedData) {
             Log.d(TAG, "Publisher state update: " + streamID + ", state=" + state + ", errorCode=" + errorCode);
             if (errorCode != 0) {
                 Log.e(TAG, "Publisher error: " + errorCode);
@@ -239,7 +364,7 @@ public class ZegoManager {
         }
 
         @Override
-        public void onPlayerStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoPlayerState state, int errorCode, JSONObject extendedData) {
+        public void onPlayerStateUpdate(String streamID, ZegoPlayerState state, int errorCode, JSONObject extendedData) {
             Log.d(TAG, "Player state update: " + streamID + ", state=" + state + ", errorCode=" + errorCode);
             if (errorCode != 0) {
                 Log.e(TAG, "Player error: " + errorCode);
@@ -254,9 +379,9 @@ public class ZegoManager {
         }
 
         @Override
-        public void onRemoteMicStateUpdate(String streamID, im.zego.zegoexpress.constants.ZegoRemoteDeviceState state) {
+        public void onRemoteMicStateUpdate(String streamID, ZegoRemoteDeviceState state) {
             // Since streamID == userID
-            boolean isOn = state == im.zego.zegoexpress.constants.ZegoRemoteDeviceState.OPEN;
+            boolean isOn = state == ZegoRemoteDeviceState.OPEN;
             for (ZegoManagerListener listener : listeners) {
                 listener.onRemoteMicStatusUpdate(streamID, isOn);
             }
@@ -272,8 +397,8 @@ public class ZegoManager {
         }
 
         @Override
-        public void onRemoteSoundLevelUpdate(java.util.HashMap<String, Float> soundLevels) {
-            for (java.util.Map.Entry<String, Float> entry : soundLevels.entrySet()) {
+        public void onRemoteSoundLevelUpdate(HashMap<String, Float> soundLevels) {
+            for (Map.Entry<String, Float> entry : soundLevels.entrySet()) {
                 String streamID = entry.getKey(); // streamID == userID
                 for (ZegoManagerListener listener : listeners) {
                     listener.onAudioLevelUpdate(streamID, entry.getValue());

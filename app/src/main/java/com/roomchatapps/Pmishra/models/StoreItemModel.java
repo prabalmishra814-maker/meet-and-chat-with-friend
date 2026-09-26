@@ -8,6 +8,7 @@ public class StoreItemModel {
     private String description;
     private String iconResName;
     private String badgeText;
+    private String svgaPath;
     private boolean isOwned;
     private boolean isEquipped;
 
@@ -23,6 +24,11 @@ public class StoreItemModel {
         this.badgeText = badgeText;
         this.isOwned = false;
         this.isEquipped = false;
+    }
+
+    public StoreItemModel(String id, String name, String category, long priceCoins, String description, String iconResName, String badgeText, String svgaPath) {
+        this(id, name, category, priceCoins, description, iconResName, badgeText);
+        this.svgaPath = svgaPath;
     }
 
     public String getId() { return id; }
@@ -45,6 +51,9 @@ public class StoreItemModel {
 
     public String getBadgeText() { return badgeText; }
     public void setBadgeText(String badgeText) { this.badgeText = badgeText; }
+
+    public String getSvgaPath() { return svgaPath; }
+    public void setSvgaPath(String svgaPath) { this.svgaPath = svgaPath; }
 
     public boolean isOwned() { return isOwned; }
     public void setOwned(boolean owned) { isOwned = owned; }

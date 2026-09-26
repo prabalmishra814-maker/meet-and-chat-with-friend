@@ -3,7 +3,6 @@ package com.roomchatapps.Pmishra;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,6 +27,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.roomchatapps.Pmishra.utils.LoadingDialog;
+import com.roomchatapps.Pmishra.utils.SessionManager;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
 public class LoginActivity extends AppCompatActivity {
@@ -35,6 +36,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1000;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
+    private LoadingDialog loadingDialog;
+    private SessionManager sessionManager;
     private static final String TAG = "LoginActivity";
 
     @Override
@@ -42,14 +45,14 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
-
         mAuth = FirebaseAuth.getInstance();
+        loadingDialog = new LoadingDialog(this);
+        sessionManager = SessionManager.getInstance(this);
 
-        // Check if user is already signed in via Firebase
-        if (mAuth.getCurrentUser() != null) {
+        // Check if user is already signed in via Firebase and SessionManager
+        if (mAuth.getCurrentUser() != null && sessionManager.isLoggedIn()) {
             navigateToMainActivity();
-            return; // Essential to prevent crash if layout views are missing
+            return;
         }
 
         LinearLayout llEmail = findViewById(R.id.llEmail);
@@ -105,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signIn() {
+        loadingDialog.show("Signing in with Google...");
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -119,9 +123,14 @@ public class LoginActivity extends AppCompatActivity {
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 if (account != null) {
+                    loadingDialog.setMessage("Authenticating with Firebase...");
                     firebaseAuthWithGoogle(account.getIdToken());
+                } else {
+                    loadingDialog.dismiss();
+                    Toast.makeText(this, "Google Sign In failed", Toast.LENGTH_SHORT).show();
                 }
             } catch (ApiException e) {
+                loadingDialog.dismiss();
                 // Google Sign In failed, update UI appropriately
                 Log.e(TAG, "Google sign in failed code=" + e.getStatusCode(), e);
                 String message = "Sign in failed";
@@ -141,8 +150,10 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        loadingDialog.setMessage("Syncing profile data...");
                         saveUserToDatabase(user);
                     } else {
+                        loadingDialog.dismiss();
                         Log.e(TAG, "Firebase Authentication failed", task.getException());
                         Toast.makeText(LoginActivity.this, "Firebase Authentication Failed.", Toast.LENGTH_SHORT).show();
                     }
@@ -158,12 +169,17 @@ public class LoginActivity extends AppCompatActivity {
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (!snapshot.exists()) {
-                        // New User Registration: Initialize profile and award Welcome Bonus Coins
-                        String generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                    String name = user.getDisplayName() != null ? user.getDisplayName() : "User";
+                    String email = user.getEmail() != null ? user.getEmail() : "";
+                    String avatar = user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "";
+                    String generatedProfileId;
 
-                        userRef.child("name").setValue(user.getDisplayName() != null ? user.getDisplayName() : "User");
-                        userRef.child("email").setValue(user.getEmail() != null ? user.getEmail() : "");
+                    if (!snapshot.exists()) {
+                        // New User Registration
+                        generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+
+                        userRef.child("name").setValue(name);
+                        userRef.child("email").setValue(email);
                         userRef.child("uid").setValue(user.getUid());
                         userRef.child("profileId").setValue(generatedProfileId);
                         userRef.child("premium").setValue("no");
@@ -171,40 +187,54 @@ public class LoginActivity extends AppCompatActivity {
                         userRef.child("Following").setValue("0");
                         userRef.child("level").setValue("1");
                         userRef.child("money").setValue(0);
-                        
-                        // Welcome Bonus: Give 500 initial coins for Gifts & Theme Store
                         userRef.child("coins").setValue(500);
 
-                        if (user.getPhotoUrl() != null) {
-                            userRef.child("avtar").setValue(user.getPhotoUrl().toString());
+                        if (!avatar.isEmpty()) {
+                            userRef.child("avtar").setValue(avatar);
                         }
 
-                        // Log welcome bonus transaction in wallet history
                         WalletManager.logTransaction(
                                 user.getUid(), "WELCOME_BONUS", 500, 0,
                                 "Welcome Signup Bonus", "Received 500 Free Signup Coins!"
                         );
                     } else {
-                        // Existing User: Preserve existing coin balance, level, followers, and profile ID
-                        if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
-                            userRef.child("name").setValue(user.getDisplayName());
+                        // Existing User
+                        String dbProfileId = snapshot.child("profileId").getValue(String.class);
+                        generatedProfileId = dbProfileId != null ? dbProfileId : String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                        
+                        String dbName = snapshot.child("name").getValue(String.class);
+                        if (dbName != null && !dbName.isEmpty()) {
+                            name = dbName;
+                        } else if (!name.isEmpty()) {
+                            userRef.child("name").setValue(name);
                         }
-                        if (user.getPhotoUrl() != null) {
-                            userRef.child("avtar").setValue(user.getPhotoUrl().toString());
+
+                        String dbAvatar = snapshot.child("avtar").getValue(String.class);
+                        if (dbAvatar != null && !dbAvatar.isEmpty()) {
+                            avatar = dbAvatar;
+                        } else if (!avatar.isEmpty()) {
+                            userRef.child("avtar").setValue(avatar);
                         }
-                        // Ensure coins field exists if missing
+
                         if (!snapshot.hasChild("coins")) {
                             userRef.child("coins").setValue(500);
                         }
                     }
+
+                    sessionManager.createLoginSession(user.getUid(), name, email, generatedProfileId, avatar, "google");
+                    loadingDialog.dismiss();
                     navigateToMainActivity();
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
+                    loadingDialog.dismiss();
+                    sessionManager.createLoginSession(user.getUid(), user.getDisplayName(), user.getEmail(), "", "", "google");
                     navigateToMainActivity();
                 }
             });
+        } else {
+            loadingDialog.dismiss();
         }
     }
 
@@ -221,5 +251,13 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (loadingDialog != null) {
+            loadingDialog.dismiss();
+        }
+        super.onDestroy();
     }
 }

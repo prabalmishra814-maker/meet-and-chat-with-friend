@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.FragmentProfileBinding;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 
 public class ProfileFragment extends Fragment {
 
@@ -55,6 +56,12 @@ public class ProfileFragment extends Fragment {
             binding.cardWallet.setAlpha(0f);
             binding.cardWallet.setTranslationY(30f);
             binding.cardWallet.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(350).start();
+        }
+
+        if (binding.cardCenters != null) {
+            binding.cardCenters.setAlpha(0f);
+            binding.cardCenters.setTranslationY(30f);
+            binding.cardCenters.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(420).start();
         }
 
         mAuth = FirebaseAuth.getInstance();
@@ -169,51 +176,7 @@ public class ProfileFragment extends Fragment {
 
                     // Check for equipped frame
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
-                    if (equippedFrame != null && !equippedFrame.isEmpty()) {
-                        // We need to resolve the iconResName from StoreManager
-                        com.roomchatapps.Pmishra.utils.StoreManager.getStoreCatalog(uid, "FRAME", new com.roomchatapps.Pmishra.utils.StoreManager.CatalogCallback() {
-                            @Override
-                            public void onCatalogLoaded(java.util.List<com.roomchatapps.Pmishra.models.StoreItemModel> items) {
-                                if (!isAdded() || getContext() == null || binding == null) return;
-                                boolean found = false;
-                                for (com.roomchatapps.Pmishra.models.StoreItemModel item : items) {
-                                    if (item.getId().equals(equippedFrame)) {
-                                        found = true;
-                                        int resId = 0;
-                                        try {
-                                            if (getContext() != null) {
-                                                resId = getResources().getIdentifier(item.getIconResName(), "drawable", getContext().getPackageName());
-                                            }
-                                        } catch (Exception e) {}
-                                        if (resId == 0) resId = R.drawable._1000092519_removebg_preview;
-                                        if (binding.ivProfileFrame != null) {
-                                            binding.ivProfileFrame.setImageResource(resId);
-                                            binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                            AnimationHelper.pulseGlowAnimation(binding.ivProfileFrame);
-                                        }
-                                        break;
-                                    }
-                                }
-                                if (!found && binding.ivProfileFrame != null) {
-                                    binding.ivProfileFrame.setImageResource(R.drawable._1000092519_removebg_preview);
-                                    binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                }
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                if (binding.ivProfileFrame != null) {
-                                    binding.ivProfileFrame.setImageResource(R.drawable._1000092519_removebg_preview);
-                                    binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                                }
-                            }
-                        });
-                    } else {
-                        if (binding.ivProfileFrame != null) {
-                            binding.ivProfileFrame.setImageResource(R.drawable._1000092519_removebg_preview);
-                            binding.ivProfileFrame.setVisibility(View.VISIBLE);
-                        }
-                    }
+                    FrameUtils.displayFrame(getContext(), equippedFrame, binding.ivProfileFrame, binding.svgaProfileFrame);
                 }
             }
 
@@ -286,6 +249,39 @@ public class ProfileFragment extends Fragment {
         binding.btnRefer.setOnClickListener(v -> {
             if (getActivity() != null) {
                 Intent intent = new Intent(getActivity(), ReferralActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // Centers Card Click Listeners
+        binding.btnAgencyCenter.setOnClickListener(v -> {
+            AnimationHelper.bounceAnimation(binding.btnAgencyCenter);
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        binding.btnBdCenter.setOnClickListener(v -> {
+            AnimationHelper.bounceAnimation(binding.btnBdCenter);
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        binding.btnHostCenter.setOnClickListener(v -> {
+            AnimationHelper.bounceAnimation(binding.btnHostCenter);
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        binding.btnBecomeVip.setOnClickListener(v -> {
+            AnimationHelper.bounceAnimation(binding.btnBecomeVip);
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), StoreActivity.class);
                 startActivity(intent);
             }
         });

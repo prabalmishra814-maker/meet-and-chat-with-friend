@@ -58,9 +58,10 @@
             android:layout_margin="6dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#2A223D"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1AFFFFFF"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
+            app:rippleColor="#30FFFFFF"
             app:strokeColor="#00E5FF"
             app:strokeWidth="1.5dp">
 
@@ -120,11 +121,12 @@
             android:layout_margin="6dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#2A223D"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1AFFFFFF"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            app:strokeColor="#20FFFFFF"
-            app:strokeWidth="1dp">
+            app:rippleColor="#30FFFFFF"
+            app:strokeColor="#35FFFFFF"
+            app:strokeWidth="1.2dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -180,11 +182,12 @@
             android:layout_margin="6dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#2A223D"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1AFFFFFF"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            app:strokeColor="#20FFFFFF"
-            app:strokeWidth="1dp">
+            app:rippleColor="#30FFFFFF"
+            app:strokeColor="#35FFFFFF"
+            app:strokeWidth="1.2dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -240,11 +243,12 @@
             android:layout_margin="6dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#2A223D"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1AFFFFFF"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            app:strokeColor="#20FFFFFF"
-            app:strokeWidth="1dp">
+            app:rippleColor="#30FFFFFF"
+            app:strokeColor="#35FFFFFF"
+            app:strokeWidth="1.2dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"

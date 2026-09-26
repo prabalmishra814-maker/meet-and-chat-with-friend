@@ -26,6 +26,7 @@
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:baselineAligned="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="14dp"
@@ -39,14 +40,16 @@
         <!-- User / Room Info Container (Left Pill) -->
         <LinearLayout
             android:id="@+id/layoutUserInfo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="10dp"
             android:background="@drawable/bg_room_top_user_info"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="4dp"
             android:paddingTop="4dp"
-            android:paddingEnd="4dp"
+            android:paddingEnd="10dp"
             android:paddingBottom="4dp">
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -57,42 +60,37 @@
                 app:civ_border_width="0dp" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tvRoomName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:maxLength="14"
+                    android:maxLines="1"
                     android:singleLine="true"
-                    android:text="HANNAH💔"
+                    android:text="AmStudio"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvRoomId"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
                     android:text="ID:13672983"
                     android:textColor="#B0FFFFFF"
                     android:textSize="10.5sp" />
             </LinearLayout>
 
-            <!-- Pink/Magenta Heart Button -->
-
         </LinearLayout>
-
-        <!-- Flexible Spacer to push action icons to the right -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
 
         <!-- Action Icons (Right Side) -->
         <LinearLayout
@@ -104,18 +102,18 @@
 
             <ImageView
                 android:id="@+id/more"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginEnd="14dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="12dp"
                 android:scaleType="centerCrop"
                 android:contentDescription="Badge"
-                android:src="@drawable/drop_down" />
+                android:src="@drawable/setting" />
 
             <ImageView
                 android:id="@+id/btnRoomShare"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
-                android:layout_marginEnd="14dp"
+                android:layout_marginEnd="12dp"
                 android:contentDescription="Share"
                 android:src="@drawable/ic_room_share" />
 
@@ -128,6 +126,136 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <!-- Live Music Bar Widget -->
+    <LinearLayout
+        android:id="@+id/layoutMusicWidget"
+        android:layout_width="wrap_content"
+        android:layout_height="34dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_room_top_user_info"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <ImageView
+            android:id="@+id/ivMusicWave"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="Music Icon"
+            android:src="@drawable/ic_speaker_on"
+            app:tint="#00FFC6" />
+
+        <TextView
+            android:id="@+id/tvMusicTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:ellipsize="end"
+            android:maxLength="22"
+            android:singleLine="true"
+            android:text="🎶 Playing: Song.mp3"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnWidgetMusicPause"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_control_button"
+            android:contentDescription="Stop Music"
+            android:padding="4dp"
+            android:src="@drawable/ic_room_power"
+            app:tint="#FF007A" />
+    </LinearLayout>
+
+    <!-- Golden Gift Banner Container (Positioned in Top Seats / Profile Area) -->
+    <FrameLayout
+        android:id="@+id/bannerGiftContainer"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="2dp"
+        android:elevation="25dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <!-- Golden Banner SVGA View -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaBannerPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:clearsAfterStop="true"
+            app:loopCount="1" />
+
+        <!-- Dynamic Gift Text Overlay Inside Banner -->
+        <TextView
+            android:id="@+id/tvBannerNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:paddingHorizontal="48dp"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14.5sp"
+            android:textStyle="bold"
+            android:shadowColor="#A0000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="5"
+            tools:text="akash sent Walkthrough 🚶" />
+    </FrameLayout>
+
+    <!-- User Entry Banner Container (Red Packet SVGA for Room Join Entry) -->
+    <FrameLayout
+        android:id="@+id/bannerEntryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="2dp"
+        android:elevation="26dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <!-- Entry Banner SVGA View -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaEntryBannerPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:clearsAfterStop="true"
+            app:loopCount="1" />
+
+        <!-- Dynamic Entry Notice Text Overlay Inside Banner -->
+        <TextView
+            android:id="@+id/tvEntryBannerNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:paddingHorizontal="48dp"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14.5sp"
+            android:textStyle="bold"
+            android:shadowColor="#A0000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="5"
+            tools:text="Roy Rupesh entered the room 👋" />
+    </FrameLayout>
 
     <!-- 16 Seats Grid -->
     <androidx.recyclerview.widget.RecyclerView
@@ -230,7 +358,7 @@
             android:focusable="true"
             android:padding="10dp"
             android:src="@drawable/room_more_ic"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <!-- Retained hidden views for Activity references -->
         <ImageView

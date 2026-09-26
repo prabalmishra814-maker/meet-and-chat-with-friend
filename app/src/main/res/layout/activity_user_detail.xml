@@ -50,8 +50,15 @@
                 android:id="@+id/ivProfileFrame"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:src="@drawable/_1000092461_removebg_preview" />
+                android:scaleType="fitCenter" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaProfileFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                app:autoPlay="true"
+                app:loopCount="0" />
         </FrameLayout>
 
         <TextView
