@@ -111,7 +111,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
             FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
-            
+
             if (holder.tvSeatName != null) {
                 if (position == 0) {
                     holder.tvSeatName.setText("Host Seat");

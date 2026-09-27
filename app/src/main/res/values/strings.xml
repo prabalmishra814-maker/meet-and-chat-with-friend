@@ -1,35 +1,15 @@
 <resources>
     <string name="app_name">Room Chat</string>
-    <string name="cat_all">All</string>
-    <string name="cat_india">India</string>
-    <string name="cat_saudi">Saudi</string>
-    <string name="cat_pakistan">Pakistan</string>
-    <string name="cat_uae">UAE</string>
     <string name="explore_square">Square</string>
-    <string name="explore_follow">Follow</string>
-    <string name="nav_home">Home</string>
-    <string name="nav_explore">Explore</string>
-    <string name="nav_message">Message</string>
-    <string name="nav_me">Me</string>
-    <string name="user_name">Harish Kumar</string>
     <string name="user_id">ID: 88776655</string>
-    <string name="follow_count">128</string>
-    <string name="follow_label">Following</string>
-    <string name="fans_count">2.5k</string>
-    <string name="fans_label">Followers</string>
     <string name="followers">Followers</string>
     <string name="following">Following</string>
     <string name="no_users_found">No users found</string>
     <string name="wallet">Wallet</string>
-    <string name="aristocracy">Nobility</string>
-    <string name="medal">Medals</string>
     <string name="store">Store</string>
-    <string name="svip">SVIP</string>
     <string name="agency_center">Agency\nCenter</string>
     <string name="bd_center">BD\nCenter</string>
     <string name="host_center">Host\nCenter</string>
     <string name="become_vip">Become\nVIP</string>
-    <string name="unlock_privileges">Unlock special privileges</string>
-    <string name="level">Level</string>
     <string name="default_web_client_id">686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com</string>
 </resources>

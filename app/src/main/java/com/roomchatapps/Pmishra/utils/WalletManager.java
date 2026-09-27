@@ -71,24 +71,59 @@ public class WalletManager {
         }
 
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
-        userRef.child("coins").addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long currentCoins = 0;
-                if (snapshot.exists() && snapshot.getValue() != null) {
-                    try {
-                        currentCoins = Long.parseLong(String.valueOf(snapshot.getValue()));
-                    } catch (Exception e) {
-                        currentCoins = 0;
+                long currentDiamonds = 0;
+                long currentCoinsSpent = 0;
+
+                if (snapshot.exists()) {
+                    if (snapshot.child("coins").exists() && snapshot.child("coins").getValue() != null) {
+                        try {
+                            currentCoins = Long.parseLong(String.valueOf(snapshot.child("coins").getValue()));
+                        } catch (Exception ignored) {}
+                    }
+                    if (snapshot.child("diamonds").exists() && snapshot.child("diamonds").getValue() != null) {
+                        try {
+                            currentDiamonds = Long.parseLong(String.valueOf(snapshot.child("diamonds").getValue()));
+                        } catch (Exception ignored) {}
+                    }
+                    if (snapshot.child("coinsSpent").exists() && snapshot.child("coinsSpent").getValue() != null) {
+                        try {
+                            currentCoinsSpent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception ignored) {}
                     }
                 }
 
                 long updatedCoins = currentCoins + amount;
-                userRef.child("coins").setValue(updatedCoins).addOnCompleteListener(task -> {
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("coins", updatedCoins);
+
+                long logDiamondAmount = 0;
+                if ("GIFT_RECEIVED".equalsIgnoreCase(txType)) {
+                    long updatedDiamonds = currentDiamonds + amount;
+                    updates.put("diamonds", updatedDiamonds);
+                    logDiamondAmount = amount;
+                }
+
+                // If transaction is a Top-Up / Recharge, also increase coinsSpent, level, and XP!
+                if ("TOPUP".equalsIgnoreCase(txType) || (txTitle != null && txTitle.toLowerCase().contains("top-up"))) {
+                    long newCoinsSpent = currentCoinsSpent + amount;
+                    long newLevel = LevelUtils.calculateLevel(newCoinsSpent);
+                    long totalXp = LevelUtils.calculateTotalXp(newCoinsSpent);
+
+                    updates.put("coinsSpent", newCoinsSpent);
+                    updates.put("level", String.valueOf(newLevel));
+                    updates.put("xp", totalXp);
+                }
+
+                long finalLogDiamondAmount = logDiamondAmount;
+                userRef.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         UserProfileCache.invalidate(uid);
                         // Log transaction history with custom type and description
-                        logTransaction(uid, txType, amount, 0, txTitle, txDescription);
+                        logTransaction(uid, txType, amount, finalLogDiamondAmount, txTitle, txDescription);
                         if (callback != null) {
                             callback.onSuccess("Successfully added " + amount + " coins!", updatedCoins);
                         }

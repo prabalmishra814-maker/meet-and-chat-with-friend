@@ -19,7 +19,7 @@ public class UserProfileCache {
         public String uid;
         public String name;
         public String avatarUrl;
-        public String equippedFrame;
+        public String equippedFrame = "";
         public long coinsSpent = 0;
         public long level = 1;
         public long totalXp = 0;
@@ -72,7 +72,18 @@ public class UserProfileCache {
                         avatar = snapshot.child("image").getValue(String.class);
                     }
                     profile.avatarUrl = avatar;
-                    profile.equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
+
+                    String frame = snapshot.child("equipped_frame").getValue(String.class);
+                    if (frame == null || frame.trim().isEmpty()) {
+                        frame = snapshot.child("equippedFrame").getValue(String.class);
+                    }
+                    if (frame == null || frame.trim().isEmpty()) {
+                        frame = snapshot.child("frame").getValue(String.class);
+                    }
+                    if (frame == null || frame.trim().isEmpty()) {
+                        frame = snapshot.child("frameId").getValue(String.class);
+                    }
+                    profile.equippedFrame = (frame != null) ? frame.trim() : "";
 
                     long spent = 0;
                     if (snapshot.child("coinsSpent").exists()) {

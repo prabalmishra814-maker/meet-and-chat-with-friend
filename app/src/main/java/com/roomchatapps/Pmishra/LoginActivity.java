@@ -185,7 +185,9 @@ public class LoginActivity extends AppCompatActivity {
                         userRef.child("premium").setValue("no");
                         userRef.child("Followers").setValue("0");
                         userRef.child("Following").setValue("0");
-                        userRef.child("level").setValue("1");
+                        userRef.child("level").setValue("0");
+                        userRef.child("coinsSpent").setValue(0);
+                        userRef.child("xp").setValue(0);
                         userRef.child("money").setValue(0);
                         userRef.child("coins").setValue(500);
 

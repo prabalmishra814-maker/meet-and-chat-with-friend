@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tag_binding_token" type="id" />
+    <item name="tag_frame_path" type="id" />
+    <item name="tag_occupant_id" type="id" />
+    <item name="tag_seat_index" type="id" />
+</resources>

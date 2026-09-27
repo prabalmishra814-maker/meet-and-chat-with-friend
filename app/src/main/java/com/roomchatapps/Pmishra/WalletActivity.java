@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -38,17 +37,15 @@ public class WalletActivity extends AppCompatActivity {
     private View header;
     private View cvCoins;
     private TextView btnRechargeHeader, btnRechargeQuick;
-    private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts;
-    private RecyclerView rvTransactions, rvGiftCounts;
+    private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin;
+    private RecyclerView rvTransactions;
     private View llEmptyTransactions;
     private ProgressBar progressBar;
 
     private TransactionAdapter txAdapter;
-    private GiftCountAdapter giftCountAdapter;
 
     private final List<TransactionModel> allTransactionList = new ArrayList<>();
     private final List<TransactionModel> filteredTransactionList = new ArrayList<>();
-    private final List<GiftCountModel> giftCountList = new ArrayList<>();
 
     private DatabaseReference userRef;
     private DatabaseReference txRef;
@@ -91,10 +88,8 @@ public class WalletActivity extends AppCompatActivity {
         tabTxReceived = findViewById(R.id.tabTxReceived);
         tabTxStore = findViewById(R.id.tabTxStore);
         tabTxSpin = findViewById(R.id.tabTxSpin);
-        tabTxGiftCounts = findViewById(R.id.tabTxGiftCounts);
 
         rvTransactions = findViewById(R.id.rvTransactions);
-        rvGiftCounts = findViewById(R.id.rvGiftCounts);
         llEmptyTransactions = findViewById(R.id.llEmptyTransactions);
         progressBar = findViewById(R.id.progressBar);
     }
@@ -109,12 +104,6 @@ public class WalletActivity extends AppCompatActivity {
             txAdapter = new TransactionAdapter(filteredTransactionList);
             rvTransactions.setAdapter(txAdapter);
         }
-
-        if (rvGiftCounts != null) {
-            rvGiftCounts.setLayoutManager(new GridLayoutManager(this, 2));
-            giftCountAdapter = new GiftCountAdapter(giftCountList);
-            rvGiftCounts.setAdapter(giftCountAdapter);
-        }
     }
 
     private void setupTabs() {
@@ -124,14 +113,13 @@ public class WalletActivity extends AppCompatActivity {
         if (tabTxReceived != null) tabTxReceived.setOnClickListener(v -> selectTab("GIFT_RECEIVED", tabTxReceived));
         if (tabTxStore != null) tabTxStore.setOnClickListener(v -> selectTab("STORE_BUY", tabTxStore));
         if (tabTxSpin != null) tabTxSpin.setOnClickListener(v -> selectTab("GAME_SPIN", tabTxSpin));
-        if (tabTxGiftCounts != null) tabTxGiftCounts.setOnClickListener(v -> selectTab("GIFT_COUNTS", tabTxGiftCounts));
     }
 
     private void selectTab(String tabKey, TextView selectedTab) {
         if (activeTab.equalsIgnoreCase(tabKey)) return;
         activeTab = tabKey;
 
-        TextView[] tabs = {tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts};
+        TextView[] tabs = {tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin};
         for (TextView tab : tabs) {
             if (tab != null) {
                 tab.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
@@ -211,7 +199,6 @@ public class WalletActivity extends AppCompatActivity {
                 if (transactions != null) {
                     allTransactionList.addAll(transactions);
                 }
-                computeGiftCounts();
                 filterAndDisplayData();
             }
 
@@ -224,84 +211,11 @@ public class WalletActivity extends AppCompatActivity {
         });
     }
 
-    private void computeGiftCounts() {
-        Map<String, GiftCountModel> map = new LinkedHashMap<>();
-
-        addGiftToMap(map, "Heart", R.drawable._1000092377_removebg_preview, 0);
-        addGiftToMap(map, "Rose", R.drawable._1000092341_removebg_preview, 0);
-        addGiftToMap(map, "Crown", R.drawable._1000092342_removebg_preview, 50);
-        addGiftToMap(map, "Diamond", R.drawable._1000092343_removebg_preview, 100);
-        addGiftToMap(map, "Car", R.drawable._1000092344_removebg_preview, 200);
-        addGiftToMap(map, "Cyber Ring", R.drawable._1000092357_removebg_preview, 300);
-        addGiftToMap(map, "Royal Ring", R.drawable._1000092358_removebg_preview, 500);
-        addGiftToMap(map, "Phoenix Wings", R.drawable._1000092363_removebg_preview, 800);
-
-        for (TransactionModel tx : allTransactionList) {
-            if (tx == null) continue;
-            String type = tx.getType() != null ? tx.getType().toUpperCase() : "";
-            String text = ((tx.getTitle() != null ? tx.getTitle() : "") + " " + (tx.getDescription() != null ? tx.getDescription() : "")).toLowerCase();
-
-            String matchedKey = null;
-            if (text.contains("heart")) matchedKey = "Heart";
-            else if (text.contains("rose")) matchedKey = "Rose";
-            else if (text.contains("crown")) matchedKey = "Crown";
-            else if (text.contains("diamond")) matchedKey = "Diamond";
-            else if (text.contains("car")) matchedKey = "Car";
-            else if (text.contains("cyber")) matchedKey = "Cyber Ring";
-            else if (text.contains("royal")) matchedKey = "Royal Ring";
-            else if (text.contains("phoenix") || text.contains("wing")) matchedKey = "Phoenix Wings";
-
-            if (matchedKey != null && map.containsKey(matchedKey)) {
-                GiftCountModel model = map.get(matchedKey);
-                if (model != null) {
-                    if ("GIFT_RECEIVED".equals(type)) {
-                        model.setReceivedCount(model.getReceivedCount() + 1);
-                    } else if ("GIFT_SENT".equals(type)) {
-                        model.setSentCount(model.getSentCount() + 1);
-                    }
-                }
-            }
-        }
-
-        giftCountList.clear();
-        giftCountList.addAll(map.values());
-    }
-
-    private void addGiftToMap(Map<String, GiftCountModel> map, String name, int iconRes, long cost) {
-        map.put(name, new GiftCountModel(name, iconRes, cost, 0, 0));
-    }
-
     private void filterAndDisplayData() {
         if (isFinishing() || isDestroyed()) return;
         filteredTransactionList.clear();
 
-        if ("GIFT_COUNTS".equalsIgnoreCase(activeTab)) {
-            if (rvTransactions != null) rvTransactions.setVisibility(View.GONE);
-            if (rvGiftCounts != null) rvGiftCounts.setVisibility(View.VISIBLE);
-
-            if (giftCountAdapter != null) giftCountAdapter.notifyDataSetChanged();
-
-            int totalRec = 0;
-            int totalSent = 0;
-            for (GiftCountModel g : giftCountList) {
-                if (g != null) {
-                    totalRec += g.getReceivedCount();
-                    totalSent += g.getSentCount();
-                }
-            }
-
-            if (tvTxSummary != null) {
-                tvTxSummary.setText("Total Gifts Received: " + totalRec + "  |  Total Gifts Sent: " + totalSent);
-                tvTxSummary.setVisibility(View.VISIBLE);
-            }
-
-            if (llEmptyTransactions != null) {
-                llEmptyTransactions.setVisibility(giftCountList.isEmpty() ? View.VISIBLE : View.GONE);
-            }
-            return;
-        }
-
-        if (rvGiftCounts != null) rvGiftCounts.setVisibility(View.GONE);
+        if (rvTransactions != null) rvTransactions.setVisibility(View.VISIBLE);
         if (rvTransactions != null) rvTransactions.setVisibility(View.VISIBLE);
 
         int totalCount = 0;
@@ -325,7 +239,7 @@ public class WalletActivity extends AppCompatActivity {
             } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab) && "GIFT_RECEIVED".equals(type)) {
                 filteredTransactionList.add(tx);
                 totalCount++;
-                totalVal += tx.getDiamondAmount();
+                totalVal += tx.getDiamondAmount() > 0 ? tx.getDiamondAmount() : Math.abs(tx.getCoinAmount());
             } else if ("STORE_BUY".equalsIgnoreCase(activeTab) && ("STORE_BUY".equals(type) || "THEME_BUY".equals(type))) {
                 filteredTransactionList.add(tx);
                 totalCount++;

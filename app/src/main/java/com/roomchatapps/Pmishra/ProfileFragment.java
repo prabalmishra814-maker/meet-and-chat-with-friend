@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.FragmentProfileBinding;
+import com.roomchatapps.Pmishra.utils.CoinUtils;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.LevelUtils;
 
@@ -145,29 +146,32 @@ public class ProfileFragment extends Fragment {
                     }
 
                     long level = LevelUtils.calculateLevel(coinsSpent);
-                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    int currentXpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    long maxXpInLevel = LevelUtils.getXpNeededForNextLevelFromStart(level);
+                    int xpProgressPct = LevelUtils.calculateXpPercentageInLevel(coinsSpent);
                     long coinsNeeded = LevelUtils.getCoinsNeededForNextLevel(coinsSpent);
 
                     if (binding.tvUserLevel != null) {
                         binding.tvUserLevel.setText("Lv." + level);
+                        binding.tvUserLevel.setBackgroundResource(LevelUtils.getLevelBadgeDrawable(level));
                     }
                     if (binding.tvUserLevelCard != null) {
                         binding.tvUserLevelCard.setText("🛡️ Lv." + level);
+                        binding.tvUserLevelCard.setBackgroundResource(LevelUtils.getLevelBadgeDrawable(level));
                     }
-                    if (binding.tvLevelTitle != null) {
-                        binding.tvLevelTitle.setText("Level " + level + " Member");
-                    }
+
                     if (binding.pbLevelXp != null) {
-                        binding.pbLevelXp.setProgress(xpInLevel);
+                        binding.pbLevelXp.setMax(100);
+                        binding.pbLevelXp.setProgress(xpProgressPct);
                     }
                     if (binding.tvXpProgress != null) {
-                        binding.tvXpProgress.setText(xpInLevel + " / 100 XP");
+                        binding.tvXpProgress.setText(currentXpInLevel + " / " + maxXpInLevel + " XP");
                     }
                     if (binding.tvTotalCoinsSpent != null) {
-                        binding.tvTotalCoinsSpent.setText("Spent: " + String.format("%,d", coinsSpent) + " Coins");
+                        binding.tvTotalCoinsSpent.setText("Spent: " + CoinUtils.formatCoins(coinsSpent) + " Coins");
                     }
                     if (binding.tvNextLevelInfo != null) {
-                        binding.tvNextLevelInfo.setText("Spend " + String.format("%,d", coinsNeeded) + " more coins for Lv." + (level + 1));
+                        binding.tvNextLevelInfo.setText("Spend " + CoinUtils.formatCoins(coinsNeeded) + " more coins for Lv." + (level + 1));
                     }
 
                     String gender = snapshot.child("gender").getValue(String.class);
@@ -184,16 +188,26 @@ public class ProfileFragment extends Fragment {
                     }
 
                     Object coinsObj = snapshot.child("coins").getValue();
-                    String coins = coinsObj != null ? String.valueOf(coinsObj) : "0";
+                    long coinsVal = 0;
+                    if (coinsObj != null) {
+                        try {
+                            coinsVal = Long.parseLong(String.valueOf(coinsObj));
+                        } catch (Exception e) {
+                            try {
+                                coinsVal = (long) Double.parseDouble(String.valueOf(coinsObj));
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    String formattedCoins = CoinUtils.formatCoins(coinsVal);
 
                     binding.userName.setText(name != null ? name : "User");
                     binding.userId.setText("ID: " + (profileId != null ? profileId : "N/A"));
 
                     String currentCoins = binding.tvCoins.getText().toString();
-                    if (!currentCoins.isEmpty() && !currentCoins.equals(coins)) {
-                        AnimationHelper.animateCoinUpdate(null, binding.tvCoins, coins);
+                    if (!currentCoins.isEmpty() && !currentCoins.equals(formattedCoins)) {
+                        AnimationHelper.animateCoinUpdate(null, binding.tvCoins, formattedCoins);
                     } else {
-                        binding.tvCoins.setText(coins);
+                        binding.tvCoins.setText(formattedCoins);
                     }
 
                     if (avatar != null && !avatar.isEmpty()) {
