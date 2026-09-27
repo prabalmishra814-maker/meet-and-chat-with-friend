@@ -89,6 +89,16 @@ public class LevelUtils {
     }
 
     /**
+     * Calculates coins spent within the current level.
+     */
+    public static long calculateCoinsInCurrentLevel(long coinsSpent) {
+        if (coinsSpent < 0) coinsSpent = 0;
+        long currentLevel = calculateLevel(coinsSpent);
+        long startXp = getXpRequiredForLevel(currentLevel);
+        return Math.max(0, coinsSpent - startXp);
+    }
+
+    /**
      * Calculates progress percentage (0 - 100) within the current level for ProgressBar.
      */
     public static int calculateXpPercentageInLevel(long coinsSpent) {
