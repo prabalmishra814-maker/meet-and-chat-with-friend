@@ -343,7 +343,6 @@ public class RoomChatActivity extends AppCompatActivity {
         backgroundView = findViewById(R.id.audioRoomBackground);
         backgroundView.setRoomName(roomNameLabel != null ? roomNameLabel : "Room");
         backgroundView.setRoomID(roomID);
-        backgroundView.setBackgroundImage(roomImg);
 
         TextView tvRoomName = findViewById(R.id.tvRoomName);
         TextView tvRoomId = findViewById(R.id.tvRoomId);
@@ -1296,9 +1295,6 @@ public class RoomChatActivity extends AppCompatActivity {
                                     .error(R.drawable.logo_placeholder)
                                     .into(ivRoomAvatar);
                         }
-                        if (backgroundView != null) {
-                            backgroundView.setBackgroundImage(newImg);
-                        }
                     }
                 }
             }
@@ -2087,7 +2083,6 @@ public class RoomChatActivity extends AppCompatActivity {
 
         if (backgroundView != null) {
             backgroundView.setRoomName(newTitle);
-            backgroundView.setBackgroundImage(newImgUrl);
         }
 
         if (pbLoading != null) pbLoading.setVisibility(View.GONE);
