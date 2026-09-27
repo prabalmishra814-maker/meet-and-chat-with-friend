@@ -177,9 +177,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            if (binding.ivFrame != null) {
-                binding.ivFrame.setVisibility(View.GONE);
-            }
+            FrameUtils.displayFrame(ctx, FrameUtils.DEFAULT_FRAME, binding.ivFrame, binding.svgaFrame);
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
@@ -200,24 +198,19 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         if (act.isFinishing() || act.isDestroyed()) return;
                     }
 
-                    if (binding.ivAvatar != null) {
-                        if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                    if (profile != null) {
+                        if (binding.ivAvatar != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
                             Glide.with(ctx)
                                     .load(profile.avatarUrl)
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
                         }
-                    }
-
-                    if (binding.ivFrame != null) {
-                        binding.ivFrame.setVisibility(View.GONE);
+                        String equipped = (profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty())
+                                ? profile.equippedFrame : FrameUtils.DEFAULT_FRAME;
+                        FrameUtils.displayFrame(ctx, equipped, binding.ivFrame, binding.svgaFrame);
                     }
                 });
-            } else {
-                if (binding.ivFrame != null) {
-                    binding.ivFrame.setVisibility(View.GONE);
-                }
             }
         }
     }
@@ -251,9 +244,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            if (binding.ivFrame != null) {
-                binding.ivFrame.setVisibility(View.GONE);
-            }
+            FrameUtils.displayFrame(ctx, FrameUtils.DEFAULT_FRAME, binding.ivFrame, binding.svgaFrame);
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
@@ -274,24 +265,19 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         if (act.isFinishing() || act.isDestroyed()) return;
                     }
 
-                    if (binding.ivAvatar != null) {
-                        if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                    if (profile != null) {
+                        if (binding.ivAvatar != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
                             Glide.with(ctx)
                                     .load(profile.avatarUrl)
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
                         }
-                    }
-
-                    if (binding.ivFrame != null) {
-                        binding.ivFrame.setVisibility(View.GONE);
+                        String equipped = (profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty())
+                                ? profile.equippedFrame : FrameUtils.DEFAULT_FRAME;
+                        FrameUtils.displayFrame(ctx, equipped, binding.ivFrame, binding.svgaFrame);
                     }
                 });
-            } else {
-                if (binding.ivFrame != null) {
-                    binding.ivFrame.setVisibility(View.GONE);
-                }
             }
         }
     }
