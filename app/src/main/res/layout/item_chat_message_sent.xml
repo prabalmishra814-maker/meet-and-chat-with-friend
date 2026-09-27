@@ -33,14 +33,14 @@
         <!-- User Avatar Container -->
         <FrameLayout
             android:id="@+id/avatarContainer"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:layout_marginEnd="6dp">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivAvatar"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@drawable/logo_placeholder"
@@ -49,8 +49,16 @@
 
             <ImageView
                 android:id="@+id/ivFrame"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaFrame"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
                 android:layout_gravity="center"
                 android:scaleType="fitCenter"
                 android:visibility="gone" />
