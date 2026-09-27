@@ -315,7 +315,7 @@ public class RoomChatActivity extends AppCompatActivity {
     private void initViews() {
         svgaPlayer = findViewById(R.id.svgaPlayer);
         if (svgaPlayer != null) {
-            svgaPlayer.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            svgaPlayer.setLayerType(View.LAYER_TYPE_SOFTWARE, null); // Software vector rendering prevents GPU lag
         }
 
         bannerGiftContainer = findViewById(R.id.bannerGiftContainer);
@@ -2901,19 +2901,9 @@ public class RoomChatActivity extends AppCompatActivity {
                             for (int i = 0; i < selectedRecipients.size(); i++) {
                                 GiftRecipientModel recipient = selectedRecipients.get(i);
 
-                                // Add coins directly to each recipient's account balance with GIFT_RECEIVED transaction record
-                                if (!userID.equals(recipient.getUid())) {
-                                    String senderDisplayName = userName != null ? userName : "User";
-                                    WalletManager.addCoins(
-                                            recipient.getUid(),
-                                            singleCost,
-                                            "GIFT_RECEIVED",
-                                            "Received Gift: " + giftName,
-                                            "Received " + giftName + " from " + senderDisplayName,
-                                            null
-                                    );
-                                    NotificationHelper.sendGiftNotification(recipient.getUid(), giftName);
-                                }
+                                String senderDisplayName = userName != null ? userName : "User";
+                                WalletManager.addGiftCoinsToRecipient(recipient.getUid(), singleCost, giftName, senderDisplayName);
+                                NotificationHelper.sendGiftNotification(recipient.getUid(), giftName);
 
                                 if (i > 0) recipientNames.append(", ");
                                 recipientNames.append(recipient.getName());
@@ -3124,8 +3114,8 @@ public class RoomChatActivity extends AppCompatActivity {
             if (svgaPlayer != null) {
                 try {
                     svgaPlayer.stopAnimation();
+                    svgaPlayer.setImageDrawable(null);
                     svgaPlayer.setVisibility(View.GONE);
-                    svgaPlayer.clear();
                 } catch (Exception ignored) {}
             }
             isGiftAnimationPlaying = false;
@@ -3144,7 +3134,7 @@ public class RoomChatActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             try {
                 svgaPlayer.stopAnimation();
-                svgaPlayer.clear();
+                svgaPlayer.setImageDrawable(null);
             } catch (Exception ignored) {}
         });
 
@@ -3192,7 +3182,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs);
 
                 svgaPlayer.stopAnimation();
-                svgaPlayer.clear();
+                svgaPlayer.setClearsAfterStop(false);
                 svgaPlayer.setVisibility(View.VISIBLE);
                 svgaPlayer.setVideoItem(videoItem);
                 svgaPlayer.setLoops(1);

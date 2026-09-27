@@ -86,6 +86,7 @@ public class WalletManager {
                 long updatedCoins = currentCoins + amount;
                 userRef.child("coins").setValue(updatedCoins).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        UserProfileCache.invalidate(uid);
                         // Log transaction history with custom type and description
                         logTransaction(uid, txType, amount, 0, txTitle, txDescription);
                         if (callback != null) {
@@ -103,6 +104,42 @@ public class WalletManager {
             public void onCancelled(@NonNull DatabaseError error) {
                 if (callback != null) callback.onError(error.getMessage());
             }
+        });
+    }
+
+    /**
+     * Credits received gift coins directly to recipient's account balance,
+     * invalidates local user profile cache, and logs a GIFT_RECEIVED transaction.
+     */
+    public static void addGiftCoinsToRecipient(String recipientUid, long giftCost, String giftName, String senderName) {
+        if (recipientUid == null || recipientUid.trim().isEmpty() || giftCost <= 0) return;
+
+        DatabaseReference recipientRef = FirebaseDatabase.getInstance().getReference("users").child(recipientUid.trim());
+        recipientRef.child("coins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long currentCoins = 0;
+                if (snapshot.exists() && snapshot.getValue() != null) {
+                    try {
+                        currentCoins = Long.parseLong(String.valueOf(snapshot.getValue()));
+                    } catch (Exception e) {
+                        currentCoins = 0;
+                    }
+                }
+
+                long updatedCoins = currentCoins + giftCost;
+                recipientRef.child("coins").setValue(updatedCoins).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        UserProfileCache.invalidate(recipientUid);
+                        String sender = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
+                        String gift = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
+                        logTransaction(recipientUid, "GIFT_RECEIVED", giftCost, 0, "Received Gift: " + gift, "Received " + gift + " from " + sender);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
