@@ -210,6 +210,7 @@ public class RoomChatActivity extends AppCompatActivity {
     );
 
     private Uri editRoomSelectedImageUri = null;
+    private String editRoomGeneratedImgUrl = null;
     private ImageView ivEditRoomCoverRef = null;
 
     private final ActivityResultLauncher<Intent> editRoomImagePickerLauncher = registerForActivityResult(
@@ -868,11 +869,21 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
 
                     long level = LevelUtils.calculateLevel(coinsSpent);
-                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    int currentXpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    long maxXpInLevel = LevelUtils.getXpNeededForNextLevelFromStart(level);
+                    int xpProgressPct = LevelUtils.calculateXpPercentageInLevel(coinsSpent);
 
-                    if (tvLevelBadge != null) tvLevelBadge.setText("Lv." + level);
-                    if (pbLevelXp != null) pbLevelXp.setProgress(xpInLevel);
-                    if (tvLevelXpText != null) tvLevelXpText.setText(xpInLevel + " / 100 XP (" + String.format("%,d", LevelUtils.calculateCoinsInCurrentLevel(coinsSpent)) + "/10,000 Coins)");
+                    if (tvLevelBadge != null) {
+                        tvLevelBadge.setText("Lv." + level);
+                        tvLevelBadge.setBackgroundResource(LevelUtils.getLevelBadgeDrawable(level));
+                    }
+                    if (pbLevelXp != null) {
+                        pbLevelXp.setMax(100);
+                        pbLevelXp.setProgress(xpProgressPct);
+                    }
+                    if (tvLevelXpText != null) {
+                        tvLevelXpText.setText(currentXpInLevel + " / " + maxXpInLevel + " XP");
+                    }
                 }
             }
 
@@ -1160,6 +1171,7 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
+        profileDialog.setOnDismissListener(d -> FrameUtils.clearFrame(ivProfileFrame, svgaProfileFrame));
         profileDialog.show();
     }
 
@@ -1899,8 +1911,9 @@ public class RoomChatActivity extends AppCompatActivity {
         View btnSaveEditRoom = dialogView.findViewById(R.id.btnSaveEditRoom);
         View btnCancelEditRoom = dialogView.findViewById(R.id.btnCancelEditRoom);
 
-        // Reset image picker uri
+        // Reset image picker uri & generated url
         editRoomSelectedImageUri = null;
+        editRoomGeneratedImgUrl = null;
 
         // Load current room image
         if (ivEditRoomCoverRef != null) {
@@ -1947,6 +1960,8 @@ public class RoomChatActivity extends AppCompatActivity {
                     uploadRoomCoverImage(editRoomSelectedImageUri, newImgUrl -> {
                         saveRoomDetails(newTitle, newImgUrl, dialog, btnSaveEditRoom, pbEditRoomLoading);
                     });
+                } else if (editRoomGeneratedImgUrl != null && !editRoomGeneratedImgUrl.isEmpty()) {
+                    saveRoomDetails(newTitle, editRoomGeneratedImgUrl, dialog, btnSaveEditRoom, pbEditRoomLoading);
                 } else {
                     // No new image selected, keep existing roomImg
                     String currentImg = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
@@ -2902,7 +2917,7 @@ public class RoomChatActivity extends AppCompatActivity {
                                 GiftRecipientModel recipient = selectedRecipients.get(i);
 
                                 // Add coins directly to each recipient's account balance with GIFT_RECEIVED transaction record
-                                if (!userID.equals(recipient.getUid())) {
+                                if (recipient.getUid() != null && !recipient.getUid().trim().isEmpty()) {
                                     String senderDisplayName = userName != null ? userName : "User";
                                     WalletManager.addCoins(
                                             recipient.getUid(),

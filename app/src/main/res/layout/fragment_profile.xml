@@ -281,10 +281,17 @@
                     android:id="@+id/tvUserLevelCard"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_level_badge_purple"
+                    android:background="@drawable/bg_level_badge_cyan"
+                    android:elevation="3dp"
                     android:fontFamily="sans-serif-black"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="5dp"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="4"
                     android:text="🛡️ Lv.1"
                     android:textColor="@color/white"
                     android:textSize="13sp"
@@ -292,19 +299,6 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- Level Title -->
-                <TextView
-                    android:id="@+id/tvLevelTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="Level 1 Explorer"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvUserLevelCard"
-                    app:layout_constraintEnd_toStartOf="@+id/tvTotalCoinsSpent"
-                    app:layout_constraintStart_toEndOf="@+id/tvUserLevelCard"
-                    app:layout_constraintTop_toTopOf="@+id/tvUserLevelCard" />
 
                 <!-- Total Coins Spent -->
                 <TextView

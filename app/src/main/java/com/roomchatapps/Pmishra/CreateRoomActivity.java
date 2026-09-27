@@ -1,6 +1,7 @@
 package com.roomchatapps.Pmishra;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,7 +56,58 @@ public class CreateRoomActivity extends AppCompatActivity {
     private String imgUrl = "";
 
     private static final String IMGBB_API_KEY = "d909717479f29f4de1b6efc62ec33528";
-    private static final String DEFAULT_ROOM_IMG = "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+
+    // Indian Girl Photos (Both Village / Traditional & City / Modern looks)
+    private static final String[] INDIAN_GIRL_PHOTOS = {
+            // Village / Traditional / Deshi Indian Girls
+            "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1621784563330-caac0b162981?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1616091216791-a5360b5fc78a?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1604537466158-719b1972feb8?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1588516903720-8ceb67f9ef84?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1614030424754-24d1e285a854?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1617922001439-4a2e6562f328?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1618151313441-bc79b11e5090?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1601288496920-b6154fe3626a?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&w=800&q=80",
+
+            // City / Modern / Urban Indian Girls
+            "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1597223557154-721c1cecc4b0?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1503104896436-594329385108?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1520512202623-51c5c53957df?auto=format&fit=crop&w=800&q=80"
+    };
+
+    private String getNextUniqueGirlPhotoUrl() {
+        SharedPreferences sp = getSharedPreferences("room_cover_prefs", MODE_PRIVATE);
+        int lastIndex = sp.getInt("last_girl_photo_index", -1);
+
+        int nextIndex;
+        if (lastIndex < 0) {
+            nextIndex = new Random().nextInt(INDIAN_GIRL_PHOTOS.length);
+        } else {
+            nextIndex = (lastIndex + 1 + new Random().nextInt(INDIAN_GIRL_PHOTOS.length - 1)) % INDIAN_GIRL_PHOTOS.length;
+        }
+
+        sp.edit().putInt("last_girl_photo_index", nextIndex).apply();
+        return INDIAN_GIRL_PHOTOS[nextIndex];
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,10 +152,19 @@ public class CreateRoomActivity extends AppCompatActivity {
             startActivityForResult(intent, PICK_IMAGE);
         });
 
-        // Load existing room for current user if available
+        // Tap cover image to refresh to a new Indian girl photo if desired
+        ivRoomCover.setOnClickListener(v -> {
+            if (imageUri == null) {
+                fetchRandomGirlPhotoBanner(true);
+            }
+        });
+
+        // Load existing room for current user if available, or fetch random Indian girl photo banner
         String userId = getCurrentUserId();
         if (userId != null) {
             loadExistingRoom(userId);
+        } else {
+            fetchRandomGirlPhotoBanner(false);
         }
 
         btnCreate.setOnClickListener(v -> {
@@ -127,10 +188,41 @@ public class CreateRoomActivity extends AppCompatActivity {
             btnCreate.setEnabled(false);
             if (imageUri != null) {
                 uploadImageAndSaveRoom();
-            } else {
+            } else if (imgUrl != null && !imgUrl.isEmpty()) {
                 saveRoom();
+            } else {
+                fetchGirlPhotoAndSaveRoom();
             }
         });
+    }
+
+    private boolean isFetchingBanner = false;
+
+    private void fetchRandomGirlPhotoBanner(boolean showToast) {
+        if (isFetchingBanner) return;
+        isFetchingBanner = true;
+
+        if (showToast) {
+            Toast.makeText(this, "Loading Indian girl photo cover...", Toast.LENGTH_SHORT).show();
+        }
+
+        imgUrl = getNextUniqueGirlPhotoUrl();
+        imageUri = null;
+
+        if (!isFinishing() && !isDestroyed() && ivRoomCover != null) {
+            Glide.with(CreateRoomActivity.this)
+                    .load(imgUrl)
+                    .placeholder(R.drawable.app_create_room_ic)
+                    .into(ivRoomCover);
+        }
+        isFetchingBanner = false;
+    }
+
+    private void fetchGirlPhotoAndSaveRoom() {
+        if (imgUrl == null || imgUrl.isEmpty()) {
+            imgUrl = getNextUniqueGirlPhotoUrl();
+        }
+        saveRoom();
     }
 
     private String getCurrentUserId() {
@@ -183,6 +275,8 @@ public class CreateRoomActivity extends AppCompatActivity {
                                     .load(imgUrl)
                                     .placeholder(R.drawable.app_create_room_ic)
                                     .into(ivRoomCover);
+                        } else {
+                            fetchRandomGirlPhotoBanner(false);
                         }
                         if (btnCreate != null) {
                             btnCreate.setText("Update Room");
@@ -190,12 +284,17 @@ public class CreateRoomActivity extends AppCompatActivity {
                         if (tvTitle != null) {
                             tvTitle.setText("Update Room");
                         }
+                    } else {
+                        fetchRandomGirlPhotoBanner(false);
                     }
+                } else {
+                    fetchRandomGirlPhotoBanner(false);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                fetchRandomGirlPhotoBanner(false);
             }
         });
     }
@@ -207,7 +306,7 @@ public class CreateRoomActivity extends AppCompatActivity {
             InputStream inputStream = getContentResolver().openInputStream(imageUri);
             if (inputStream == null) {
                 if (imgUrl == null || imgUrl.isEmpty()) {
-                    imgUrl = DEFAULT_ROOM_IMG;
+                    imgUrl = getNextUniqueGirlPhotoUrl();
                 }
                 saveRoom();
                 return;
@@ -232,9 +331,9 @@ public class CreateRoomActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     runOnUiThread(() -> {
-                        Toast.makeText(CreateRoomActivity.this, "Image upload failed, using default cover.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateRoomActivity.this, "Image upload failed, setting girl photo cover.", Toast.LENGTH_SHORT).show();
                         if (imgUrl == null || imgUrl.isEmpty()) {
-                            imgUrl = DEFAULT_ROOM_IMG;
+                            imgUrl = getNextUniqueGirlPhotoUrl();
                         }
                         saveRoom();
                     });
@@ -249,12 +348,12 @@ public class CreateRoomActivity extends AppCompatActivity {
                             imgUrl = jsonObject.getJSONObject("data").getString("url");
                         } catch (Exception e) {
                             if (imgUrl == null || imgUrl.isEmpty()) {
-                                imgUrl = DEFAULT_ROOM_IMG;
+                                imgUrl = getNextUniqueGirlPhotoUrl();
                             }
                         }
                     } else {
                         if (imgUrl == null || imgUrl.isEmpty()) {
-                            imgUrl = DEFAULT_ROOM_IMG;
+                            imgUrl = getNextUniqueGirlPhotoUrl();
                         }
                     }
                     runOnUiThread(() -> saveRoom());
@@ -263,7 +362,7 @@ public class CreateRoomActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             if (imgUrl == null || imgUrl.isEmpty()) {
-                imgUrl = DEFAULT_ROOM_IMG;
+                imgUrl = getNextUniqueGirlPhotoUrl();
             }
             saveRoom();
         }
@@ -308,7 +407,7 @@ public class CreateRoomActivity extends AppCompatActivity {
         }
 
         if (imgUrl == null || imgUrl.isEmpty()) {
-            imgUrl = DEFAULT_ROOM_IMG;
+            imgUrl = getNextUniqueGirlPhotoUrl();
         }
 
         final String finalUserId = userId;

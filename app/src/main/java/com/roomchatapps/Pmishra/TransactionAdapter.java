@@ -63,12 +63,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 break;
 
             case "GIFT_RECEIVED":
-                if (item.getCoinAmount() > 0) {
-                    holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
+                long recVal = item.getDiamondAmount() > 0 ? item.getDiamondAmount() : Math.abs(item.getCoinAmount());
+                if (recVal > 0) {
+                    String unit = item.getDiamondAmount() > 0 ? " Diamonds" : " Coins";
+                    holder.tvTxAmount.setText("+" + formatter.format(recVal) + unit);
                     holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F")); // Bright green
-                } else if (item.getDiamondAmount() > 0) {
-                    holder.tvTxAmount.setText("+" + formatter.format(item.getDiamondAmount()) + " Diamonds");
-                    holder.tvTxAmount.setTextColor(Color.parseColor("#00F2FE")); // Cyan
                 } else {
                     holder.tvTxAmount.setText("+0 Coins");
                     holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));

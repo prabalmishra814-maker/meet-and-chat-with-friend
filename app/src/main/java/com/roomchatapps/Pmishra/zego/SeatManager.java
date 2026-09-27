@@ -12,7 +12,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SeatManager {
     private static final String TAG = "SeatManager";
@@ -48,7 +50,7 @@ public class SeatManager {
         return totalSeats;
     }
 
-    public void setTotalSeats(int count) {
+    public synchronized void setTotalSeats(int count) {
         if (count != 8 && count != 16 && count != 24) return;
         this.totalSeats = count;
 
@@ -62,26 +64,32 @@ public class SeatManager {
             }
         }
 
+        sanitizeDuplicateUsers();
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
     }
 
-    public void resetSeats() {
+    public synchronized void resetSeats() {
         seatList.clear();
         for (int i = 0; i < totalSeats; i++) {
             seatList.add(new SeatModel(i));
         }
     }
 
-    public List<SeatModel> getSeats() {
-        return new ArrayList<>(seatList);
+    public synchronized List<SeatModel> getSeats() {
+        List<SeatModel> copy = new ArrayList<>(seatList.size());
+        for (SeatModel model : seatList) {
+            copy.add(new SeatModel(model));
+        }
+        return copy;
     }
 
-    public int findUserSeatIndex(String userID) {
+    public synchronized int findUserSeatIndex(String userID) {
         if (userID == null || userID.trim().isEmpty()) return -1;
+        String uid = userID.trim();
         for (int i = 0; i < seatList.size(); i++) {
-            if (userID.equals(seatList.get(i).userID)) {
+            if (uid.equals(seatList.get(i).userID)) {
                 return i;
             }
         }
@@ -98,6 +106,23 @@ public class SeatManager {
         return hostUserID;
     }
 
+    /**
+     * Sanitizes seatList so no user ID appears on more than one seat simultaneously.
+     */
+    private void sanitizeDuplicateUsers() {
+        Set<String> seenUsers = new HashSet<>();
+        for (SeatModel seat : seatList) {
+            if (!seat.isEmpty()) {
+                if (seenUsers.contains(seat.userID)) {
+                    // Duplicate occupant detected - clear duplicate seat!
+                    seat.clear();
+                } else {
+                    seenUsers.add(seat.userID);
+                }
+            }
+        }
+    }
+
     public boolean takeSeat(int index, String userID, String userName) {
         return takeSeat(index, userID, userName, "", "");
     }
@@ -109,60 +134,68 @@ public class SeatManager {
     public boolean takeSeat(int index, String userID, String userName, String avatar, String equippedFrame) {
         if (index < 0 || index >= totalSeats) return false;
 
-        SeatModel model = seatList.get(index);
-        if (model.isClosed) return false;
+        String uid = userID != null ? userID.trim() : "";
+        if (uid.isEmpty()) return false;
 
-        // Seat 0 Security: Strictly reserved for Room Host ONLY
-        if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !hostUserID.equals(userID)) {
-            return false;
-        }
+        synchronized (this) {
+            SeatModel model = seatList.get(index);
+            if (model.isClosed) return false;
 
-        // Prevent 2 users on 1 seat: Check if seat is already occupied by another user
-        if (!model.isEmpty() && !userID.equals(model.userID)) {
-            return false;
-        }
-
-        // Leave any existing seat first & preserve equipped frame/avatar if seat switching
-        String previousFrame = "";
-        String previousAvatar = "";
-        int existingIndex = findUserSeatIndex(userID);
-        if (existingIndex != -1 && existingIndex != index) {
-            SeatModel oldSeat = seatList.get(existingIndex);
-            previousFrame = oldSeat.equippedFrame;
-            previousAvatar = oldSeat.userAvatar;
-            oldSeat.clear();
-        }
-
-        model.userID = userID;
-        model.userName = userName;
-
-        // Resolve Avatar
-        if (avatar != null && !avatar.trim().isEmpty()) {
-            model.userAvatar = avatar;
-        } else if (previousAvatar != null && !previousAvatar.trim().isEmpty()) {
-            model.userAvatar = previousAvatar;
-        } else {
-            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
-            if (cached != null && cached.avatarUrl != null) {
-                model.userAvatar = cached.avatarUrl;
+            // Seat 0 Security: Strictly reserved for Room Host ONLY
+            if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !hostUserID.equals(uid)) {
+                return false;
             }
-        }
 
-        // Resolve Equipped Frame
-        String finalFrame = equippedFrame;
-        if (finalFrame == null || finalFrame.trim().isEmpty()) {
-            finalFrame = previousFrame;
-        }
-        if (finalFrame == null || finalFrame.trim().isEmpty()) {
-            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
-            if (cached != null && cached.equippedFrame != null) {
-                finalFrame = cached.equippedFrame;
+            // Prevent 2 users on 1 seat: Check if seat is already occupied by another user
+            if (!model.isEmpty() && !uid.equals(model.userID)) {
+                return false;
             }
-        }
 
-        model.equippedFrame = finalFrame != null ? finalFrame : "";
-        model.isMicOn = true;
-        model.isMuted = false;
+            // Leave any existing seat first & preserve equipped frame/avatar if seat switching
+            String previousFrame = "";
+            String previousAvatar = "";
+            for (int i = 0; i < totalSeats; i++) {
+                SeatModel seat = seatList.get(i);
+                if (uid.equals(seat.userID) && i != index) {
+                    if (previousFrame.isEmpty()) previousFrame = seat.equippedFrame;
+                    if (previousAvatar.isEmpty()) previousAvatar = seat.userAvatar;
+                    seat.clear();
+                }
+            }
+
+            model.userID = uid;
+            model.userName = userName != null ? userName : "";
+
+            // Resolve Avatar
+            if (avatar != null && !avatar.trim().isEmpty()) {
+                model.userAvatar = avatar;
+            } else if (!previousAvatar.isEmpty()) {
+                model.userAvatar = previousAvatar;
+            } else {
+                UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(uid);
+                if (cached != null && cached.avatarUrl != null) {
+                    model.userAvatar = cached.avatarUrl;
+                }
+            }
+
+            // Resolve Equipped Frame
+            String finalFrame = equippedFrame;
+            if (finalFrame == null || finalFrame.trim().isEmpty()) {
+                finalFrame = previousFrame;
+            }
+            if (finalFrame == null || finalFrame.trim().isEmpty()) {
+                UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(uid);
+                if (cached != null && cached.equippedFrame != null) {
+                    finalFrame = cached.equippedFrame;
+                }
+            }
+
+            model.equippedFrame = finalFrame != null ? finalFrame : "";
+            model.isMicOn = true;
+            model.isMuted = false;
+
+            sanitizeDuplicateUsers();
+        }
 
         Runnable doSync = () -> {
             notifySeatsUpdated();
@@ -170,10 +203,23 @@ public class SeatManager {
             syncSeatsToFirebase();
         };
 
+        final String targetUid = uid;
+        final int targetIdx = index;
+
+        SeatModel model;
+        synchronized (this) {
+            model = seatList.get(targetIdx);
+        }
+
         if (model.equippedFrame.isEmpty()) {
-            UserProfileCache.getUserProfile(userID, profile -> {
+            UserProfileCache.getUserProfile(targetUid, profile -> {
                 if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                    model.equippedFrame = profile.equippedFrame;
+                    synchronized (this) {
+                        SeatModel currentModel = seatList.get(targetIdx);
+                        if (targetUid.equals(currentModel.userID)) {
+                            currentModel.equippedFrame = profile.equippedFrame;
+                        }
+                    }
                 }
                 doSync.run();
             });
@@ -184,16 +230,17 @@ public class SeatManager {
         return true;
     }
 
-    public void leaveSeat(int index) {
+    public synchronized void leaveSeat(int index) {
         if (index < 0 || index >= totalSeats) return;
 
         seatList.get(index).clear();
+        sanitizeDuplicateUsers();
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
     }
 
-    public void muteSeat(int index, boolean isMuted) {
+    public synchronized void muteSeat(int index, boolean isMuted) {
         if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
@@ -207,7 +254,7 @@ public class SeatManager {
         syncSeatsToFirebase();
     }
 
-    public void closeSeat(int index, boolean isClosed) {
+    public synchronized void closeSeat(int index, boolean isClosed) {
         if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
@@ -217,6 +264,7 @@ public class SeatManager {
             model.isClosed = true;
         }
 
+        sanitizeDuplicateUsers();
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
@@ -226,7 +274,7 @@ public class SeatManager {
         leaveSeat(index);
     }
 
-    public void updateMicStatus(int index, boolean isMicOn) {
+    public synchronized void updateMicStatus(int index, boolean isMicOn) {
         if (index < 0 || index >= totalSeats) return;
 
         SeatModel model = seatList.get(index);
@@ -241,7 +289,7 @@ public class SeatManager {
         syncSeatsToFirebase();
     }
 
-    public void setSpeaking(String userID, boolean isSpeaking, float soundLevel) {
+    public synchronized void setSpeaking(String userID, boolean isSpeaking, float soundLevel) {
         int index = findUserSeatIndex(userID);
         if (index != -1) {
             SeatModel model = seatList.get(index);
@@ -254,61 +302,86 @@ public class SeatManager {
     }
 
     public void addListener(SeatListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
+        synchronized (listeners) {
+            if (!listeners.contains(listener)) {
+                listeners.add(listener);
+            }
         }
     }
 
     public void removeListener(SeatListener listener) {
-        listeners.remove(listener);
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
     }
 
     private void notifySeatsUpdated() {
         List<SeatModel> snapshot = getSeats();
-        for (SeatListener listener : listeners) {
+        List<SeatListener> targets;
+        synchronized (listeners) {
+            targets = new ArrayList<>(listeners);
+        }
+        for (SeatListener listener : targets) {
             listener.onSeatsUpdated(snapshot);
         }
     }
 
     public void setSeatsFromExternal(List<SeatModel> externalSeats) {
         if (externalSeats == null || externalSeats.isEmpty()) return;
-        for (SeatModel external : externalSeats) {
-            if (external != null && external.index >= 0 && external.index < TOTAL_SEATS) {
-                // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
-                if (external.index == 0 && hostUserID != null && !hostUserID.isEmpty() && !external.userID.equals(hostUserID)) {
-                    external.clear();
-                }
-                SeatModel local = seatList.get(external.index);
-                String newUserId = external.userID != null ? external.userID : "";
+        synchronized (this) {
+            for (SeatModel external : externalSeats) {
+                if (external != null && external.index >= 0 && external.index < totalSeats) {
+                    // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
+                    if (external.index == 0 && hostUserID != null && !hostUserID.isEmpty() && !external.userID.equals(hostUserID)) {
+                        external.clear();
+                    }
+                    SeatModel local = seatList.get(external.index);
+                    String newUserId = external.userID != null ? external.userID.trim() : "";
 
-                String newFrame = external.equippedFrame != null ? external.equippedFrame : "";
-                if (newFrame.trim().isEmpty() && newUserId.equals(local.userID) && local.equippedFrame != null && !local.equippedFrame.trim().isEmpty()) {
-                    newFrame = local.equippedFrame;
-                }
-
-                local.userID = newUserId;
-                local.userName = external.userName != null ? external.userName : "";
-                local.userAvatar = external.userAvatar != null ? external.userAvatar : "";
-                local.equippedFrame = newFrame;
-                local.isMicOn = external.isMicOn;
-                local.isMuted = external.isMuted;
-                local.isClosed = external.isClosed;
-
-                if (!local.isEmpty() && (local.equippedFrame == null || local.equippedFrame.trim().isEmpty())) {
-                    UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(local.userID);
-                    if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
-                        local.equippedFrame = cached.equippedFrame;
-                    } else {
-                        final SeatModel targetLocal = local;
-                        UserProfileCache.getUserProfile(local.userID, profile -> {
-                            if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                                targetLocal.equippedFrame = profile.equippedFrame;
-                                notifySeatsUpdated();
+                    // If user moved to this seat from another seat, clear the other seat!
+                    if (!newUserId.isEmpty()) {
+                        for (int i = 0; i < totalSeats; i++) {
+                            if (i != external.index && newUserId.equals(seatList.get(i).userID)) {
+                                seatList.get(i).clear();
                             }
-                        });
+                        }
+                    }
+
+                    String newFrame = external.equippedFrame != null ? external.equippedFrame : "";
+                    if (newFrame.trim().isEmpty() && newUserId.equals(local.userID) && local.equippedFrame != null && !local.equippedFrame.trim().isEmpty()) {
+                        newFrame = local.equippedFrame;
+                    }
+
+                    local.userID = newUserId;
+                    local.userName = external.userName != null ? external.userName : "";
+                    local.userAvatar = external.userAvatar != null ? external.userAvatar : "";
+                    local.equippedFrame = newFrame;
+                    local.isMicOn = external.isMicOn;
+                    local.isMuted = external.isMuted;
+                    local.isClosed = external.isClosed;
+
+                    if (!local.isEmpty() && (local.equippedFrame == null || local.equippedFrame.trim().isEmpty())) {
+                        UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(local.userID);
+                        if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
+                            local.equippedFrame = cached.equippedFrame;
+                        } else {
+                            final SeatModel targetLocal = local;
+                            final String targetUid = local.userID;
+                            UserProfileCache.getUserProfile(local.userID, profile -> {
+                                if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                                    synchronized (SeatManager.this) {
+                                        if (targetUid.equals(targetLocal.userID)) {
+                                            targetLocal.equippedFrame = profile.equippedFrame;
+                                            notifySeatsUpdated();
+                                        }
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
             }
+            sanitizeDuplicateUsers();
         }
         notifySeatsUpdated();
     }
@@ -326,7 +399,8 @@ public class SeatManager {
     private void syncSeatsToExtraInfo() {
         try {
             JSONArray array = new JSONArray();
-            for (SeatModel seat : seatList) {
+            List<SeatModel> currentList = getSeats();
+            for (SeatModel seat : currentList) {
                 JSONObject obj = new JSONObject();
                 obj.put("index", seat.index);
                 obj.put("userID", seat.userID);
@@ -348,7 +422,7 @@ public class SeatManager {
         if (currentRoomID == null || currentRoomID.trim().isEmpty()) return;
         try {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("room_seats").child(currentRoomID);
-            ref.setValue(seatList);
+            ref.setValue(getSeats());
         } catch (Exception e) {
             Log.e(TAG, "Error syncing seats to Firebase", e);
         }
@@ -358,45 +432,63 @@ public class SeatManager {
         if (jsonStr == null || jsonStr.trim().isEmpty()) return;
         try {
             JSONArray array = new JSONArray(jsonStr);
-            for (int i = 0; i < array.length() && i < TOTAL_SEATS; i++) {
-                JSONObject obj = array.getJSONObject(i);
-                int index = obj.optInt("index", i);
-                if (index < 0 || index >= TOTAL_SEATS) continue;
+            synchronized (this) {
+                for (int i = 0; i < array.length() && i < totalSeats; i++) {
+                    JSONObject obj = array.getJSONObject(i);
+                    int index = obj.optInt("index", i);
+                    if (index < 0 || index >= totalSeats) continue;
 
-                SeatModel model = seatList.get(index);
-                String parsedUserId = obj.optString("userID", "");
-                // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
-                if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !parsedUserId.equals(hostUserID)) {
-                    model.clear();
-                } else {
-                    String parsedFrame = obj.optString("equippedFrame", "");
-                    if (parsedFrame.trim().isEmpty() && parsedUserId.equals(model.userID) && model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
-                        parsedFrame = model.equippedFrame;
-                    }
+                    SeatModel model = seatList.get(index);
+                    String parsedUserId = obj.optString("userID", "").trim();
 
-                    model.userID = parsedUserId;
-                    model.userName = obj.optString("userName", "");
-                    model.userAvatar = obj.optString("userAvatar", "");
-                    model.equippedFrame = parsedFrame;
-                    model.isMicOn = obj.optBoolean("isMicOn", true);
-                    model.isMuted = obj.optBoolean("isMuted", false);
-                    model.isClosed = obj.optBoolean("isClosed", false);
-
-                    if (!model.isEmpty() && (model.equippedFrame == null || model.equippedFrame.trim().isEmpty())) {
-                        UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(model.userID);
-                        if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
-                            model.equippedFrame = cached.equippedFrame;
-                        } else {
-                            final SeatModel targetModel = model;
-                            UserProfileCache.getUserProfile(model.userID, profile -> {
-                                if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                                    targetModel.equippedFrame = profile.equippedFrame;
-                                    notifySeatsUpdated();
+                    // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
+                    if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !parsedUserId.equals(hostUserID)) {
+                        model.clear();
+                    } else {
+                        // If user moved to this seat from another seat, clear the other seat!
+                        if (!parsedUserId.isEmpty()) {
+                            for (int j = 0; j < totalSeats; j++) {
+                                if (j != index && parsedUserId.equals(seatList.get(j).userID)) {
+                                    seatList.get(j).clear();
                                 }
-                            });
+                            }
+                        }
+
+                        String parsedFrame = obj.optString("equippedFrame", "");
+                        if (parsedFrame.trim().isEmpty() && parsedUserId.equals(model.userID) && model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+                            parsedFrame = model.equippedFrame;
+                        }
+
+                        model.userID = parsedUserId;
+                        model.userName = obj.optString("userName", "");
+                        model.userAvatar = obj.optString("userAvatar", "");
+                        model.equippedFrame = parsedFrame;
+                        model.isMicOn = obj.optBoolean("isMicOn", true);
+                        model.isMuted = obj.optBoolean("isMuted", false);
+                        model.isClosed = obj.optBoolean("isClosed", false);
+
+                        if (!model.isEmpty() && (model.equippedFrame == null || model.equippedFrame.trim().isEmpty())) {
+                            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(model.userID);
+                            if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
+                                model.equippedFrame = cached.equippedFrame;
+                            } else {
+                                final SeatModel targetModel = model;
+                                final String targetUid = model.userID;
+                                UserProfileCache.getUserProfile(model.userID, profile -> {
+                                    if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                                        synchronized (SeatManager.this) {
+                                            if (targetUid.equals(targetModel.userID)) {
+                                                targetModel.equippedFrame = profile.equippedFrame;
+                                                notifySeatsUpdated();
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
                 }
+                sanitizeDuplicateUsers();
             }
             notifySeatsUpdated();
         } catch (Exception e) {

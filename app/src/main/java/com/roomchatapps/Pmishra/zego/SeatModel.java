@@ -19,6 +19,21 @@ public class SeatModel {
         this.index = index;
     }
 
+    public SeatModel(SeatModel other) {
+        if (other != null) {
+            this.index = other.index;
+            this.userID = other.userID != null ? other.userID : "";
+            this.userName = other.userName != null ? other.userName : "";
+            this.userAvatar = other.userAvatar != null ? other.userAvatar : "";
+            this.equippedFrame = other.equippedFrame != null ? other.equippedFrame : "";
+            this.isMicOn = other.isMicOn;
+            this.isMuted = other.isMuted;
+            this.isClosed = other.isClosed;
+            this.isSpeaking = other.isSpeaking;
+            this.soundLevel = other.soundLevel;
+        }
+    }
+
     public boolean isEmpty() {
         return userID == null || userID.trim().isEmpty();
     }

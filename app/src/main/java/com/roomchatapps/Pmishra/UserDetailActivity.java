@@ -19,6 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityUserDetailBinding;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
+import com.roomchatapps.Pmishra.utils.CoinUtils;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.LevelUtils;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
@@ -136,13 +137,17 @@ public class UserDetailActivity extends AppCompatActivity {
                     }
 
                     long level = LevelUtils.calculateLevel(coinsSpent);
-                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    int currentXpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    long maxXpInLevel = LevelUtils.getXpNeededForNextLevelFromStart(level);
+                    int xpProgressPct = LevelUtils.calculateXpPercentageInLevel(coinsSpent);
 
                     binding.tvUserLevelCard.setText("🛡️ Lv." + level);
+                    binding.tvUserLevelCard.setBackgroundResource(LevelUtils.getLevelBadgeDrawable(level));
                     binding.tvLevelTitle.setText("Level " + level + " Member");
-                    binding.pbLevelXp.setProgress(xpInLevel);
-                    binding.tvXpProgress.setText(xpInLevel + " / 100 XP");
-                    binding.tvTotalCoinsSpent.setText("Spent: " + String.format("%,d", coinsSpent) + " Coins");
+                    binding.pbLevelXp.setMax(100);
+                    binding.pbLevelXp.setProgress(xpProgressPct);
+                    binding.tvXpProgress.setText(currentXpInLevel + " / " + maxXpInLevel + " XP");
+                    binding.tvTotalCoinsSpent.setText("Spent: " + CoinUtils.formatCoins(coinsSpent) + " Coins");
                 }
             }
 

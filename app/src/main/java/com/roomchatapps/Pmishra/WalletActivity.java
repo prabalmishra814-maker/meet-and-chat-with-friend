@@ -227,39 +227,26 @@ public class WalletActivity extends AppCompatActivity {
     private void computeGiftCounts() {
         Map<String, GiftCountModel> map = new LinkedHashMap<>();
 
-        addGiftToMap(map, "Heart", R.drawable._1000092377_removebg_preview, 0);
-        addGiftToMap(map, "Rose", R.drawable._1000092341_removebg_preview, 0);
-        addGiftToMap(map, "Crown", R.drawable._1000092342_removebg_preview, 50);
-        addGiftToMap(map, "Diamond", R.drawable._1000092343_removebg_preview, 100);
-        addGiftToMap(map, "Car", R.drawable._1000092344_removebg_preview, 200);
-        addGiftToMap(map, "Cyber Ring", R.drawable._1000092357_removebg_preview, 300);
-        addGiftToMap(map, "Royal Ring", R.drawable._1000092358_removebg_preview, 500);
-        addGiftToMap(map, "Phoenix Wings", R.drawable._1000092363_removebg_preview, 800);
-
         for (TransactionModel tx : allTransactionList) {
             if (tx == null) continue;
             String type = tx.getType() != null ? tx.getType().toUpperCase() : "";
-            String text = ((tx.getTitle() != null ? tx.getTitle() : "") + " " + (tx.getDescription() != null ? tx.getDescription() : "")).toLowerCase();
+            if (!"GIFT_SENT".equals(type) && !"GIFT_RECEIVED".equals(type)) continue;
 
-            String matchedKey = null;
-            if (text.contains("heart")) matchedKey = "Heart";
-            else if (text.contains("rose")) matchedKey = "Rose";
-            else if (text.contains("crown")) matchedKey = "Crown";
-            else if (text.contains("diamond")) matchedKey = "Diamond";
-            else if (text.contains("car")) matchedKey = "Car";
-            else if (text.contains("cyber")) matchedKey = "Cyber Ring";
-            else if (text.contains("royal")) matchedKey = "Royal Ring";
-            else if (text.contains("phoenix") || text.contains("wing")) matchedKey = "Phoenix Wings";
+            String rawTitle = tx.getTitle() != null ? tx.getTitle() : "Gift";
+            String giftName = rawTitle.replace("Received Gift:", "").replace("Received", "").replace("Sent Gift:", "").trim();
+            if (giftName.isEmpty()) giftName = "Gift";
 
-            if (matchedKey != null && map.containsKey(matchedKey)) {
-                GiftCountModel model = map.get(matchedKey);
-                if (model != null) {
-                    if ("GIFT_RECEIVED".equals(type)) {
-                        model.setReceivedCount(model.getReceivedCount() + 1);
-                    } else if ("GIFT_SENT".equals(type)) {
-                        model.setSentCount(model.getSentCount() + 1);
-                    }
-                }
+            GiftCountModel model = map.get(giftName);
+            if (model == null) {
+                long cost = Math.abs(tx.getDiamondAmount() > 0 ? tx.getDiamondAmount() : tx.getCoinAmount());
+                model = new GiftCountModel(giftName, R.drawable.room_gift_ic, cost, 0, 0);
+                map.put(giftName, model);
+            }
+
+            if ("GIFT_RECEIVED".equals(type)) {
+                model.setReceivedCount(model.getReceivedCount() + 1);
+            } else if ("GIFT_SENT".equals(type)) {
+                model.setSentCount(model.getSentCount() + 1);
             }
         }
 
@@ -325,7 +312,7 @@ public class WalletActivity extends AppCompatActivity {
             } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab) && "GIFT_RECEIVED".equals(type)) {
                 filteredTransactionList.add(tx);
                 totalCount++;
-                totalVal += tx.getDiamondAmount();
+                totalVal += tx.getDiamondAmount() > 0 ? tx.getDiamondAmount() : Math.abs(tx.getCoinAmount());
             } else if ("STORE_BUY".equalsIgnoreCase(activeTab) && ("STORE_BUY".equals(type) || "THEME_BUY".equals(type))) {
                 filteredTransactionList.add(tx);
                 totalCount++;

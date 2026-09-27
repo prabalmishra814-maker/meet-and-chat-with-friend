@@ -382,7 +382,9 @@ public class EmailloginActivity extends AppCompatActivity {
             map.put("email", user.getEmail() != null ? user.getEmail() : "");
             map.put("uid", user.getUid());
             map.put("profileId", generatedProfileId);
-            map.put("level", "1");
+            map.put("level", "0");
+            map.put("coinsSpent", 0);
+            map.put("xp", 0);
             map.put("premium", "no");
             map.put("Followers", "0");
             map.put("Following", "0");

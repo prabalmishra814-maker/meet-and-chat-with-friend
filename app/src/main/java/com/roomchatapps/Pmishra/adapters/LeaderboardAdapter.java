@@ -14,6 +14,7 @@ import com.google.android.material.imageview.ShapeableImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.models.LeaderboardModel;
+import com.roomchatapps.Pmishra.utils.CoinUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -77,13 +78,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
     }
 
     public static String formatCoins(long coins) {
-        if (coins < 1000) {
-            return String.valueOf(coins);
-        } else if (coins < 1000000) {
-            return String.format(Locale.US, "%.1fK", coins / 1000.0);
-        } else {
-            return String.format(Locale.US, "%.1fM", coins / 1000000.0);
-        }
+        return CoinUtils.formatCoins(coins);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
