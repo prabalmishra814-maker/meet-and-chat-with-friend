@@ -89,15 +89,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
             if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.GONE);
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
-            if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
-            if (holder.svgaSeatFrame != null) {
-                holder.svgaSeatFrame.setTag(null);
-                try {
-                    holder.svgaSeatFrame.stopAnimation();
-                    holder.svgaSeatFrame.clear();
-                } catch (Exception ignored) {}
-                holder.svgaSeatFrame.setVisibility(View.GONE);
-            }
+            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.VISIBLE);
             if (holder.tvSeatName != null) holder.tvSeatName.setText("Locked");
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
@@ -117,15 +109,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
             if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.VISIBLE);
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
-            if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
-            if (holder.svgaSeatFrame != null) {
-                holder.svgaSeatFrame.setTag(null);
-                try {
-                    holder.svgaSeatFrame.stopAnimation();
-                    holder.svgaSeatFrame.clear();
-                } catch (Exception ignored) {}
-                holder.svgaSeatFrame.setVisibility(View.GONE);
-            }
+            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
             
             if (holder.tvSeatName != null) {
