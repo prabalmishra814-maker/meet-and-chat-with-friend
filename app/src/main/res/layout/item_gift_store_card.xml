@@ -3,14 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardGiftItem"
     android:layout_width="match_parent"
-    android:layout_height="110dp"
-    android:layout_margin="4dp"
-    android:clickable="true"
-    android:focusable="true"
-    app:cardBackgroundColor="#1AFFFFFF"
-    app:cardCornerRadius="14dp"
+    android:layout_height="98dp"
+    android:layout_margin="3dp"
+    app:cardBackgroundColor="#22182232"
+    app:cardCornerRadius="12dp"
     app:cardElevation="0dp"
-    app:strokeColor="#25FFFFFF"
+    app:strokeColor="#30FFFFFF"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -18,12 +16,12 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp">
+        android:padding="4dp">
 
         <FrameLayout
             android:id="@+id/cardGiftPreview"
-            android:layout_width="48dp"
-            android:layout_height="48dp">
+            android:layout_width="44dp"
+            android:layout_height="44dp">
 
             <ImageView
                 android:id="@+id/imgGiftStatic"
@@ -37,11 +35,11 @@
             android:id="@+id/tvGiftName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="3dp"
             android:ellipsize="end"
             android:singleLine="true"
             android:textColor="#FFFFFF"
-            android:textSize="11.5sp"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <TextView

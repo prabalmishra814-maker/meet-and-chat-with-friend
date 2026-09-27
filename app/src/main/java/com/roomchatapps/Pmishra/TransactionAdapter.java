@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -32,9 +31,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return new ViewHolder(view);
     }
 
+    public void resetAnimationState() {
+        lastAnimatedPosition = -1;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (position < 0 || position >= transactionList.size()) return;
         TransactionModel item = transactionList.get(position);
+        if (item == null) return;
 
         holder.tvTxTitle.setText(item.getTitle() != null ? item.getTitle() : "Transaction");
         holder.tvTxDescription.setText(item.getDescription() != null ? item.getDescription() : "");
@@ -47,34 +52,37 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             case "TOPUP":
             case "WELCOME_BONUS":
             case "REFERRAL":
-                holder.ivTxIcon.setImageResource(R.drawable.coin);
                 holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
                 holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F")); // Bright green
                 break;
 
             case "GIFT_SENT":
-                holder.ivTxIcon.setImageResource(R.drawable.room_gift_ic);
                 long cost = Math.abs(item.getCoinAmount());
                 holder.tvTxAmount.setText("-" + formatter.format(cost) + " Coins");
                 holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D")); // Red-Orange
                 break;
 
             case "GIFT_RECEIVED":
-                holder.ivTxIcon.setImageResource(R.drawable.game_mic_charm_pk_diamond_ic);
-                holder.tvTxAmount.setText("+" + formatter.format(item.getDiamondAmount()) + " Diamonds");
-                holder.tvTxAmount.setTextColor(Color.parseColor("#00F2FE")); // Cyan
+                if (item.getCoinAmount() > 0) {
+                    holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F")); // Bright green
+                } else if (item.getDiamondAmount() > 0) {
+                    holder.tvTxAmount.setText("+" + formatter.format(item.getDiamondAmount()) + " Diamonds");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#00F2FE")); // Cyan
+                } else {
+                    holder.tvTxAmount.setText("+0 Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
+                }
                 break;
 
             case "STORE_BUY":
             case "THEME_BUY":
-                holder.ivTxIcon.setImageResource(R.drawable.king_icon);
                 long storeCost = Math.abs(item.getCoinAmount());
                 holder.tvTxAmount.setText("-" + formatter.format(storeCost) + " Coins");
                 holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D")); // Red-Orange
                 break;
 
             case "GAME_SPIN":
-                holder.ivTxIcon.setImageResource(R.drawable.gift3);
                 if (item.getCoinAmount() >= 0) {
                     holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
                     holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
@@ -85,7 +93,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 break;
 
             default:
-                holder.ivTxIcon.setImageResource(R.drawable.coin);
                 if (item.getCoinAmount() >= 0) {
                     holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
                     holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
@@ -100,15 +107,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     }
 
     private void setEntranceAnimation(View viewToAnimate, int position) {
-        if (position > lastAnimatedPosition) {
-            viewToAnimate.setTranslationX(100f);
+        if (position > lastAnimatedPosition && position < 15) {
+            viewToAnimate.setTranslationX(60f);
             viewToAnimate.setAlpha(0f);
 
             viewToAnimate.animate()
                     .translationX(0f)
                     .alpha(1f)
-                    .setDuration(350)
-                    .setStartDelay(Math.min(position * 40L, 250L))
+                    .setDuration(250)
+                    .setStartDelay(Math.min(position * 30L, 150L))
                     .setInterpolator(new DecelerateInterpolator(1.4f))
                     .start();
 
@@ -131,7 +138,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        final ImageView ivTxIcon;
         final TextView tvTxTitle;
         final TextView tvTxDescription;
         final TextView tvTxTime;
@@ -139,7 +145,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         ViewHolder(View itemView) {
             super(itemView);
-            ivTxIcon = itemView.findViewById(R.id.ivTxIcon);
             tvTxTitle = itemView.findViewById(R.id.tvTxTitle);
             tvTxDescription = itemView.findViewById(R.id.tvTxDescription);
             tvTxTime = itemView.findViewById(R.id.tvTxTime);

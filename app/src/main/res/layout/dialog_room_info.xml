@@ -57,9 +57,9 @@
             android:orientation="vertical"
             android:paddingBottom="4dp">
 
-            <!-- Option 1: Room Title & Image -->
+            <!-- Option 1: Edit Room Info -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnOptionRoomSettings"
+                android:id="@+id/btnOptionEditRoom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -69,7 +69,7 @@
                 app:cardCornerRadius="18dp"
                 app:cardElevation="0dp"
                 app:rippleColor="#30FFFFFF"
-                app:strokeColor="#35FFFFFF"
+                app:strokeColor="#00E5FF"
                 app:strokeWidth="1.2dp">
 
                 <LinearLayout
@@ -91,7 +91,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Room Title &amp; Image"
+                            android:text="Edit Room Info ✏️"
                             android:textColor="#FFFFFF"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -100,7 +100,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Change room title and cover image"
+                            android:text="Change room title &amp; cover image thumbnail"
                             android:textColor="#B0FFFFFF"
                             android:textSize="11.5sp" />
                     </LinearLayout>

@@ -90,6 +90,14 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.GONE);
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
             if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
+            if (holder.svgaSeatFrame != null) {
+                holder.svgaSeatFrame.setTag(null);
+                try {
+                    holder.svgaSeatFrame.stopAnimation();
+                    holder.svgaSeatFrame.clear();
+                } catch (Exception ignored) {}
+                holder.svgaSeatFrame.setVisibility(View.GONE);
+            }
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.VISIBLE);
             if (holder.tvSeatName != null) holder.tvSeatName.setText("Locked");
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
@@ -110,6 +118,14 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.VISIBLE);
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
             if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
+            if (holder.svgaSeatFrame != null) {
+                holder.svgaSeatFrame.setTag(null);
+                try {
+                    holder.svgaSeatFrame.stopAnimation();
+                    holder.svgaSeatFrame.clear();
+                } catch (Exception ignored) {}
+                holder.svgaSeatFrame.setVisibility(View.GONE);
+            }
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
             
             if (holder.tvSeatName != null) {
@@ -159,52 +175,48 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                 }
             }
 
-            // Load Avatar & Frame
-            if (model.isEmpty()) {
-                if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
-                if (holder.svgaSeatFrame != null) {
-                    holder.svgaSeatFrame.setTag(null);
-                    holder.svgaSeatFrame.stopAnimation();
-                    holder.svgaSeatFrame.clear();
-                    holder.svgaSeatFrame.setVisibility(View.GONE);
-                }
-            } else {
-                // 1. Avatar
-                if (holder.ivSeatAvatar != null) {
-                    if (model.userAvatar != null && !model.userAvatar.trim().isEmpty()) {
-                        Glide.with(context)
-                                .load(model.userAvatar)
-                                .placeholder(R.drawable.logo_placeholder)
-                                .into(holder.ivSeatAvatar);
-                    } else {
-                        UserProfileCache.getUserProfile(model.userID, profile -> {
-                            if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
-                                Glide.with(context)
-                                        .load(profile.avatarUrl)
-                                        .placeholder(R.drawable.logo_placeholder)
-                                        .into(holder.ivSeatAvatar);
-                            } else {
-                                Glide.with(context)
-                                        .load(R.drawable.logo_placeholder)
-                                        .into(holder.ivSeatAvatar);
-                            }
-                        });
-                    }
-                }
-
-                // 2. Frame
-                if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
-                    FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+            // 1. Avatar
+            if (holder.ivSeatAvatar != null) {
+                if (model.userAvatar != null && !model.userAvatar.trim().isEmpty()) {
+                    Glide.with(context)
+                            .load(model.userAvatar)
+                            .placeholder(R.drawable.logo_placeholder)
+                            .into(holder.ivSeatAvatar);
                 } else {
                     UserProfileCache.getUserProfile(model.userID, profile -> {
-                        if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                            model.equippedFrame = profile.equippedFrame;
-                            FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+                        if (model.isEmpty()) return;
+                        if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                            Glide.with(context)
+                                    .load(profile.avatarUrl)
+                                    .placeholder(R.drawable.logo_placeholder)
+                                    .into(holder.ivSeatAvatar);
                         } else {
-                            FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
+                            Glide.with(context)
+                                    .load(R.drawable.logo_placeholder)
+                                    .into(holder.ivSeatAvatar);
                         }
                     });
                 }
+            }
+
+            // 2. Frame
+            if (model.isEmpty()) {
+                FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
+            } else if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+                FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+            } else {
+                UserProfileCache.getUserProfile(model.userID, profile -> {
+                    if (model.isEmpty()) {
+                        FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
+                        return;
+                    }
+                    if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                        model.equippedFrame = profile.equippedFrame;
+                        FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+                    } else {
+                        FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
+                    }
+                });
             }
 
             // Speaking Pulsing Ring Animation

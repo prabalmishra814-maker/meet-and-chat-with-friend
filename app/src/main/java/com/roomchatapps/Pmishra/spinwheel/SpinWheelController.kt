@@ -74,7 +74,7 @@ object SpinWheelController {
         fullRotations: Int = DEFAULT_FULL_ROTATIONS
     ): Float {
         val safeIndex = winnerIndex.coerceIn(0, NUM_SEGMENTS - 1)
-        val winnerCenterAngle = START_ANGLE + (safeIndex * SEGMENT_ANGLE) + (SEGMENT_ANGLE / 2f)
+        val winnerCenterAngle = START_ANGLE + (safeIndex * SEGMENT_ANGLE)
         val desiredWheelAngle = (360f - (winnerCenterAngle % 360f)) % 360f
 
         val currentAngle = (currentRotation % 360f + 360f) % 360f

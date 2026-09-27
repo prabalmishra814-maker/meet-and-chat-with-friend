@@ -93,31 +93,17 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
             GiftRecipientModel clickedItem = recipientList.get(pos);
 
             if (clickedItem.isAll()) {
-                boolean targetState = !clickedItem.isSelected();
+                // Clicking "ALL" selects everyone
                 for (GiftRecipientModel model : recipientList) {
-                    model.setSelected(targetState);
+                    model.setSelected(true);
                 }
             } else {
-                clickedItem.setSelected(!clickedItem.isSelected());
-
-                // Check if all individual items are now selected
-                boolean allMembersSelected = true;
-                boolean hasMembers = false;
-                for (GiftRecipientModel model : recipientList) {
-                    if (!model.isAll()) {
-                        hasMembers = true;
-                        if (!model.isSelected()) {
-                            allMembersSelected = false;
-                            break;
-                        }
-                    }
-                }
-
-                // Update "ALL" item selection state
+                // Clicking an individual member selects ONLY that specific member
                 for (GiftRecipientModel model : recipientList) {
                     if (model.isAll()) {
-                        model.setSelected(hasMembers && allMembersSelected);
-                        break;
+                        model.setSelected(false);
+                    } else {
+                        model.setSelected(model.getUid() != null && model.getUid().equals(clickedItem.getUid()));
                     }
                 }
             }

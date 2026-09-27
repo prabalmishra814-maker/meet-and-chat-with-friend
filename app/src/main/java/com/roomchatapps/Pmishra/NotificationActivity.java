@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -98,8 +99,15 @@ public class NotificationActivity extends AppCompatActivity {
                     adapter.notifyItemChanged(position);
                     notifRef.child(notification.getId()).child("read").setValue(true);
                 }
-                
-                Toast.makeText(NotificationActivity.this, notification.getTitle() + ": " + notification.getMessage(), Toast.LENGTH_SHORT).show();
+
+                if ("ROOM_INVITE".equalsIgnoreCase(notification.getType()) && notification.getTargetId() != null && !notification.getTargetId().trim().isEmpty()) {
+                    Intent intent = new Intent(NotificationActivity.this, RoomChatActivity.class);
+                    intent.putExtra("roomID", notification.getTargetId());
+                    intent.putExtra("host", false);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(NotificationActivity.this, notification.getTitle() + ": " + notification.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override

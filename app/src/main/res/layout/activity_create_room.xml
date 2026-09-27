@@ -86,15 +86,39 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/clRoomCover" />
 
-            <!-- Input Field (Hidden: Room Title is auto-set to Room ID) -->
-            <EditText
-                android:id="@+id/etRoomDescription"
-                android:layout_width="0dp"
+            <!-- Input Field for Room Title -->
+            <TextView
+                android:id="@+id/tvRoomTitleLabel"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginStart="@dimen/screen_margin_xlarge"
+                android:layout_marginTop="@dimen/spacing_large"
+                android:text="Room Title"
+                android:textColor="#AAAAAA"
+                android:textSize="@dimen/text_medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvSelectCover" />
+
+            <EditText
+                android:id="@+id/etRoomTitle"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="@dimen/screen_margin_xlarge"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="@dimen/screen_margin_xlarge"
+                android:background="@drawable/edittext_bg"
+                android:hint="Enter Room Title"
+                android:textColorHint="#70FFFFFF"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvRoomTitleLabel" />
 
             <!-- Bottom Button -->
             <androidx.appcompat.widget.AppCompatButton
@@ -114,7 +138,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvSelectCover"
+                app:layout_constraintTop_toBottomOf="@+id/etRoomTitle"
                 app:layout_constraintVertical_bias="0.0" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -17,6 +17,8 @@ import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.TextView;
 
+import java.text.NumberFormat;
+
 public class AnimationHelper {
 
     public static void fadeIn(View view, long duration) {
@@ -200,12 +202,13 @@ public class AnimationHelper {
 
     public static void animateNumberCounter(TextView textView, long startVal, long endVal) {
         if (textView == null) return;
-        ValueAnimator animator = ValueAnimator.ofInt((int) startVal, (int) endVal);
+        ValueAnimator animator = ValueAnimator.ofFloat((float) startVal, (float) endVal);
         animator.setDuration(600);
         animator.setInterpolator(new DecelerateInterpolator(1.5f));
+        NumberFormat formatter = NumberFormat.getInstance();
         animator.addUpdateListener(animation -> {
-            int val = (int) animation.getAnimatedValue();
-            textView.setText(String.valueOf(val));
+            float val = (float) animation.getAnimatedValue();
+            textView.setText(formatter.format((long) val));
         });
         animator.start();
     }

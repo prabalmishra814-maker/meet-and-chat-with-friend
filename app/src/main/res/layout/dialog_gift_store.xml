@@ -43,6 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
         android:overScrollMode="never" />
 
     <!-- Horizontal Category Tabs (Gift, Lucky, Lucky Fruit, Relationship, Luxury) -->
@@ -64,30 +65,49 @@
         app:tabTextColor="#90FFFFFF" />
 
     <!-- Gifts Grid (4 Columns, Scrollable) -->
+
+    <!-- Footer Row (Coins & Send Button) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGifts"
         android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_height="240dp"
         android:clipToPadding="false"
-        android:overScrollMode="never" />
+        android:nestedScrollingEnabled="true"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingBottom="8dp"
+        android:scrollbars="vertical" />
 
-    <!-- Footer Row (Coins & Send Button) -->
     <RelativeLayout
+        android:id="@+id/bottomg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="8dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingTop="6dp"
+        android:paddingBottom="2dp">
 
-        <!-- Coin Balance Badge -->
+        <!-- Coin Balance Badge (Clickable for Top-Up) -->
         <LinearLayout
             android:id="@+id/llCoinBalance"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="@drawable/bg_room_chat_pill"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center_vertical"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp">
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="Coins Icon"
+                android:scaleType="fitCenter"
+                android:src="@drawable/coin" />
 
             <TextView
                 android:id="@+id/tvGiftDialogCoins"
@@ -95,7 +115,20 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#FFD700"
-                android:textSize="13sp"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Plus Top-up Badge -->
+            <TextView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_send_button_glow"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="+"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -108,18 +141,17 @@
             android:layout_centerVertical="true"
             android:background="@drawable/bg_send_button_glow"
             android:clickable="true"
-            android:elevation="4dp"
             android:focusable="true"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="20dp">
+            android:paddingHorizontal="24dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Send"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

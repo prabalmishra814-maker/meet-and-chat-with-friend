@@ -98,7 +98,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
         overlayView = new View(getContext());
         GradientDrawable overlayGradient = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#70000000"), Color.parseColor("#30000000"), Color.parseColor("#800A0F1D")}
+                new int[]{Color.parseColor("#35000000"), Color.TRANSPARENT, Color.TRANSPARENT}
         );
         overlayView.setBackground(overlayGradient);
         addView(overlayView, new LayoutParams(-1, -1));

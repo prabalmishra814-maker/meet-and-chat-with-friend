@@ -2,6 +2,8 @@ package com.roomchatapps.Pmishra;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,21 +69,29 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
             holder.ivItemIcon.setVisibility(View.GONE);
             if (holder.svgaItemIcon != null) {
                 holder.svgaItemIcon.setVisibility(View.VISIBLE);
+                holder.svgaItemIcon.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
                 SVGAParser parser = new SVGAParser(context);
                 parser.decodeFromAssets(item.getSvgaPath(), new SVGAParser.ParseCompletion() {
                     @Override
                     public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                        holder.svgaItemIcon.setVideoItem(videoItem);
-                        holder.svgaItemIcon.startAnimation();
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (holder.svgaItemIcon != null) {
+                                holder.svgaItemIcon.setVideoItem(videoItem);
+                                holder.svgaItemIcon.setLoops(0);
+                                holder.svgaItemIcon.stepToFrame(0, true);
+                            }
+                        });
                     }
 
                     @Override
                     public void onError() {
-                        holder.svgaItemIcon.setVisibility(View.GONE);
-                        holder.ivItemIcon.setVisibility(View.VISIBLE);
-                        int resId = resolveDrawableRes(context, item.getIconResName());
-                        if (resId == 0) resId = R.drawable.family_owner_frame;
-                        holder.ivItemIcon.setImageResource(resId);
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
+                            holder.ivItemIcon.setVisibility(View.VISIBLE);
+                            int resId = resolveDrawableRes(context, item.getIconResName());
+                            if (resId == 0) resId = R.drawable.family_owner_frame;
+                            holder.ivItemIcon.setImageResource(resId);
+                        });
                     }
                 }, null);
             }

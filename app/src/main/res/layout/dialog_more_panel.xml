@@ -55,9 +55,9 @@
             android:backgroundTint="#00FFC6" />
     </LinearLayout>
 
-    <!-- Option 0: Edit Room Title & Image (Host) -->
+    <!-- Option 0: Edit Room Info (Title & Thumbnail) -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/btnOptionRoomSettings"
+        android:id="@+id/btnOptionEditRoom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -67,7 +67,7 @@
         app:cardCornerRadius="18dp"
         app:cardElevation="0dp"
         app:rippleColor="#30FFFFFF"
-        app:strokeColor="#35FFFFFF"
+        app:strokeColor="#00E5FF"
         app:strokeWidth="1.2dp">
 
         <LinearLayout
@@ -76,14 +76,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="14dp">
-
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Room Settings Icon"
-                android:padding="9dp"
-                android:src="@drawable/room_game_setting_ic" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -95,16 +87,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Room Title &amp; Image"
+                    android:text="Edit Room Info"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvEditRoomSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Change room title and cover image"
+                    android:text="Change room title &amp; cover image thumbnail"
                     android:textColor="#B0FFFFFF"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -139,15 +132,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="14dp">
-
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Theme Icon"
-                android:padding="9dp"
-                android:src="@drawable/theme"
-                app:tint="#FF007A" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -203,15 +187,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="14dp">
-
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Members Icon"
-                android:padding="9dp"
-                android:src="@drawable/member_list"
-                app:tint="#00FFC6" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -269,15 +244,6 @@
             android:orientation="horizontal"
             android:padding="14dp">
 
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Seat Icon"
-                android:padding="9dp"
-                android:src="@drawable/chair_office"
-                app:tint="#FFB703" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -333,15 +299,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="14dp">
-
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Music Icon"
-                android:padding="9dp"
-                android:src="@drawable/ic_speaker_on"
-                app:tint="#00FFC6" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -399,14 +356,6 @@
             android:orientation="horizontal"
             android:padding="14dp">
 
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Store Icon"
-                android:padding="9dp"
-                android:src="@drawable/store" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -462,15 +411,6 @@
             android:orientation="horizontal"
             android:padding="14dp">
 
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Profile Icon"
-                android:padding="9dp"
-                android:src="@drawable/ic_edit_profile"
-                app:tint="#FFD700" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -524,15 +464,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="14dp">
-
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:contentDescription="Minimize Icon"
-                android:padding="9dp"
-                android:src="@drawable/ic_home"
-                app:tint="#00E5FF" />
 
             <LinearLayout
                 android:layout_width="0dp"

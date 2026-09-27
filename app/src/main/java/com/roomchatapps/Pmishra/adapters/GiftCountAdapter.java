@@ -33,9 +33,11 @@ public class GiftCountAdapter extends RecyclerView.Adapter<GiftCountAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int adapterPos = holder.getBindingAdapterPosition();
         int currentPos = (adapterPos != RecyclerView.NO_POSITION) ? adapterPos : position;
+        if (currentPos < 0 || currentPos >= giftList.size()) return;
         GiftCountModel item = giftList.get(currentPos);
+        if (item == null) return;
 
-        holder.tvGiftName.setText(item.getGiftName());
+        holder.tvGiftName.setText(item.getGiftName() != null ? item.getGiftName() : "");
         if (item.getCostCoins() == 0) {
             holder.tvGiftPrice.setText("FREE");
         } else {

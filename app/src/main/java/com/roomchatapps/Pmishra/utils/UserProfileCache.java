@@ -104,6 +104,11 @@ public class UserProfileCache {
         });
     }
 
+    public static UserProfile getDirectCachedProfile(String uid) {
+        if (uid == null || uid.trim().isEmpty()) return null;
+        return cache.get(uid.trim());
+    }
+
     public static void invalidate(String uid) {
         if (uid != null) cache.remove(uid.trim());
     }

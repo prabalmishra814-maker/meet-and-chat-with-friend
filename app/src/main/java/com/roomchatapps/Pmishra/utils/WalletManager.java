@@ -61,6 +61,10 @@ public class WalletManager {
      * Top-up / Recharge coins for user
      */
     public static void addCoins(String uid, long amount, String packageTitle, WalletCallback callback) {
+        addCoins(uid, amount, "TOPUP", "Coin Top-Up", packageTitle + " Pack (" + amount + " Coins)", callback);
+    }
+
+    public static void addCoins(String uid, long amount, String txType, String txTitle, String txDescription, WalletCallback callback) {
         if (uid == null || uid.isEmpty()) {
             if (callback != null) callback.onError("Invalid user ID");
             return;
@@ -82,8 +86,8 @@ public class WalletManager {
                 long updatedCoins = currentCoins + amount;
                 userRef.child("coins").setValue(updatedCoins).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Log transaction history
-                        logTransaction(uid, "TOPUP", amount, 0, "Coin Top-Up", packageTitle + " Pack (" + amount + " Coins)");
+                        // Log transaction history with custom type and description
+                        logTransaction(uid, txType, amount, 0, txTitle, txDescription);
                         if (callback != null) {
                             callback.onSuccess("Successfully added " + amount + " coins!", updatedCoins);
                         }
@@ -243,26 +247,63 @@ public class WalletManager {
     /**
      * Load Transaction History for a user
      */
-    public static void loadTransactionHistory(String uid, TransactionCallback callback) {
+    public static ValueEventListener loadTransactionHistory(String uid, TransactionCallback callback) {
         if (uid == null || uid.isEmpty()) {
             if (callback != null) callback.onError("Invalid user ID");
-            return;
+            return null;
         }
 
         DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(uid);
-        txRef.addValueEventListener(new ValueEventListener() {
+        ValueEventListener listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<TransactionModel> list = new ArrayList<>();
                 if (snapshot.exists()) {
                     for (DataSnapshot ds : snapshot.getChildren()) {
-                        TransactionModel tx = ds.getValue(TransactionModel.class);
-                        if (tx != null) {
-                            if (tx.getId() == null) tx.setId(ds.getKey());
-                            list.add(tx);
+                        try {
+                            TransactionModel tx = ds.getValue(TransactionModel.class);
+                            if (tx != null) {
+                                if (tx.getId() == null) tx.setId(ds.getKey());
+                                list.add(tx);
+                            }
+                        } catch (Exception e) {
+                            try {
+                                String id = ds.getKey();
+                                String type = ds.child("type").getValue(String.class);
+                                String title = ds.child("title").getValue(String.class);
+                                String description = ds.child("description").getValue(String.class);
+
+                                long coinAmount = 0;
+                                Object coinObj = ds.child("coinAmount").getValue();
+                                if (coinObj != null) {
+                                    try {
+                                        coinAmount = Long.parseLong(String.valueOf(coinObj));
+                                    } catch (Exception ignored) {}
+                                }
+
+                                long diamondAmount = 0;
+                                Object diamondObj = ds.child("diamondAmount").getValue();
+                                if (diamondObj != null) {
+                                    try {
+                                        diamondAmount = Long.parseLong(String.valueOf(diamondObj));
+                                    } catch (Exception ignored) {}
+                                }
+
+                                long timestamp = 0;
+                                Object timeObj = ds.child("timestamp").getValue();
+                                if (timeObj != null) {
+                                    try {
+                                        timestamp = Long.parseLong(String.valueOf(timeObj));
+                                    } catch (Exception ignored) {}
+                                }
+
+                                list.add(new TransactionModel(id, type, coinAmount, diamondAmount, title, description, timestamp));
+                            } catch (Exception ignored) {}
                         }
                     }
-                    list.sort((t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+                    try {
+                        list.sort((t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+                    } catch (Exception ignored) {}
                 }
                 if (callback != null) callback.onTransactionsLoaded(list);
             }
@@ -271,6 +312,8 @@ public class WalletManager {
             public void onCancelled(@NonNull DatabaseError error) {
                 if (callback != null) callback.onError(error.getMessage());
             }
-        });
+        };
+        txRef.limitToLast(150).addValueEventListener(listener);
+        return listener;
     }
 }

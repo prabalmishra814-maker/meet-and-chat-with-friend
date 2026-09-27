@@ -43,6 +43,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
             }
         }
 
+        String targetId = null;
         Map<String, String> data = remoteMessage.getData();
         if (data != null && !data.isEmpty()) {
             if (data.containsKey("title")) title = data.get("title");
@@ -50,6 +51,8 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
             if (data.containsKey("type")) type = data.get("type");
             if (data.containsKey("senderId")) senderId = data.get("senderId");
             if (data.containsKey("senderName")) senderName = data.get("senderName");
+            if (data.containsKey("targetId")) targetId = data.get("targetId");
+            if (data.containsKey("roomId")) targetId = data.get("roomId");
         }
 
         SystemNotificationManager.showSystemNotification(
@@ -59,7 +62,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
                 type,
                 senderId,
                 senderName,
-                null
+                targetId
         );
     }
 }

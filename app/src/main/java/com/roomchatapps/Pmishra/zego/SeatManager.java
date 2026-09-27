@@ -122,35 +122,65 @@ public class SeatManager {
             return false;
         }
 
-        // Leave any existing seat first
+        // Leave any existing seat first & preserve equipped frame/avatar if seat switching
+        String previousFrame = "";
+        String previousAvatar = "";
         int existingIndex = findUserSeatIndex(userID);
         if (existingIndex != -1 && existingIndex != index) {
-            seatList.get(existingIndex).clear();
+            SeatModel oldSeat = seatList.get(existingIndex);
+            previousFrame = oldSeat.equippedFrame;
+            previousAvatar = oldSeat.userAvatar;
+            oldSeat.clear();
         }
 
         model.userID = userID;
         model.userName = userName;
-        model.userAvatar = avatar;
-        if (equippedFrame != null && !equippedFrame.trim().isEmpty()) {
-            model.equippedFrame = equippedFrame;
+
+        // Resolve Avatar
+        if (avatar != null && !avatar.trim().isEmpty()) {
+            model.userAvatar = avatar;
+        } else if (previousAvatar != null && !previousAvatar.trim().isEmpty()) {
+            model.userAvatar = previousAvatar;
+        } else {
+            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+            if (cached != null && cached.avatarUrl != null) {
+                model.userAvatar = cached.avatarUrl;
+            }
         }
+
+        // Resolve Equipped Frame
+        String finalFrame = equippedFrame;
+        if (finalFrame == null || finalFrame.trim().isEmpty()) {
+            finalFrame = previousFrame;
+        }
+        if (finalFrame == null || finalFrame.trim().isEmpty()) {
+            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+            if (cached != null && cached.equippedFrame != null) {
+                finalFrame = cached.equippedFrame;
+            }
+        }
+
+        model.equippedFrame = finalFrame != null ? finalFrame : "";
         model.isMicOn = true;
         model.isMuted = false;
 
-        // Automatically fetch equippedFrame from cache/DB if missing
-        if (model.equippedFrame == null || model.equippedFrame.trim().isEmpty()) {
+        Runnable doSync = () -> {
+            notifySeatsUpdated();
+            syncSeatsToExtraInfo();
+            syncSeatsToFirebase();
+        };
+
+        if (model.equippedFrame.isEmpty()) {
             UserProfileCache.getUserProfile(userID, profile -> {
                 if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
                     model.equippedFrame = profile.equippedFrame;
-                    notifySeatsUpdated();
-                    syncSeatsToFirebase();
                 }
+                doSync.run();
             });
+        } else {
+            doSync.run();
         }
 
-        notifySeatsUpdated();
-        syncSeatsToExtraInfo();
-        syncSeatsToFirebase();
         return true;
     }
 
@@ -249,13 +279,35 @@ public class SeatManager {
                     external.clear();
                 }
                 SeatModel local = seatList.get(external.index);
-                local.userID = external.userID != null ? external.userID : "";
+                String newUserId = external.userID != null ? external.userID : "";
+
+                String newFrame = external.equippedFrame != null ? external.equippedFrame : "";
+                if (newFrame.trim().isEmpty() && newUserId.equals(local.userID) && local.equippedFrame != null && !local.equippedFrame.trim().isEmpty()) {
+                    newFrame = local.equippedFrame;
+                }
+
+                local.userID = newUserId;
                 local.userName = external.userName != null ? external.userName : "";
                 local.userAvatar = external.userAvatar != null ? external.userAvatar : "";
-                local.equippedFrame = external.equippedFrame != null ? external.equippedFrame : "";
+                local.equippedFrame = newFrame;
                 local.isMicOn = external.isMicOn;
                 local.isMuted = external.isMuted;
                 local.isClosed = external.isClosed;
+
+                if (!local.isEmpty() && (local.equippedFrame == null || local.equippedFrame.trim().isEmpty())) {
+                    UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(local.userID);
+                    if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
+                        local.equippedFrame = cached.equippedFrame;
+                    } else {
+                        final SeatModel targetLocal = local;
+                        UserProfileCache.getUserProfile(local.userID, profile -> {
+                            if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                                targetLocal.equippedFrame = profile.equippedFrame;
+                                notifySeatsUpdated();
+                            }
+                        });
+                    }
+                }
             }
         }
         notifySeatsUpdated();
@@ -317,13 +369,33 @@ public class SeatManager {
                 if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !parsedUserId.equals(hostUserID)) {
                     model.clear();
                 } else {
+                    String parsedFrame = obj.optString("equippedFrame", "");
+                    if (parsedFrame.trim().isEmpty() && parsedUserId.equals(model.userID) && model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+                        parsedFrame = model.equippedFrame;
+                    }
+
                     model.userID = parsedUserId;
                     model.userName = obj.optString("userName", "");
                     model.userAvatar = obj.optString("userAvatar", "");
-                    model.equippedFrame = obj.optString("equippedFrame", "");
+                    model.equippedFrame = parsedFrame;
                     model.isMicOn = obj.optBoolean("isMicOn", true);
                     model.isMuted = obj.optBoolean("isMuted", false);
                     model.isClosed = obj.optBoolean("isClosed", false);
+
+                    if (!model.isEmpty() && (model.equippedFrame == null || model.equippedFrame.trim().isEmpty())) {
+                        UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(model.userID);
+                        if (cached != null && cached.equippedFrame != null && !cached.equippedFrame.trim().isEmpty()) {
+                            model.equippedFrame = cached.equippedFrame;
+                        } else {
+                            final SeatModel targetModel = model;
+                            UserProfileCache.getUserProfile(model.userID, profile -> {
+                                if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                                    targetModel.equippedFrame = profile.equippedFrame;
+                                    notifySeatsUpdated();
+                                }
+                            });
+                        }
+                    }
                 }
             }
             notifySeatsUpdated();

@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat;
 import com.roomchatapps.Pmishra.ChatActivity;
 import com.roomchatapps.Pmishra.NotificationActivity;
 import com.roomchatapps.Pmishra.R;
+import com.roomchatapps.Pmishra.RoomChatActivity;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 
 public class SystemNotificationManager {
@@ -57,6 +58,10 @@ public class SystemNotificationManager {
         } else if ("FOLLOW".equalsIgnoreCase(type) && senderId != null && !senderId.isEmpty()) {
             intent = new Intent(context, UserDetailActivity.class);
             intent.putExtra("targetUid", senderId);
+        } else if ("ROOM_INVITE".equalsIgnoreCase(type) && targetId != null && !targetId.trim().isEmpty()) {
+            intent = new Intent(context, RoomChatActivity.class);
+            intent.putExtra("roomID", targetId);
+            intent.putExtra("host", false);
         } else {
             intent = new Intent(context, NotificationActivity.class);
         }

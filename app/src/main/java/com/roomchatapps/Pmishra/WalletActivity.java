@@ -27,7 +27,7 @@ import com.roomchatapps.Pmishra.utils.WalletManager;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +35,7 @@ public class WalletActivity extends AppCompatActivity {
 
     private ImageView btnBack;
     private TextView tvCoins, tvTxSummary;
-    private View header, llBalances;
+    private View header;
     private View cvCoins;
     private TextView btnRechargeHeader, btnRechargeQuick;
     private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts;
@@ -51,6 +51,10 @@ public class WalletActivity extends AppCompatActivity {
     private final List<GiftCountModel> giftCountList = new ArrayList<>();
 
     private DatabaseReference userRef;
+    private DatabaseReference txRef;
+    private ValueEventListener userWalletListener;
+    private ValueEventListener txListener;
+
     private String currentUid;
     private long lastCoinsVal = -1;
     private String activeTab = "ALL";
@@ -97,9 +101,6 @@ public class WalletActivity extends AppCompatActivity {
 
     private void setupAnimations() {
         if (header != null) AnimationHelper.fadeIn(header, 400);
-        if (llBalances != null) AnimationHelper.scaleIn(llBalances, 500);
-
-        if (cvCoins != null) AnimationHelper.pulseGlowAnimation(cvCoins);
     }
 
     private void setupRecyclerViews() {
@@ -161,37 +162,35 @@ public class WalletActivity extends AppCompatActivity {
     private void loadWalletData() {
         if (currentUid == null) return;
 
-        userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUid);
-        userRef.addValueEventListener(new ValueEventListener() {
+        userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUid).child("coins");
+        userWalletListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Object coinsObj = snapshot.child("coins").getValue();
-
-                    long coinsVal = 0;
-                    if (coinsObj != null) {
-                        try {
-                            coinsVal = Long.parseLong(String.valueOf(coinsObj));
-                        } catch (Exception ignored) {}
-                    }
-
-                    NumberFormat formatter = NumberFormat.getInstance();
-
-                    if (tvCoins != null) {
-                        if (lastCoinsVal >= 0 && lastCoinsVal != coinsVal) {
-                            AnimationHelper.animateNumberCounter(tvCoins, lastCoinsVal, coinsVal);
-                            AnimationHelper.bounceAnimation(tvCoins);
-                        } else {
-                            tvCoins.setText(formatter.format(coinsVal));
-                        }
-                    }
-                    lastCoinsVal = coinsVal;
+                if (isFinishing() || isDestroyed()) return;
+                long coinsVal = 0;
+                if (snapshot.exists() && snapshot.getValue() != null) {
+                    try {
+                        coinsVal = Long.parseLong(String.valueOf(snapshot.getValue()));
+                    } catch (Exception ignored) {}
                 }
+
+                NumberFormat formatter = NumberFormat.getInstance();
+
+                if (tvCoins != null) {
+                    if (lastCoinsVal >= 0 && lastCoinsVal != coinsVal) {
+                        AnimationHelper.animateNumberCounter(tvCoins, lastCoinsVal, coinsVal);
+                        AnimationHelper.bounceAnimation(tvCoins);
+                    } else {
+                        tvCoins.setText(formatter.format(coinsVal));
+                    }
+                }
+                lastCoinsVal = coinsVal;
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        };
+        userRef.addValueEventListener(userWalletListener);
     }
 
     private void loadTransactions() {
@@ -202,9 +201,11 @@ public class WalletActivity extends AppCompatActivity {
         }
 
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
-        WalletManager.loadTransactionHistory(currentUid, new WalletManager.TransactionCallback() {
+        txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(currentUid);
+        txListener = WalletManager.loadTransactionHistory(currentUid, new WalletManager.TransactionCallback() {
             @Override
             public void onTransactionsLoaded(List<TransactionModel> transactions) {
+                if (isFinishing() || isDestroyed()) return;
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 allTransactionList.clear();
                 if (transactions != null) {
@@ -216,6 +217,7 @@ public class WalletActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
+                if (isFinishing() || isDestroyed()) return;
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 filterAndDisplayData();
             }
@@ -223,7 +225,7 @@ public class WalletActivity extends AppCompatActivity {
     }
 
     private void computeGiftCounts() {
-        Map<String, GiftCountModel> map = new HashMap<>();
+        Map<String, GiftCountModel> map = new LinkedHashMap<>();
 
         addGiftToMap(map, "Heart", R.drawable._1000092377_removebg_preview, 0);
         addGiftToMap(map, "Rose", R.drawable._1000092341_removebg_preview, 0);
@@ -270,6 +272,7 @@ public class WalletActivity extends AppCompatActivity {
     }
 
     private void filterAndDisplayData() {
+        if (isFinishing() || isDestroyed()) return;
         filteredTransactionList.clear();
 
         if ("GIFT_COUNTS".equalsIgnoreCase(activeTab)) {
@@ -281,8 +284,10 @@ public class WalletActivity extends AppCompatActivity {
             int totalRec = 0;
             int totalSent = 0;
             for (GiftCountModel g : giftCountList) {
-                totalRec += g.getReceivedCount();
-                totalSent += g.getSentCount();
+                if (g != null) {
+                    totalRec += g.getReceivedCount();
+                    totalSent += g.getSentCount();
+                }
             }
 
             if (tvTxSummary != null) {
@@ -332,7 +337,10 @@ public class WalletActivity extends AppCompatActivity {
             }
         }
 
-        if (txAdapter != null) txAdapter.notifyDataSetChanged();
+        if (txAdapter != null) {
+            txAdapter.resetAnimationState();
+            txAdapter.notifyDataSetChanged();
+        }
 
         if (tvTxSummary != null) {
             if ("TOPUP".equalsIgnoreCase(activeTab)) {
@@ -357,6 +365,17 @@ public class WalletActivity extends AppCompatActivity {
 
         if (llEmptyTransactions != null) {
             llEmptyTransactions.setVisibility(filteredTransactionList.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (userRef != null && userWalletListener != null) {
+            userRef.removeEventListener(userWalletListener);
+        }
+        if (txRef != null && txListener != null) {
+            txRef.removeEventListener(txListener);
         }
     }
 }

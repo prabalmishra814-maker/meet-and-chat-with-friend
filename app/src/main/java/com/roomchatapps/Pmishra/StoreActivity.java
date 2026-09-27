@@ -241,23 +241,31 @@ public class StoreActivity extends AppCompatActivity {
             if (ivStaticFrame != null) ivStaticFrame.setVisibility(View.GONE);
             if (svgaFrame != null) {
                 svgaFrame.setVisibility(View.VISIBLE);
+                svgaFrame.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
                 SVGAParser parser = new SVGAParser(this);
                 parser.decodeFromAssets(item.getSvgaPath(), new SVGAParser.ParseCompletion() {
                     @Override
                     public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                        svgaFrame.setVideoItem(videoItem);
-                        svgaFrame.startAnimation();
+                        runOnUiThread(() -> {
+                            if (svgaFrame != null) {
+                                svgaFrame.setVideoItem(videoItem);
+                                svgaFrame.setLoops(0);
+                                svgaFrame.stepToFrame(0, true);
+                            }
+                        });
                     }
 
                     @Override
                     public void onError() {
-                        svgaFrame.setVisibility(View.GONE);
-                        if (ivStaticFrame != null) {
-                            ivStaticFrame.setVisibility(View.VISIBLE);
-                            int resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
-                            if (resId == 0) resId = R.drawable.family_owner_frame;
-                            ivStaticFrame.setImageResource(resId);
-                        }
+                        runOnUiThread(() -> {
+                            if (svgaFrame != null) svgaFrame.setVisibility(View.GONE);
+                            if (ivStaticFrame != null) {
+                                ivStaticFrame.setVisibility(View.VISIBLE);
+                                int resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
+                                if (resId == 0) resId = R.drawable.family_owner_frame;
+                                ivStaticFrame.setImageResource(resId);
+                            }
+                        });
                     }
                 }, null);
             }

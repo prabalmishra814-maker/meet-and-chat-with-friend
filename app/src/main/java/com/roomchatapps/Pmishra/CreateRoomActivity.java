@@ -46,7 +46,7 @@ import okhttp3.Response;
 
 public class CreateRoomActivity extends AppCompatActivity {
     Button btnCreate;
-    EditText etRoomDescription;
+    EditText etRoomTitle;
     ImageView pickimg;
     ImageView ivRoomCover;
     TextView tvTitle;
@@ -72,7 +72,7 @@ public class CreateRoomActivity extends AppCompatActivity {
         ImageView ivBack = findViewById(R.id.ivBack);
         ivBack.setOnClickListener(v -> finish());
         btnCreate = findViewById(R.id.btnCreate);
-        etRoomDescription = findViewById(R.id.etRoomDescription);
+        etRoomTitle = findViewById(R.id.etRoomTitle);
         pickimg = findViewById(R.id.pickimg);
         ivRoomCover = findViewById(R.id.ivRoomCover);
         tvTitle = findViewById(R.id.tvTitle);
@@ -112,6 +112,15 @@ public class CreateRoomActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(CreateRoomActivity.this, LoginActivity.class));
                 finish();
+                return;
+            }
+
+            String roomTitle = etRoomTitle != null ? etRoomTitle.getText().toString().trim() : "";
+            if (roomTitle.isEmpty()) {
+                if (etRoomTitle != null) {
+                    etRoomTitle.setError("Please enter room title");
+                }
+                Toast.makeText(this, "Please enter room title", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -164,6 +173,9 @@ public class CreateRoomActivity extends AppCompatActivity {
                     if (existingRoom != null) {
                         if (existingRoom.getRoomId() != null && is6DigitNumber(existingRoom.getRoomId())) {
                             existing6DigitRoomId = existingRoom.getRoomId();
+                        }
+                        if (existingRoom.getRoom_name() != null && etRoomTitle != null) {
+                            etRoomTitle.setText(existingRoom.getRoom_name());
                         }
                         if (existingRoom.getImg() != null && !existingRoom.getImg().isEmpty()) {
                             imgUrl = existingRoom.getImg();
@@ -281,6 +293,16 @@ public class CreateRoomActivity extends AppCompatActivity {
             return;
         }
 
+        String roomTitle = etRoomTitle != null ? etRoomTitle.getText().toString().trim() : "";
+        if (roomTitle.isEmpty()) {
+            btnCreate.setEnabled(true);
+            if (etRoomTitle != null) {
+                etRoomTitle.setError("Please enter room title");
+            }
+            Toast.makeText(this, "Please enter room title", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (userName == null || userName.isEmpty()) {
             userName = "Host";
         }
@@ -291,15 +313,14 @@ public class CreateRoomActivity extends AppCompatActivity {
 
         final String finalUserId = userId;
         final String finalUserName = userName;
+        final String finalRoomTitle = roomTitle;
 
         ensure6DigitRoomId(generatedRoomId -> {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms");
             String roomId = generatedRoomId;
-            // Room Title is automatically set to the same unique 6-digit Room ID number
-            String roomName = roomId;
 
             HashMap<String, Object> map = new HashMap<>();
-            map.put("room_name", roomName);
+            map.put("room_name", finalRoomTitle);
             map.put("img", imgUrl);
             map.put("uid", finalUserId);
             map.put("roomId", roomId);
@@ -311,7 +332,7 @@ public class CreateRoomActivity extends AppCompatActivity {
                         // Start RoomChatActivity as Host
                         Intent intent = new Intent(CreateRoomActivity.this, RoomChatActivity.class);
                         intent.putExtra("roomID", roomId);
-                        intent.putExtra("room_name", roomName);
+                        intent.putExtra("room_name", finalRoomTitle);
                         intent.putExtra("username", finalUserName);
                         intent.putExtra("userID", finalUserId);
                         intent.putExtra("uid", finalUserId);

@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:angle="270"
-        android:startColor="#0F172A"
-        android:centerColor="#1E1B4B"
-        android:endColor="#0A0F1D"
-        android:type="linear" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Layer 1: Dark Space Navy Blue Linear Base -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="270"
+                android:startColor="#080C1B"
+                android:centerColor="#0A0E22"
+                android:endColor="#060915"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Layer 2: Lower Center Semi-Circular Radial Glow Dome/Arc -->
+    <item
+        android:top="260dp"
+        android:left="-160dp"
+        android:right="-160dp"
+        android:bottom="-200dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="380dp"
+                android:centerX="50%"
+                android:centerY="35%"
+                android:startColor="#1D3C66"
+                android:centerColor="#102544"
+                android:endColor="#00080C1B" />
+        </shape>
+    </item>
+</layer-list>

@@ -41,9 +41,9 @@
         <LinearLayout
             android:id="@+id/layoutUserInfo"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="45dp"
             android:layout_marginEnd="10dp"
+            android:layout_weight="1"
             android:background="@drawable/bg_room_top_user_info"
             android:gravity="center_vertical"
             android:orientation="horizontal"
@@ -62,8 +62,8 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -78,16 +78,36 @@
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvRoomId"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:id="@+id/layoutRoomId"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="ID:13672983"
-                    android:textColor="#B0FFFFFF"
-                    android:textSize="10.5sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvRoomId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="ID:13672983"
+                        android:textColor="#B0FFFFFF"
+                        android:textSize="10.5sp" />
+
+                    <ImageView
+                        android:id="@+id/btnCopyRoomId"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginStart="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="Copy Room ID"
+                        android:focusable="true"
+                        android:src="@drawable/ic_copy"
+                        app:tint="#B0FFFFFF" />
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

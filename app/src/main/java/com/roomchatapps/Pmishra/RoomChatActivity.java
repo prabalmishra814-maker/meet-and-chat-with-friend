@@ -1,11 +1,15 @@
 package com.roomchatapps.Pmishra;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -43,6 +47,7 @@ import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -56,6 +61,22 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+import org.json.JSONObject;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -188,6 +209,24 @@ public class RoomChatActivity extends AppCompatActivity {
             }
     );
 
+    private Uri editRoomSelectedImageUri = null;
+    private ImageView ivEditRoomCoverRef = null;
+
+    private final ActivityResultLauncher<Intent> editRoomImagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                    editRoomSelectedImageUri = result.getData().getData();
+                    if (ivEditRoomCoverRef != null) {
+                        Glide.with(this)
+                                .load(editRoomSelectedImageUri)
+                                .placeholder(R.drawable.logo_placeholder)
+                                .into(ivEditRoomCoverRef);
+                    }
+                }
+            }
+    );
+
     private final long roomJoinTime = System.currentTimeMillis();
 
     private AudioRoomBackgroundView backgroundView;
@@ -240,9 +279,28 @@ public class RoomChatActivity extends AppCompatActivity {
         roomNameLabel = getIntent().getStringExtra("room_name");
         roomImg = getIntent().getStringExtra("img");
 
-        if (roomID == null || roomID.isEmpty()) roomID = "default_room";
-        if (userID == null || userID.isEmpty()) userID = "user_" + System.currentTimeMillis();
-        if (userName == null || userName.isEmpty()) userName = "User_" + new Random().nextInt(1000);
+        if (roomID == null || roomID.trim().isEmpty()) roomID = "default_room";
+
+        FirebaseUser currentAuthUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (userID == null || userID.trim().isEmpty()) {
+            if (currentAuthUser != null && currentAuthUser.getUid() != null) {
+                userID = currentAuthUser.getUid();
+            } else {
+                userID = "user_" + System.currentTimeMillis();
+            }
+        }
+
+        if (userName == null || userName.trim().isEmpty()) {
+            if (currentAuthUser != null && currentAuthUser.getDisplayName() != null && !currentAuthUser.getDisplayName().trim().isEmpty()) {
+                userName = currentAuthUser.getDisplayName();
+            } else {
+                userName = SessionManager.getInstance(this).getName();
+                if (userName == null || userName.trim().isEmpty()) {
+                    userName = "User_" + new Random().nextInt(1000);
+                }
+            }
+        }
 
         String hostUid = getIntent().getStringExtra("uid");
         if (hostUid == null || hostUid.trim().isEmpty()) {
@@ -297,6 +355,29 @@ public class RoomChatActivity extends AppCompatActivity {
         if (tvRoomId != null && roomID != null && !roomID.isEmpty()) {
             tvRoomId.setText("ID:" + roomID);
         }
+
+        View.OnClickListener copyRoomIdListener = v -> {
+            if (roomID != null && !roomID.trim().isEmpty()) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Room ID", roomID);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(RoomChatActivity.this, "Room ID (" + roomID + ") copied to clipboard!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
+        View btnCopyRoomId = findViewById(R.id.btnCopyRoomId);
+        if (btnCopyRoomId != null) {
+            btnCopyRoomId.setOnClickListener(copyRoomIdListener);
+        }
+        if (tvRoomId != null) {
+            tvRoomId.setOnClickListener(copyRoomIdListener);
+        }
+        View layoutRoomId = findViewById(R.id.layoutRoomId);
+        if (layoutRoomId != null) {
+            layoutRoomId.setOnClickListener(copyRoomIdListener);
+        }
         if (ivRoomAvatar != null && roomImg != null && !roomImg.isEmpty()) {
             Glide.with(this)
                     .load(roomImg)
@@ -313,25 +394,16 @@ public class RoomChatActivity extends AppCompatActivity {
         View layoutUserInfo = findViewById(R.id.layoutUserInfo);
         if (layoutUserInfo != null) {
             layoutUserInfo.setOnClickListener(v -> {
-                if (isHost) {
-                    Intent intent = new Intent(RoomChatActivity.this, RoomSettingsActivity.class);
-                    intent.putExtra("roomID", roomID);
-                    intent.putExtra("hostUid", userID);
-                    intent.putExtra("roomName", roomNameLabel);
-                    intent.putExtra("roomImg", roomImg);
-                    startActivity(intent);
-                } else {
-                    List<SeatModel> seats = SeatManager.getInstance().getSeats();
-                    if (seats != null && !seats.isEmpty()) {
-                        String hostUid = SeatManager.getInstance().getHostUserID();
-                        int hostSeatIdx = SeatManager.getInstance().findUserSeatIndex(hostUid);
-                        if (hostSeatIdx != -1) {
-                            onSeatClicked(seats.get(hostSeatIdx));
-                        } else {
-                            SeatModel hostSeat = seats.get(0);
-                            if (hostSeat != null) {
-                                onSeatClicked(hostSeat);
-                            }
+                List<SeatModel> seats = SeatManager.getInstance().getSeats();
+                if (seats != null && !seats.isEmpty()) {
+                    String hostUid = SeatManager.getInstance().getHostUserID();
+                    int hostSeatIdx = SeatManager.getInstance().findUserSeatIndex(hostUid);
+                    if (hostSeatIdx != -1) {
+                        onSeatClicked(seats.get(hostSeatIdx));
+                    } else {
+                        SeatModel hostSeat = seats.get(0);
+                        if (hostSeat != null) {
+                            onSeatClicked(hostSeat);
                         }
                     }
                 }
@@ -457,8 +529,12 @@ public class RoomChatActivity extends AppCompatActivity {
             if (errorCode == 0) {
                 broadcastUserEntry();
                 if (isHost) {
-                    SeatManager.getInstance().takeSeat(0, userID, userName);
-                    ZegoManager.getInstance().startPublishing();
+                    String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                    UserProfileCache.getUserProfile(userID, profile -> {
+                        String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
+                        SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
+                        ZegoManager.getInstance().startPublishing();
+                    });
                 } else {
                     // Non-host users must NOT be on a seat when entering the room.
                     // If an old seat exists for this user, clear it so their profile doesn't show on a seat.
@@ -643,17 +719,17 @@ public class RoomChatActivity extends AppCompatActivity {
                         Toast.makeText(this, "Seat 1 is reserved for the Host!", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    int currentIndex = SeatManager.getInstance().findUserSeatIndex(userID);
-                    if (currentIndex != -1 && currentIndex != model.index) {
-                        SeatManager.getInstance().leaveSeat(currentIndex);
-                    }
-                    boolean success = SeatManager.getInstance().takeSeat(model.index, userID, userName);
-                    if (!success) {
-                        Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        ZegoManager.getInstance().startPublishing();
-                        Toast.makeText(this, "You took Seat " + (model.index + 1) + "!", Toast.LENGTH_SHORT).show();
-                    }
+                    String myAvatar = SessionManager.getInstance(this).getAvatar();
+                    UserProfileCache.getUserProfile(userID, profile -> {
+                        String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
+                        boolean success = SeatManager.getInstance().takeSeat(model.index, userID, userName, myAvatar, frame);
+                        if (!success) {
+                            Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            ZegoManager.getInstance().startPublishing();
+                            Toast.makeText(this, "You took Seat " + (model.index + 1) + "!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     emptyDialog.dismiss();
                 });
             }
@@ -1424,9 +1500,11 @@ public class RoomChatActivity extends AppCompatActivity {
                         if ("VIDEO".equals(type)) {
                             backgroundView.setThemeVideo(value);
                         } else if ("IMAGE".equals(type)) {
-                            backgroundView.setThemeImage(R.drawable.bg_main_gradient);
+                            backgroundView.setThemeImage(R.drawable.bg_room_gradient);
                         }
                     }
+                } else if (backgroundView != null) {
+                    backgroundView.setThemeImage(R.drawable.bg_room_gradient);
                 }
             }
 
@@ -1436,7 +1514,10 @@ public class RoomChatActivity extends AppCompatActivity {
         roomThemeRef.addValueEventListener(roomThemeValueEventListener);
     }
 
+    private boolean isEntryBroadcasted = false;
+
     private void setupRoomEntriesListener() {
+        broadcastUserEntry();
         roomEntriesRef = FirebaseDatabase.getInstance().getReference("room_entries").child(roomID);
         roomEntriesChildEventListener = new ChildEventListener() {
             @Override
@@ -1448,7 +1529,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     String entranceSvga = snapshot.child("entranceSvga").getValue(String.class);
                     Long ts = snapshot.child("timestamp").getValue(Long.class);
 
-                    if (ts != null && ts < roomJoinTime - 3000) return;
+                    if (ts != null && ts < roomJoinTime - 5000) return;
 
                     String displayName = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
 
@@ -1472,12 +1553,15 @@ public class RoomChatActivity extends AppCompatActivity {
                         notificationAnimator.showNotification(displayName, "entered the room", 0, userAvatar);
                     }
 
-                    // Show User Entry Banner
+                    // Show User Entry Banner Overlay
                     showUserEntryBanner(displayName);
 
-                    // If user equipped a custom entrance SVGA (e.g. Golden Super Car, Red Super Car, Anime Man, Toyota Car)
+                    // Show Entrance Animation Scene (e.g. Golden Super Car, Red Super Car, Anime Man, Toyota Car)
                     if (entranceSvga != null && !entranceSvga.trim().isEmpty()) {
                         playSvgaAnimation(entranceSvga);
+                    } else {
+                        // Default entrance scene SVGA when user enters room
+                        playSvgaAnimation("Entry/golden_super_car.svga");
                     }
                 }
             }
@@ -1491,7 +1575,9 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void broadcastUserEntry() {
+        if (isEntryBroadcasted) return;
         if (userID == null || userID.trim().isEmpty() || roomID == null) return;
+        isEntryBroadcasted = true;
 
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userID);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -1529,6 +1615,9 @@ public class RoomChatActivity extends AppCompatActivity {
             View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 bottomSheet.setBackground(new ColorDrawable(Color.TRANSPARENT));
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                behavior.setSkipCollapsed(true);
             }
         });
     }
@@ -1719,22 +1808,18 @@ public class RoomChatActivity extends AppCompatActivity {
             tvSeatsSubtitle.setText(totalSeatsCount + " Total Seats • " + occupiedCount + " Occupied, " + Math.max(0, totalSeatsCount - occupiedCount) + " Free");
         }
 
-        // Option 0: Edit Room Title & Cover Image
-        View btnOptionRoomSettings = dialogView.findViewById(R.id.btnOptionRoomSettings);
-        if (btnOptionRoomSettings != null) {
-            btnOptionRoomSettings.setVisibility(isHost ? View.VISIBLE : View.GONE);
-            btnOptionRoomSettings.setOnClickListener(v -> {
+
+
+        // Option 0: Edit Room Info (Title & Cover Thumbnail)
+        View btnOptionEditRoom = dialogView.findViewById(R.id.btnOptionEditRoom);
+        if (btnOptionEditRoom != null) {
+            btnOptionEditRoom.setOnClickListener(v -> {
                 dialog.dismiss();
-                if (!isHost) {
-                    Toast.makeText(this, "Only room host can edit room title and image!", Toast.LENGTH_SHORT).show();
-                    return;
+                if (isHost) {
+                    showEditRoomDialog();
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host can edit room details 👑", Toast.LENGTH_SHORT).show();
                 }
-                Intent intent = new Intent(RoomChatActivity.this, RoomSettingsActivity.class);
-                intent.putExtra("roomID", roomID);
-                intent.putExtra("hostUid", userID);
-                intent.putExtra("roomName", roomNameLabel);
-                intent.putExtra("roomImg", roomImg);
-                startActivity(intent);
             });
         }
 
@@ -1800,6 +1885,218 @@ public class RoomChatActivity extends AppCompatActivity {
 
         dialog.setContentView(dialogView);
         dialog.show();
+    }
+
+    private void showEditRoomDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        applyGlassyStyle(dialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_room, null, false);
+        if (dialogView == null) return;
+
+        ivEditRoomCoverRef = dialogView.findViewById(R.id.ivEditRoomCover);
+        View btnPickEditRoomImg = dialogView.findViewById(R.id.btnPickEditRoomImg);
+        View rlEditRoomCover = dialogView.findViewById(R.id.rlEditRoomCover);
+        EditText etEditRoomTitle = dialogView.findViewById(R.id.etEditRoomTitle);
+        ProgressBar pbEditRoomLoading = dialogView.findViewById(R.id.pbEditRoomLoading);
+        View btnSaveEditRoom = dialogView.findViewById(R.id.btnSaveEditRoom);
+        View btnCancelEditRoom = dialogView.findViewById(R.id.btnCancelEditRoom);
+
+        // Reset image picker uri
+        editRoomSelectedImageUri = null;
+
+        // Load current room image
+        if (ivEditRoomCoverRef != null) {
+            Glide.with(this)
+                    .load(roomImg != null && !roomImg.isEmpty() ? roomImg : R.drawable.logo_placeholder)
+                    .placeholder(R.drawable.logo_placeholder)
+                    .error(R.drawable.logo_placeholder)
+                    .into(ivEditRoomCoverRef);
+        }
+
+        // Load current room title
+        if (etEditRoomTitle != null) {
+            etEditRoomTitle.setText(roomNameLabel != null ? roomNameLabel : "");
+            etEditRoomTitle.setSelection(etEditRoomTitle.getText().length());
+        }
+
+        // Image picker click listeners
+        View.OnClickListener pickImageListener = v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            editRoomImagePickerLauncher.launch(intent);
+        };
+
+        if (rlEditRoomCover != null) rlEditRoomCover.setOnClickListener(pickImageListener);
+        if (btnPickEditRoomImg != null) btnPickEditRoomImg.setOnClickListener(pickImageListener);
+
+        if (btnCancelEditRoom != null) {
+            btnCancelEditRoom.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnSaveEditRoom != null) {
+            btnSaveEditRoom.setOnClickListener(v -> {
+                String newTitle = etEditRoomTitle != null ? etEditRoomTitle.getText().toString().trim() : "";
+                if (newTitle.isEmpty()) {
+                    Toast.makeText(RoomChatActivity.this, "Please enter room title", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                btnSaveEditRoom.setEnabled(false);
+                if (pbEditRoomLoading != null) pbEditRoomLoading.setVisibility(View.VISIBLE);
+
+                if (editRoomSelectedImageUri != null) {
+                    // Upload image first, then save
+                    uploadRoomCoverImage(editRoomSelectedImageUri, newImgUrl -> {
+                        saveRoomDetails(newTitle, newImgUrl, dialog, btnSaveEditRoom, pbEditRoomLoading);
+                    });
+                } else {
+                    // No new image selected, keep existing roomImg
+                    String currentImg = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+                    saveRoomDetails(newTitle, currentImg, dialog, btnSaveEditRoom, pbEditRoomLoading);
+                }
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private interface OnRoomCoverUploadCallback {
+        void onUploaded(String imageUrl);
+    }
+
+    private void uploadRoomCoverImage(Uri imageUri, OnRoomCoverUploadCallback callback) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+            if (inputStream == null) {
+                String fallback = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+                callback.onUploaded(fallback);
+                return;
+            }
+
+            ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                byteBuffer.write(buffer, 0, len);
+            }
+            byte[] bytes = byteBuffer.toByteArray();
+            inputStream.close();
+
+            OkHttpClient client = new OkHttpClient();
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("key", "d909717479f29f4de1b6efc62ec33528")
+                    .addFormDataPart("image", "room_cover.jpg",
+                            RequestBody.create(bytes, MediaType.parse("image/*")))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url("https://api.imgbb.com/1/upload")
+                    .post(requestBody)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(RoomChatActivity.this, "Image upload failed. Keeping existing thumbnail.", Toast.LENGTH_SHORT).show();
+                        String fallback = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+                        callback.onUploaded(fallback);
+                    });
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) {
+                    String uploadedUrl = null;
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            String responseData = response.body().string();
+                            JSONObject jsonObject = new JSONObject(responseData);
+                            uploadedUrl = jsonObject.getJSONObject("data").getString("url");
+                        } catch (Exception ignored) {}
+                    }
+                    if (uploadedUrl == null || uploadedUrl.isEmpty()) {
+                        uploadedUrl = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+                    }
+                    final String finalUrl = uploadedUrl;
+                    runOnUiThread(() -> callback.onUploaded(finalUrl));
+                }
+            });
+
+        } catch (Exception e) {
+            String fallback = (roomImg != null && !roomImg.isEmpty()) ? roomImg : "https://i.ibb.co/Q7dp3r5h/IMG-20260705-WA0006.jpg";
+            callback.onUploaded(fallback);
+        }
+    }
+
+    private void saveRoomDetails(String newTitle, String newImgUrl, Dialog dialog, View btnSave, ProgressBar pbLoading) {
+        HashMap<String, Object> updateMap = new HashMap<>();
+        updateMap.put("room_name", newTitle);
+        updateMap.put("img", newImgUrl);
+
+        DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+
+        // 1. Direct update to rooms/{roomID}
+        if (roomID != null && !roomID.isEmpty()) {
+            roomsRef.child(roomID).updateChildren(updateMap);
+        }
+
+        // 2. Direct update to rooms/{userID} if userID is available
+        if (userID != null && !userID.isEmpty()) {
+            roomsRef.child(userID).updateChildren(updateMap);
+        }
+
+        // 3. Find any matching room node by roomId in rooms list
+        roomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        RoomModel r = child.getValue(RoomModel.class);
+                        if (r != null && roomID != null && roomID.equals(r.getRoomId())) {
+                            child.getRef().updateChildren(updateMap);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        // Update local state & UI
+        roomNameLabel = newTitle;
+        roomImg = newImgUrl;
+
+        TextView tvRoomName = findViewById(R.id.tvRoomName);
+        if (tvRoomName != null) {
+            tvRoomName.setText(newTitle);
+        }
+
+        ImageView ivRoomAvatar = findViewById(R.id.ivRoomAvatar);
+        if (ivRoomAvatar != null) {
+            Glide.with(RoomChatActivity.this)
+                    .load(newImgUrl)
+                    .placeholder(R.drawable.logo_placeholder)
+                    .error(R.drawable.logo_placeholder)
+                    .into(ivRoomAvatar);
+        }
+
+        if (backgroundView != null) {
+            backgroundView.setRoomName(newTitle);
+            backgroundView.setBackgroundImage(newImgUrl);
+        }
+
+        if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+        if (btnSave != null) btnSave.setEnabled(true);
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
+
+        Toast.makeText(RoomChatActivity.this, "Room Details Updated! 🎉", Toast.LENGTH_SHORT).show();
     }
 
     private void showExitOptionsDialog() {
@@ -1941,6 +2238,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         inviteRef.setValue(map).addOnSuccessListener(aVoid -> {
             Toast.makeText(RoomChatActivity.this, "Invitation sent to " + targetUserName + " 🎙️", Toast.LENGTH_SHORT).show();
+            NotificationHelper.sendRoomInviteNotification(targetUserId, roomID);
         }).addOnFailureListener(e -> {
             Toast.makeText(RoomChatActivity.this, "Failed to send invitation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
@@ -1985,6 +2283,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void showSeatInvitationDialog(String hostName, int targetSeat) {
+        if (isFinishing() || isDestroyed()) return;
         if (currentInviteDialog != null && currentInviteDialog.isShowing()) {
             return;
         }
@@ -2010,6 +2309,7 @@ public class RoomChatActivity extends AppCompatActivity {
         if (btnAccept != null) {
             btnAccept.setOnClickListener(v -> {
                 dialog.dismiss();
+                currentInviteDialog = null;
                 acceptSeatInvitation(targetSeat);
             });
         }
@@ -2017,11 +2317,14 @@ public class RoomChatActivity extends AppCompatActivity {
         if (btnDecline != null) {
             btnDecline.setOnClickListener(v -> {
                 dialog.dismiss();
+                currentInviteDialog = null;
                 declineSeatInvitation();
             });
         }
 
         dialog.setCancelable(false);
+        dialog.setContentView(dialogView);
+        dialog.setOnDismissListener(d -> currentInviteDialog = null);
         currentInviteDialog = dialog;
         dialog.show();
     }
@@ -2049,19 +2352,18 @@ public class RoomChatActivity extends AppCompatActivity {
             return;
         }
 
-        int currentSeat = SeatManager.getInstance().findUserSeatIndex(userID);
-        if (currentSeat != -1 && currentSeat != seatToTake) {
-            SeatManager.getInstance().leaveSeat(currentSeat);
-        }
-
+        final int finalSeatToTake = seatToTake;
         String myAvatar = SessionManager.getInstance(this).getAvatar();
-        boolean success = SeatManager.getInstance().takeSeat(seatToTake, userID, userName, myAvatar);
-        if (success) {
-            ZegoManager.getInstance().startPublishing();
-            Toast.makeText(this, "You accepted the invitation and took Seat " + (seatToTake + 1) + "! 🎙️", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Could not take seat. Please try again.", Toast.LENGTH_SHORT).show();
-        }
+        UserProfileCache.getUserProfile(userID, profile -> {
+            String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
+            boolean success = SeatManager.getInstance().takeSeat(finalSeatToTake, userID, userName, myAvatar, frame);
+            if (success) {
+                ZegoManager.getInstance().startPublishing();
+                Toast.makeText(this, "You accepted the invitation and took Seat " + (finalSeatToTake + 1) + "! 🎙️", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Could not take seat. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void declineSeatInvitation() {
@@ -2358,6 +2660,7 @@ public class RoomChatActivity extends AppCompatActivity {
         View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
         TabLayout tabCategory = dialogView.findViewById(R.id.tabCategoryGifts);
         TextView tvGiftDialogCoins = dialogView.findViewById(R.id.tvGiftDialogCoins);
+        View llCoinBalance = dialogView.findViewById(R.id.llCoinBalance);
 
         if (tvGiftDialogCoins != null) {
             WalletManager.getUserCoins(userID, balance -> runOnUiThread(() ->
@@ -2365,55 +2668,78 @@ public class RoomChatActivity extends AppCompatActivity {
             ));
         }
 
+        if (llCoinBalance != null) {
+            llCoinBalance.setOnClickListener(v -> {
+                startActivity(new Intent(RoomChatActivity.this, CoinRechargeActivity.class));
+            });
+        }
+
         // Setup Recipients List (Room members / Mic seats)
         List<GiftRecipientModel> recipientList = new ArrayList<>();
+        Set<String> addedUids = new HashSet<>();
+
+        boolean isTargeted = (targetUid != null && !targetUid.isEmpty());
 
         // "ALL" option
-        GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, true);
+        GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, !isTargeted);
         recipientList.add(allItem);
 
+        // 1. Host Info
+        String roomHostUid = SeatManager.getInstance().getHostUserID();
+        if (roomHostUid == null || roomHostUid.isEmpty()) {
+            roomHostUid = getIntent().getStringExtra("uid");
+        }
+        if (roomHostUid == null || roomHostUid.isEmpty()) {
+            if (isHost) roomHostUid = userID;
+        }
+
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
-        int occupiedCount = 0;
+
+        if (roomHostUid != null && !roomHostUid.isEmpty()) {
+            String hName = "Host";
+            String hAvatar = "";
+
+            if (seats != null) {
+                for (SeatModel seat : seats) {
+                    if (seat != null && !seat.isEmpty() && roomHostUid.equals(seat.userID)) {
+                        if (seat.userName != null && !seat.userName.isEmpty()) hName = seat.userName;
+                        if (seat.userAvatar != null && !seat.userAvatar.isEmpty()) hAvatar = seat.userAvatar;
+                        break;
+                    }
+                }
+            }
+            if (roomHostUid.equals(userID)) {
+                if (userName != null && !userName.isEmpty()) hName = userName;
+                hAvatar = SessionManager.getInstance(this).getAvatar();
+            }
+
+            boolean selectHost = !isTargeted || roomHostUid.equals(targetUid);
+            recipientList.add(new GiftRecipientModel(roomHostUid, hName, hAvatar, "Host", false, selectHost));
+            addedUids.add(roomHostUid);
+        }
+
+        // 2. Seated Members
         if (seats != null) {
             for (SeatModel seat : seats) {
-                if (seat != null && !seat.isEmpty()) {
-                    occupiedCount++;
+                if (seat != null && !seat.isEmpty() && !addedUids.contains(seat.userID)) {
                     String seatBadge = seat.isHost() ? "Host" : String.valueOf(seat.index + 1);
                     String uName = (seat.userName != null && !seat.userName.isEmpty()) ? seat.userName : "Member";
-                    boolean initialSelected = true;
-                    if (targetUid != null && !targetUid.isEmpty()) {
-                        initialSelected = seat.userID.equals(targetUid);
-                    }
-                    recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seatBadge, false, initialSelected));
+                    boolean selectSeat = !isTargeted || seat.userID.equals(targetUid);
+                    recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seatBadge, false, selectSeat));
+                    addedUids.add(seat.userID);
                 }
             }
         }
 
-        // If a specific targetUid is requested, adjust selection states
-        if (targetUid != null && !targetUid.isEmpty()) {
-            boolean allMatches = true;
-            boolean hasTarget = false;
-            for (GiftRecipientModel item : recipientList) {
-                if (!item.isAll()) {
-                    if (item.getUid().equals(targetUid)) {
-                        item.setSelected(true);
-                        hasTarget = true;
-                    } else {
-                        item.setSelected(false);
-                        allMatches = false;
-                    }
-                }
-            }
-            allItem.setSelected(hasTarget && allMatches);
-        }
-
-        if (recipientList.size() <= 1) { // Only ALL item present, add current user
-            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "Host", false, true));
+        if (recipientList.size() <= 1) { // Only ALL item present, add current user as fallback
+            boolean selectUser = !isTargeted || userID.equals(targetUid);
+            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "Host", false, selectUser));
         }
 
         GiftRecipientAdapter recipientAdapter = new GiftRecipientAdapter(recipientList);
         if (rvGiftRecipients != null) {
             rvGiftRecipients.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            rvGiftRecipients.setNestedScrollingEnabled(false);
             rvGiftRecipients.setAdapter(recipientAdapter);
         }
 
@@ -2497,6 +2823,9 @@ public class RoomChatActivity extends AppCompatActivity {
 
         if (rvGifts != null) {
             rvGifts.setLayoutManager(new GridLayoutManager(this, 4));
+            rvGifts.setHasFixedSize(true);
+            rvGifts.setItemViewCacheSize(20);
+            rvGifts.setNestedScrollingEnabled(true);
             GiftStoreAdapter adapter = new GiftStoreAdapter(initialCategoryGifts);
             rvGifts.setAdapter(adapter);
 
@@ -2535,6 +2864,7 @@ public class RoomChatActivity extends AppCompatActivity {
                             filtered.addAll(giftList);
                         }
                         adapter.updateItems(filtered);
+                        rvGifts.scrollToPosition(0);
                     }
 
                     @Override
@@ -2576,9 +2906,18 @@ public class RoomChatActivity extends AppCompatActivity {
                             for (int i = 0; i < selectedRecipients.size(); i++) {
                                 GiftRecipientModel recipient = selectedRecipients.get(i);
 
-                                // Add coins directly to each recipient's account balance!
+                                // Add coins directly to each recipient's account balance with GIFT_RECEIVED transaction record
                                 if (!userID.equals(recipient.getUid())) {
-                                    WalletManager.addCoins(recipient.getUid(), singleCost, "Gift received: " + giftName, null);
+                                    String senderDisplayName = userName != null ? userName : "User";
+                                    WalletManager.addCoins(
+                                            recipient.getUid(),
+                                            singleCost,
+                                            "GIFT_RECEIVED",
+                                            "Received Gift: " + giftName,
+                                            "Received " + giftName + " from " + senderDisplayName,
+                                            null
+                                    );
+                                    NotificationHelper.sendGiftNotification(recipient.getUid(), giftName);
                                 }
 
                                 if (i > 0) recipientNames.append(", ");
@@ -2616,6 +2955,12 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         dialog.setContentView(dialogView);
+        View parentView = (View) dialogView.getParent();
+        if (parentView != null) {
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(parentView);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            behavior.setSkipCollapsed(true);
+        }
         dialog.show();
     }
 
@@ -2793,18 +3138,13 @@ public class RoomChatActivity extends AppCompatActivity {
         });
     }
 
+    private final Map<String, SVGAVideoEntity> svgaEntityCache = new ConcurrentHashMap<>();
+
     private void playSvgaAnimationInternal(String fileName) {
-        if (svgaPlayer == null || svgaParser == null || fileName == null) {
+        if (svgaPlayer == null || fileName == null || fileName.trim().isEmpty()) {
             finishCurrentGiftAnimation();
             return;
         }
-
-        // Safety timeout (8s max) in case SVGACallback.onFinished() is missed by the player
-        if (giftTimeoutRunnable != null) {
-            giftHandler.removeCallbacks(giftTimeoutRunnable);
-        }
-        giftTimeoutRunnable = this::finishCurrentGiftAnimation;
-        giftHandler.postDelayed(giftTimeoutRunnable, 8000);
 
         runOnUiThread(() -> {
             try {
@@ -2813,59 +3153,81 @@ public class RoomChatActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         });
 
-        svgaParser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() {
+        if (svgaEntityCache.containsKey(fileName)) {
+            SVGAVideoEntity cachedEntity = svgaEntityCache.get(fileName);
+            if (cachedEntity != null) {
+                playVideoEntity(cachedEntity);
+                return;
+            }
+        }
+
+        SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
+        parser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                runOnUiThread(() -> {
-                    try {
-                        svgaPlayer.stopAnimation();
-                        svgaPlayer.clear();
-                        svgaPlayer.setVisibility(View.VISIBLE);
-                        svgaPlayer.setVideoItem(videoItem);
-                        svgaPlayer.setLoops(1);
-                        svgaPlayer.startAnimation();
-                        svgaPlayer.setCallback(new SVGACallback() {
-                            @Override public void onPause() {}
-                            @Override public void onFinished() {
-                                finishCurrentGiftAnimation();
-                            }
-                            @Override public void onStep(int frame, double percentage) {}
-                            @Override public void onRepeat() {}
-                        });
-                    } catch (Exception e) {
-                        Log.e("RoomChatActivity", "Error playing SVGA animation", e);
-                        finishCurrentGiftAnimation();
-                    }
-                });
+                svgaEntityCache.put(fileName, videoItem);
+                playVideoEntity(videoItem);
             }
 
             @Override
             public void onError() {
+                Log.e("RoomChatActivity", "Error parsing SVGA file: " + fileName);
                 finishCurrentGiftAnimation();
             }
         }, null);
     }
 
-    public void showUserEntryBanner(String displayUserName) {
-        if (isFinishing() || isDestroyed()) return;
-        String formattedName = (displayUserName != null && !displayUserName.trim().isEmpty()) ? displayUserName : "User";
-        String htmlNotice = "<font color='#FFFFFF'><b>" + formattedName + "</b></font> <font color='#FFE082'>entered the room</font> 👋";
+    private void playVideoEntity(@NotNull SVGAVideoEntity videoItem) {
+        runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed() || svgaPlayer == null) {
+                finishCurrentGiftAnimation();
+                return;
+            }
 
-        bannerQueue.offer(new BannerQueueItem("Notification/full_banner_red_packet.svga", htmlNotice, true));
+            try {
+                int frames = videoItem.getFrames();
+                int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
+                long durationMs = (long) (((double) frames / fps) * 1000L);
+                long safetyTimeoutMs = Math.max(6000L, durationMs + 2500L);
+
+                if (giftTimeoutRunnable != null) {
+                    giftHandler.removeCallbacks(giftTimeoutRunnable);
+                }
+                giftTimeoutRunnable = this::finishCurrentGiftAnimation;
+                giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs);
+
+                svgaPlayer.stopAnimation();
+                svgaPlayer.clear();
+                svgaPlayer.setVisibility(View.VISIBLE);
+                svgaPlayer.setVideoItem(videoItem);
+                svgaPlayer.setLoops(1);
+                svgaPlayer.setCallback(new SVGACallback() {
+                    @Override
+                    public void onFinished() {
+                        finishCurrentGiftAnimation();
+                    }
+
+                    @Override public void onPause() {}
+                    @Override public void onRepeat() {}
+                    @Override public void onStep(int frame, double percentage) {}
+                });
+                svgaPlayer.startAnimation();
+            } catch (Exception e) {
+                Log.e("RoomChatActivity", "Error playing SVGA animation entity", e);
+                finishCurrentGiftAnimation();
+            }
+        });
+    }
+
+    public void showUserEntryBanner(String displayUserName) {
+        String name = (displayUserName != null && !displayUserName.trim().isEmpty()) ? displayUserName : "User";
+        String htmlNotice = "<font color='#FFD700'><b>" + name + "</b></font> entered the room 🎉";
+        bannerQueue.offer(new BannerQueueItem("Notification/full_banner_game.svga", htmlNotice, true));
         processNextBanner();
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName) {
-        if (isFinishing() || isDestroyed()) return;
-        String formattedSender = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
-        String formattedGift = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
-
-        String htmlNotice = "<font color='#FFFFFF'><b>" + formattedSender + "</b></font>" +
-                            " <font color='#FFE082'>sent</font> " +
-                            "<font color='#FFF59D'><b>" + formattedGift + "</b></font>";
-
-        bannerQueue.offer(new BannerQueueItem("Notification/full_banner_game.svga", htmlNotice, false));
-        processNextBanner();
+        // Disabled full banner overlay permanently
     }
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
@@ -2920,12 +3282,6 @@ public class RoomChatActivity extends AppCompatActivity {
             return;
         }
 
-        if (bannerTimeoutRunnable != null) {
-            bannerHandler.removeCallbacks(bannerTimeoutRunnable);
-        }
-        bannerTimeoutRunnable = this::finishCurrentBanner;
-        bannerHandler.postDelayed(bannerTimeoutRunnable, 6000);
-
         runOnUiThread(() -> {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -2937,41 +3293,69 @@ public class RoomChatActivity extends AppCompatActivity {
 
                 player.stopAnimation();
                 player.clear();
+            } catch (Exception ignored) {}
+        });
 
-                SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
-                parser.decodeFromAssets(item.svgaAsset, new SVGAParser.ParseCompletion() {
+        if (svgaEntityCache.containsKey(item.svgaAsset)) {
+            SVGAVideoEntity cachedEntity = svgaEntityCache.get(item.svgaAsset);
+            if (cachedEntity != null) {
+                playBannerVideoEntity(player, cachedEntity);
+                return;
+            }
+        }
+
+        SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
+        parser.decodeFromAssets(item.svgaAsset, new SVGAParser.ParseCompletion() {
+            @Override
+            public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                svgaEntityCache.put(item.svgaAsset, videoItem);
+                playBannerVideoEntity(player, videoItem);
+            }
+
+            @Override
+            public void onError() {
+                finishCurrentBanner();
+            }
+        }, null);
+    }
+
+    private void playBannerVideoEntity(SVGAImageView player, SVGAVideoEntity videoItem) {
+        runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed() || player == null) {
+                finishCurrentBanner();
+                return;
+            }
+
+            try {
+                int frames = videoItem.getFrames();
+                int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
+                long durationMs = (long) (((double) frames / fps) * 1000L);
+                long safetyTimeoutMs = Math.max(5000L, durationMs + 2000L);
+
+                if (bannerTimeoutRunnable != null) {
+                    bannerHandler.removeCallbacks(bannerTimeoutRunnable);
+                }
+                bannerTimeoutRunnable = this::finishCurrentBanner;
+                bannerHandler.postDelayed(bannerTimeoutRunnable, safetyTimeoutMs);
+
+                player.stopAnimation();
+                player.clear();
+                player.setVisibility(View.VISIBLE);
+                player.setVideoItem(videoItem);
+                player.setLoops(1);
+                player.setCallback(new SVGACallback() {
                     @Override
-                    public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                        runOnUiThread(() -> {
-                            try {
-                                player.setVisibility(View.VISIBLE);
-                                player.setVideoItem(videoItem);
-                                player.setLoops(1);
-                                player.startAnimation();
-                                player.setCallback(new SVGACallback() {
-                                    @Override
-                                    public void onFinished() {
-                                        finishCurrentBanner();
-                                    }
-
-                                    @Override public void onPause() {}
-                                    @Override public void onRepeat() {}
-                                    @Override public void onStep(int frame, double percentage) {}
-                                });
-                            } catch (Exception e) {
-                                Log.e("RoomChatActivity", "Error playing banner SVGA", e);
-                                finishCurrentBanner();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError() {
+                    public void onFinished() {
                         finishCurrentBanner();
                     }
-                }, null);
+
+                    @Override public void onPause() {}
+                    @Override public void onRepeat() {}
+                    @Override public void onStep(int frame, double percentage) {}
+                });
+                player.startAnimation();
             } catch (Exception e) {
-                Log.e("RoomChatActivity", "Error showing banner", e);
+                Log.e("RoomChatActivity", "Error playing banner SVGA", e);
                 finishCurrentBanner();
             }
         });
