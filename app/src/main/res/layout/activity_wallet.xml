@@ -286,22 +286,6 @@
                     android:textColor="#90FFFFFF"
                     android:textSize="12.5sp" />
 
-                <!-- 7. Gift Stats -->
-                <TextView
-                    android:id="@+id/tabTxGiftCounts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_wallet_chip_unselected"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans-serif-bold"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Gift Stats"
-                    android:textColor="#90FFFFFF"
-                    android:textSize="12.5sp" />
-
             </LinearLayout>
         </HorizontalScrollView>
 

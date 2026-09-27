@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -38,17 +37,15 @@ public class WalletActivity extends AppCompatActivity {
     private View header;
     private View cvCoins;
     private TextView btnRechargeHeader, btnRechargeQuick;
-    private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts;
-    private RecyclerView rvTransactions, rvGiftCounts;
+    private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin;
+    private RecyclerView rvTransactions;
     private View llEmptyTransactions;
     private ProgressBar progressBar;
 
     private TransactionAdapter txAdapter;
-    private GiftCountAdapter giftCountAdapter;
 
     private final List<TransactionModel> allTransactionList = new ArrayList<>();
     private final List<TransactionModel> filteredTransactionList = new ArrayList<>();
-    private final List<GiftCountModel> giftCountList = new ArrayList<>();
 
     private DatabaseReference userRef;
     private DatabaseReference txRef;
@@ -91,10 +88,8 @@ public class WalletActivity extends AppCompatActivity {
         tabTxReceived = findViewById(R.id.tabTxReceived);
         tabTxStore = findViewById(R.id.tabTxStore);
         tabTxSpin = findViewById(R.id.tabTxSpin);
-        tabTxGiftCounts = findViewById(R.id.tabTxGiftCounts);
 
         rvTransactions = findViewById(R.id.rvTransactions);
-        rvGiftCounts = findViewById(R.id.rvGiftCounts);
         llEmptyTransactions = findViewById(R.id.llEmptyTransactions);
         progressBar = findViewById(R.id.progressBar);
     }
@@ -109,12 +104,6 @@ public class WalletActivity extends AppCompatActivity {
             txAdapter = new TransactionAdapter(filteredTransactionList);
             rvTransactions.setAdapter(txAdapter);
         }
-
-        if (rvGiftCounts != null) {
-            rvGiftCounts.setLayoutManager(new GridLayoutManager(this, 2));
-            giftCountAdapter = new GiftCountAdapter(giftCountList);
-            rvGiftCounts.setAdapter(giftCountAdapter);
-        }
     }
 
     private void setupTabs() {
@@ -124,14 +113,13 @@ public class WalletActivity extends AppCompatActivity {
         if (tabTxReceived != null) tabTxReceived.setOnClickListener(v -> selectTab("GIFT_RECEIVED", tabTxReceived));
         if (tabTxStore != null) tabTxStore.setOnClickListener(v -> selectTab("STORE_BUY", tabTxStore));
         if (tabTxSpin != null) tabTxSpin.setOnClickListener(v -> selectTab("GAME_SPIN", tabTxSpin));
-        if (tabTxGiftCounts != null) tabTxGiftCounts.setOnClickListener(v -> selectTab("GIFT_COUNTS", tabTxGiftCounts));
     }
 
     private void selectTab(String tabKey, TextView selectedTab) {
         if (activeTab.equalsIgnoreCase(tabKey)) return;
         activeTab = tabKey;
 
-        TextView[] tabs = {tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts};
+        TextView[] tabs = {tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin};
         for (TextView tab : tabs) {
             if (tab != null) {
                 tab.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
@@ -211,7 +199,6 @@ public class WalletActivity extends AppCompatActivity {
                 if (transactions != null) {
                     allTransactionList.addAll(transactions);
                 }
-                computeGiftCounts();
                 filterAndDisplayData();
             }
 
@@ -224,71 +211,11 @@ public class WalletActivity extends AppCompatActivity {
         });
     }
 
-    private void computeGiftCounts() {
-        Map<String, GiftCountModel> map = new LinkedHashMap<>();
-
-        for (TransactionModel tx : allTransactionList) {
-            if (tx == null) continue;
-            String type = tx.getType() != null ? tx.getType().toUpperCase() : "";
-            if (!"GIFT_SENT".equals(type) && !"GIFT_RECEIVED".equals(type)) continue;
-
-            String rawTitle = tx.getTitle() != null ? tx.getTitle() : "Gift";
-            String giftName = rawTitle.replace("Received Gift:", "").replace("Received", "").replace("Sent Gift:", "").trim();
-            if (giftName.isEmpty()) giftName = "Gift";
-
-            GiftCountModel model = map.get(giftName);
-            if (model == null) {
-                long cost = Math.abs(tx.getDiamondAmount() > 0 ? tx.getDiamondAmount() : tx.getCoinAmount());
-                model = new GiftCountModel(giftName, R.drawable.room_gift_ic, cost, 0, 0);
-                map.put(giftName, model);
-            }
-
-            if ("GIFT_RECEIVED".equals(type)) {
-                model.setReceivedCount(model.getReceivedCount() + 1);
-            } else if ("GIFT_SENT".equals(type)) {
-                model.setSentCount(model.getSentCount() + 1);
-            }
-        }
-
-        giftCountList.clear();
-        giftCountList.addAll(map.values());
-    }
-
-    private void addGiftToMap(Map<String, GiftCountModel> map, String name, int iconRes, long cost) {
-        map.put(name, new GiftCountModel(name, iconRes, cost, 0, 0));
-    }
-
     private void filterAndDisplayData() {
         if (isFinishing() || isDestroyed()) return;
         filteredTransactionList.clear();
 
-        if ("GIFT_COUNTS".equalsIgnoreCase(activeTab)) {
-            if (rvTransactions != null) rvTransactions.setVisibility(View.GONE);
-            if (rvGiftCounts != null) rvGiftCounts.setVisibility(View.VISIBLE);
-
-            if (giftCountAdapter != null) giftCountAdapter.notifyDataSetChanged();
-
-            int totalRec = 0;
-            int totalSent = 0;
-            for (GiftCountModel g : giftCountList) {
-                if (g != null) {
-                    totalRec += g.getReceivedCount();
-                    totalSent += g.getSentCount();
-                }
-            }
-
-            if (tvTxSummary != null) {
-                tvTxSummary.setText("Total Gifts Received: " + totalRec + "  |  Total Gifts Sent: " + totalSent);
-                tvTxSummary.setVisibility(View.VISIBLE);
-            }
-
-            if (llEmptyTransactions != null) {
-                llEmptyTransactions.setVisibility(giftCountList.isEmpty() ? View.VISIBLE : View.GONE);
-            }
-            return;
-        }
-
-        if (rvGiftCounts != null) rvGiftCounts.setVisibility(View.GONE);
+        if (rvTransactions != null) rvTransactions.setVisibility(View.VISIBLE);
         if (rvTransactions != null) rvTransactions.setVisibility(View.VISIBLE);
 
         int totalCount = 0;
