@@ -17,6 +17,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // Strip unused language resources from 3rd party libraries
+        resourceConfigurations.addAll(listOf("en", "hi"))
+
         ndk {
             abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
         }
@@ -72,7 +75,6 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.gson)
     implementation(libs.zego.express)
-    implementation(libs.activity.ktx)
     implementation("com.snap.loginkit:loginkit:2.1.0")
 
     testImplementation(libs.junit)

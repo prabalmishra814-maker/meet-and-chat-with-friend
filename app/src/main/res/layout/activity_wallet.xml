@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:paddingHorizontal="16dp"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -37,10 +37,28 @@
             android:fontFamily="sans-serif-black"
             android:text="My Wallet"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="19sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Top Right Quick Recharge Button -->
+        <TextView
+            android:id="@+id/btnRechargeHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_topup_btn"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif-bold"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="+ Top-Up"
+            android:textColor="#101424"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -59,143 +77,116 @@
             android:orientation="vertical"
             android:paddingBottom="32dp">
 
-            <!-- Balances Overview Row -->
-            <LinearLayout
-                android:id="@+id/llBalances"
+            <!-- Balances Overview Section (Full Width Coins Card) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvCoins"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="12dp"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:layout_height="120dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#25FFFFFF"
+                app:strokeWidth="1dp">
 
-                <!-- Coins Card -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cvCoins"
-                    android:layout_width="0dp"
-                    android:layout_height="120dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="#141E33"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="4dp"
-                    app:strokeColor="#1AFFFFFF"
-                    app:strokeWidth="1dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_wallet_balance_card"
+                    android:padding="16dp">
+
+                    <FrameLayout
+                        android:id="@+id/flCoinIcon"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_icon_circle_accent">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Coins"
+                            android:src="@drawable/coin" />
+                    </FrameLayout>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <FrameLayout
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/bg_icon_circle_accent">
-
-                            <ImageView
-                                android:layout_width="26dp"
-                                android:layout_height="26dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Coins"
-                                android:src="@drawable/coin" />
-                        </FrameLayout>
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="14dp"
+                        android:layout_toEndOf="@+id/flCoinIcon"
+                        android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvCoinLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="Coins Balance"
-                            android:textColor="#B3FFFFFF"
-                            android:textSize="12sp" />
+                            android:textColor="#B0FFFFFF"
+                            android:textSize="12.5sp" />
 
                         <TextView
                             android:id="@+id/tvCoins"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:ellipsize="end"
                             android:fontFamily="sans-serif-black"
+                            android:maxLines="1"
                             android:text="0"
                             android:textColor="#FFD700"
                             android:textSize="24sp" />
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
 
-                <!-- Diamonds Card -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cvDiamonds"
-                    android:layout_width="0dp"
-                    android:layout_height="120dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="#141E33"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="4dp"
-                    app:strokeColor="#1AFFFFFF"
-                    app:strokeWidth="1dp">
+                    <!-- Quick Recharge Button -->
+                    <TextView
+                        android:id="@+id/btnRechargeQuick"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_topup_btn"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="+ Top-Up"
+                        android:textColor="#101424"
+                        android:textSize="12.5sp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                        <FrameLayout
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/bg_icon_circle_accent">
-
-                            <ImageView
-                                android:layout_width="26dp"
-                                android:layout_height="26dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Diamonds"
-                                android:src="@drawable/game_mic_charm_pk_diamond_ic" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Diamonds Earned"
-                            android:textColor="#B3FFFFFF"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvDiamonds"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-black"
-                            android:text="0"
-                            android:textColor="#40E0D0"
-                            android:textSize="24sp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-            </LinearLayout>
-
-            <!-- Transaction History Section Title -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Transaction History Header -->
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="24dp"
-                android:fontFamily="sans-serif-black"
-                android:text="History &amp; Gift Counts 📜"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp" />
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="20dp">
 
-            <!-- Filter Tabs -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Transaction History"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp" />
+
+            </RelativeLayout>
+
+            <!-- Horizontal Filter Chips ScrollBar -->
             <HorizontalScrollView
                 android:id="@+id/svTxTabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:paddingHorizontal="16dp"
@@ -206,102 +197,141 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <!-- 1. All -->
                     <TextView
                         android:id="@+id/tabTxAll"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/chip_charm_bg"
+                        android:background="@drawable/bg_wallet_chip_selected"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans-serif-bold"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="8dp"
-                        android:text="All 📜"
+                        android:text="All"
                         android:textColor="#FFFFFF"
-                        android:textSize="13sp" />
+                        android:textSize="12.5sp" />
 
-                    <TextView
-                        android:id="@+id/tabTxGiftCounts"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/chip_room_bg"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:fontFamily="sans-serif-bold"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:text="Gift Counts 📊"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/tabTxReceived"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/chip_room_bg"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:fontFamily="sans-serif-bold"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:text="Received 📥"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/tabTxSent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/chip_room_bg"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:fontFamily="sans-serif-bold"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:text="Sent / Bought 📤"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="13sp" />
-
+                    <!-- 2. Recharges -->
                     <TextView
                         android:id="@+id/tabTxTopup"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:background="@drawable/chip_room_bg"
+                        android:background="@drawable/bg_wallet_chip_unselected"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans-serif-bold"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="8dp"
-                        android:text="Recharges 🪙"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="13sp" />
+                        android:text="Recharges"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- 3. Gifts Sent -->
+                    <TextView
+                        android:id="@+id/tabTxSent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_wallet_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Gifts Sent"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- 4. Gifts Received -->
+                    <TextView
+                        android:id="@+id/tabTxReceived"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_wallet_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Gifts Received"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- 5. Store & Themes -->
+                    <TextView
+                        android:id="@+id/tabTxStore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_wallet_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Store &amp; Themes"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- 6. Games & Spin -->
+                    <TextView
+                        android:id="@+id/tabTxSpin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_wallet_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Games &amp; Spin"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- 7. Gift Stats -->
+                    <TextView
+                        android:id="@+id/tabTxGiftCounts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_wallet_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Gift Stats"
+                        android:textColor="#90FFFFFF"
+                        android:textSize="12.5sp" />
 
                 </LinearLayout>
             </HorizontalScrollView>
 
+            <!-- Category Summary Banner -->
             <TextView
                 android:id="@+id/tvTxSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp"
                 android:background="@drawable/bg_glass_card"
                 android:fontFamily="sans-serif-bold"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="10dp"
-                android:textColor="#40E0D0"
-                android:textSize="13sp"
+                android:textColor="#00F2FE"
+                android:textSize="12.5sp"
                 android:visibility="gone" />
 
+            <!-- Transaction List Container -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:minHeight="180dp">
+                android:layout_marginTop="8dp"
+                android:minHeight="200dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvTransactions"
@@ -319,6 +349,7 @@
                     android:visibility="gone"
                     tools:listitem="@layout/item_gift_count" />
 
+                <!-- Empty State View -->
                 <LinearLayout
                     android:id="@+id/llEmptyTransactions"
                     android:layout_width="wrap_content"
@@ -326,7 +357,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="32dp"
+                    android:paddingVertical="40dp"
                     android:visibility="gone">
 
                     <ImageView
@@ -341,9 +372,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="No transactions yet"
+                        android:text="No transactions in this category"
                         android:textColor="#88FFFFFF"
-                        android:textSize="14sp" />
+                        android:textSize="13.5sp" />
                 </LinearLayout>
 
                 <ProgressBar
@@ -351,7 +382,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:indeterminateTint="#40E0D0" />
+                    android:indeterminateTint="#00F2FE" />
 
             </FrameLayout>
 

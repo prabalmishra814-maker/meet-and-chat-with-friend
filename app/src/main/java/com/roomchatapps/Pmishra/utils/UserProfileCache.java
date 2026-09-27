@@ -20,6 +20,10 @@ public class UserProfileCache {
         public String name;
         public String avatarUrl;
         public String equippedFrame;
+        public long coinsSpent = 0;
+        public long level = 1;
+        public long totalXp = 0;
+        public int currentLevelXp = 0;
     }
 
     public interface Callback {
@@ -69,6 +73,23 @@ public class UserProfileCache {
                     }
                     profile.avatarUrl = avatar;
                     profile.equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
+
+                    long spent = 0;
+                    if (snapshot.child("coinsSpent").exists()) {
+                        try {
+                            spent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception ignored) {}
+                    } else if (snapshot.child("level").exists()) {
+                        try {
+                            long lvl = Long.parseLong(String.valueOf(snapshot.child("level").getValue()));
+                            spent = Math.max(0, (lvl - 1) * LevelUtils.COINS_PER_LEVEL);
+                        } catch (Exception ignored) {}
+                    }
+
+                    profile.coinsSpent = spent;
+                    profile.level = LevelUtils.calculateLevel(spent);
+                    profile.totalXp = LevelUtils.calculateTotalXp(spent);
+                    profile.currentLevelXp = LevelUtils.calculateCurrentXpInLevel(spent);
                 }
                 cache.put(cleanUid, profile);
                 postToMain(() -> callback.onLoaded(profile));

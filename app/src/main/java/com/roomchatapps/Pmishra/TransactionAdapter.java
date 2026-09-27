@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.roomchatapps.Pmishra.models.TransactionModel;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
@@ -40,32 +41,57 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.tvTxTime.setText(formatTimeAgo(item.getTimestamp()));
 
         String type = item.getType() != null ? item.getType().toUpperCase() : "TOPUP";
+        NumberFormat formatter = NumberFormat.getInstance();
 
         switch (type) {
             case "TOPUP":
             case "WELCOME_BONUS":
+            case "REFERRAL":
                 holder.ivTxIcon.setImageResource(R.drawable.coin);
-                holder.tvTxAmount.setText("+" + item.getCoinAmount() + " Coins");
+                holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
                 holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F")); // Bright green
                 break;
+
             case "GIFT_SENT":
                 holder.ivTxIcon.setImageResource(R.drawable.room_gift_ic);
-                holder.tvTxAmount.setText(item.getCoinAmount() + " Coins");
-                holder.tvTxAmount.setTextColor(Color.parseColor("#FF4500")); // Coral red
+                long cost = Math.abs(item.getCoinAmount());
+                holder.tvTxAmount.setText("-" + formatter.format(cost) + " Coins");
+                holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D")); // Red-Orange
                 break;
+
             case "GIFT_RECEIVED":
                 holder.ivTxIcon.setImageResource(R.drawable.game_mic_charm_pk_diamond_ic);
-                holder.tvTxAmount.setText("+" + item.getDiamondAmount() + " Diamonds");
-                holder.tvTxAmount.setTextColor(Color.parseColor("#FFD700")); // Gold
+                holder.tvTxAmount.setText("+" + formatter.format(item.getDiamondAmount()) + " Diamonds");
+                holder.tvTxAmount.setTextColor(Color.parseColor("#00F2FE")); // Cyan
                 break;
+
+            case "STORE_BUY":
+            case "THEME_BUY":
+                holder.ivTxIcon.setImageResource(R.drawable.king_icon);
+                long storeCost = Math.abs(item.getCoinAmount());
+                holder.tvTxAmount.setText("-" + formatter.format(storeCost) + " Coins");
+                holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D")); // Red-Orange
+                break;
+
+            case "GAME_SPIN":
+                holder.ivTxIcon.setImageResource(R.drawable.gift3);
+                if (item.getCoinAmount() >= 0) {
+                    holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
+                } else {
+                    holder.tvTxAmount.setText("-" + formatter.format(Math.abs(item.getCoinAmount())) + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D"));
+                }
+                break;
+
             default:
                 holder.ivTxIcon.setImageResource(R.drawable.coin);
                 if (item.getCoinAmount() >= 0) {
-                    holder.tvTxAmount.setText("+" + item.getCoinAmount() + " Coins");
+                    holder.tvTxAmount.setText("+" + formatter.format(item.getCoinAmount()) + " Coins");
                     holder.tvTxAmount.setTextColor(Color.parseColor("#00FF7F"));
                 } else {
-                    holder.tvTxAmount.setText(item.getCoinAmount() + " Coins");
-                    holder.tvTxAmount.setTextColor(Color.parseColor("#FF4500"));
+                    holder.tvTxAmount.setText("-" + formatter.format(Math.abs(item.getCoinAmount())) + " Coins");
+                    holder.tvTxAmount.setTextColor(Color.parseColor("#FF4D4D"));
                 }
                 break;
         }

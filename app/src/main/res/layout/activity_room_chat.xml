@@ -158,7 +158,7 @@
             android:ellipsize="end"
             android:maxLength="22"
             android:singleLine="true"
-            android:text="🎶 Playing: Song.mp3"
+            android:text="Playing: Song.mp3"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -213,7 +213,7 @@
             android:shadowDx="0"
             android:shadowDy="2"
             android:shadowRadius="5"
-            tools:text="akash sent Walkthrough 🚶" />
+            tools:text="akash sent Walkthrough" />
     </FrameLayout>
 
     <!-- User Entry Banner Container (Red Packet SVGA for Room Join Entry) -->
@@ -254,7 +254,7 @@
             android:shadowDx="0"
             android:shadowDy="2"
             android:shadowRadius="5"
-            tools:text="Roy Rupesh entered the room 👋" />
+            tools:text="Roy Rupesh entered the room" />
     </FrameLayout>
 
     <!-- 16 Seats Grid -->

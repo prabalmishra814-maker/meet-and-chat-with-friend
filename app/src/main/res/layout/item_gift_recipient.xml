@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="56dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <!-- Avatar Container -->
+    <RelativeLayout
+        android:layout_width="48dp"
+        android:layout_height="52dp"
+        android:clipChildren="false">
+
+        <!-- Selection Ring Border -->
+        <View
+            android:id="@+id/vSelectionRing"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/bg_recipient_avatar_unselected" />
+
+        <!-- User Avatar Image -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivRecipientAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="3dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+        <!-- "All" Icon View (Shown when item is "All") -->
+        <FrameLayout
+            android:id="@+id/flAllContainer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="3dp"
+            android:background="@drawable/bg_recipient_all_ic"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="ALL"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- Seat Number Badge -->
+        <TextView
+            android:id="@+id/tvSeatBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/bg_seat_badge"
+            android:maxLength="5"
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="1dp"
+            android:text="1"
+            android:textColor="#FFD700"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <!-- User Name -->
+    <TextView
+        android:id="@+id/tvRecipientName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="Name"
+        android:textColor="#CCFFFFFF"
+        android:textSize="10sp" />
+
+</LinearLayout>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+
+    <!-- Golden Microphone Capsule -->
+    <path
+        android:pathData="M18,3 C14.69,3 12,5.69 12,9 L12,15 C12,18.31 14.69,21 18,21 C21.31,21 24,18.31 24,15 L24,9 C24,5.69 21.31,3 18,3 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="18"
+                android:startY="3"
+                android:endX="18"
+                android:endY="21"
+                android:type="linear">
+                <item android:color="#FFF176" android:offset="0.0"/>
+                <item android:color="#FFC107" android:offset="0.5"/>
+                <item android:color="#FF8F00" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Mesh Grill Lines -->
+    <path
+        android:pathData="M13.5,9.5 L22.5,9.5 M13,13 L23,13 M14,16.5 L22,16.5"
+        android:strokeColor="#E65100"
+        android:strokeWidth="1"
+        android:strokeLineCap="round"/>
+
+    <!-- U-shaped Mic Stand Bracket -->
+    <path
+        android:pathData="M9,14 C9,19 12.5,23 18,23 C23.5,23 27,19 27,14"
+        android:strokeColor="#FFC107"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
+
+    <!-- Mic Stem -->
+    <path
+        android:pathData="M18,23 L18,26"
+        android:strokeColor="#FFC107"
+        android:strokeWidth="2.5"/>
+
+    <!-- Red Bow Tie -->
+    <!-- Left Bow Wing -->
+    <path
+        android:pathData="M18,27.5 L11.5,24 L11.5,31 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="11.5"
+                android:startY="24"
+                android:endX="18"
+                android:endY="31"
+                android:type="linear">
+                <item android:color="#EF5350" android:offset="0.0"/>
+                <item android:color="#C62828" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Right Bow Wing -->
+    <path
+        android:pathData="M18,27.5 L24.5,24 L24.5,31 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="24.5"
+                android:startY="24"
+                android:endX="18"
+                android:endY="31"
+                android:type="linear">
+                <item android:color="#EF5350" android:offset="0.0"/>
+                <item android:color="#C62828" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Center Bow Knot -->
+    <path
+        android:pathData="M16.2,26 C16.2,25.17 17,24.5 18,24.5 C19,24.5 19.8,25.17 19.8,26 L19.8,29 C19.8,29.83 19,30.5 18,30.5 C17,30.5 16.2,29.83 16.2,29 Z"
+        android:fillColor="#B71C1C"/>
+</vector>

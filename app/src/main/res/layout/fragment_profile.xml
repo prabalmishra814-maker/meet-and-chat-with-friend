@@ -266,6 +266,100 @@
 
             </LinearLayout>
 
+            <!-- Level & XP Progress Glassmorphism Card -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardLevelXp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_level_card_glass"
+                android:padding="16dp">
+
+                <!-- Level Shield Badge -->
+                <TextView
+                    android:id="@+id/tvUserLevelCard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_level_badge_purple"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="🛡️ Lv.1"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Level Title -->
+                <TextView
+                    android:id="@+id/tvLevelTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Level 1 Explorer"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvUserLevelCard"
+                    app:layout_constraintEnd_toStartOf="@+id/tvTotalCoinsSpent"
+                    app:layout_constraintStart_toEndOf="@+id/tvUserLevelCard"
+                    app:layout_constraintTop_toTopOf="@+id/tvUserLevelCard" />
+
+                <!-- Total Coins Spent -->
+                <TextView
+                    android:id="@+id/tvTotalCoinsSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Spent: 0 Coins"
+                    android:textColor="#FFD700"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvUserLevelCard"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/tvUserLevelCard" />
+
+                <!-- XP Progress Bar -->
+                <ProgressBar
+                    android:id="@+id/pbLevelXp"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_marginTop="16dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/bg_xp_progress_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvUserLevelCard" />
+
+                <!-- XP Text Row (Current XP left, Coins Needed right) -->
+                <TextView
+                    android:id="@+id/tvXpProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="0 / 100 XP"
+                    android:textColor="#00FFC2"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/pbLevelXp" />
+
+                <TextView
+                    android:id="@+id/tvNextLevelInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Spend 10,000 coins to reach Lv.2"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="11.5sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/pbLevelXp" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <!-- About / Bio Card -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cardBio"

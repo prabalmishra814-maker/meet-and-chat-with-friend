@@ -141,11 +141,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             // User Name
             String displayName = model.userName != null && !model.userName.isEmpty() ? model.userName : "User";
             if (holder.tvSeatName != null) {
-                if (position == 0) {
-                    holder.tvSeatName.setText("❤️ " + displayName + " ❤️");
-                } else {
-                    holder.tvSeatName.setText(displayName);
-                }
+                holder.tvSeatName.setText(displayName);
             }
 
             // Mic Status
@@ -197,27 +193,17 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                 }
 
                 // 2. Frame
-                if (position == 0 || model.isHost()) {
-                    if (holder.ivSeatFrame != null) holder.ivSeatFrame.setVisibility(View.GONE);
-                    if (holder.svgaSeatFrame != null) {
-                        holder.svgaSeatFrame.setTag(null);
-                        holder.svgaSeatFrame.stopAnimation();
-                        holder.svgaSeatFrame.clear();
-                        holder.svgaSeatFrame.setVisibility(View.GONE);
-                    }
+                if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+                    FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
                 } else {
-                    if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
-                        FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
-                    } else {
-                        UserProfileCache.getUserProfile(model.userID, profile -> {
-                            if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                                model.equippedFrame = profile.equippedFrame;
-                                FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
-                            } else {
-                                FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
-                            }
-                        });
-                    }
+                    UserProfileCache.getUserProfile(model.userID, profile -> {
+                        if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
+                            model.equippedFrame = profile.equippedFrame;
+                            FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
+                        } else {
+                            FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
+                        }
+                    });
                 }
             }
 

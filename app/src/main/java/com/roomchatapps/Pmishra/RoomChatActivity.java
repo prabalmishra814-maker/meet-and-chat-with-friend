@@ -80,14 +80,17 @@ import com.opensource.svgaplayer.SVGAParser;
 import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.adapters.AudienceAdapter;
 import com.roomchatapps.Pmishra.adapters.ChatAdapter;
+import com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem;
 import com.roomchatapps.Pmishra.adapters.SeatAdapter;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.models.FriendRequestModel;
+import com.roomchatapps.Pmishra.models.GiftRecipientModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 import com.roomchatapps.Pmishra.models.User;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.LevelUtils;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
 import com.roomchatapps.Pmishra.utils.SessionManager;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
@@ -167,6 +170,11 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private DatabaseReference roomEntriesRef;
     private ChildEventListener roomEntriesChildEventListener;
+
+    private DatabaseReference roomOnlineUsersRef;
+    private DatabaseReference mySeatInviteRef;
+    private ValueEventListener mySeatInviteListener;
+    private Dialog currentInviteDialog;
 
     private final ActivityResultLauncher<Intent> audioPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -308,15 +316,22 @@ public class RoomChatActivity extends AppCompatActivity {
                 if (isHost) {
                     Intent intent = new Intent(RoomChatActivity.this, RoomSettingsActivity.class);
                     intent.putExtra("roomID", roomID);
+                    intent.putExtra("hostUid", userID);
                     intent.putExtra("roomName", roomNameLabel);
                     intent.putExtra("roomImg", roomImg);
                     startActivity(intent);
                 } else {
                     List<SeatModel> seats = SeatManager.getInstance().getSeats();
                     if (seats != null && !seats.isEmpty()) {
-                        SeatModel hostSeat = seats.get(0);
-                        if (hostSeat != null && !hostSeat.isEmpty()) {
-                            onSeatClicked(hostSeat);
+                        String hostUid = SeatManager.getInstance().getHostUserID();
+                        int hostSeatIdx = SeatManager.getInstance().findUserSeatIndex(hostUid);
+                        if (hostSeatIdx != -1) {
+                            onSeatClicked(seats.get(hostSeatIdx));
+                        } else {
+                            SeatModel hostSeat = seats.get(0);
+                            if (hostSeat != null) {
+                                onSeatClicked(hostSeat);
+                            }
                         }
                     }
                 }
@@ -501,12 +516,6 @@ public class RoomChatActivity extends AppCompatActivity {
         // Sync local mic icon if self seat changed
         int myIndex = SeatManager.getInstance().findUserSeatIndex(userID);
 
-        // Host protection: Host must always remain on Seat 0
-        if (isHost && myIndex == -1) {
-            SeatManager.getInstance().takeSeat(0, userID, userName);
-            myIndex = 0;
-        }
-
         if (myIndex != -1) {
             SeatModel mySeat = seats.get(myIndex);
             boolean isMicOn = mySeat.isMicOn;
@@ -624,7 +633,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
             // 1. Take Seat option
             if (tvOptionOnMic != null) {
-                tvOptionOnMic.setText("Take Seat 🪑");
+                tvOptionOnMic.setText("Take Seat");
                 tvOptionOnMic.setOnClickListener(v -> {
                     if (model.isClosed && !isHost) {
                         Toast.makeText(this, "This seat is locked", Toast.LENGTH_SHORT).show();
@@ -653,7 +662,7 @@ public class RoomChatActivity extends AppCompatActivity {
             if (tvOptionInvite != null) {
                 tvOptionInvite.setOnClickListener(v -> {
                     emptyDialog.dismiss();
-                    showRoomMembersDialog();
+                    showRoomMembersDialog(model.index);
                 });
             }
 
@@ -765,6 +774,30 @@ public class RoomChatActivity extends AppCompatActivity {
                     // Frame Overlay
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
                     FrameUtils.displayFrame(RoomChatActivity.this, equippedFrame, ivProfileFrame, svgaProfileFrame);
+
+                    // Level & XP Progress
+                    TextView tvLevelBadge = profileView.findViewById(R.id.tvLevelBadge);
+                    ProgressBar pbLevelXp = profileView.findViewById(R.id.pbLevelXp);
+                    TextView tvLevelXpText = profileView.findViewById(R.id.tvLevelXpText);
+
+                    long coinsSpent = 0;
+                    if (snapshot.child("coinsSpent").exists()) {
+                        try {
+                            coinsSpent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception ignored) {}
+                    } else if (snapshot.child("level").exists()) {
+                        try {
+                            long lvl = Long.parseLong(String.valueOf(snapshot.child("level").getValue()));
+                            coinsSpent = Math.max(0, (lvl - 1) * LevelUtils.COINS_PER_LEVEL);
+                        } catch (Exception ignored) {}
+                    }
+
+                    long level = LevelUtils.calculateLevel(coinsSpent);
+                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+
+                    if (tvLevelBadge != null) tvLevelBadge.setText("Lv." + level);
+                    if (pbLevelXp != null) pbLevelXp.setProgress(xpInLevel);
+                    if (tvLevelXpText != null) tvLevelXpText.setText(xpInLevel + " / 100 XP (" + String.format("%,d", LevelUtils.calculateCoinsInCurrentLevel(coinsSpent)) + "/10,000 Coins)");
                 }
             }
 
@@ -780,7 +813,7 @@ public class RoomChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long likesCount = snapshot.getChildrenCount();
                 if (tvLikesCount != null) tvLikesCount.setText(String.valueOf(likesCount));
-                if (tvLikesBadge != null) tvLikesBadge.setText("❤️ " + likesCount + " Likes");
+                if (tvLikesBadge != null) tvLikesBadge.setText(likesCount + " Likes");
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
@@ -923,24 +956,123 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
 
-        // 4. Send Gift Button
+        // 3. Send Gift Button
         if (btnActionSend != null) {
             btnActionSend.setOnClickListener(v -> {
                 profileDialog.dismiss();
-                showGiftDialog();
+                showGiftDialog(targetUid);
             });
         }
 
-        // 5. Host Kick Button
+        // Host Seat Controls Row
+        View vHostDivider = profileView.findViewById(R.id.vHostDivider);
+        View llHostSeatControlsRow = profileView.findViewById(R.id.llHostSeatControlsRow);
+
+        View btnHostMic = profileView.findViewById(R.id.btnHostMic);
+        ImageView ivHostMicIcon = profileView.findViewById(R.id.ivHostMicIcon);
+
+        View btnHostMute = profileView.findViewById(R.id.btnHostMute);
+        ImageView ivHostMuteIcon = profileView.findViewById(R.id.ivHostMuteIcon);
+
+        View btnHostLock = profileView.findViewById(R.id.btnHostLock);
+        ImageView ivHostLockIcon = profileView.findViewById(R.id.ivHostLockIcon);
+
+        View btnHostLeaveSeat = profileView.findViewById(R.id.btnHostLeaveSeat);
+
         View btnActionKick = profileView.findViewById(R.id.btnActionKick);
-        if (btnActionKick != null) {
-            boolean canKick = isHost && !targetUid.equals(userID);
-            btnActionKick.setVisibility(canKick ? View.VISIBLE : View.GONE);
-            btnActionKick.setOnClickListener(v -> {
-                SeatManager.getInstance().kickUser(model.index);
-                Toast.makeText(RoomChatActivity.this, "🚫 Kicked " + initialName + " from Seat!", Toast.LENGTH_SHORT).show();
-                profileDialog.dismiss();
-            });
+
+        boolean canControlSeat = isHost || targetUid.equals(userID);
+        if (llHostSeatControlsRow != null) {
+            llHostSeatControlsRow.setVisibility(canControlSeat ? View.VISIBLE : View.GONE);
+        }
+        if (vHostDivider != null) {
+            vHostDivider.setVisibility(canControlSeat ? View.VISIBLE : View.GONE);
+        }
+
+        if (canControlSeat) {
+            // Initial states
+            if (ivHostMicIcon != null) {
+                ivHostMicIcon.setImageResource(model.isMicOn ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
+            }
+            if (ivHostMuteIcon != null) {
+                ivHostMuteIcon.setImageResource(model.isMuted ? R.drawable.ic_speaker_off : R.drawable.ic_speaker_on);
+            }
+            if (ivHostLockIcon != null) {
+                ivHostLockIcon.setImageResource(model.isClosed ? R.drawable.ic_lock : R.drawable.ic_lock_open);
+            }
+
+            if (btnHostMic != null) {
+                btnHostMic.setOnClickListener(v -> {
+                    boolean newState = !model.isMicOn;
+                    model.isMicOn = newState;
+                    SeatManager.getInstance().updateMicStatus(model.index, newState);
+                    if (ivHostMicIcon != null) {
+                        ivHostMicIcon.setImageResource(newState ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
+                    }
+                    Toast.makeText(RoomChatActivity.this, initialName + " Mic " + (newState ? "Unmuted 🎙️" : "Muted 🔇"), Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            if (btnHostMute != null) {
+                btnHostMute.setOnClickListener(v -> {
+                    boolean newMuteState = !model.isMuted;
+                    model.isMuted = newMuteState;
+                    SeatManager.getInstance().muteSeat(model.index, newMuteState);
+                    if (ivHostMuteIcon != null) {
+                        ivHostMuteIcon.setImageResource(newMuteState ? R.drawable.ic_speaker_off : R.drawable.ic_speaker_on);
+                    }
+                    Toast.makeText(RoomChatActivity.this, (newMuteState ? "Muted " : "Unmuted ") + initialName, Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            if (btnHostLock != null) {
+                btnHostLock.setOnClickListener(v -> {
+                    boolean newClosedState = !model.isClosed;
+                    model.isClosed = newClosedState;
+                    SeatManager.getInstance().closeSeat(model.index, newClosedState);
+                    if (ivHostLockIcon != null) {
+                        ivHostLockIcon.setImageResource(newClosedState ? R.drawable.ic_lock : R.drawable.ic_lock_open);
+                    }
+                    Toast.makeText(RoomChatActivity.this, (newClosedState ? "Locked " : "Unlocked ") + "Seat " + (model.index + 1), Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            if (btnHostLeaveSeat != null) {
+                btnHostLeaveSeat.setOnClickListener(v -> {
+                    SeatManager.getInstance().leaveSeat(model.index);
+                    String notice = "Host removed " + initialName + " from seat.";
+                    ZegoManager.getInstance().sendInRoomTextMessage(notice);
+                    Toast.makeText(RoomChatActivity.this, "Removed " + initialName + " from seat", Toast.LENGTH_SHORT).show();
+                    profileDialog.dismiss();
+                });
+            }
+
+            if (btnActionKick != null) {
+                btnActionKick.setOnClickListener(v -> {
+                    if (targetUid.equals(userID)) {
+                        Toast.makeText(RoomChatActivity.this, "You cannot kick yourself!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (model != null && model.index >= 0) {
+                        SeatManager.getInstance().leaveSeat(model.index);
+                    }
+
+                    DatabaseReference kickedRef = FirebaseDatabase.getInstance().getReference("rooms")
+                            .child(roomID).child("kicked_users").child(targetUid);
+                    Map<String, Object> kickData = new HashMap<>();
+                    kickData.put("timestamp", System.currentTimeMillis());
+                    kickData.put("kickedBy", userID);
+                    kickData.put("userName", initialName);
+                    kickedRef.setValue(kickData);
+
+                    String notice = "Host kicked " + initialName + " out of the room!";
+                    ZegoManager.getInstance().sendInRoomTextMessage(notice);
+
+                    Toast.makeText(RoomChatActivity.this, "Kicked " + initialName + " out of the room!", Toast.LENGTH_SHORT).show();
+                    profileDialog.dismiss();
+                });
+            }
         }
 
         // 5. More Options (...) -> Full Profile or Host Management
@@ -983,6 +1115,13 @@ public class RoomChatActivity extends AppCompatActivity {
             if (roomEntriesRef != null && roomEntriesChildEventListener != null) {
                 roomEntriesRef.removeEventListener(roomEntriesChildEventListener);
             }
+            if (myKickRef != null && myKickListener != null) {
+                myKickRef.removeEventListener(myKickListener);
+            }
+            unregisterOnlineUser();
+            if (mySeatInviteRef != null && mySeatInviteListener != null) {
+                mySeatInviteRef.removeEventListener(mySeatInviteListener);
+            }
             ZegoManager.getInstance().stopMusic();
             ZegoManager.getInstance().logoutRoom();
             ZegoManager.getInstance().removeListener(zegoListener);
@@ -995,6 +1134,47 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    private DatabaseReference myKickRef;
+    private ValueEventListener myKickListener;
+
+    private void listenForRoomKick() {
+        if (userID == null || roomID == null) return;
+        myKickRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID).child("kicked_users").child(userID);
+        myKickListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists() && !isHost && !isFinishing() && !isDestroyed()) {
+                    Toast.makeText(RoomChatActivity.this, "🚫 You were kicked out of the room by Host!", Toast.LENGTH_LONG).show();
+                    if (myKickRef != null && myKickListener != null) {
+                        myKickRef.removeEventListener(myKickListener);
+                    }
+                    leaveRoom();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        myKickRef.addValueEventListener(myKickListener);
+    }
+
+    private void checkInitialRoomKick() {
+        if (isHost || userID == null || roomID == null) return;
+        DatabaseReference checkKickRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID).child("kicked_users").child(userID);
+        checkKickRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists() && !isFinishing() && !isDestroyed()) {
+                    Toast.makeText(RoomChatActivity.this, "🚫 You have been kicked from this room by Host!", Toast.LENGTH_LONG).show();
+                    leaveRoom();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void setupFirebaseListeners() {
         setupRoomInfoListener();
         setupRoomGiftListener();
@@ -1003,6 +1183,10 @@ public class RoomChatActivity extends AppCompatActivity {
         setupRoomMusicListener();
         setupRoomThemeListener();
         setupRoomEntriesListener();
+        listenForRoomKick();
+        checkInitialRoomKick();
+        registerOnlineUser();
+        setupSeatInviteListener();
     }
 
     private void setupRoomInfoListener() {
@@ -1067,7 +1251,7 @@ public class RoomChatActivity extends AppCompatActivity {
                         String senderAvatar = snapshot.child("senderAvatar").getValue(String.class);
                         int iconRes = (iconResLong != null) ? iconResLong.intValue() : R.drawable.gift_icon;
                         if (notificationAnimator != null) {
-                            notificationAnimator.showNotification(senderName, "sent " + giftName + " 🎁", iconRes, senderAvatar);
+                            notificationAnimator.showNotification(senderName, "sent " + giftName, iconRes, senderAvatar);
                         }
 
                         // Broadcast Golden Banner SVGA at top between seats/profile for all users in the room!
@@ -1102,6 +1286,9 @@ public class RoomChatActivity extends AppCompatActivity {
                         SeatModel seat = child.getValue(SeatModel.class);
                         if (seat != null) {
                             String hostUid = SeatManager.getInstance().getHostUserID();
+                            if (seat.index == 0 && hostUid != null && !hostUid.isEmpty() && !seat.userID.equals(hostUid)) {
+                                seat.clear();
+                            }
                             if (!seat.isEmpty() && !seat.userID.equals(hostUid) && !seat.userID.equals(userID)) {
                                 if (ZegoManager.getInstance().getRoomUserCount() > 1 && !ZegoManager.getInstance().isUserInRoom(seat.userID)) {
                                     seat.clear();
@@ -1113,11 +1300,6 @@ public class RoomChatActivity extends AppCompatActivity {
                     if (!updatedSeats.isEmpty()) {
                         SeatManager.getInstance().setSeatsFromExternal(updatedSeats);
                     }
-                }
-
-                // Always enforce host on seat 0
-                if (isHost && SeatManager.getInstance().findUserSeatIndex(userID) != 0) {
-                    SeatManager.getInstance().takeSeat(0, userID, userName);
                 }
             }
 
@@ -1193,7 +1375,7 @@ public class RoomChatActivity extends AppCompatActivity {
                             layoutMusicWidget.setVisibility(View.VISIBLE);
                             layoutMusicWidget.setOnClickListener(v -> showMusicControlSheet());
                         }
-                        if (tvMusicTitle != null) tvMusicTitle.setText("🎶 " + songName);
+                        if (tvMusicTitle != null) tvMusicTitle.setText(songName);
 
                         if (btnWidgetMusicPause != null) {
                             btnWidgetMusicPause.setVisibility(isHost ? View.VISIBLE : View.GONE);
@@ -1287,7 +1469,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     // Show Slide-in notification banner
                     if (notificationAnimator != null) {
                         String userAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
-                        notificationAnimator.showNotification(displayName, "entered the room 👋", 0, userAvatar);
+                        notificationAnimator.showNotification(displayName, "entered the room", 0, userAvatar);
                     }
 
                     // Show User Entry Banner
@@ -1365,7 +1547,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         boolean isPlaying = ZegoManager.getInstance().isMusicPlaying();
         if (tvSongTitle != null) {
-            tvSongTitle.setText(isPlaying && !currentPlayingSongName.isEmpty() ? "🎶 Playing: " + currentPlayingSongName : "🎶 Room Music Control");
+            tvSongTitle.setText(isPlaying && !currentPlayingSongName.isEmpty() ? "Playing: " + currentPlayingSongName : "Room Music Control");
         }
 
         int currentVol = ZegoManager.getInstance().getMusicVolume();
@@ -1549,6 +1731,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 }
                 Intent intent = new Intent(RoomChatActivity.this, RoomSettingsActivity.class);
                 intent.putExtra("roomID", roomID);
+                intent.putExtra("hostUid", userID);
                 intent.putExtra("roomName", roomNameLabel);
                 intent.putExtra("roomImg", roomImg);
                 startActivity(intent);
@@ -1620,44 +1803,38 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void showExitOptionsDialog() {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        applyGlassyStyle(dialog);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_empty_seat_host, null, false);
+        if (isFinishing() || isDestroyed()) return;
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_exit_room, null, false);
         if (dialogView == null) return;
         dialog.setContentView(dialogView);
 
-        TextView tvTitle = dialogView.findViewById(R.id.tvOptionOnMic);
-        TextView tvMinimize = dialogView.findViewById(R.id.tvOptionInvite);
-        TextView tvLeave = dialogView.findViewById(R.id.tvOptionLock);
-        TextView tvCancel = dialogView.findViewById(R.id.tvOptionMute);
-        View btnCancel = dialogView.findViewById(R.id.btnOptionCancel);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            dialog.getWindow().setDimAmount(0.65f);
+        }
 
-        if (tvTitle != null) tvTitle.setText("Live Voice Room 🎙️");
-        if (tvMinimize != null) {
-            tvMinimize.setVisibility(View.VISIBLE);
-            tvMinimize.setText("Run Room in Background 📱");
-            tvMinimize.setOnClickListener(v -> {
+        View btnMinimize = dialogView.findViewById(R.id.btnDialogMinimize);
+        View btnExit = dialogView.findViewById(R.id.btnDialogExit);
+
+        if (btnMinimize != null) {
+            btnMinimize.setOnClickListener(v -> {
                 dialog.dismiss();
                 Toast.makeText(this, "Room running in background 🎙️", Toast.LENGTH_SHORT).show();
                 moveTaskToBack(true);
             });
         }
 
-        if (tvLeave != null) {
-            tvLeave.setVisibility(View.VISIBLE);
-            tvLeave.setText(isHost ? "End Room & Leave 🔴" : "Leave Room 🚪");
-            tvLeave.setOnClickListener(v -> {
+        if (btnExit != null) {
+            btnExit.setOnClickListener(v -> {
                 dialog.dismiss();
                 leaveRoom();
             });
-        }
-
-        if (tvCancel != null) {
-            tvCancel.setVisibility(View.GONE);
-        }
-
-        if (btnCancel != null) {
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
         }
 
         dialog.show();
@@ -1711,7 +1888,194 @@ public class RoomChatActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void registerOnlineUser() {
+        if (roomID == null || userID == null) return;
+        roomOnlineUsersRef = FirebaseDatabase.getInstance()
+                .getReference("room_users")
+                .child(roomID)
+                .child(userID);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", userID);
+        map.put("userName", userName != null ? userName : "User");
+        String avatar = SessionManager.getInstance(this).getAvatar();
+        map.put("userAvatar", avatar != null ? avatar : "");
+        map.put("isHost", isHost);
+        map.put("joinedAt", System.currentTimeMillis());
+
+        roomOnlineUsersRef.setValue(map);
+        roomOnlineUsersRef.onDisconnect().removeValue();
+    }
+
+    private void unregisterOnlineUser() {
+        if (roomOnlineUsersRef != null) {
+            roomOnlineUsersRef.removeValue();
+        } else if (roomID != null && userID != null) {
+            FirebaseDatabase.getInstance()
+                    .getReference("room_users")
+                    .child(roomID)
+                    .child(userID)
+                    .removeValue();
+        }
+    }
+
+    public void sendSeatInvitation(String targetUserId, String targetUserName, int seatIndex) {
+        if (targetUserId == null || targetUserId.trim().isEmpty()) return;
+
+        DatabaseReference inviteRef = FirebaseDatabase.getInstance()
+                .getReference("room_seat_invitations")
+                .child(roomID)
+                .child(targetUserId);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("invitationId", inviteRef.push().getKey());
+        map.put("roomId", roomID);
+        map.put("roomName", roomNameLabel != null ? roomNameLabel : "Audio Room");
+        map.put("hostId", userID);
+        map.put("hostName", userName != null ? userName : "Host");
+        map.put("targetUserId", targetUserId);
+        map.put("targetUserName", targetUserName);
+        map.put("seatIndex", seatIndex);
+        map.put("status", "PENDING");
+        map.put("timestamp", System.currentTimeMillis());
+
+        inviteRef.setValue(map).addOnSuccessListener(aVoid -> {
+            Toast.makeText(RoomChatActivity.this, "Invitation sent to " + targetUserName + " 🎙️", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(RoomChatActivity.this, "Failed to send invitation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void setupSeatInviteListener() {
+        if (roomID == null || userID == null) return;
+        mySeatInviteRef = FirebaseDatabase.getInstance()
+                .getReference("room_seat_invitations")
+                .child(roomID)
+                .child(userID);
+
+        mySeatInviteListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!snapshot.exists()) return;
+
+                String status = snapshot.child("status").getValue(String.class);
+                if (!"PENDING".equalsIgnoreCase(status)) return;
+
+                Long timestamp = snapshot.child("timestamp").getValue(Long.class);
+                if (timestamp != null && (System.currentTimeMillis() - timestamp > 120000)) {
+                    return;
+                }
+
+                String hostName = snapshot.child("hostName").getValue(String.class);
+                Integer seatIndex = snapshot.child("seatIndex").getValue(Integer.class);
+                int targetSeat = seatIndex != null ? seatIndex : -1;
+
+                if (SeatManager.getInstance().findUserSeatIndex(userID) != -1) {
+                    return;
+                }
+
+                showSeatInvitationDialog(hostName != null ? hostName : "Host", targetSeat);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mySeatInviteRef.addValueEventListener(mySeatInviteListener);
+    }
+
+    private void showSeatInvitationDialog(String hostName, int targetSeat) {
+        if (currentInviteDialog != null && currentInviteDialog.isShowing()) {
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        applyGlassyStyle(dialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_seat_invitation, null, false);
+        if (dialogView == null) return;
+
+        TextView tvInviteTitle = dialogView.findViewById(R.id.tvInviteTitle);
+        TextView tvInviteMessage = dialogView.findViewById(R.id.tvInviteMessage);
+        View btnAccept = dialogView.findViewById(R.id.btnAcceptInvitation);
+        View btnDecline = dialogView.findViewById(R.id.btnDeclineInvitation);
+
+        String seatMsg = (targetSeat >= 0) ? ("Seat " + (targetSeat + 1)) : "a Seat";
+        if (tvInviteTitle != null) {
+            tvInviteTitle.setText("Seat Invitation");
+        }
+        if (tvInviteMessage != null) {
+            tvInviteMessage.setText("Host " + hostName + " has invited you to take " + seatMsg + " in the room! Would you like to join the mic?");
+        }
+
+        if (btnAccept != null) {
+            btnAccept.setOnClickListener(v -> {
+                dialog.dismiss();
+                acceptSeatInvitation(targetSeat);
+            });
+        }
+
+        if (btnDecline != null) {
+            btnDecline.setOnClickListener(v -> {
+                dialog.dismiss();
+                declineSeatInvitation();
+            });
+        }
+
+        dialog.setCancelable(false);
+        currentInviteDialog = dialog;
+        dialog.show();
+    }
+
+    private void acceptSeatInvitation(int targetSeat) {
+        if (mySeatInviteRef != null) {
+            mySeatInviteRef.child("status").setValue("ACCEPTED");
+        }
+
+        int seatToTake = targetSeat;
+        List<SeatModel> seats = SeatManager.getInstance().getSeats();
+        if (seatToTake < 0 || seatToTake >= seats.size() || !seats.get(seatToTake).isEmpty() || seats.get(seatToTake).isClosed) {
+            seatToTake = -1;
+            for (SeatModel seat : seats) {
+                if (seat != null && seat.isEmpty() && !seat.isClosed) {
+                    if (seat.index == 0 && !isHost) continue;
+                    seatToTake = seat.index;
+                    break;
+                }
+            }
+        }
+
+        if (seatToTake == -1) {
+            Toast.makeText(this, "Sorry, all seats are currently full or locked!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int currentSeat = SeatManager.getInstance().findUserSeatIndex(userID);
+        if (currentSeat != -1 && currentSeat != seatToTake) {
+            SeatManager.getInstance().leaveSeat(currentSeat);
+        }
+
+        String myAvatar = SessionManager.getInstance(this).getAvatar();
+        boolean success = SeatManager.getInstance().takeSeat(seatToTake, userID, userName, myAvatar);
+        if (success) {
+            ZegoManager.getInstance().startPublishing();
+            Toast.makeText(this, "You accepted the invitation and took Seat " + (seatToTake + 1) + "! 🎙️", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Could not take seat. Please try again.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void declineSeatInvitation() {
+        if (mySeatInviteRef != null) {
+            mySeatInviteRef.child("status").setValue("DECLINED");
+        }
+        Toast.makeText(this, "Invitation declined", Toast.LENGTH_SHORT).show();
+    }
+
     private void showRoomMembersDialog() {
+        showRoomMembersDialog(-1);
+    }
+
+    private void showRoomMembersDialog(int targetSeatIndex) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_room_members, null, false);
@@ -1722,6 +2086,8 @@ public class RoomChatActivity extends AppCompatActivity {
         RecyclerView rvMembers = dialogView.findViewById(R.id.rvRoomMembers);
 
         List<User> activeUsers = new ArrayList<>();
+        Map<String, User> userMap = new HashMap<>();
+
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
         for (SeatModel seat : seats) {
             if (seat != null && !seat.isEmpty()) {
@@ -1729,28 +2095,61 @@ public class RoomChatActivity extends AppCompatActivity {
                 u.setUserId(seat.userID);
                 u.setUserName(seat.userName != null && !seat.userName.isEmpty() ? seat.userName : "Member");
                 u.setUserIcon(seat.userAvatar);
+                userMap.put(seat.userID, u);
                 activeUsers.add(u);
             }
         }
-        if (activeUsers.isEmpty()) {
-            User u = new User();
-            u.setUserId(userID);
-            u.setUserName(userName != null ? userName : "Host");
-            activeUsers.add(u);
-        }
 
-        int totalCount = activeUsers.size();
-        if (tvMembersCountBadge != null) {
-            tvMembersCountBadge.setText("👥 " + totalCount + " Online");
-        }
-        if (tvMembersDialogTitle != null) {
-            tvMembersDialogTitle.setText("Connected Room Members (" + totalCount + ")");
-        }
+        DatabaseReference onlineRef = FirebaseDatabase.getInstance().getReference("room_users").child(roomID);
+        onlineRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String uid = child.child("userId").getValue(String.class);
+                    if (uid == null) uid = child.getKey();
+                    if (uid != null && !userMap.containsKey(uid)) {
+                        String name = child.child("userName").getValue(String.class);
+                        String avatar = child.child("userAvatar").getValue(String.class);
+                        Boolean hostFlag = child.child("isHost").getValue(Boolean.class);
 
-        if (rvMembers != null) {
-            rvMembers.setLayoutManager(new LinearLayoutManager(this));
-            rvMembers.setAdapter(new AudienceAdapter(activeUsers));
-        }
+                        User u = new User();
+                        u.setUserId(uid);
+                        u.setUserName(name != null ? name : "Member");
+                        u.setUserIcon(avatar);
+                        if (hostFlag != null) u.setHost(hostFlag);
+                        userMap.put(uid, u);
+                        activeUsers.add(u);
+                    }
+                }
+
+                if (activeUsers.isEmpty()) {
+                    User u = new User();
+                    u.setUserId(userID);
+                    u.setUserName(userName != null ? userName : "Host");
+                    activeUsers.add(u);
+                }
+
+                int totalCount = activeUsers.size();
+                if (tvMembersCountBadge != null) {
+                    tvMembersCountBadge.setText(totalCount + " Online");
+                }
+                if (tvMembersDialogTitle != null) {
+                    tvMembersDialogTitle.setText("Connected Room Members (" + totalCount + ")");
+                }
+
+                if (rvMembers != null) {
+                    rvMembers.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
+                    rvMembers.setAdapter(new AudienceAdapter(activeUsers, isHost, targetUser -> {
+                        sendSeatInvitation(targetUser.getUserId(), targetUser.getUserName(), targetSeatIndex);
+                        dialog.dismiss();
+                    }));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
 
         dialog.setContentView(dialogView);
         dialog.show();
@@ -1945,11 +2344,16 @@ public class RoomChatActivity extends AppCompatActivity {
     private String selectedGiftSvga = "gift/aladdin.svga";
 
     private void showGiftDialog() {
+        showGiftDialog(null);
+    }
+
+    private void showGiftDialog(String targetUid) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_gift_store, null, false);
         if (dialogView == null) return;
 
+        RecyclerView rvGiftRecipients = dialogView.findViewById(R.id.rvGiftRecipients);
         RecyclerView rvGifts = dialogView.findViewById(R.id.rvGifts);
         View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
         TabLayout tabCategory = dialogView.findViewById(R.id.tabCategoryGifts);
@@ -1957,75 +2361,127 @@ public class RoomChatActivity extends AppCompatActivity {
 
         if (tvGiftDialogCoins != null) {
             WalletManager.getUserCoins(userID, balance -> runOnUiThread(() ->
-                    tvGiftDialogCoins.setText("🪙 " + balance)
+                    tvGiftDialogCoins.setText(String.valueOf(balance))
             ));
+        }
+
+        // Setup Recipients List (Room members / Mic seats)
+        List<GiftRecipientModel> recipientList = new ArrayList<>();
+
+        // "ALL" option
+        GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, true);
+        recipientList.add(allItem);
+
+        List<SeatModel> seats = SeatManager.getInstance().getSeats();
+        int occupiedCount = 0;
+        if (seats != null) {
+            for (SeatModel seat : seats) {
+                if (seat != null && !seat.isEmpty()) {
+                    occupiedCount++;
+                    String seatBadge = seat.isHost() ? "Host" : String.valueOf(seat.index + 1);
+                    String uName = (seat.userName != null && !seat.userName.isEmpty()) ? seat.userName : "Member";
+                    boolean initialSelected = true;
+                    if (targetUid != null && !targetUid.isEmpty()) {
+                        initialSelected = seat.userID.equals(targetUid);
+                    }
+                    recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seatBadge, false, initialSelected));
+                }
+            }
+        }
+
+        // If a specific targetUid is requested, adjust selection states
+        if (targetUid != null && !targetUid.isEmpty()) {
+            boolean allMatches = true;
+            boolean hasTarget = false;
+            for (GiftRecipientModel item : recipientList) {
+                if (!item.isAll()) {
+                    if (item.getUid().equals(targetUid)) {
+                        item.setSelected(true);
+                        hasTarget = true;
+                    } else {
+                        item.setSelected(false);
+                        allMatches = false;
+                    }
+                }
+            }
+            allItem.setSelected(hasTarget && allMatches);
+        }
+
+        if (recipientList.size() <= 1) { // Only ALL item present, add current user
+            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "Host", false, true));
+        }
+
+        GiftRecipientAdapter recipientAdapter = new GiftRecipientAdapter(recipientList);
+        if (rvGiftRecipients != null) {
+            rvGiftRecipients.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            rvGiftRecipients.setAdapter(recipientAdapter);
         }
 
         List<GiftStoreItem> giftList = new ArrayList<>();
 
         // 1. Gift Category
-        giftList.add(new GiftStoreItem("Doraemon Gift 🐱", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 150, "Gift"));
-        giftList.add(new GiftStoreItem("Golden Tea 🫖", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 100, "Gift"));
-        giftList.add(new GiftStoreItem("Gold Ring 💍", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
-        giftList.add(new GiftStoreItem("Royal Couple 👑", "gift/royal_couple.svga", R.drawable.gift_royal_couple, 1000000, "Gift"));
-        giftList.add(new GiftStoreItem("Wedding Hall 💒", "gift/wedding_hall.svga", R.drawable.gift_wedding_proposal, 500000, "Gift"));
-        giftList.add(new GiftStoreItem("Blue Princess Gown 👗", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, 450, "Gift"));
-        giftList.add(new GiftStoreItem("Love Fireworks 🎆", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, 600, "Gift"));
-        giftList.add(new GiftStoreItem("Fantasy Castle 🏰", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, 800, "Gift"));
-        giftList.add(new GiftStoreItem("Dream Birdcage 🕊️", "gift/dream_birdcage.svga", R.drawable.gift_dream_birdcage, 600, "Gift"));
-        giftList.add(new GiftStoreItem("Pearls Necklace 📿", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, 650, "Gift"));
-        giftList.add(new GiftStoreItem("Lucky Cat & Crow 🐱", "gift/lucky_cat_crow.svga", R.drawable.gift_lucky_cat, 180, "Gift"));
-        giftList.add(new GiftStoreItem("Cosmic Float 🌌", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, 280, "Gift"));
-        giftList.add(new GiftStoreItem("Fire Rocket 🚀", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, 750, "Gift"));
-        giftList.add(new GiftStoreItem("Love Couple 💑", "gift/love_couple.svga", R.drawable.gift_love_couple, 650, "Gift"));
-        giftList.add(new GiftStoreItem("Love Proposal 💍", "gift/love_proposal.svga", R.drawable.gift_love_proposal, 750, "Gift"));
-        giftList.add(new GiftStoreItem("Love Pure ❤️", "gift/love_pure.svga", R.drawable.gift_love, 250, "Gift"));
-        giftList.add(new GiftStoreItem("Smoke Effect 💨", "gift/smoke.svga", R.drawable.gift_smoke, 300, "Gift"));
-        giftList.add(new GiftStoreItem("Makeup Box 💄", "gift/makeup_box.svga", R.drawable.gift_makeup_box, 450, "Gift"));
-        giftList.add(new GiftStoreItem("Umbrella ☂️", "gift/umbrella.svga", R.drawable.gift_umbrella, 200, "Gift"));
-        giftList.add(new GiftStoreItem("Love Gift Box 🎁", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, 350, "Gift"));
-        giftList.add(new GiftStoreItem("Birthday Cake 🎂", "gift/birthday_cake.svga", R.drawable.gift_baklava, 120, "Gift"));
-        giftList.add(new GiftStoreItem("Hassan II Mosque 🕌", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, 1500, "Gift"));
-        giftList.add(new GiftStoreItem("Lipstick Gift 💄", "gift/lipstick_gift.svga", R.drawable.gift_lipstick, 400, "Gift"));
-        giftList.add(new GiftStoreItem("Flag Gift 🚩", "gift/rose.svga", R.drawable.room_gift_ic, 100, "Gift"));
+        giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 150, "Gift"));
+        giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 100, "Gift"));
+        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, 1000000, "Gift"));
+        giftList.add(new GiftStoreItem("Wedding Hall", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Blue Princess Gown", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, 450, "Gift"));
+        giftList.add(new GiftStoreItem("Love Fireworks", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, 600, "Gift"));
+        giftList.add(new GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, 800, "Gift"));
+        giftList.add(new GiftStoreItem("Dream Birdcage", "gift/dream_birdcage.svga", R.drawable.gift_dream_birdcage, 600, "Gift"));
+        giftList.add(new GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, 650, "Gift"));
+        giftList.add(new GiftStoreItem("Lucky Cat & Crow", "gift/lucky_cat_crow.svga", R.drawable.gift_lucky_cat, 180, "Gift"));
+        giftList.add(new GiftStoreItem("Cosmic Float", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, 280, "Gift"));
+        giftList.add(new GiftStoreItem("Fire Rocket", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, 750, "Gift"));
+        giftList.add(new GiftStoreItem("Love Couple", "gift/love_couple.svga", R.drawable.gift_love_couple, 650, "Gift"));
+        giftList.add(new GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, 750, "Gift"));
+        giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 250, "Gift"));
+        giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, 300, "Gift"));
+        giftList.add(new GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, 450, "Gift"));
+        giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 200, "Gift"));
+        giftList.add(new GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, 350, "Gift"));
+        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 120, "Gift"));
+        giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, 1500, "Gift"));
+        giftList.add(new GiftStoreItem("Lipstick Gift", "gift/lipstick_gift.svga", R.drawable.gift_lipstick, 400, "Gift"));
+        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, 100, "Gift"));
 
         // 2. Lucky Category
-        giftList.add(new GiftStoreItem("Magic Gift 🎁", "gift/magic_gift.svga", R.drawable.gift_magic_gift, 300, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Queen Crown 👑", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, 600, "Lucky"));
-        giftList.add(new GiftStoreItem("Forever Couple 💑", "gift/forever_couple.svga", R.drawable.gift_forever_couple, 700, "Lucky"));
-        giftList.add(new GiftStoreItem("Crystal Rose 🌹", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, 350, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Bride 👰", "gift/angel_bride.svga", R.drawable.gift_angel_bride, 500, "Lucky"));
-        giftList.add(new GiftStoreItem("Popcorn 🍿", "gift/popcorn.svga", R.drawable.gift_popcorn, 40, "Lucky"));
-        giftList.add(new GiftStoreItem("Baklava 🥮", "gift/baklava.svga", R.drawable.gift_baklava, 80, "Lucky"));
-        giftList.add(new GiftStoreItem("Glass Glow Rose 🌹", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, 400, "Lucky"));
-        giftList.add(new GiftStoreItem("Money Stack 💵", "gift/money.svga", R.drawable.gift_money, 200, "Lucky"));
-        giftList.add(new GiftStoreItem("Refrigerator 🧊", "gift/refrigerator.svga", R.drawable.gift_refrigerator, 500, "Lucky"));
-        giftList.add(new GiftStoreItem("Party Popper 🎉", "gift/party_popper.svga", R.drawable.gift_party_popper, 160, "Lucky"));
-        giftList.add(new GiftStoreItem("Gold Bar 🪙", "gift/gold_bar.svga", R.drawable.gift_gold_bar, 250, "Lucky"));
-        giftList.add(new GiftStoreItem("Magic Sword ⚔️", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 700, "Lucky"));
+        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, 300, "Lucky"));
+        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, 600, "Lucky"));
+        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, 700, "Lucky"));
+        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, 350, "Lucky"));
+        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, 500, "Lucky"));
+        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, 40, "Lucky"));
+        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, 80, "Lucky"));
+        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, 400, "Lucky"));
+        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, 200, "Lucky"));
+        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, 500, "Lucky"));
+        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, 160, "Lucky"));
+        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, 250, "Lucky"));
+        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 700, "Lucky"));
 
         // 3. Relationship Category
-        giftList.add(new GiftStoreItem("Blue Love Ring 💍", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 150, "Relationship"));
-        giftList.add(new GiftStoreItem("Wedding Proposal 💍", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 850, "Relationship"));
-        giftList.add(new GiftStoreItem("Love Confession 💌", "gift/love_confession.svga", R.drawable.gift_love_confession, 450, "Relationship"));
-        giftList.add(new GiftStoreItem("CP Celebration 🎉", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 550, "Relationship"));
-        giftList.add(new GiftStoreItem("Love City 🏙️", "gift/love_city.svga", R.drawable.gift_love_city, 1100, "Relationship"));
-        giftList.add(new GiftStoreItem("Royal Banquet 👑", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, 1400, "Relationship"));
-        giftList.add(new GiftStoreItem("Diamond Ring 💎", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 700, "Relationship"));
-        giftList.add(new GiftStoreItem("Perfume 🧴", "gift/parfume.svga", R.drawable.gift_parfume, 350, "Relationship"));
-        giftList.add(new GiftStoreItem("Forever Love 💖", "gift/forever_love.svga", R.drawable.gift_forever_love, 800, "Relationship"));
+        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 150, "Relationship"));
+        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 850, "Relationship"));
+        giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 450, "Relationship"));
+        giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 550, "Relationship"));
+        giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 1100, "Relationship"));
+        giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, 1400, "Relationship"));
+        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 700, "Relationship"));
+        giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 350, "Relationship"));
+        giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 800, "Relationship"));
 
         // 4. Nation Flag Category
-        giftList.add(new GiftStoreItem("Coming Soon 🚩", "gift/rose.svga", R.drawable.room_gift_ic, 0, "Nation Flag"));
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, 0, "Nation Flag"));
 
         // 5. Luxury Category
-        giftList.add(new GiftStoreItem("Luxury Bag 👜", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, 550, "Luxury"));
-        giftList.add(new GiftStoreItem("Royal Suit 👔", "gift/royal_suit.svga", R.drawable.gift_royal_suit, 950, "Luxury"));
-        giftList.add(new GiftStoreItem("Floating Castle 🏰", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 1200, "Luxury"));
-        giftList.add(new GiftStoreItem("Church ⛪", "gift/church.svga", R.drawable.gift_church, 850, "Luxury"));
+        giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, 550, "Luxury"));
+        giftList.add(new GiftStoreItem("Royal Suit", "gift/royal_suit.svga", R.drawable.gift_royal_suit, 950, "Luxury"));
+        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 1200, "Luxury"));
+        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, 850, "Luxury"));
 
         // 6. Customization Category
-        giftList.add(new GiftStoreItem("Coming Soon ✨", "gift/aladdin.svga", R.drawable.king_icon, 0, "Customization"));
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 0, "Customization"));
 
         String[] categories = new String[]{"Gift", "Lucky", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
@@ -2092,32 +2548,61 @@ public class RoomChatActivity extends AppCompatActivity {
             if (btnSendAction != null) {
                 btnSendAction.setOnClickListener(v -> {
                     GiftStoreItem selectedItem = adapter.getSelectedGift();
-                    if (selectedItem == null) return;
+                    if (selectedItem == null) {
+                        Toast.makeText(RoomChatActivity.this, "Please select a gift first! 🎁", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                    long cost = selectedItem.cost;
+                    List<GiftRecipientModel> selectedRecipients = recipientAdapter.getSelectedRecipients();
+                    if (selectedRecipients.isEmpty()) {
+                        Toast.makeText(RoomChatActivity.this, "Please select at least one recipient! 👤", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    long singleCost = selectedItem.cost;
+                    int recipientCount = selectedRecipients.size();
+                    long totalCost = singleCost * recipientCount;
                     String giftName = selectedItem.name;
                     selectedGiftSvga = selectedItem.svgaPath;
 
-                    WalletManager.spendCoinsForGift(userID, null, cost, giftName, new WalletManager.WalletCallback() {
+                    WalletManager.spendCoinsForGift(userID, null, totalCost, giftName, new WalletManager.WalletCallback() {
                         @Override
                         public void onSuccess(String message, long newCoinBalance) {
                             if (tvGiftDialogCoins != null) {
-                                tvGiftDialogCoins.setText("🪙 " + newCoinBalance);
-                            }
-                            if (roomGiftsRef != null) {
-                                Map<String, Object> giftData = new HashMap<>();
-                                giftData.put("senderName", userName != null ? userName : "User");
-                                giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                giftData.put("giftName", giftName);
-                                giftData.put("giftSvga", selectedGiftSvga);
-                                giftData.put("iconRes", (long) selectedItem.iconRes);
-                                giftData.put("timestamp", System.currentTimeMillis());
-                                roomGiftsRef.push().setValue(giftData);
+                                tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
                             }
 
-                            String chatNotice = "🎁 " + (userName != null ? userName : "User") + " sent " + giftName;
+                            StringBuilder recipientNames = new StringBuilder();
+                            for (int i = 0; i < selectedRecipients.size(); i++) {
+                                GiftRecipientModel recipient = selectedRecipients.get(i);
+
+                                // Add coins directly to each recipient's account balance!
+                                if (!userID.equals(recipient.getUid())) {
+                                    WalletManager.addCoins(recipient.getUid(), singleCost, "Gift received: " + giftName, null);
+                                }
+
+                                if (i > 0) recipientNames.append(", ");
+                                recipientNames.append(recipient.getName());
+
+                                if (roomGiftsRef != null) {
+                                    Map<String, Object> giftData = new HashMap<>();
+                                    giftData.put("senderName", userName != null ? userName : "User");
+                                    giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                    giftData.put("recipientName", recipient.getName());
+                                    giftData.put("recipientUid", recipient.getUid());
+                                    giftData.put("giftName", giftName);
+                                    giftData.put("giftSvga", selectedGiftSvga);
+                                    giftData.put("iconRes", (long) selectedItem.iconRes);
+                                    giftData.put("timestamp", System.currentTimeMillis());
+                                    roomGiftsRef.push().setValue(giftData);
+                                }
+                            }
+
+                            String senderDisplayName = userName != null ? userName : "User";
+                            String chatNotice = senderDisplayName + " sent " + giftName + " to " + recipientNames.toString() + "!";
                             ZegoManager.getInstance().sendInRoomTextMessage(chatNotice);
 
+                            Toast.makeText(RoomChatActivity.this, "Gift sent to " + recipientCount + " member(s)!", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         }
 
@@ -2150,8 +2635,11 @@ public class RoomChatActivity extends AppCompatActivity {
         SpinWheelView spinWheelView = dialogView.findViewById(R.id.spinWheelView);
         View btnSpin = dialogView.findViewById(R.id.btnSpin);
 
-        // Load current coin balance
+        // Cache local balance so spin starts INSTANTLY with 0ms network latency
+        final long[] cachedCoins = new long[]{0};
+
         Runnable refreshCoins = () -> WalletManager.getUserCoins(userID, balance -> runOnUiThread(() -> {
+            cachedCoins[0] = balance;
             if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + balance);
         }));
         refreshCoins.run();
@@ -2164,63 +2652,75 @@ public class RoomChatActivity extends AppCompatActivity {
             if (spinWheelView != null && spinWheelView.isSpinning()) return;
 
             final long spinCost = 100;
+            if (cachedCoins[0] > 0 && cachedCoins[0] < spinCost) {
+                Toast.makeText(this, "Insufficient coins! Please top-up.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            // Immediately update local UI balance & disable button for ZERO MS delay
+            cachedCoins[0] = Math.max(0, cachedCoins[0] - spinCost);
+            if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + cachedCoins[0]);
+            if (btnSpin != null) btnSpin.setEnabled(false);
+
+            // Select random winner immediately
+            int randomWinnerIndex = random.nextInt(SpinWheelController.NUM_SEGMENTS);
+
+            // START SPINNING INSTANTLY (0ms latency!)
+            if (spinWheelView != null) {
+                spinWheelView.spinToSegment(
+                        randomWinnerIndex,
+                        SpinWheelController.SPIN_DURATION_MS,
+                        SpinWheelController.DEFAULT_FULL_ROTATIONS,
+                        winner -> {
+                            if (btnSpin != null) btnSpin.setEnabled(true);
+
+                            // Show Custom Neon Winner Result Dialog
+                            SpinWinnerDialog winnerDialog = new SpinWinnerDialog(RoomChatActivity.this);
+                            winnerDialog.showWinner(winner, () -> {
+                                // Close Spin Wheel Dialog so ALL dialogs are closed before SVGA animation plays!
+                                if (dialog != null && dialog.isShowing()) {
+                                    dialog.dismiss();
+                                }
+
+                                // Broadcast to Firebase Room Gifts feed (Firebase listener plays SVGA animation & banner ONCE)
+                                if (roomGiftsRef != null) {
+                                    Map<String, Object> giftData = new HashMap<>();
+                                    giftData.put("senderName", userName != null ? userName : "User");
+                                    giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                    giftData.put("giftName", winner.getName());
+                                    giftData.put("giftSvga", winner.getSvgaPath());
+                                    giftData.put("iconRes", (long) winner.getDrawableRes());
+                                    giftData.put("timestamp", System.currentTimeMillis());
+                                    roomGiftsRef.push().setValue(giftData);
+                                } else {
+                                    // Offline fallback
+                                    playSvgaAnimation(winner.getSvgaPath());
+                                    showGoldenGiftBanner(userName, "🎰 Lucky Spin Won: " + winner.getName());
+                                }
+
+                                Toast.makeText(RoomChatActivity.this, "🎉 You won and sent " + winner.getName() + "!", Toast.LENGTH_SHORT).show();
+                                refreshCoins.run();
+                                return Unit.INSTANCE;
+                            });
+                        }
+                );
+            } else {
+                if (btnSpin != null) btnSpin.setEnabled(true);
+            }
+
+            // Deduct coins on Firebase asynchronously in background while wheel is spinning
             WalletManager.spendCoinsForGift(userID, null, spinCost, "Lucky Wheel Spin", new WalletManager.WalletCallback() {
                 @Override
                 public void onSuccess(String message, long newCoinBalance) {
                     runOnUiThread(() -> {
-                        if (btnSpin != null) btnSpin.setEnabled(false);
+                        cachedCoins[0] = newCoinBalance;
                         if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + newCoinBalance);
-
-                        int randomWinnerIndex = random.nextInt(SpinWheelController.NUM_SEGMENTS);
-
-                        if (spinWheelView != null) {
-                            spinWheelView.spinToSegment(
-                                    randomWinnerIndex,
-                                    SpinWheelController.SPIN_DURATION_MS,
-                                    SpinWheelController.DEFAULT_FULL_ROTATIONS,
-                                    winner -> {
-                                        if (btnSpin != null) btnSpin.setEnabled(true);
-
-                                        // Show Custom Neon Winner Result Dialog
-                                        SpinWinnerDialog winnerDialog = new SpinWinnerDialog(RoomChatActivity.this);
-                                        winnerDialog.showWinner(winner, () -> {
-                                            // Close Spin Wheel Dialog so ALL dialogs are closed before SVGA animation plays!
-                                            if (dialog != null && dialog.isShowing()) {
-                                                dialog.dismiss();
-                                            }
-
-                                            // Broadcast & Play SVGA Gift Animation in Room Chat!
-                                            playSvgaAnimation(winner.getSvgaPath());
-                                            showGoldenGiftBanner(userName, "🎰 Lucky Spin Won: " + winner.getName());
-
-                                            // Broadcast to Firebase Room Gifts feed
-                                            if (roomGiftsRef != null) {
-                                                Map<String, Object> giftData = new HashMap<>();
-                                                giftData.put("senderName", userName != null ? userName : "User");
-                                                giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                                giftData.put("giftName", winner.getName());
-                                                giftData.put("giftSvga", winner.getSvgaPath());
-                                                giftData.put("iconRes", (long) winner.getDrawableRes());
-                                                giftData.put("timestamp", System.currentTimeMillis());
-                                                roomGiftsRef.push().setValue(giftData);
-                                            }
-
-                                            Toast.makeText(RoomChatActivity.this, "🎉 You won and sent " + winner.getName() + "!", Toast.LENGTH_SHORT).show();
-                                            refreshCoins.run();
-                                            return Unit.INSTANCE;
-                                        });
-                                    }
-                            );
-                        } else {
-                            if (btnSpin != null) btnSpin.setEnabled(true);
-                        }
                     });
                 }
 
                 @Override
                 public void onError(String error) {
-                    runOnUiThread(() -> Toast.makeText(RoomChatActivity.this, "Spin failed: " + error, Toast.LENGTH_SHORT).show());
+                    refreshCoins.run();
                 }
             });
         };

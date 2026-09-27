@@ -77,6 +77,10 @@ public class NotificationHelper {
         sendNotification(targetUserId, "New Comment 💬", "Commented on your post.", "COMMENT", postId);
     }
 
+    public static void sendLevelUpNotification(String targetUserId, long newLevel) {
+        sendNotification(targetUserId, "Level Up! 🎉", "Congratulations! You reached Level " + newLevel + "!", "LEVEL_UP", null);
+    }
+
     public static void sendRoomInviteNotification(String targetUserId, String roomId) {
         sendNotification(targetUserId, "Room Party Invitation 🎙️", "Invited you to join an audio room!", "ROOM_INVITE", roomId);
     }

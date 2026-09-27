@@ -4,15 +4,12 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +25,7 @@ import com.roomchatapps.Pmishra.models.GiftCountModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +34,11 @@ import java.util.Map;
 public class WalletActivity extends AppCompatActivity {
 
     private ImageView btnBack;
-    private TextView tvCoins, tvDiamonds, tvTxSummary;
+    private TextView tvCoins, tvTxSummary;
     private View header, llBalances;
-    private CardView cvCoins, cvDiamonds;
-    private TextView tabTxAll, tabTxGiftCounts, tabTxReceived, tabTxSent, tabTxTopup;
+    private View cvCoins;
+    private TextView btnRechargeHeader, btnRechargeQuick;
+    private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts;
     private RecyclerView rvTransactions, rvGiftCounts;
     private View llEmptyTransactions;
     private ProgressBar progressBar;
@@ -75,18 +74,20 @@ public class WalletActivity extends AppCompatActivity {
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         tvCoins = findViewById(R.id.tvCoins);
-        tvDiamonds = findViewById(R.id.tvDiamonds);
         tvTxSummary = findViewById(R.id.tvTxSummary);
         header = findViewById(R.id.header);
-        llBalances = findViewById(R.id.llBalances);
         cvCoins = findViewById(R.id.cvCoins);
-        cvDiamonds = findViewById(R.id.cvDiamonds);
+
+        btnRechargeHeader = findViewById(R.id.btnRechargeHeader);
+        btnRechargeQuick = findViewById(R.id.btnRechargeQuick);
 
         tabTxAll = findViewById(R.id.tabTxAll);
-        tabTxGiftCounts = findViewById(R.id.tabTxGiftCounts);
-        tabTxReceived = findViewById(R.id.tabTxReceived);
-        tabTxSent = findViewById(R.id.tabTxSent);
         tabTxTopup = findViewById(R.id.tabTxTopup);
+        tabTxSent = findViewById(R.id.tabTxSent);
+        tabTxReceived = findViewById(R.id.tabTxReceived);
+        tabTxStore = findViewById(R.id.tabTxStore);
+        tabTxSpin = findViewById(R.id.tabTxSpin);
+        tabTxGiftCounts = findViewById(R.id.tabTxGiftCounts);
 
         rvTransactions = findViewById(R.id.rvTransactions);
         rvGiftCounts = findViewById(R.id.rvGiftCounts);
@@ -99,7 +100,6 @@ public class WalletActivity extends AppCompatActivity {
         if (llBalances != null) AnimationHelper.scaleIn(llBalances, 500);
 
         if (cvCoins != null) AnimationHelper.pulseGlowAnimation(cvCoins);
-        if (cvDiamonds != null) AnimationHelper.pulseGlowAnimation(cvDiamonds);
     }
 
     private void setupRecyclerViews() {
@@ -118,26 +118,28 @@ public class WalletActivity extends AppCompatActivity {
 
     private void setupTabs() {
         if (tabTxAll != null) tabTxAll.setOnClickListener(v -> selectTab("ALL", tabTxAll));
-        if (tabTxGiftCounts != null) tabTxGiftCounts.setOnClickListener(v -> selectTab("GIFT_COUNTS", tabTxGiftCounts));
-        if (tabTxReceived != null) tabTxReceived.setOnClickListener(v -> selectTab("GIFT_RECEIVED", tabTxReceived));
-        if (tabTxSent != null) tabTxSent.setOnClickListener(v -> selectTab("GIFT_SENT", tabTxSent));
         if (tabTxTopup != null) tabTxTopup.setOnClickListener(v -> selectTab("TOPUP", tabTxTopup));
+        if (tabTxSent != null) tabTxSent.setOnClickListener(v -> selectTab("GIFT_SENT", tabTxSent));
+        if (tabTxReceived != null) tabTxReceived.setOnClickListener(v -> selectTab("GIFT_RECEIVED", tabTxReceived));
+        if (tabTxStore != null) tabTxStore.setOnClickListener(v -> selectTab("STORE_BUY", tabTxStore));
+        if (tabTxSpin != null) tabTxSpin.setOnClickListener(v -> selectTab("GAME_SPIN", tabTxSpin));
+        if (tabTxGiftCounts != null) tabTxGiftCounts.setOnClickListener(v -> selectTab("GIFT_COUNTS", tabTxGiftCounts));
     }
 
     private void selectTab(String tabKey, TextView selectedTab) {
         if (activeTab.equalsIgnoreCase(tabKey)) return;
         activeTab = tabKey;
 
-        TextView[] tabs = {tabTxAll, tabTxGiftCounts, tabTxReceived, tabTxSent, tabTxTopup};
+        TextView[] tabs = {tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin, tabTxGiftCounts};
         for (TextView tab : tabs) {
             if (tab != null) {
-                tab.setBackgroundResource(R.drawable.chip_room_bg);
-                tab.setTextColor(Color.parseColor("#88FFFFFF"));
+                tab.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                tab.setTextColor(Color.parseColor("#90FFFFFF"));
             }
         }
 
         if (selectedTab != null) {
-            selectedTab.setBackgroundResource(R.drawable.chip_charm_bg);
+            selectedTab.setBackgroundResource(R.drawable.bg_wallet_chip_selected);
             selectedTab.setTextColor(Color.WHITE);
         }
 
@@ -146,6 +148,14 @@ public class WalletActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+
+        View.OnClickListener openRecharge = v -> {
+            Intent intent = new Intent(WalletActivity.this, CoinRechargeActivity.class);
+            startActivity(intent);
+        };
+
+        if (btnRechargeHeader != null) btnRechargeHeader.setOnClickListener(openRecharge);
+        if (btnRechargeQuick != null) btnRechargeQuick.setOnClickListener(openRecharge);
     }
 
     private void loadWalletData() {
@@ -157,28 +167,25 @@ public class WalletActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     Object coinsObj = snapshot.child("coins").getValue();
-                    Object diamondsObj = snapshot.child("diamonds").getValue();
 
                     long coinsVal = 0;
                     if (coinsObj != null) {
                         try {
                             coinsVal = Long.parseLong(String.valueOf(coinsObj));
-                        } catch (Exception e) {}
+                        } catch (Exception ignored) {}
                     }
 
-                    String diamondsStr = diamondsObj != null ? String.valueOf(diamondsObj) : "0";
+                    NumberFormat formatter = NumberFormat.getInstance();
 
                     if (tvCoins != null) {
                         if (lastCoinsVal >= 0 && lastCoinsVal != coinsVal) {
                             AnimationHelper.animateNumberCounter(tvCoins, lastCoinsVal, coinsVal);
                             AnimationHelper.bounceAnimation(tvCoins);
                         } else {
-                            tvCoins.setText(String.valueOf(coinsVal));
+                            tvCoins.setText(formatter.format(coinsVal));
                         }
                     }
                     lastCoinsVal = coinsVal;
-
-                    if (tvDiamonds != null) tvDiamonds.setText(diamondsStr);
                 }
             }
 
@@ -216,32 +223,31 @@ public class WalletActivity extends AppCompatActivity {
     }
 
     private void computeGiftCounts() {
-        // Initialize default 8 gifts
         Map<String, GiftCountModel> map = new HashMap<>();
 
-        addGiftToMap(map, "Heart 💖", R.drawable._1000092377_removebg_preview, 0);
-        addGiftToMap(map, "Rose 🌹", R.drawable._1000092341_removebg_preview, 0);
-        addGiftToMap(map, "Crown 👑", R.drawable._1000092342_removebg_preview, 50);
-        addGiftToMap(map, "Diamond 💎", R.drawable._1000092343_removebg_preview, 100);
-        addGiftToMap(map, "Car 🚗", R.drawable._1000092344_removebg_preview, 200);
-        addGiftToMap(map, "Cyber Ring 💍", R.drawable._1000092357_removebg_preview, 300);
-        addGiftToMap(map, "Royal Ring 💎", R.drawable._1000092358_removebg_preview, 500);
-        addGiftToMap(map, "Phoenix Wings 🦅", R.drawable._1000092363_removebg_preview, 800);
+        addGiftToMap(map, "Heart", R.drawable._1000092377_removebg_preview, 0);
+        addGiftToMap(map, "Rose", R.drawable._1000092341_removebg_preview, 0);
+        addGiftToMap(map, "Crown", R.drawable._1000092342_removebg_preview, 50);
+        addGiftToMap(map, "Diamond", R.drawable._1000092343_removebg_preview, 100);
+        addGiftToMap(map, "Car", R.drawable._1000092344_removebg_preview, 200);
+        addGiftToMap(map, "Cyber Ring", R.drawable._1000092357_removebg_preview, 300);
+        addGiftToMap(map, "Royal Ring", R.drawable._1000092358_removebg_preview, 500);
+        addGiftToMap(map, "Phoenix Wings", R.drawable._1000092363_removebg_preview, 800);
 
         for (TransactionModel tx : allTransactionList) {
             if (tx == null) continue;
             String type = tx.getType() != null ? tx.getType().toUpperCase() : "";
-            String text = (tx.getTitle() + " " + tx.getDescription()).toLowerCase();
+            String text = ((tx.getTitle() != null ? tx.getTitle() : "") + " " + (tx.getDescription() != null ? tx.getDescription() : "")).toLowerCase();
 
             String matchedKey = null;
-            if (text.contains("heart")) matchedKey = "Heart 💖";
-            else if (text.contains("rose")) matchedKey = "Rose 🌹";
-            else if (text.contains("crown")) matchedKey = "Crown 👑";
-            else if (text.contains("diamond")) matchedKey = "Diamond 💎";
-            else if (text.contains("car")) matchedKey = "Car 🚗";
-            else if (text.contains("cyber")) matchedKey = "Cyber Ring 💍";
-            else if (text.contains("royal")) matchedKey = "Royal Ring 💎";
-            else if (text.contains("phoenix") || text.contains("wing")) matchedKey = "Phoenix Wings 🦅";
+            if (text.contains("heart")) matchedKey = "Heart";
+            else if (text.contains("rose")) matchedKey = "Rose";
+            else if (text.contains("crown")) matchedKey = "Crown";
+            else if (text.contains("diamond")) matchedKey = "Diamond";
+            else if (text.contains("car")) matchedKey = "Car";
+            else if (text.contains("cyber")) matchedKey = "Cyber Ring";
+            else if (text.contains("royal")) matchedKey = "Royal Ring";
+            else if (text.contains("phoenix") || text.contains("wing")) matchedKey = "Phoenix Wings";
 
             if (matchedKey != null && map.containsKey(matchedKey)) {
                 GiftCountModel model = map.get(matchedKey);
@@ -280,7 +286,7 @@ public class WalletActivity extends AppCompatActivity {
             }
 
             if (tvTxSummary != null) {
-                tvTxSummary.setText("🎁 Total Gifts Received: " + totalRec + "  |  📤 Total Gifts Sent/Bought: " + totalSent);
+                tvTxSummary.setText("Total Gifts Received: " + totalRec + "  |  Total Gifts Sent: " + totalSent);
                 tvTxSummary.setVisibility(View.VISIBLE);
             }
 
@@ -295,38 +301,54 @@ public class WalletActivity extends AppCompatActivity {
 
         int totalCount = 0;
         long totalVal = 0;
+        NumberFormat formatter = NumberFormat.getInstance();
 
         for (TransactionModel tx : allTransactionList) {
+            if (tx == null) continue;
             String type = tx.getType() != null ? tx.getType().toUpperCase() : "";
 
             if ("ALL".equalsIgnoreCase(activeTab)) {
                 filteredTransactionList.add(tx);
-            } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab) && "GIFT_RECEIVED".equals(type)) {
+            } else if ("TOPUP".equalsIgnoreCase(activeTab) && ("TOPUP".equals(type) || "WELCOME_BONUS".equals(type) || "REFERRAL".equals(type))) {
                 filteredTransactionList.add(tx);
                 totalCount++;
-                totalVal += tx.getDiamondAmount();
+                totalVal += tx.getCoinAmount();
             } else if ("GIFT_SENT".equalsIgnoreCase(activeTab) && "GIFT_SENT".equals(type)) {
                 filteredTransactionList.add(tx);
                 totalCount++;
                 totalVal += Math.abs(tx.getCoinAmount());
-            } else if ("TOPUP".equalsIgnoreCase(activeTab) && ("TOPUP".equals(type) || "WELCOME_BONUS".equals(type))) {
+            } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab) && "GIFT_RECEIVED".equals(type)) {
                 filteredTransactionList.add(tx);
                 totalCount++;
-                totalVal += tx.getCoinAmount();
+                totalVal += tx.getDiamondAmount();
+            } else if ("STORE_BUY".equalsIgnoreCase(activeTab) && ("STORE_BUY".equals(type) || "THEME_BUY".equals(type))) {
+                filteredTransactionList.add(tx);
+                totalCount++;
+                totalVal += Math.abs(tx.getCoinAmount());
+            } else if ("GAME_SPIN".equalsIgnoreCase(activeTab) && "GAME_SPIN".equals(type)) {
+                filteredTransactionList.add(tx);
+                totalCount++;
+                totalVal += Math.abs(tx.getCoinAmount());
             }
         }
 
         if (txAdapter != null) txAdapter.notifyDataSetChanged();
 
         if (tvTxSummary != null) {
-            if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab)) {
-                tvTxSummary.setText("🎁 Received " + totalCount + " gifts (" + totalVal + " Diamonds Earned)");
+            if ("TOPUP".equalsIgnoreCase(activeTab)) {
+                tvTxSummary.setText("Total Recharged: " + formatter.format(totalVal) + " Coins (" + totalCount + " Transactions)");
                 tvTxSummary.setVisibility(View.VISIBLE);
             } else if ("GIFT_SENT".equalsIgnoreCase(activeTab)) {
-                tvTxSummary.setText("📤 Sent/Bought " + totalCount + " gifts (" + totalVal + " Coins Spent)");
+                tvTxSummary.setText("Total Spent on Gifts: " + formatter.format(totalVal) + " Coins (" + totalCount + " Gifts Sent)");
                 tvTxSummary.setVisibility(View.VISIBLE);
-            } else if ("TOPUP".equalsIgnoreCase(activeTab)) {
-                tvTxSummary.setText("🪙 Top-Up Total: " + totalVal + " Coins");
+            } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab)) {
+                tvTxSummary.setText("Total Earned: " + formatter.format(totalVal) + " Diamonds (" + totalCount + " Gifts Received)");
+                tvTxSummary.setVisibility(View.VISIBLE);
+            } else if ("STORE_BUY".equalsIgnoreCase(activeTab)) {
+                tvTxSummary.setText("Total Store & Theme Purchases: " + formatter.format(totalVal) + " Coins (" + totalCount + " Purchases)");
+                tvTxSummary.setVisibility(View.VISIBLE);
+            } else if ("GAME_SPIN".equalsIgnoreCase(activeTab)) {
+                tvTxSummary.setText("Total Games & Spin Transactions: " + formatter.format(totalVal) + " Coins (" + totalCount + " Games)");
                 tvTxSummary.setVisibility(View.VISIBLE);
             } else {
                 tvTxSummary.setVisibility(View.GONE);

@@ -244,6 +244,10 @@ public class SeatManager {
         if (externalSeats == null || externalSeats.isEmpty()) return;
         for (SeatModel external : externalSeats) {
             if (external != null && external.index >= 0 && external.index < TOTAL_SEATS) {
+                // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
+                if (external.index == 0 && hostUserID != null && !hostUserID.isEmpty() && !external.userID.equals(hostUserID)) {
+                    external.clear();
+                }
                 SeatModel local = seatList.get(external.index);
                 local.userID = external.userID != null ? external.userID : "";
                 local.userName = external.userName != null ? external.userName : "";
@@ -308,13 +312,19 @@ public class SeatManager {
                 if (index < 0 || index >= TOTAL_SEATS) continue;
 
                 SeatModel model = seatList.get(index);
-                model.userID = obj.optString("userID", "");
-                model.userName = obj.optString("userName", "");
-                model.userAvatar = obj.optString("userAvatar", "");
-                model.equippedFrame = obj.optString("equippedFrame", "");
-                model.isMicOn = obj.optBoolean("isMicOn", true);
-                model.isMuted = obj.optBoolean("isMuted", false);
-                model.isClosed = obj.optBoolean("isClosed", false);
+                String parsedUserId = obj.optString("userID", "");
+                // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
+                if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !parsedUserId.equals(hostUserID)) {
+                    model.clear();
+                } else {
+                    model.userID = parsedUserId;
+                    model.userName = obj.optString("userName", "");
+                    model.userAvatar = obj.optString("userAvatar", "");
+                    model.equippedFrame = obj.optString("equippedFrame", "");
+                    model.isMicOn = obj.optBoolean("isMicOn", true);
+                    model.isMuted = obj.optBoolean("isMuted", false);
+                    model.isClosed = obj.optBoolean("isClosed", false);
+                }
             }
             notifySeatsUpdated();
         } catch (Exception e) {

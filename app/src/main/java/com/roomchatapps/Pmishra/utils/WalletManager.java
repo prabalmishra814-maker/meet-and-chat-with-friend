@@ -11,7 +11,9 @@ import com.roomchatapps.Pmishra.models.TransactionModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WalletManager {
 
@@ -101,7 +103,8 @@ public class WalletManager {
     }
 
     /**
-     * Spend coins for gift sending
+     * Spend coins for gift sending / store purchases / games
+     * Updates coins, coinsSpent, level, and xp automatically.
      */
     public static void spendCoinsForGift(String senderUid, String recipientUid, long giftCost, String giftName, WalletCallback callback) {
         if (senderUid == null || senderUid.isEmpty()) {
@@ -110,15 +113,32 @@ public class WalletManager {
         }
 
         DatabaseReference senderRef = FirebaseDatabase.getInstance().getReference("users").child(senderUid);
-        senderRef.child("coins").addListenerForSingleValueEvent(new ValueEventListener() {
+        senderRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long currentCoins = 0;
-                if (snapshot.exists() && snapshot.getValue() != null) {
-                    try {
-                        currentCoins = Long.parseLong(String.valueOf(snapshot.getValue()));
-                    } catch (Exception e) {
-                        currentCoins = 0;
+                long currentCoinsSpent = 0;
+
+                if (snapshot.exists()) {
+                    if (snapshot.child("coins").exists() && snapshot.child("coins").getValue() != null) {
+                        try {
+                            currentCoins = Long.parseLong(String.valueOf(snapshot.child("coins").getValue()));
+                        } catch (Exception e) {
+                            currentCoins = 0;
+                        }
+                    }
+
+                    if (snapshot.child("coinsSpent").exists() && snapshot.child("coinsSpent").getValue() != null) {
+                        try {
+                            currentCoinsSpent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception e) {
+                            currentCoinsSpent = 0;
+                        }
+                    } else if (snapshot.child("level").exists() && snapshot.child("level").getValue() != null) {
+                        try {
+                            long lvl = Long.parseLong(String.valueOf(snapshot.child("level").getValue()));
+                            currentCoinsSpent = Math.max(0, (lvl - 1) * LevelUtils.COINS_PER_LEVEL);
+                        } catch (Exception ignored) {}
                     }
                 }
 
@@ -128,10 +148,41 @@ public class WalletManager {
                 }
 
                 long newBalance = currentCoins - giftCost;
-                senderRef.child("coins").setValue(newBalance).addOnCompleteListener(task -> {
+                long newCoinsSpent = currentCoinsSpent + giftCost;
+
+                long oldLevel = LevelUtils.calculateLevel(currentCoinsSpent);
+                long newLevel = LevelUtils.calculateLevel(newCoinsSpent);
+                long totalXp = LevelUtils.calculateTotalXp(newCoinsSpent);
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("coins", newBalance);
+                updates.put("coinsSpent", newCoinsSpent);
+                updates.put("level", String.valueOf(newLevel));
+                updates.put("xp", totalXp);
+
+                senderRef.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Log sender transaction
-                        logTransaction(senderUid, "GIFT_SENT", -giftCost, 0, "Sent Gift: " + giftName, "Deducted " + giftCost + " coins");
+                        // Invalidate local user profile cache to reflect new level/xp
+                        UserProfileCache.invalidate(senderUid);
+
+                        // If user leveled up, send level up notification
+                        if (newLevel > oldLevel) {
+                            NotificationHelper.sendLevelUpNotification(senderUid, newLevel);
+                        }
+
+                        // Log sender transaction with smart category determination
+                        String txType = "GIFT_SENT";
+                        if (giftName != null) {
+                            String lower = giftName.toLowerCase();
+                            if (lower.contains("theme")) {
+                                txType = "THEME_BUY";
+                            } else if (lower.contains("store") || lower.contains("frame") || lower.contains("bubble") || lower.contains("ride")) {
+                                txType = "STORE_BUY";
+                            } else if (lower.contains("spin") || lower.contains("wheel") || lower.contains("game")) {
+                                txType = "GAME_SPIN";
+                            }
+                        }
+                        logTransaction(senderUid, txType, -giftCost, 0, giftName, "Deducted " + giftCost + " coins");
 
                         // Add diamonds to recipient if recipient exists
                         if (recipientUid != null && !recipientUid.isEmpty() && !recipientUid.equals(senderUid)) {
@@ -140,10 +191,10 @@ public class WalletManager {
                         }
 
                         if (callback != null) {
-                            callback.onSuccess("Gift sent successfully!", newBalance);
+                            callback.onSuccess("Transaction successful!", newBalance);
                         }
                     } else {
-                        if (callback != null) callback.onError("Gift transaction failed.");
+                        if (callback != null) callback.onError("Transaction failed.");
                     }
                 });
             }

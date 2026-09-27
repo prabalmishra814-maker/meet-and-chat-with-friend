@@ -8,18 +8,32 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.zego.SeatManager;
 import java.util.List;
 
 public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHolder> {
 
+    public interface OnInviteClickListener {
+        void onInviteClick(User user);
+    }
+
     private List<User> audienceList;
+    private boolean isHostViewer = false;
+    private OnInviteClickListener inviteClickListener;
     private int lastAnimatedPosition = -1;
 
     public AudienceAdapter(List<User> audienceList) {
         this.audienceList = audienceList;
+    }
+
+    public AudienceAdapter(List<User> audienceList, boolean isHostViewer, OnInviteClickListener inviteClickListener) {
+        this.audienceList = audienceList;
+        this.isHostViewer = isHostViewer;
+        this.inviteClickListener = inviteClickListener;
     }
 
     @NonNull
@@ -39,8 +53,32 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
             lastAnimatedPosition = position;
         }
 
-        holder.tvAudienceName.setText(user.getUserName());
-        holder.tvAudienceStatus.setText("Listening...");
+        holder.tvAudienceName.setText(user.getUserName() != null ? user.getUserName() : "Member");
+
+        boolean isSeated = user.getUserId() != null && SeatManager.getInstance().findUserSeatIndex(user.getUserId()) != -1;
+        if (isSeated) {
+            holder.tvAudienceStatus.setText("On Seat");
+            if (holder.btnInviteUser != null) {
+                holder.btnInviteUser.setVisibility(View.GONE);
+            }
+        } else {
+            holder.tvAudienceStatus.setText("Listening...");
+            if (isHostViewer && inviteClickListener != null) {
+                if (holder.btnInviteUser != null) {
+                    holder.btnInviteUser.setVisibility(View.VISIBLE);
+                    holder.btnInviteUser.setOnClickListener(v -> {
+                        int adapterPos = holder.getBindingAdapterPosition();
+                        if (adapterPos != RecyclerView.NO_POSITION && adapterPos < audienceList.size()) {
+                            inviteClickListener.onInviteClick(audienceList.get(adapterPos));
+                        }
+                    });
+                }
+            } else {
+                if (holder.btnInviteUser != null) {
+                    holder.btnInviteUser.setVisibility(View.GONE);
+                }
+            }
+        }
 
         Glide.with(holder.itemView.getContext())
                 .load(user.getUserIcon())
@@ -50,18 +88,20 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return audienceList.size();
+        return audienceList != null ? audienceList.size() : 0;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAudienceProfile;
         TextView tvAudienceName, tvAudienceStatus;
+        MaterialButton btnInviteUser;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivAudienceProfile = itemView.findViewById(R.id.ivAudienceProfile);
             tvAudienceName = itemView.findViewById(R.id.tvAudienceName);
             tvAudienceStatus = itemView.findViewById(R.id.tvAudienceStatus);
+            btnInviteUser = itemView.findViewById(R.id.btnInviteUser);
         }
     }
 }

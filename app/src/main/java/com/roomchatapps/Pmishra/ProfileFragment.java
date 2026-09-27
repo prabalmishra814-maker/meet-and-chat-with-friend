@@ -21,6 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.FragmentProfileBinding;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.LevelUtils;
 
 public class ProfileFragment extends Fragment {
 
@@ -131,13 +132,42 @@ public class ProfileFragment extends Fragment {
                         userRef.child("profileId").setValue(profileId);
                     }
                     
-                    String level = snapshot.child("level").getValue(String.class);
-                    if (level == null || level.isEmpty() || "0".equals(level)) {
-                        level = "1";
-                        userRef.child("level").setValue("1");
+                    long coinsSpent = 0;
+                    if (snapshot.child("coinsSpent").exists() && snapshot.child("coinsSpent").getValue() != null) {
+                        try {
+                            coinsSpent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception ignored) {}
+                    } else if (snapshot.child("level").exists() && snapshot.child("level").getValue() != null) {
+                        try {
+                            long lvl = Long.parseLong(String.valueOf(snapshot.child("level").getValue()));
+                            coinsSpent = Math.max(0, (lvl - 1) * LevelUtils.COINS_PER_LEVEL);
+                        } catch (Exception ignored) {}
                     }
+
+                    long level = LevelUtils.calculateLevel(coinsSpent);
+                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+                    long coinsNeeded = LevelUtils.getCoinsNeededForNextLevel(coinsSpent);
+
                     if (binding.tvUserLevel != null) {
                         binding.tvUserLevel.setText("Lv." + level);
+                    }
+                    if (binding.tvUserLevelCard != null) {
+                        binding.tvUserLevelCard.setText("🛡️ Lv." + level);
+                    }
+                    if (binding.tvLevelTitle != null) {
+                        binding.tvLevelTitle.setText("Level " + level + " Member");
+                    }
+                    if (binding.pbLevelXp != null) {
+                        binding.pbLevelXp.setProgress(xpInLevel);
+                    }
+                    if (binding.tvXpProgress != null) {
+                        binding.tvXpProgress.setText(xpInLevel + " / 100 XP");
+                    }
+                    if (binding.tvTotalCoinsSpent != null) {
+                        binding.tvTotalCoinsSpent.setText("Spent: " + String.format("%,d", coinsSpent) + " Coins");
+                    }
+                    if (binding.tvNextLevelInfo != null) {
+                        binding.tvNextLevelInfo.setText("Spend " + String.format("%,d", coinsNeeded) + " more coins for Lv." + (level + 1));
                     }
 
                     String gender = snapshot.child("gender").getValue(String.class);

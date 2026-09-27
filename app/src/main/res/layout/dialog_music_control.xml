@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_comment_sheet"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <!-- Top Drag Handle -->
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_indicator_gradient" />
+
+    <!-- Title & Status -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Room Music Player"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvMusicDialogSongTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_room_top_user_info"
+        android:ellipsize="end"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:singleLine="true"
+        android:text="No Song Playing"
+        android:textColor="#00FFC6"
+        android:textSize="13.5sp"
+        android:textStyle="bold" />
+
+    <!-- Volume Control Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="Music Volume"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMusicVolumeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="80%"
+                android:textColor="#FFB703"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <SeekBar
+            android:id="@+id/seekBarMusicVolume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            android:progress="80"
+            android:progressTint="#00FFC6"
+            android:thumbTint="#FF007A" />
+    </LinearLayout>
+
+    <!-- Play / Control Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Pick / Change Song Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogSelectSong"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="Select Song"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:backgroundTint="#FF007A"
+            app:cornerRadius="23dp" />
+
+        <!-- Stop Music Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogStopMusic"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Stop Music"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:backgroundTint="#2A223D"
+            app:cornerRadius="23dp"
+            app:strokeColor="#FF007A"
+            app:strokeWidth="1dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

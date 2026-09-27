@@ -15,6 +15,25 @@
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnInviteUser"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:backgroundTint="#00E5FF"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="0dp"
+        android:text="Invite"
+        android:textColor="#000000"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:cornerRadius="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/tvAudienceName"
         android:layout_width="0dp"
@@ -24,7 +43,7 @@
         android:textColor="@color/text_primary"
         android:textSize="14sp"
         app:layout_constraintBottom_toTopOf="@+id/tvAudienceStatus"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnInviteUser"
         app:layout_constraintStart_toEndOf="@+id/ivAudienceProfile"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -37,7 +56,7 @@
         android:textColor="@color/text_secondary"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnInviteUser"
         app:layout_constraintStart_toStartOf="@+id/tvAudienceName"
         app:layout_constraintTop_toBottomOf="@+id/tvAudienceName" />
 

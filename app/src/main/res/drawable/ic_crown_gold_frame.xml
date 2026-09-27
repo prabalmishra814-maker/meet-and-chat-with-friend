@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Glowing Outer Aura -->
+    <path
+        android:pathData="M60,25 A35,35 0 1,1 59.9,25 Z"
+        android:fillColor="#FFD54F"
+        android:fillAlpha="0.15"/>
+
+    <!-- Golden Frame Ring -->
+    <path
+        android:pathData="M60,25 A35,35 0 1,1 59.9,25 Z"
+        android:strokeWidth="4"
+        android:fillColor="#00000000">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="60"
+                android:startY="25"
+                android:endX="60"
+                android:endY="95"
+                android:type="linear">
+                <item android:color="#FFF59D" android:offset="0.0"/>
+                <item android:color="#FFC107" android:offset="0.5"/>
+                <item android:color="#FF8F00" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Golden Royal Crown Top -->
+    <path
+        android:pathData="M42,28 L45,12 L52,20 L60,8 L68,20 L75,12 L78,28 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="60"
+                android:startY="8"
+                android:endX="60"
+                android:endY="28"
+                android:type="linear">
+                <item android:color="#FFF176" android:offset="0.0"/>
+                <item android:color="#FFC107" android:offset="0.5"/>
+                <item android:color="#FF8F00" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Crown Jewels -->
+    <path android:pathData="M60,13 A2,2 0 1,1 59.9,13 Z" android:fillColor="#29B6F6"/>
+    <path android:pathData="M46,16 A1.5,1.5 0 1,1 45.9,16 Z" android:fillColor="#FFFFFF"/>
+    <path android:pathData="M74,16 A1.5,1.5 0 1,1 73.9,16 Z" android:fillColor="#FFFFFF"/>
+
+    <!-- Blue Royal Ribbon Bottom -->
+    <path
+        android:pathData="M32,85 C42,95 78,95 88,85 L93,98 C78,108 42,108 27,98 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="60"
+                android:startY="85"
+                android:endX="60"
+                android:endY="108"
+                android:type="linear">
+                <item android:color="#29B6F6" android:offset="0.0"/>
+                <item android:color="#0277BD" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

@@ -468,7 +468,7 @@ public class AudioRoomBackgroundView extends FrameLayout {
     public void setRoomID(String id) {
         if (roomID != null) {
             String displayId = id != null ? id : "N/A";
-            this.roomID.setText("ID: " + displayId + "  👥 1/16");
+            this.roomID.setText("ID: " + displayId + "  1/16");
         }
         if (getRootView() != null) {
             TextView tv = getRootView().findViewById(R.id.tvRoomId);
@@ -482,8 +482,8 @@ public class AudioRoomBackgroundView extends FrameLayout {
         if (roomID != null) {
             String currentText = roomID.getText().toString();
             if (currentText.contains("ID:")) {
-                String idPart = currentText.split("👥")[0].trim();
-                roomID.setText(idPart + "  👥 " + count + "/16");
+                String idPart = currentText.contains("  ") ? currentText.split("  ")[0].trim() : currentText.trim();
+                roomID.setText(idPart + "  " + count + "/16");
             }
         }
     }

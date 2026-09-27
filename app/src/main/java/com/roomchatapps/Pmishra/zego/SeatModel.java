@@ -24,7 +24,9 @@ public class SeatModel {
     }
 
     public boolean isHost() {
-        return index == 0;
+        if (userID == null || userID.trim().isEmpty()) return false;
+        String hostUid = SeatManager.getInstance().getHostUserID();
+        return hostUid != null && !hostUid.isEmpty() && hostUid.equals(userID);
     }
 
     public void clear() {

@@ -33,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -161,6 +162,9 @@ public class CreateRoomActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     RoomModel existingRoom = snapshot.getValue(RoomModel.class);
                     if (existingRoom != null) {
+                        if (existingRoom.getRoomId() != null && is6DigitNumber(existingRoom.getRoomId())) {
+                            existing6DigitRoomId = existingRoom.getRoomId();
+                        }
                         if (existingRoom.getImg() != null && !existingRoom.getImg().isEmpty()) {
                             imgUrl = existingRoom.getImg();
                             Glide.with(CreateRoomActivity.this)
@@ -285,40 +289,93 @@ public class CreateRoomActivity extends AppCompatActivity {
             imgUrl = DEFAULT_ROOM_IMG;
         }
 
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms");
-        String roomId = userId;
-        // Room Title is automatically set to the Room ID itself
-        String roomName = roomId;
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("room_name", roomName);
-        map.put("img", imgUrl);
-        map.put("uid", userId);
-        map.put("roomId", roomId);
-
         final String finalUserId = userId;
         final String finalUserName = userName;
-        final String finalRoomName = roomName;
 
-        ref.child(roomId).setValue(map)
-                .addOnSuccessListener(unused -> {
-                    Toast.makeText(this, "Room Saved Successfully!", Toast.LENGTH_SHORT).show();
-                    
-                    // Start RoomChatActivity as Host
-                    Intent intent = new Intent(CreateRoomActivity.this, RoomChatActivity.class);
-                    intent.putExtra("roomID", roomId);
-                    intent.putExtra("room_name", finalRoomName);
-                    intent.putExtra("username", finalUserName);
-                    intent.putExtra("userID", finalUserId);
-                    intent.putExtra("img", imgUrl);
-                    intent.putExtra("host", true); // Creator is the Host
-                    startActivity(intent);
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    btnCreate.setEnabled(true);
-                    Toast.makeText(this, "Failed to save room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        ensure6DigitRoomId(generatedRoomId -> {
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms");
+            String roomId = generatedRoomId;
+            // Room Title is automatically set to the same unique 6-digit Room ID number
+            String roomName = roomId;
+
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("room_name", roomName);
+            map.put("img", imgUrl);
+            map.put("uid", finalUserId);
+            map.put("roomId", roomId);
+
+            ref.child(userId).setValue(map)
+                    .addOnSuccessListener(unused -> {
+                        Toast.makeText(this, "Room Saved Successfully! Room ID: " + roomId, Toast.LENGTH_SHORT).show();
+                        
+                        // Start RoomChatActivity as Host
+                        Intent intent = new Intent(CreateRoomActivity.this, RoomChatActivity.class);
+                        intent.putExtra("roomID", roomId);
+                        intent.putExtra("room_name", roomName);
+                        intent.putExtra("username", finalUserName);
+                        intent.putExtra("userID", finalUserId);
+                        intent.putExtra("uid", finalUserId);
+                        intent.putExtra("img", imgUrl);
+                        intent.putExtra("host", true); // Creator is the Host
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnCreate.setEnabled(true);
+                        Toast.makeText(this, "Failed to save room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
+    }
+
+    private String existing6DigitRoomId = null;
+
+    private void ensure6DigitRoomId(OnRoomIdGeneratedListener listener) {
+        if (existing6DigitRoomId != null && is6DigitNumber(existing6DigitRoomId)) {
+            listener.onGenerated(existing6DigitRoomId);
+            return;
+        }
+        generateUniqueRoomId(listener);
+    }
+
+    private void generateUniqueRoomId(OnRoomIdGeneratedListener listener) {
+        String random6Digit = String.valueOf(100000 + new Random().nextInt(900000));
+        DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+
+        roomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean exists = false;
+                if (snapshot.exists()) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        RoomModel room = child.getValue(RoomModel.class);
+                        if (room != null && random6Digit.equals(room.getRoomId())) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+                if (exists) {
+                    generateUniqueRoomId(listener);
+                } else {
+                    existing6DigitRoomId = random6Digit;
+                    listener.onGenerated(random6Digit);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                existing6DigitRoomId = random6Digit;
+                listener.onGenerated(random6Digit);
+            }
+        });
+    }
+
+    private boolean is6DigitNumber(String str) {
+        return str != null && str.matches("\\d{6}");
+    }
+
+    private interface OnRoomIdGeneratedListener {
+        void onGenerated(String roomId);
     }
 
     @Override

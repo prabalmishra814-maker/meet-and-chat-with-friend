@@ -20,6 +20,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityUserDetailBinding;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.LevelUtils;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
 import com.roomchatapps.Pmishra.utils.StoreManager;
 
@@ -120,6 +121,28 @@ public class UserDetailActivity extends AppCompatActivity {
                     // Check for equipped frame
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
                     FrameUtils.displayFrame(UserDetailActivity.this, equippedFrame, binding.ivProfileFrame, binding.svgaProfileFrame);
+
+                    // Level & XP Progress
+                    long coinsSpent = 0;
+                    if (snapshot.child("coinsSpent").exists()) {
+                        try {
+                            coinsSpent = Long.parseLong(String.valueOf(snapshot.child("coinsSpent").getValue()));
+                        } catch (Exception ignored) {}
+                    } else if (snapshot.child("level").exists()) {
+                        try {
+                            long lvl = Long.parseLong(String.valueOf(snapshot.child("level").getValue()));
+                            coinsSpent = Math.max(0, (lvl - 1) * LevelUtils.COINS_PER_LEVEL);
+                        } catch (Exception ignored) {}
+                    }
+
+                    long level = LevelUtils.calculateLevel(coinsSpent);
+                    int xpInLevel = LevelUtils.calculateCurrentXpInLevel(coinsSpent);
+
+                    binding.tvUserLevelCard.setText("🛡️ Lv." + level);
+                    binding.tvLevelTitle.setText("Level " + level + " Member");
+                    binding.pbLevelXp.setProgress(xpInLevel);
+                    binding.tvXpProgress.setText(xpInLevel + " / 100 XP");
+                    binding.tvTotalCoinsSpent.setText("Spent: " + String.format("%,d", coinsSpent) + " Coins");
                 }
             }
 
