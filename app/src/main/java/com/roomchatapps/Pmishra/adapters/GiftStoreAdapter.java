@@ -47,7 +47,7 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
     private int selectedIndex = 0;
 
     public interface OnGiftSelectedListener {
-        void onGiftSelected(GiftStoreItem item, int position);
+        void onGiftSelected(GiftStoreItem item, int position, boolean isReSelected);
     }
 
     private OnGiftSelectedListener listener;
@@ -92,7 +92,7 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
         boolean isSelected = (position == selectedIndex);
 
         holder.tvGiftName.setText(item.name);
-        holder.tvGiftCost.setText(item.cost + " 🪙");
+        holder.tvGiftCost.setText(com.roomchatapps.Pmishra.utils.CoinUtils.formatCoins(item.cost) + " 🪙");
         holder.imgGiftStatic.setImageResource(item.iconRes);
         holder.imgGiftStatic.setVisibility(View.VISIBLE);
 
@@ -115,12 +115,14 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
                 pos = holder.getAdapterPosition();
             }
 
+            boolean isReSelected = (pos == previousSelected);
+
             selectedIndex = pos;
             notifyItemChanged(previousSelected);
             notifyItemChanged(selectedIndex);
 
             if (listener != null && pos >= 0 && pos < items.size()) {
-                listener.onGiftSelected(items.get(pos), pos);
+                listener.onGiftSelected(items.get(pos), pos, isReSelected);
             }
         });
     }

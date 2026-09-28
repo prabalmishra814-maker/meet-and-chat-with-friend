@@ -151,14 +151,18 @@ public class SeatManager {
                 return false;
             }
 
-            // Leave any existing seat first & preserve equipped frame/avatar if seat switching
+            // Leave any existing seat first & preserve equipped frame/avatar/mic state if seat switching
             String previousFrame = "";
             String previousAvatar = "";
+            boolean hasPreviousSeat = false;
+            boolean previousMicOn = true;
             for (int i = 0; i < totalSeats; i++) {
                 SeatModel seat = seatList.get(i);
                 if (uid.equals(seat.userID) && i != index) {
                     if (previousFrame.isEmpty()) previousFrame = seat.equippedFrame;
                     if (previousAvatar.isEmpty()) previousAvatar = seat.userAvatar;
+                    previousMicOn = seat.isMicOn;
+                    hasPreviousSeat = true;
                     seat.clear();
                 }
             }
@@ -191,7 +195,11 @@ public class SeatManager {
             }
 
             model.equippedFrame = finalFrame != null ? finalFrame : "";
-            model.isMicOn = true;
+            if (hasPreviousSeat) {
+                model.isMicOn = previousMicOn;
+            } else {
+                model.isMicOn = ZegoManager.getInstance().isMicEnabled();
+            }
             model.isMuted = false;
 
             sanitizeDuplicateUsers();

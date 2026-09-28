@@ -239,7 +239,7 @@ public class WalletActivity extends AppCompatActivity {
             } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab) && "GIFT_RECEIVED".equals(type)) {
                 filteredTransactionList.add(tx);
                 totalCount++;
-                totalVal += tx.getDiamondAmount() > 0 ? tx.getDiamondAmount() : Math.abs(tx.getCoinAmount());
+                totalVal += tx.getRemainingValue() > 0 ? tx.getRemainingValue() : Math.abs(tx.getCoinAmount());
             } else if ("STORE_BUY".equalsIgnoreCase(activeTab) && ("STORE_BUY".equals(type) || "THEME_BUY".equals(type))) {
                 filteredTransactionList.add(tx);
                 totalCount++;
@@ -264,7 +264,7 @@ public class WalletActivity extends AppCompatActivity {
                 tvTxSummary.setText("Total Spent on Gifts: " + formatter.format(totalVal) + " Coins (" + totalCount + " Gifts Sent)");
                 tvTxSummary.setVisibility(View.VISIBLE);
             } else if ("GIFT_RECEIVED".equalsIgnoreCase(activeTab)) {
-                tvTxSummary.setText("Total Earned: " + formatter.format(totalVal) + " Diamonds (" + totalCount + " Gifts Received)");
+                tvTxSummary.setText("Total Earned: " + formatter.format(totalVal) + " Coins (" + totalCount + " Gifts Received)");
                 tvTxSummary.setVisibility(View.VISIBLE);
             } else if ("STORE_BUY".equalsIgnoreCase(activeTab)) {
                 tvTxSummary.setText("Total Store & Theme Purchases: " + formatter.format(totalVal) + " Coins (" + totalCount + " Purchases)");

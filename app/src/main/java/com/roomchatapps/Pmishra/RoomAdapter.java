@@ -19,11 +19,16 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
 /**
- * Adapter for displaying rooms in a RecyclerView.
+ * Adapter for displaying rooms in a RecyclerView with Real-Time Member Count.
  */
 public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder> {
 
@@ -98,17 +103,42 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             }
         }
 
+        // Real-Time Member Count Listener for this specific room
+        holder.detachUserCountListener();
+        String roomId = room.getRoomId();
+        if (roomId != null && !roomId.trim().isEmpty() && holder.tvViewerCount != null) {
+            holder.userCountRef = FirebaseDatabase.getInstance()
+                    .getReference("room_users")
+                    .child(roomId.trim());
+
+            holder.userCountListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    long activeCount = snapshot.getChildrenCount();
+                    if (holder.tvViewerCount != null) {
+                        holder.tvViewerCount.setText(String.valueOf(activeCount));
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            };
+
+            holder.userCountRef.addValueEventListener(holder.userCountListener);
+        } else if (holder.tvViewerCount != null) {
+            holder.tvViewerCount.setText("0");
+        }
+
         // Set click listener to open RoomChatActivity
         holder.itemView.setOnClickListener(v -> {
             AnimationHelper.bounceAnimation(v);
-            
+
             Intent intent = new Intent(context, RoomChatActivity.class);
             intent.putExtra("roomID", room.getRoomId());
             intent.putExtra("room_name", room.getRoom_name());
             intent.putExtra("uid", room.getUid());
             intent.putExtra("img", room.getImg());
 
-            // Determine if current user is the host and get their name
             String currentUserId = "";
             String currentUserName = "User";
 
@@ -124,13 +154,19 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             }
 
             boolean isHost = room.getUid() != null && room.getUid().equals(currentUserId);
-            
+
             intent.putExtra("username", currentUserName);
             intent.putExtra("userID", currentUserId);
-            intent.putExtra("host", isHost); 
+            intent.putExtra("host", isHost);
 
             context.startActivity(intent);
         });
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull RoomViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.detachUserCountListener();
     }
 
     @Override
@@ -142,12 +178,25 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
         ImageView ivRoomImage;
         ImageView ivBadge;
         TextView tvRoomName;
+        TextView tvViewerCount;
+
+        DatabaseReference userCountRef;
+        ValueEventListener userCountListener;
 
         public RoomViewHolder(@NonNull View itemView) {
             super(itemView);
             ivRoomImage = itemView.findViewById(R.id.ivRoomImage);
             ivBadge = itemView.findViewById(R.id.ivBadge);
             tvRoomName = itemView.findViewById(R.id.tvRoomName);
+            tvViewerCount = itemView.findViewById(R.id.tvViewerCount);
+        }
+
+        void detachUserCountListener() {
+            if (userCountRef != null && userCountListener != null) {
+                userCountRef.removeEventListener(userCountListener);
+                userCountRef = null;
+                userCountListener = null;
+            }
         }
     }
 }

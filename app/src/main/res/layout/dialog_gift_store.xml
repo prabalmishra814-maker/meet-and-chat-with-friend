@@ -65,18 +65,87 @@
         app:tabTextColor="#90FFFFFF" />
 
     <!-- Gifts Grid (4 Columns, Scrollable) -->
-
-    <!-- Footer Row (Coins & Send Button) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGifts"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="220dp"
         android:clipToPadding="false"
         android:nestedScrollingEnabled="true"
         android:overScrollMode="ifContentScrolls"
         android:paddingBottom="8dp"
         android:scrollbars="vertical" />
 
+    <!-- Quantity Selection Row (1, 7, 77, 777) -->
+    <LinearLayout
+        android:id="@+id/llQuantityRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="Qty:"
+            android:textColor="#A0FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chipQty1"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_send_button_glow"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="1"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chipQty7"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_room_chat_pill"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="7"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chipQty77"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_room_chat_pill"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="77"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chipQty777"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_room_chat_pill"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="777"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Footer Row (Coins & Send Button) -->
     <RelativeLayout
         android:id="@+id/bottomg"
         android:layout_width="match_parent"
@@ -147,6 +216,7 @@
             android:paddingHorizontal="24dp">
 
             <TextView
+                android:id="@+id/tvSendActionText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Send"

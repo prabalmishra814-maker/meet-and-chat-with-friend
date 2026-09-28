@@ -114,7 +114,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
             holder.btnAction.setBackgroundColor(Color.parseColor("#40E0D0")); // Cyan
             holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
         } else {
-            holder.btnAction.setText(item.getPriceCoins() + " 🪙");
+            holder.btnAction.setText(com.roomchatapps.Pmishra.utils.CoinUtils.formatCoins(item.getPriceCoins()) + " 🪙");
             holder.btnAction.setBackgroundColor(Color.parseColor("#FFD700")); // Gold
             holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
         }
