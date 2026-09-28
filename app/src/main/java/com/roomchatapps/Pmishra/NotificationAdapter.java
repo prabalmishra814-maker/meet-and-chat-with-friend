@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.roomchatapps.Pmishra.databinding.ItemNotificationBinding;
 import com.roomchatapps.Pmishra.models.NotificationModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.List;
 
@@ -58,6 +60,19 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                     .into(holder.binding.ivSenderAvatar);
         } else {
             holder.binding.ivSenderAvatar.setImageResource(R.drawable.ic_person);
+        }
+
+        String senderId = item.getSenderId();
+        if (senderId != null && !senderId.trim().isEmpty()) {
+            UserProfileCache.getUserProfile(senderId, profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(context, profile.equippedFrame, holder.binding.ivSenderFrame, holder.binding.svgaSenderFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.binding.ivSenderFrame, holder.binding.svgaSenderFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.binding.ivSenderFrame, holder.binding.svgaSenderFrame);
         }
 
         // Configure type badge icon

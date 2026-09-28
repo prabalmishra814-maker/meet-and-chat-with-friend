@@ -17,16 +17,39 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- User Info Section -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivUserProfile"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/app_create_room_ic"
+        <!-- User Info Section Avatar Container -->
+        <FrameLayout
+            android:id="@+id/flUserAvatarContainer"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/CircleImage" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivUserProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/app_create_room_ic"
+                app:shapeAppearanceOverlay="@style/CircleImage" />
+
+            <ImageView
+                android:id="@+id/ivUserFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaUserFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvUsername"
@@ -37,8 +60,8 @@
             android:text="Username"
             android:textColor="@color/white"
             android:textSize="16sp"
-            app:layout_constraintStart_toEndOf="@+id/ivUserProfile"
-            app:layout_constraintTop_toTopOf="@+id/ivUserProfile" />
+            app:layout_constraintStart_toEndOf="@+id/flUserAvatarContainer"
+            app:layout_constraintTop_toTopOf="@+id/flUserAvatarContainer" />
 
         <TextView
             android:id="@+id/tvUserFollowers"
@@ -94,7 +117,7 @@
             android:text="Post content goes here... ✨"
             android:textColor="@color/white"
             android:textSize="16sp"
-            app:layout_constraintTop_toBottomOf="@+id/ivUserProfile" />
+            app:layout_constraintTop_toBottomOf="@+id/flUserAvatarContainer" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivPostImage"

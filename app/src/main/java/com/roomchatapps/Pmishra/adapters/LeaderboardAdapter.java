@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,13 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.models.LeaderboardModel;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.List;
-import java.util.Locale;
 
 public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.ViewHolder> {
 
@@ -63,6 +66,18 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
             holder.ivAvatar.setImageResource(R.drawable.ic_person);
         }
 
+        if (item.getUid() != null && !item.getUid().trim().isEmpty()) {
+            UserProfileCache.getUserProfile(item.getUid(), profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.ivFrame, holder.svgaFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (item.getUid() != null) {
                 Intent intent = new Intent(holder.itemView.getContext(), UserDetailActivity.class);
@@ -85,6 +100,8 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         View cardContainer;
         TextView tvRank, tvUserName, tvUserSub, tvSpentCoins;
         ShapeableImageView ivAvatar;
+        ImageView ivFrame;
+        SVGAImageView svgaFrame;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -94,6 +111,8 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
             tvUserSub = itemView.findViewById(R.id.tvUserSub);
             tvSpentCoins = itemView.findViewById(R.id.tvSpentCoins);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
+            ivFrame = itemView.findViewById(R.id.ivFrame);
+            svgaFrame = itemView.findViewById(R.id.svgaFrame);
         }
     }
 }

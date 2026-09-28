@@ -106,9 +106,9 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
 
         // Configure button state & appearance
         if (item.isEquipped()) {
-            holder.btnAction.setText("Equipped ✓");
-            holder.btnAction.setBackgroundColor(Color.parseColor("#00FF7F")); // Bright green
-            holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
+            holder.btnAction.setText("Unequip");
+            holder.btnAction.setBackgroundColor(Color.parseColor("#FF6B6B")); // Coral Red
+            holder.btnAction.setTextColor(Color.parseColor("#FFFFFF"));
         } else if (item.isOwned()) {
             holder.btnAction.setText("Equip");
             holder.btnAction.setBackgroundColor(Color.parseColor("#40E0D0")); // Cyan

@@ -7,13 +7,37 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="8dp">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivCommentUser"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/app_create_room_ic"
-        app:shapeAppearanceOverlay="@style/CircleImage" />
+    <!-- Avatar Container with Frame -->
+    <FrameLayout
+        android:id="@+id/flCommentAvatarContainer"
+        android:layout_width="44dp"
+        android:layout_height="44dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivCommentUser"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/app_create_room_ic"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <ImageView
+            android:id="@+id/ivCommentFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaCommentFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

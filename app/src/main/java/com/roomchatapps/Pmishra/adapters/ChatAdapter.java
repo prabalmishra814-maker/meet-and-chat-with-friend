@@ -177,7 +177,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            FrameUtils.displayFrame(ctx, FrameUtils.DEFAULT_FRAME, binding.ivFrame, binding.svgaFrame);
+            FrameUtils.clearFrame(binding.ivFrame, binding.svgaFrame);
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
@@ -206,8 +206,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
                         }
-                        String equipped = (profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty())
-                                ? profile.equippedFrame : FrameUtils.DEFAULT_FRAME;
+                        String equipped = (profile.equippedFrame != null) ? profile.equippedFrame : "";
                         FrameUtils.displayFrame(ctx, equipped, binding.ivFrame, binding.svgaFrame);
                     }
                 });
@@ -244,7 +243,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            FrameUtils.displayFrame(ctx, FrameUtils.DEFAULT_FRAME, binding.ivFrame, binding.svgaFrame);
+            FrameUtils.clearFrame(binding.ivFrame, binding.svgaFrame);
 
             String senderId = message.getSenderId();
             if (senderId != null && !senderId.trim().isEmpty()) {
@@ -273,8 +272,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .error(R.drawable.logo_placeholder)
                                     .into(binding.ivAvatar);
                         }
-                        String equipped = (profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty())
-                                ? profile.equippedFrame : FrameUtils.DEFAULT_FRAME;
+                        String equipped = (profile.equippedFrame != null) ? profile.equippedFrame : "";
                         FrameUtils.displayFrame(ctx, equipped, binding.ivFrame, binding.svgaFrame);
                     }
                 });

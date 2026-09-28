@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,10 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.List;
 
@@ -56,21 +56,22 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         holder.tvCommentText.setText(comment.getText());
         holder.tvCommentTime.setText(comment.getTimestamp());
 
-        FirebaseDatabase.getInstance().getReference("users").child(comment.getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            String name = snapshot.child("name").getValue(String.class);
-                            String profile = snapshot.child("avtar").getValue(String.class);
-                            holder.tvCommentUsername.setText(name);
-                            Glide.with(context).load(profile).placeholder(R.drawable.ic_person).into(holder.ivCommentUser);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+        if (comment.getUid() != null && !comment.getUid().trim().isEmpty()) {
+            UserProfileCache.getUserProfile(comment.getUid(), profile -> {
+                if (profile != null) {
+                    holder.tvCommentUsername.setText(profile.name != null ? profile.name : "User");
+                    Glide.with(context)
+                            .load(profile.avatarUrl)
+                            .placeholder(R.drawable.ic_person)
+                            .into(holder.ivCommentUser);
+                    FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivCommentFrame, holder.svgaCommentFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivCommentFrame, holder.svgaCommentFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.ivCommentFrame, holder.svgaCommentFrame);
+        }
     }
 
     @Override
@@ -80,11 +81,15 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView ivCommentUser;
+        ImageView ivCommentFrame;
+        SVGAImageView svgaCommentFrame;
         TextView tvCommentUsername, tvCommentText, tvCommentTime;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
             ivCommentUser = itemView.findViewById(R.id.ivCommentUser);
+            ivCommentFrame = itemView.findViewById(R.id.ivCommentFrame);
+            svgaCommentFrame = itemView.findViewById(R.id.svgaCommentFrame);
             tvCommentUsername = itemView.findViewById(R.id.tvCommentUsername);
             tvCommentText = itemView.findViewById(R.id.tvCommentText);
             tvCommentTime = itemView.findViewById(R.id.tvCommentTime);

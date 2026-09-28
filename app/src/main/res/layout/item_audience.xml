@@ -5,15 +5,41 @@
     android:layout_height="wrap_content"
     android:paddingVertical="@dimen/spacing_8">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivAudienceProfile"
-        android:layout_width="@dimen/audience_size"
-        android:layout_height="@dimen/audience_size"
-        android:src="@drawable/logo_placeholder"
+    <!-- Avatar Container with Profile Frame Overlay -->
+    <FrameLayout
+        android:id="@+id/flAudienceAvatarContainer"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAudienceProfile"
+            android:layout_width="@dimen/audience_size"
+            android:layout_height="@dimen/audience_size"
+            android:layout_gravity="center"
+            android:src="@drawable/logo_placeholder"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+        <!-- Static Profile Frame Overlay -->
+        <ImageView
+            android:id="@+id/ivAudienceFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Animated SVGA Profile Frame Overlay -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaAudienceFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+    </FrameLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnInviteUser"
@@ -44,7 +70,7 @@
         android:textSize="14sp"
         app:layout_constraintBottom_toTopOf="@+id/tvAudienceStatus"
         app:layout_constraintEnd_toStartOf="@+id/btnInviteUser"
-        app:layout_constraintStart_toEndOf="@+id/ivAudienceProfile"
+        app:layout_constraintStart_toEndOf="@+id/flAudienceAvatarContainer"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 

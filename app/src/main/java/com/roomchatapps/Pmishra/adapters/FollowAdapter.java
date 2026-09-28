@@ -16,6 +16,8 @@ import com.roomchatapps.Pmishra.AnimationHelper;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.databinding.ItemFollowBinding;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import java.util.List;
 
 public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder> {
@@ -66,6 +68,19 @@ public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder
                 .placeholder(R.drawable.ic_person)
                 .error(R.drawable.ic_person)
                 .into(holder.binding.ivAvatar);
+
+        String userId = user.getUserId();
+        if (userId != null && !userId.trim().isEmpty()) {
+            UserProfileCache.getUserProfile(userId, profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.binding.ivFrame, holder.binding.svgaFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.binding.ivFrame, holder.binding.svgaFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.binding.ivFrame, holder.binding.svgaFrame);
+        }
 
         if (currentUid != null && !currentUid.equals(user.getUserId())) {
             holder.binding.btnAction.setVisibility(View.VISIBLE);

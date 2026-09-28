@@ -53,6 +53,25 @@
                 android:textStyle="bold" />
         </FrameLayout>
 
+        <!-- Static Profile Frame Overlay -->
+        <ImageView
+            android:id="@+id/ivRecipientFrame"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_centerInParent="true"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Animated SVGA Profile Frame Overlay -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaRecipientFrame"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+
         <!-- Seat Number Badge -->
         <TextView
             android:id="@+id/tvSeatBadge"

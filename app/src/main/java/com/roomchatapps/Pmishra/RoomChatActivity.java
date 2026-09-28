@@ -64,6 +64,7 @@ import androidx.core.app.NotificationManagerCompat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.json.JSONObject;
@@ -579,9 +580,66 @@ public class RoomChatActivity extends AppCompatActivity {
 
         @Override
         public void onIMRecvBroadcastMessage(String roomID, List<ZegoBroadcastMessageInfo> messageList) {
+            if (messageList == null) return;
             runOnUiThread(() -> {
-                chatAdapter.addMessages(messageList);
-                rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+                List<ZegoBroadcastMessageInfo> textMessages = new ArrayList<>();
+                for (ZegoBroadcastMessageInfo info : messageList) {
+                    if (info != null && info.message != null && info.message.trim().startsWith("{\"type\":\"GIFT\"")) {
+                        try {
+                            org.json.JSONObject json = new org.json.JSONObject(info.message);
+                            String giftId = json.optString("giftId", "");
+                            String sName = json.optString("senderName", "User");
+                            String gName = json.optString("giftName", "Gift");
+                            if (giftId.isEmpty()) {
+                                giftId = sName + "_" + gName + "_" + (System.currentTimeMillis() / 1500);
+                            }
+                            if (markGiftProcessed(giftId)) continue;
+
+                            String sAvatar = json.optString("senderAvatar", "");
+                            String rName = json.optString("recipientName", "");
+                            String gSvga = json.optString("giftSvga", "");
+                            int iconRes = json.optInt("iconRes", R.drawable.gift_icon);
+
+                            // 1. Play SVGA gift animation across room
+                            if (gSvga != null && !gSvga.trim().isEmpty()) {
+                                playSvgaAnimation(gSvga);
+                            } else if (gName.contains("Heart")) {
+                                playSvgaAnimation("gift/aladdin.svga");
+                            }
+
+                            // 2. Show slide-in notification
+                            if (notificationAnimator != null) {
+                                String notice = "sent " + gName + (!rName.isEmpty() ? " to " + rName : "");
+                                notificationAnimator.showNotification(sName, notice, iconRes, sAvatar);
+                            }
+
+                            // 3. Show top banner notice
+                            showGoldenGiftBanner(sName, gName);
+
+                            // 4. Add auto-expiring gift chat notice
+                            ChatMessage giftNoticeMsg = new ChatMessage();
+                            giftNoticeMsg.setSenderId(info.fromUser != null ? info.fromUser.userID : "");
+                            giftNoticeMsg.setSenderAvatar(sAvatar);
+                            giftNoticeMsg.setMessage(sName + " sent " + gName + (!rName.isEmpty() ? " to " + rName : "") + " 🎁");
+                            giftNoticeMsg.setTimestamp(System.currentTimeMillis());
+
+                            if (chatAdapter != null) {
+                                chatAdapter.addAutoExpiringMessage(giftNoticeMsg, 8000);
+                            }
+                            if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
+                                rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+                            }
+                        } catch (Exception ignored) {}
+                    } else {
+                        textMessages.add(info);
+                    }
+                }
+                if (!textMessages.isEmpty()) {
+                    chatAdapter.addMessages(textMessages);
+                    if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
+                        rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+                    }
+                }
             });
         }
     };
@@ -1320,6 +1378,12 @@ public class RoomChatActivity extends AppCompatActivity {
                     if (ts != null && ts < roomJoinTime - 3000) return;
 
                     if (senderName != null && giftName != null) {
+                        String giftId = snapshot.child("giftId").getValue(String.class);
+                        if (giftId == null || giftId.isEmpty()) {
+                            giftId = senderName + "_" + giftName + "_" + (ts != null ? ts : 0);
+                        }
+                        if (markGiftProcessed(giftId)) return;
+
                         String senderAvatar = snapshot.child("senderAvatar").getValue(String.class);
                         int iconRes = (iconResLong != null) ? iconResLong.intValue() : R.drawable.gift_icon;
                         if (notificationAnimator != null) {
@@ -1360,11 +1424,6 @@ public class RoomChatActivity extends AppCompatActivity {
                             String hostUid = SeatManager.getInstance().getHostUserID();
                             if (seat.index == 0 && hostUid != null && !hostUid.isEmpty() && !seat.userID.equals(hostUid)) {
                                 seat.clear();
-                            }
-                            if (!seat.isEmpty() && !seat.userID.equals(hostUid) && !seat.userID.equals(userID)) {
-                                if (ZegoManager.getInstance().getRoomUserCount() > 1 && !ZegoManager.getInstance().isUserInRoom(seat.userID)) {
-                                    seat.clear();
-                                }
                             }
                             updatedSeats.add(seat);
                         }
@@ -1552,12 +1611,9 @@ public class RoomChatActivity extends AppCompatActivity {
                     // Show User Entry Banner Overlay
                     showUserEntryBanner(displayName);
 
-                    // Show Entrance Animation Scene (e.g. Golden Super Car, Red Super Car, Anime Man, Toyota Car)
+                    // Show Entrance Animation Scene ONLY if user has bought & equipped an entrance effect
                     if (entranceSvga != null && !entranceSvga.trim().isEmpty()) {
                         playSvgaAnimation(entranceSvga);
-                    } else {
-                        // Default entrance scene SVGA when user enters room
-                        playSvgaAnimation("Entry/golden_super_car.svga");
                     }
                 }
             }
@@ -2693,12 +2749,14 @@ public class RoomChatActivity extends AppCompatActivity {
         if (roomHostUid != null && !roomHostUid.isEmpty()) {
             String hName = "Host";
             String hAvatar = "";
+            String hFrame = "";
 
             if (seats != null) {
                 for (SeatModel seat : seats) {
                     if (seat != null && !seat.isEmpty() && roomHostUid.equals(seat.userID)) {
                         if (seat.userName != null && !seat.userName.isEmpty()) hName = seat.userName;
                         if (seat.userAvatar != null && !seat.userAvatar.isEmpty()) hAvatar = seat.userAvatar;
+                        if (seat.equippedFrame != null) hFrame = seat.equippedFrame;
                         break;
                     }
                 }
@@ -2709,7 +2767,7 @@ public class RoomChatActivity extends AppCompatActivity {
             }
 
             boolean selectHost = !isTargeted || roomHostUid.equals(targetUid);
-            recipientList.add(new GiftRecipientModel(roomHostUid, hName, hAvatar, "Host", false, selectHost));
+            recipientList.add(new GiftRecipientModel(roomHostUid, hName, hAvatar, hFrame, "Host", false, selectHost));
             addedUids.add(roomHostUid);
         }
 
@@ -2720,7 +2778,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     String seatBadge = seat.isHost() ? "Host" : String.valueOf(seat.index + 1);
                     String uName = (seat.userName != null && !seat.userName.isEmpty()) ? seat.userName : "Member";
                     boolean selectSeat = !isTargeted || seat.userID.equals(targetUid);
-                    recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seatBadge, false, selectSeat));
+                    recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seat.equippedFrame, seatBadge, false, selectSeat));
                     addedUids.add(seat.userID);
                 }
             }
@@ -2728,7 +2786,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         if (recipientList.size() <= 1) { // Only ALL item present, add current user as fallback
             boolean selectUser = !isTargeted || userID.equals(targetUid);
-            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "Host", false, selectUser));
+            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "", "Host", false, selectUser));
         }
 
         GiftRecipientAdapter recipientAdapter = new GiftRecipientAdapter(recipientList);
@@ -2897,6 +2955,8 @@ public class RoomChatActivity extends AppCompatActivity {
                                 tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
                             }
 
+                            String uniqueGiftId = userID + "_" + System.currentTimeMillis() + "_" + (new Random().nextInt(9000) + 1000);
+
                             StringBuilder recipientNames = new StringBuilder();
                             for (int i = 0; i < selectedRecipients.size(); i++) {
                                 GiftRecipientModel recipient = selectedRecipients.get(i);
@@ -2920,6 +2980,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
                                 if (roomGiftsRef != null) {
                                     Map<String, Object> giftData = new HashMap<>();
+                                    giftData.put("giftId", uniqueGiftId);
                                     giftData.put("senderName", userName != null ? userName : "User");
                                     giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
                                     giftData.put("recipientName", recipient.getName());
@@ -2933,11 +2994,26 @@ public class RoomChatActivity extends AppCompatActivity {
                             }
 
                             String senderDisplayName = userName != null ? userName : "User";
-                            String chatNotice = senderDisplayName + " sent " + giftName + " to " + recipientNames.toString() + "!";
-                            ZegoManager.getInstance().sendInRoomTextMessage(chatNotice);
+                            try {
+                                org.json.JSONObject giftJson = new org.json.JSONObject();
+                                giftJson.put("type", "GIFT");
+                                giftJson.put("giftId", uniqueGiftId);
+                                giftJson.put("senderName", senderDisplayName);
+                                giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                giftJson.put("recipientName", recipientNames.toString());
+                                giftJson.put("giftName", giftName);
+                                giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
+                                giftJson.put("iconRes", selectedItem.iconRes);
+                                ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
+                            } catch (Exception ignored) {}
 
-                            Toast.makeText(RoomChatActivity.this, "Gift sent to " + recipientCount + " member(s)!", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
+                            // Play SVGA animation for sender locally
+                            if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                markGiftProcessed(uniqueGiftId);
+                                playSvgaAnimation(selectedGiftSvga);
+                            }
+
+                            Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + "!", Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
@@ -3096,6 +3172,20 @@ public class RoomChatActivity extends AppCompatActivity {
     private boolean isGiftAnimationPlaying = false;
     private final Handler giftHandler = new Handler(Looper.getMainLooper());
     private Runnable giftTimeoutRunnable = null;
+    private final Set<String> processedGiftIds = Collections.synchronizedSet(new HashSet<>());
+
+    private boolean markGiftProcessed(String giftId) {
+        if (giftId == null || giftId.trim().isEmpty()) return false;
+        String clean = giftId.trim();
+        if (processedGiftIds.contains(clean)) {
+            return true;
+        }
+        if (processedGiftIds.size() > 300) {
+            processedGiftIds.clear();
+        }
+        processedGiftIds.add(clean);
+        return false;
+    }
 
     private final Queue<BannerQueueItem> bannerQueue = new ConcurrentLinkedQueue<>();
     private boolean isBannerPlaying = false;
@@ -3123,9 +3213,12 @@ public class RoomChatActivity extends AppCompatActivity {
             }
             if (svgaPlayer != null) {
                 try {
+                    svgaPlayer.setCallback(null);
                     svgaPlayer.stopAnimation();
-                    svgaPlayer.setVisibility(View.GONE);
-                    svgaPlayer.clear();
+                    if (giftAnimationQueue.isEmpty()) {
+                        svgaPlayer.setVisibility(View.GONE);
+                        svgaPlayer.clear();
+                    }
                 } catch (Exception ignored) {}
             }
             isGiftAnimationPlaying = false;
@@ -3143,8 +3236,8 @@ public class RoomChatActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
             try {
+                svgaPlayer.setCallback(null);
                 svgaPlayer.stopAnimation();
-                svgaPlayer.clear();
             } catch (Exception ignored) {}
         });
 
@@ -3180,10 +3273,13 @@ public class RoomChatActivity extends AppCompatActivity {
             }
 
             try {
+                svgaPlayer.setCallback(null);
+                svgaPlayer.stopAnimation();
+
                 int frames = videoItem.getFrames();
                 int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
                 long durationMs = (long) (((double) frames / fps) * 1000L);
-                long safetyTimeoutMs = Math.max(6000L, durationMs + 2500L);
+                long safetyTimeoutMs = Math.max(3000L, durationMs + 1000L);
 
                 if (giftTimeoutRunnable != null) {
                     giftHandler.removeCallbacks(giftTimeoutRunnable);
@@ -3191,11 +3287,10 @@ public class RoomChatActivity extends AppCompatActivity {
                 giftTimeoutRunnable = this::finishCurrentGiftAnimation;
                 giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs);
 
-                svgaPlayer.stopAnimation();
-                svgaPlayer.clear();
                 svgaPlayer.setVisibility(View.VISIBLE);
                 svgaPlayer.setVideoItem(videoItem);
                 svgaPlayer.setLoops(1);
+                svgaPlayer.stepToFrame(0, false);
                 svgaPlayer.setCallback(new SVGACallback() {
                     @Override
                     public void onFinished() {

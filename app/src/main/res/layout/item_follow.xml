@@ -6,16 +6,40 @@
     android:layout_height="wrap_content"
     android:padding="12dp">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivAvatar"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/app_create_room_ic"
+    <!-- Avatar Container -->
+    <FrameLayout
+        android:id="@+id/flAvatarContainer"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/CircleImage" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/app_create_room_ic"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <ImageView
+            android:id="@+id/ivFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tvName"
@@ -28,8 +52,8 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/tvUid"
         app:layout_constraintEnd_toStartOf="@+id/btnAction"
-        app:layout_constraintStart_toEndOf="@+id/ivAvatar"
-        app:layout_constraintTop_toTopOf="@+id/ivAvatar"
+        app:layout_constraintStart_toEndOf="@+id/flAvatarContainer"
+        app:layout_constraintTop_toTopOf="@+id/flAvatarContainer"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
@@ -39,7 +63,7 @@
         android:text="ID: 12345"
         android:textColor="#80FFFFFF"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/ivAvatar"
+        app:layout_constraintBottom_toBottomOf="@+id/flAvatarContainer"
         app:layout_constraintEnd_toEndOf="@+id/tvName"
         app:layout_constraintStart_toStartOf="@+id/tvName"
         app:layout_constraintTop_toBottomOf="@+id/tvName" />

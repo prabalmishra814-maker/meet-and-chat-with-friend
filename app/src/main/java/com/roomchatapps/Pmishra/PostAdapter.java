@@ -18,6 +18,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.List;
 
@@ -158,26 +161,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             holder.ivPostImage.setVisibility(View.GONE);
         }
 
-        // Fetch User Info
-        FirebaseDatabase.getInstance().getReference("users").child(post.getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            String name = snapshot.child("name").getValue(String.class);
-                            String profile = snapshot.child("avtar").getValue(String.class);
-
-                            holder.tvUsername.setText(name);
-                            Glide.with(context)
-                                    .load(profile)
-                                    .placeholder(R.drawable.ic_person)
-                                    .into(holder.ivUserProfile);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+        // Fetch User Info & Frame
+        if (post.getUid() != null && !post.getUid().trim().isEmpty()) {
+            UserProfileCache.getUserProfile(post.getUid(), profile -> {
+                if (profile != null) {
+                    holder.tvUsername.setText(profile.name != null ? profile.name : "User");
+                    Glide.with(context)
+                            .load(profile.avatarUrl)
+                            .placeholder(R.drawable.ic_person)
+                            .into(holder.ivUserProfile);
+                    FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivUserFrame, holder.svgaUserFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivUserFrame, holder.svgaUserFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.ivUserFrame, holder.svgaUserFrame);
+        }
 
         holder.ivUserProfile.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(context, UserDetailActivity.class);
@@ -262,7 +262,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivUserProfile, ivPostImage, ivLikeIcon;
+        ImageView ivUserProfile, ivUserFrame, ivPostImage, ivLikeIcon;
+        SVGAImageView svgaUserFrame;
         TextView tvUsername, tvPostTime, tvPostContent, tvLikeCount, tvCommentCount, tvTopComment, tvUserFollowers;
         View btnLike, btnComment, btnMessage, commentPreviewLayout;
         android.widget.Button btnFollow;
@@ -270,6 +271,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
             ivUserProfile = itemView.findViewById(R.id.ivUserProfile);
+            ivUserFrame = itemView.findViewById(R.id.ivUserFrame);
+            svgaUserFrame = itemView.findViewById(R.id.svgaUserFrame);
             ivPostImage = itemView.findViewById(R.id.ivPostImage);
             tvUsername = itemView.findViewById(R.id.tvUsername);
             tvPostTime = itemView.findViewById(R.id.tvPostTime);

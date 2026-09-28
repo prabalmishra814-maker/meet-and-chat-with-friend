@@ -62,7 +62,12 @@ public class FrameUtils {
             return;
         }
 
-        final String activeFrameId = TextUtils.isEmpty(frameId) ? DEFAULT_FRAME : frameId;
+        if (TextUtils.isEmpty(frameId)) {
+            clearFrame(staticFrameView, svgaFrameView);
+            return;
+        }
+
+        final String activeFrameId = frameId;
 
         // 1. Immediate Static Frame Placeholder (Guarantees banner/frame is ALWAYS 100% visible immediately)
         int staticResId = getFrameDrawableRes(context, activeFrameId);

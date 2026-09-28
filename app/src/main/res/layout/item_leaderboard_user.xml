@@ -25,20 +25,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- User Profile Avatar -->
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivAvatar"
-        android:layout_width="46dp"
-        android:layout_height="46dp"
+    <!-- User Profile Avatar Container -->
+    <FrameLayout
+        android:id="@+id/flAvatarContainer"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_marginStart="10dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_person"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/tvRank"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/CircleImage"
-        app:strokeColor="#33FFFFFF"
-        app:strokeWidth="1.5dp" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_person"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            app:strokeColor="#33FFFFFF"
+            app:strokeWidth="1.5dp" />
+
+        <ImageView
+            android:id="@+id/ivFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+    </FrameLayout>
 
     <!-- Vertical Green Accent Line -->
     <View
@@ -48,7 +71,7 @@
         android:layout_marginStart="12dp"
         android:background="#10B981"
         app:layout_constraintBottom_toBottomOf="@+id/tvUserName"
-        app:layout_constraintStart_toEndOf="@+id/ivAvatar"
+        app:layout_constraintStart_toEndOf="@+id/flAvatarContainer"
         app:layout_constraintTop_toTopOf="@+id/tvUserName" />
 
     <!-- User Name -->
@@ -66,7 +89,7 @@
         android:textSize="15sp"
         app:layout_constraintEnd_toStartOf="@+id/llSpentContainer"
         app:layout_constraintStart_toEndOf="@+id/accentLine"
-        app:layout_constraintTop_toTopOf="@+id/ivAvatar" />
+        app:layout_constraintTop_toTopOf="@+id/flAvatarContainer" />
 
     <!-- Subtitle (ID or Email) -->
     <TextView

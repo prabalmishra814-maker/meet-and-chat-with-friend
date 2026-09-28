@@ -10,7 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.models.FriendRequestModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.List;
 
@@ -46,6 +49,19 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
                 .placeholder(R.drawable.ic_person)
                 .into(holder.ivAvatar);
 
+        String senderId = request.getSenderUid();
+        if (senderId != null && !senderId.trim().isEmpty()) {
+            UserProfileCache.getUserProfile(senderId, profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.ivFrame, holder.svgaFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
+        }
+
         holder.btnAccept.setOnClickListener(v -> {
             if (listener != null) listener.onAccept(request);
         });
@@ -61,12 +77,15 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivAvatar, btnReject;
+        ImageView ivAvatar, ivFrame, btnReject;
+        SVGAImageView svgaFrame;
         TextView tvName, btnAccept;
 
         ViewHolder(View itemView) {
             super(itemView);
             ivAvatar = itemView.findViewById(R.id.ivSenderAvatar);
+            ivFrame = itemView.findViewById(R.id.ivSenderFrame);
+            svgaFrame = itemView.findViewById(R.id.svgaSenderFrame);
             tvName = itemView.findViewById(R.id.tvSenderName);
             btnAccept = itemView.findViewById(R.id.btnAccept);
             btnReject = itemView.findViewById(R.id.btnReject);

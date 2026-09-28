@@ -12,8 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +65,7 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
             holder.ivAvatar.setVisibility(View.GONE);
             holder.tvSeatBadge.setText("ALL");
             holder.tvName.setText("All Members");
+            FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
         } else {
             holder.flAllContainer.setVisibility(View.GONE);
             holder.ivAvatar.setVisibility(View.VISIBLE);
@@ -76,6 +80,21 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
                         .into(holder.ivAvatar);
             } else {
                 holder.ivAvatar.setImageResource(R.drawable.gift2);
+            }
+
+            // Display Frame
+            if (item.getFrame() != null && !item.getFrame().trim().isEmpty()) {
+                FrameUtils.displayFrame(context, item.getFrame(), holder.ivFrame, holder.svgaFrame);
+            } else if (item.getUid() != null && !item.getUid().trim().isEmpty()) {
+                UserProfileCache.getUserProfile(item.getUid(), profile -> {
+                    if (profile != null) {
+                        FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivFrame, holder.svgaFrame);
+                    } else {
+                        FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
+                    }
+                });
+            } else {
+                FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
             }
         }
 
@@ -136,6 +155,8 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
     static class ViewHolder extends RecyclerView.ViewHolder {
         View vSelectionRing;
         ImageView ivAvatar;
+        ImageView ivFrame;
+        SVGAImageView svgaFrame;
         FrameLayout flAllContainer;
         TextView tvSeatBadge;
         TextView tvName;
@@ -144,6 +165,8 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
             super(itemView);
             vSelectionRing = itemView.findViewById(R.id.vSelectionRing);
             ivAvatar = itemView.findViewById(R.id.ivRecipientAvatar);
+            ivFrame = itemView.findViewById(R.id.ivRecipientFrame);
+            svgaFrame = itemView.findViewById(R.id.svgaRecipientFrame);
             flAllContainer = itemView.findViewById(R.id.flAllContainer);
             tvSeatBadge = itemView.findViewById(R.id.tvSeatBadge);
             tvName = itemView.findViewById(R.id.tvRecipientName);

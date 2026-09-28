@@ -200,6 +200,25 @@ public class StoreManager {
         });
     }
 
+    public static void unequipItem(String uid, StoreItemModel item, ActionCallback callback) {
+        if (uid == null || item == null || item.getCategory() == null) {
+            if (callback != null) callback.onError("Invalid parameters");
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        String categoryKey = "equipped_" + item.getCategory().toLowerCase();
+
+        userRef.child(categoryKey).removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                item.setEquipped(false);
+                if (callback != null) callback.onSuccess("Unequipped " + item.getName() + "!");
+            } else {
+                if (callback != null) callback.onError("Failed to unequip item.");
+            }
+        });
+    }
+
     private static List<StoreItemModel> seedDefaultItems() {
         List<StoreItemModel> items = new ArrayList<>();
         

@@ -182,6 +182,15 @@
                             android:layout_height="match_parent"
                             android:scaleType="fitCenter"
                             android:src="@drawable/ic_crown_gold_frame" />
+
+                        <com.opensource.svgaplayer.SVGAImageView
+                            android:id="@+id/svgaFrameRank1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            app:autoPlay="true"
+                            app:loopCount="0" />
                     </FrameLayout>
 
                     <TextView
@@ -273,6 +282,15 @@
                             android:layout_height="match_parent"
                             android:scaleType="fitCenter"
                             android:src="@drawable/ic_crown_silver_frame" />
+
+                        <com.opensource.svgaplayer.SVGAImageView
+                            android:id="@+id/svgaFrameRank2"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            app:autoPlay="true"
+                            app:loopCount="0" />
                     </FrameLayout>
 
                     <TextView
@@ -364,6 +382,15 @@
                             android:layout_height="match_parent"
                             android:scaleType="fitCenter"
                             android:src="@drawable/ic_crown_bronze_frame" />
+
+                        <com.opensource.svgaplayer.SVGAImageView
+                            android:id="@+id/svgaFrameRank3"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            app:autoPlay="true"
+                            app:loopCount="0" />
                     </FrameLayout>
 
                     <TextView
@@ -473,17 +500,40 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivMyAvatar"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+        <FrameLayout
+            android:id="@+id/flMyAvatarContainer"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="14dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_person"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/tvMyRank"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/CircleImage" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivMyAvatar"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_person"
+                app:shapeAppearanceOverlay="@style/CircleImage" />
+
+            <ImageView
+                android:id="@+id/ivMyFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaMyFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvMyName"
@@ -499,7 +549,7 @@
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/llMySpent"
-            app:layout_constraintStart_toEndOf="@+id/ivMyAvatar"
+            app:layout_constraintStart_toEndOf="@+id/flMyAvatarContainer"
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout

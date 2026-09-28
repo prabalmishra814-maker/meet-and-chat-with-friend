@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
-import com.roomchatapps.Pmishra.AnimationHelper;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.models.User;
@@ -70,22 +70,9 @@ public class SpeakerAdapter extends RecyclerView.Adapter<SpeakerAdapter.ViewHold
                                 .into(holder.ivSpeakerProfile);
                     }
 
-                    if (user.isHost()) {
-                        if (holder.ivSpeakerFrame != null) {
-                            holder.ivSpeakerFrame.setVisibility(View.GONE);
-                        }
-                    } else {
-                        int frameRes = FrameUtils.getFrameDrawableRes(holder.itemView.getContext(), profile.equippedFrame);
-                        if (holder.ivSpeakerFrame != null) {
-                            if (frameRes != 0) {
-                                holder.ivSpeakerFrame.setImageResource(frameRes);
-                                holder.ivSpeakerFrame.setVisibility(View.VISIBLE);
-                                AnimationHelper.pulseGlowAnimation(holder.ivSpeakerFrame);
-                            } else {
-                                holder.ivSpeakerFrame.setVisibility(View.GONE);
-                            }
-                        }
-                    }
+                    FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.ivSpeakerFrame, holder.svgaSpeakerFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivSpeakerFrame, holder.svgaSpeakerFrame);
                 }
             });
         } else {
@@ -93,6 +80,7 @@ public class SpeakerAdapter extends RecyclerView.Adapter<SpeakerAdapter.ViewHold
                     .load(user.getUserIcon())
                     .placeholder(R.drawable.logo_placeholder)
                     .into(holder.ivSpeakerProfile);
+            FrameUtils.clearFrame(holder.ivSpeakerFrame, holder.svgaSpeakerFrame);
         }
 
         // Mic Status
@@ -142,6 +130,7 @@ public class SpeakerAdapter extends RecyclerView.Adapter<SpeakerAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         com.google.android.material.imageview.ShapeableImageView ivSpeakerProfile;
         ImageView ivSpeakerFrame;
+        SVGAImageView svgaSpeakerFrame;
         ImageView ivMicStatus;
         TextView tvSpeakerName;
         View speakingIndicator;
@@ -151,6 +140,7 @@ public class SpeakerAdapter extends RecyclerView.Adapter<SpeakerAdapter.ViewHold
             super(itemView);
             ivSpeakerProfile = itemView.findViewById(R.id.ivSpeakerProfile);
             ivSpeakerFrame = itemView.findViewById(R.id.ivSpeakerFrame);
+            svgaSpeakerFrame = itemView.findViewById(R.id.svgaSpeakerFrame);
             ivMicStatus = itemView.findViewById(R.id.ivMicStatus);
             tvSpeakerName = itemView.findViewById(R.id.tvSpeakerName);
             speakingIndicator = itemView.findViewById(R.id.speakingIndicator);

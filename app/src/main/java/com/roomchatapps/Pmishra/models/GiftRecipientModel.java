@@ -4,14 +4,20 @@ public class GiftRecipientModel {
     private String uid;
     private String name;
     private String avatar;
+    private String frame;
     private String seatBadge;
     private boolean isAll;
     private boolean isSelected;
 
     public GiftRecipientModel(String uid, String name, String avatar, String seatBadge, boolean isAll, boolean isSelected) {
+        this(uid, name, avatar, "", seatBadge, isAll, isSelected);
+    }
+
+    public GiftRecipientModel(String uid, String name, String avatar, String frame, String seatBadge, boolean isAll, boolean isSelected) {
         this.uid = uid;
         this.name = name;
         this.avatar = avatar;
+        this.frame = frame != null ? frame : "";
         this.seatBadge = seatBadge;
         this.isAll = isAll;
         this.isSelected = isSelected;
@@ -39,6 +45,14 @@ public class GiftRecipientModel {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getFrame() {
+        return frame;
+    }
+
+    public void setFrame(String frame) {
+        this.frame = frame;
     }
 
     public String getSeatBadge() {

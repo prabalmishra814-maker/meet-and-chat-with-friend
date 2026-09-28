@@ -22,8 +22,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.adapters.LeaderboardAdapter;
 import com.roomchatapps.Pmishra.models.LeaderboardModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,6 +42,8 @@ public class LeaderboardActivity extends AppCompatActivity {
     // Podium Views
     private View podiumContainer, podiumRank1, podiumRank2, podiumRank3;
     private ShapeableImageView ivAvatarRank1, ivAvatarRank2, ivAvatarRank3;
+    private ImageView ivFrameRank1, ivFrameRank2, ivFrameRank3;
+    private SVGAImageView svgaFrameRank1, svgaFrameRank2, svgaFrameRank3;
     private TextView tvNameRank1, tvNameRank2, tvNameRank3;
     private TextView tvCoinsRank1, tvCoinsRank2, tvCoinsRank3;
 
@@ -50,6 +55,8 @@ public class LeaderboardActivity extends AppCompatActivity {
     // Bottom Bar (My Rank)
     private TextView tvMyRank, tvMyName, tvMySpentCoins;
     private ShapeableImageView ivMyAvatar;
+    private ImageView ivMyFrame;
+    private SVGAImageView svgaMyFrame;
 
     private LeaderboardAdapter adapter;
     private final List<LeaderboardModel> listRank4Plus = new ArrayList<>();
@@ -87,6 +94,14 @@ public class LeaderboardActivity extends AppCompatActivity {
         ivAvatarRank2 = findViewById(R.id.ivAvatarRank2);
         ivAvatarRank3 = findViewById(R.id.ivAvatarRank3);
 
+        ivFrameRank1 = findViewById(R.id.ivFrameRank1);
+        ivFrameRank2 = findViewById(R.id.ivFrameRank2);
+        ivFrameRank3 = findViewById(R.id.ivFrameRank3);
+
+        svgaFrameRank1 = findViewById(R.id.svgaFrameRank1);
+        svgaFrameRank2 = findViewById(R.id.svgaFrameRank2);
+        svgaFrameRank3 = findViewById(R.id.svgaFrameRank3);
+
         tvNameRank1 = findViewById(R.id.tvNameRank1);
         tvNameRank2 = findViewById(R.id.tvNameRank2);
         tvNameRank3 = findViewById(R.id.tvNameRank3);
@@ -103,6 +118,8 @@ public class LeaderboardActivity extends AppCompatActivity {
         tvMyName = findViewById(R.id.tvMyName);
         tvMySpentCoins = findViewById(R.id.tvMySpentCoins);
         ivMyAvatar = findViewById(R.id.ivMyAvatar);
+        ivMyFrame = findViewById(R.id.ivMyFrame);
+        svgaMyFrame = findViewById(R.id.svgaMyFrame);
     }
 
     private void setupAnimations() {
@@ -268,7 +285,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         // Populate Top 3 Podium
         if (fullList.size() >= 1) {
             LeaderboardModel top1 = fullList.get(0);
-            bindPodiumSlot(top1, podiumRank1, tvNameRank1, tvCoinsRank1, ivAvatarRank1);
+            bindPodiumSlot(top1, podiumRank1, tvNameRank1, tvCoinsRank1, ivAvatarRank1, ivFrameRank1, svgaFrameRank1);
             if (podiumRank1 != null) podiumRank1.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank1 != null) podiumRank1.setVisibility(View.INVISIBLE);
@@ -276,7 +293,7 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 2) {
             LeaderboardModel top2 = fullList.get(1);
-            bindPodiumSlot(top2, podiumRank2, tvNameRank2, tvCoinsRank2, ivAvatarRank2);
+            bindPodiumSlot(top2, podiumRank2, tvNameRank2, tvCoinsRank2, ivAvatarRank2, ivFrameRank2, svgaFrameRank2);
             if (podiumRank2 != null) podiumRank2.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank2 != null) podiumRank2.setVisibility(View.INVISIBLE);
@@ -284,7 +301,7 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 3) {
             LeaderboardModel top3 = fullList.get(2);
-            bindPodiumSlot(top3, podiumRank3, tvNameRank3, tvCoinsRank3, ivAvatarRank3);
+            bindPodiumSlot(top3, podiumRank3, tvNameRank3, tvCoinsRank3, ivAvatarRank3, ivFrameRank3, svgaFrameRank3);
             if (podiumRank3 != null) podiumRank3.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank3 != null) podiumRank3.setVisibility(View.INVISIBLE);
@@ -307,7 +324,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         updateMyRankBar(fullList);
     }
 
-    private void bindPodiumSlot(LeaderboardModel model, View container, TextView tvName, TextView tvCoins, ShapeableImageView ivAvatar) {
+    private void bindPodiumSlot(LeaderboardModel model, View container, TextView tvName, TextView tvCoins, ShapeableImageView ivAvatar, ImageView ivFrame, SVGAImageView svgaFrame) {
         if (container == null) return;
 
         if (tvName != null) tvName.setText(model.getName() != null ? model.getName() : "User");
@@ -323,6 +340,18 @@ public class LeaderboardActivity extends AppCompatActivity {
             } else {
                 ivAvatar.setImageResource(R.drawable.ic_person);
             }
+        }
+
+        if (model.getUid() != null && !model.getUid().trim().isEmpty()) {
+            UserProfileCache.getUserProfile(model.getUid(), profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(LeaderboardActivity.this, profile.equippedFrame, ivFrame, svgaFrame);
+                } else {
+                    FrameUtils.clearFrame(ivFrame, svgaFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(ivFrame, svgaFrame);
         }
 
         container.setOnClickListener(v -> {
@@ -362,10 +391,19 @@ public class LeaderboardActivity extends AppCompatActivity {
                     ivMyAvatar.setImageResource(R.drawable.ic_person);
                 }
             }
+
+            UserProfileCache.getUserProfile(currentUid, profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(LeaderboardActivity.this, profile.equippedFrame, ivMyFrame, svgaMyFrame);
+                } else {
+                    FrameUtils.clearFrame(ivMyFrame, svgaMyFrame);
+                }
+            });
         } else {
             if (tvMyRank != null) tvMyRank.setText("Rank: --");
             if (tvMyName != null) tvMyName.setText("You");
             if (tvMySpentCoins != null) tvMySpentCoins.setText("0");
+            FrameUtils.clearFrame(ivMyFrame, svgaMyFrame);
         }
     }
 }

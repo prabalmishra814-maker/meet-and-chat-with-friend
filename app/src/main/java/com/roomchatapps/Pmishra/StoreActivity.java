@@ -145,7 +145,20 @@ public class StoreActivity extends AppCompatActivity {
         }
 
         if (item.isEquipped()) {
-            Toast.makeText(this, item.getName() + " is already equipped! ✓", Toast.LENGTH_SHORT).show();
+            // Unequip item
+            Toast.makeText(this, "Unequipping " + item.getName() + "...", Toast.LENGTH_SHORT).show();
+            StoreManager.unequipItem(currentUid, item, new StoreManager.ActionCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    Toast.makeText(StoreActivity.this, "✨ " + message, Toast.LENGTH_SHORT).show();
+                    loadCatalog(); // refresh catalog & equipped states
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(StoreActivity.this, "Failed to unequip: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
             return;
         }
 
@@ -216,11 +229,11 @@ public class StoreActivity extends AppCompatActivity {
 
         if (btnAction != null) {
             if (item.isEquipped()) {
-                btnAction.setText("Equipped ✓");
-                btnAction.setBackgroundColor(Color.parseColor("#00FF7F"));
-                btnAction.setTextColor(Color.parseColor("#050E1E"));
+                btnAction.setText("Unequip ✨");
+                btnAction.setBackgroundColor(Color.parseColor("#FF6B6B"));
+                btnAction.setTextColor(Color.parseColor("#FFFFFF"));
             } else if (item.isOwned()) {
-                btnAction.setText("Equip Frame ✨");
+                btnAction.setText(isEntrance ? "Equip Entrance ✨" : "Equip Frame ✨");
                 btnAction.setBackgroundColor(Color.parseColor("#40E0D0"));
                 btnAction.setTextColor(Color.parseColor("#050E1E"));
             } else {

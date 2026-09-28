@@ -9,9 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.zego.SeatManager;
 import java.util.List;
 
@@ -84,6 +87,19 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
                 .load(user.getUserIcon())
                 .placeholder(R.drawable.logo_placeholder)
                 .into(holder.ivAudienceProfile);
+
+        String userId = user.getUserId();
+        if (userId != null && !userId.trim().isEmpty()) {
+            UserProfileCache.getUserProfile(userId, profile -> {
+                if (profile != null) {
+                    FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.ivAudienceFrame, holder.svgaAudienceFrame);
+                } else {
+                    FrameUtils.clearFrame(holder.ivAudienceFrame, holder.svgaAudienceFrame);
+                }
+            });
+        } else {
+            FrameUtils.clearFrame(holder.ivAudienceFrame, holder.svgaAudienceFrame);
+        }
     }
 
     @Override
@@ -93,12 +109,16 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAudienceProfile;
+        ImageView ivAudienceFrame;
+        SVGAImageView svgaAudienceFrame;
         TextView tvAudienceName, tvAudienceStatus;
         MaterialButton btnInviteUser;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivAudienceProfile = itemView.findViewById(R.id.ivAudienceProfile);
+            ivAudienceFrame = itemView.findViewById(R.id.ivAudienceFrame);
+            svgaAudienceFrame = itemView.findViewById(R.id.svgaAudienceFrame);
             tvAudienceName = itemView.findViewById(R.id.tvAudienceName);
             tvAudienceStatus = itemView.findViewById(R.id.tvAudienceStatus);
             btnInviteUser = itemView.findViewById(R.id.btnInviteUser);

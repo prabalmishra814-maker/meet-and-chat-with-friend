@@ -16,22 +16,39 @@
         android:layout_height="match_parent"
         android:padding="14dp">
 
-        <!-- Avatar & Type Badge -->
+        <!-- Avatar & Type Badge Container -->
         <FrameLayout
             android:id="@+id/flAvatarContainer"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivSenderAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_person"
                 app:shapeAppearanceOverlay="@style/CircleImage" />
+
+            <ImageView
+                android:id="@+id/ivSenderFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaSenderFrame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
 
             <ImageView
                 android:id="@+id/ivTypeBadge"

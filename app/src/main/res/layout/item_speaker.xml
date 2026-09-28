@@ -33,7 +33,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
-            android:src="@drawable/_1000092461_removebg_preview" />
+            android:visibility="gone" />
+
+        <!-- Animated SVGA Profile Frame Overlay -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaSpeakerFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
 
         <!-- Speaking indicator (visible when talking) -->
         <View
