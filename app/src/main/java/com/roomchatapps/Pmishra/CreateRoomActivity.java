@@ -112,7 +112,7 @@ public class CreateRoomActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.BLACK);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_create_room);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

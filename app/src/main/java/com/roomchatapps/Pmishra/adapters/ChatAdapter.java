@@ -3,6 +3,7 @@ package com.roomchatapps.Pmishra.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageReceivedBinding;
+import com.roomchatapps.Pmishra.databinding.ItemChatMessageRoomBinding;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageSentBinding;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
@@ -33,17 +35,24 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_SENT = 1;
     private static final int TYPE_RECEIVED = 2;
+    private static final int TYPE_ROOM = 3;
 
     private final List<ChatMessage> chatMessages;
     private final String currentUserId;
+    private final boolean isRoomChat;
     private int lastAnimatedPosition = -1;
 
     public ChatAdapter() {
-        this(new ArrayList<>());
+        this(new ArrayList<>(), true);
     }
 
     public ChatAdapter(List<ChatMessage> chatMessages) {
+        this(chatMessages, false);
+    }
+
+    public ChatAdapter(List<ChatMessage> chatMessages, boolean isRoomChat) {
         this.chatMessages = chatMessages != null ? chatMessages : new ArrayList<>();
+        this.isRoomChat = isRoomChat;
         String uid = FirebaseAuth.getInstance().getUid();
         this.currentUserId = uid != null ? uid : "";
     }
@@ -82,6 +91,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
+        if (isRoomChat) {
+            return TYPE_ROOM;
+        }
         if (position < 0 || position >= chatMessages.size()) return TYPE_RECEIVED;
         ChatMessage msg = chatMessages.get(position);
         if (msg != null && msg.getSenderId() != null && msg.getSenderId().equals(currentUserId)) {
@@ -94,7 +106,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == TYPE_SENT) {
+        if (viewType == TYPE_ROOM) {
+            ItemChatMessageRoomBinding binding = ItemChatMessageRoomBinding.inflate(
+                    LayoutInflater.from(parent.getContext()), parent, false);
+            return new RoomMessageViewHolder(binding);
+        } else if (viewType == TYPE_SENT) {
             ItemChatMessageSentBinding binding = ItemChatMessageSentBinding.inflate(
                     LayoutInflater.from(parent.getContext()), parent, false);
             return new SentMessageViewHolder(binding);
@@ -114,18 +130,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ChatMessage message = chatMessages.get(targetPos);
         if (message == null) return;
 
-        // Animate ONLY newly added messages
+        // Animate newly added messages
         if (targetPos > lastAnimatedPosition) {
             holder.itemView.setAlpha(0f);
-            holder.itemView.setTranslationY(25f);
-            holder.itemView.setScaleX(0.97f);
-            holder.itemView.setScaleY(0.97f);
+            holder.itemView.setTranslationY(20f);
             holder.itemView.animate()
                     .alpha(1f)
                     .translationY(0f)
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(280)
+                    .setDuration(240)
                     .setInterpolator(new DecelerateInterpolator())
                     .start();
             lastAnimatedPosition = targetPos;
@@ -135,6 +147,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ((SentMessageViewHolder) holder).setData(message);
         } else if (holder instanceof ReceivedMessageViewHolder) {
             ((ReceivedMessageViewHolder) holder).setData(message);
+        } else if (holder instanceof RoomMessageViewHolder) {
+            ((RoomMessageViewHolder) holder).setData(message);
         }
     }
 
@@ -153,19 +167,36 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void setData(ChatMessage message) {
             if (message == null) return;
+            binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
+            binding.tvTime.setText(formatDate(message.getTimestamp()));
+
+            if (binding.ivReadStatus != null) {
+                if (message.isRead()) {
+                    binding.ivReadStatus.setColorFilter(Color.parseColor("#00FFC6"));
+                } else {
+                    binding.ivReadStatus.setColorFilter(Color.parseColor("#D0FFFFFF"));
+                }
+            }
+        }
+    }
+
+    static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
+        private final ItemChatMessageReceivedBinding binding;
+
+        ReceivedMessageViewHolder(ItemChatMessageReceivedBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        void setData(ChatMessage message) {
+            if (message == null) return;
             Context ctx = itemView.getContext();
             binding.tvMessage.setText(message.getMessage() != null ? message.getMessage() : "");
             binding.tvTime.setText(formatDate(message.getTimestamp()));
 
             if (binding.ivAvatar != null) {
                 binding.ivAvatar.setVisibility(View.VISIBLE);
-                
-                // Quick immediate avatar preview from message or session
                 String directAvatar = message.getSenderAvatar();
-                if (directAvatar == null || directAvatar.trim().isEmpty()) {
-                    directAvatar = SessionManager.getInstance(ctx).getAvatar();
-                }
-
                 if (directAvatar != null && !directAvatar.trim().isEmpty()) {
                     Glide.with(ctx)
                             .load(directAvatar)
@@ -214,10 +245,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
-        private final ItemChatMessageReceivedBinding binding;
+    static class RoomMessageViewHolder extends RecyclerView.ViewHolder {
+        private final ItemChatMessageRoomBinding binding;
 
-        ReceivedMessageViewHolder(ItemChatMessageReceivedBinding binding) {
+        RoomMessageViewHolder(ItemChatMessageRoomBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
@@ -230,8 +261,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             if (binding.ivAvatar != null) {
                 binding.ivAvatar.setVisibility(View.VISIBLE);
-                
                 String directAvatar = message.getSenderAvatar();
+                if (directAvatar == null || directAvatar.trim().isEmpty()) {
+                    directAvatar = SessionManager.getInstance(ctx).getAvatar();
+                }
+
                 if (directAvatar != null && !directAvatar.trim().isEmpty()) {
                     Glide.with(ctx)
                             .load(directAvatar)

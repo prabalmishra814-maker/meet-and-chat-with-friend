@@ -3,7 +3,10 @@
     <style name="Base.Theme.RoomChat" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Transparent Status Bar matching room theme -->
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 
     <style name="Theme.RoomChat" parent="Base.Theme.RoomChat" />

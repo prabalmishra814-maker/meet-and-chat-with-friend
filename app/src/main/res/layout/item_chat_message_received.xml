@@ -1,88 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical|start"
+    android:gravity="start|bottom"
     android:orientation="horizontal"
-    android:paddingVertical="3dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="64dp"
+    android:paddingVertical="4dp">
 
-    <!-- Compact Dark Pill Bubble -->
+    <!-- Sender Avatar Container -->
+    <FrameLayout
+        android:id="@+id/avatarContainer"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="bottom">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/logo_placeholder"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <ImageView
+            android:id="@+id/ivFrame"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:contentDescription="User Frame"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaFrame"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Telegram Received Message Bubble -->
     <LinearLayout
+        android:id="@+id/bubbleLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_chat_input_pill"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="5dp">
+        android:background="@drawable/bg_chat_bubble_received"
+        android:orientation="vertical"
+        android:elevation="1dp">
 
-        <!-- Level Badge Pill -->
-        <TextView
-            android:id="@+id/tvLevelBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_level_badge_cyan"
-            android:gravity="center"
-            android:text="⬡ 16"
-            android:textColor="#FFFFFF"
-            android:textSize="9.5sp"
-            android:textStyle="bold" />
-
-        <!-- User Avatar Container -->
-        <FrameLayout
-            android:id="@+id/avatarContainer"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_marginEnd="6dp">
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/ivAvatar"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo_placeholder"
-                android:visibility="visible"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
-
-            <ImageView
-                android:id="@+id/ivFrame"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:visibility="gone" />
-
-            <com.opensource.svgaplayer.SVGAImageView
-                android:id="@+id/svgaFrame"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:visibility="gone" />
-        </FrameLayout>
-
-        <!-- Sender Message Content -->
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="260dp"
-            android:text="Sophia : Enter the room"
-            android:textColor="#FFFFFF"
-            android:textSize="12.5sp" />
+            android:lineSpacingExtra="2dp"
+            android:textColor="#F3F4F6"
+            android:textSize="14.5sp"
+            tools:text="I am doing great! How about you?" />
 
+        <!-- Timestamp -->
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="12:01 PM"
-            android:textColor="#80FFFFFF"
-            android:textSize="9sp"
-            android:visibility="gone" />
+            android:layout_gravity="end"
+            android:layout_marginTop="3dp"
+            android:textColor="#9CA3AF"
+            android:textSize="10.5sp"
+            tools:text="10:43 AM" />
 
     </LinearLayout>
 
