@@ -167,7 +167,7 @@
                 android:background="@drawable/bg_level_badge_pill"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="3dp"
-                android:text="Lv1"
+                android:text="Lv.1"
                 android:textColor="#E2E8F0"
                 android:textSize="11.5sp"
                 android:textStyle="bold" />

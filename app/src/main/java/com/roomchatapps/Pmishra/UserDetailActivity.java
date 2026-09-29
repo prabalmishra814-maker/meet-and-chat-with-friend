@@ -143,6 +143,7 @@ public class UserDetailActivity extends AppCompatActivity {
 
                     binding.tvUserLevelCard.setText("🛡️ Lv." + level);
                     binding.tvUserLevelCard.setBackgroundResource(LevelUtils.getLevelBadgeDrawable(level));
+
                     binding.tvLevelTitle.setText("Level " + level + " Member");
                     binding.pbLevelXp.setMax(100);
                     binding.pbLevelXp.setProgress(xpProgressPct);
