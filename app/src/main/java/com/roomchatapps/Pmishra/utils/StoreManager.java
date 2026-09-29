@@ -222,50 +222,58 @@ public class StoreManager {
     private static List<StoreItemModel> seedDefaultItems() {
         List<StoreItemModel> items = new ArrayList<>();
         
-        // Profile Banner / Frames (Animated SVGA & Static Frames) - All Prices Scaled from 30 Lakhs (30L) to 90 Crores (90Cr)
-        items.add(new StoreItemModel("frame_music_ring", "Music Ring 🎵", "FRAME", 3000000L, "Rhythmic Music Ring Frame", "_1000092463_removebg_preview", "MUSIC 🎵", "frame/music_ring.svga"));
+        // Profile Banner / Frames - Exact Prices from Screenshots
+        items.add(new StoreItemModel("frame_champion", "Champion Frame 🏆", "FRAME", 200000L, "Glorious Champion Frame", "ic_crown_gold_frame", "CHAMPION 👑", "frame/champion_frame.svga"));
+        items.add(new StoreItemModel("frame_crown_circle", "Crown Circle 👑", "FRAME", 400000L, "Royal Crown Ring Frame", "ic_crown_gold_frame", "ROYAL ✨", "frame/crown_circle.svga"));
+        items.add(new StoreItemModel("frame_diamond_glow", "Diamond Glow ✨", "FRAME", 700000L, "Glowing Diamond Energy Frame", "_1000092462_removebg_preview", "HOT 🔥", "frame/diamond_glow.svga"));
+        items.add(new StoreItemModel("frame_diamond_ring", "Diamond Ring 💎", "FRAME", 800000L, "Dazzling Diamond Ring Frame", "_1000092469_removebg_preview", "LUXURY", "frame/diamond_ring.svga"));
+        items.add(new StoreItemModel("frame_star_ring", "Star Ring ✨", "FRAME", 1000000L, "Shining Star Ring Frame", "_1000092462_removebg_preview", "POPULAR", "frame/star_ring.svga"));
+        items.add(new StoreItemModel("frame_crystal", "Crystal Frame 💎", "FRAME", 1500000L, "Sparkling Crystal Border", "_1000092469_removebg_preview", "CRYSTAL 💎", "frame/crystal_frame.svga"));
+        items.add(new StoreItemModel("frame_crystal_ring", "Crystal Ring 💍", "FRAME", 1500000L, "Radiant Crystal Ring Frame", "_1000092466_removebg_preview", "NEW 🔥", "frame/crystal_ring.svga"));
+        items.add(new StoreItemModel("frame_fire_ring", "Fire Ring 💥", "FRAME", 1500000L, "Blazing Fire Ring Frame", "_1000092470_removebg_preview", "FIRE 🔥", "frame/fire_ring_frame.svga"));
+        items.add(new StoreItemModel("frame_lion_glory", "Lion Glory 🦁", "FRAME", 1500000L, "Glorious Lion Spirit Frame", "_1000092467_removebg_preview", "LION 🦁", "frame/lion_glory.svga"));
+
+        items.add(new StoreItemModel("frame_music_ring", "Music Ring 🎵", "FRAME", 2000000L, "Rhythmic Music Ring Frame", "_1000092463_removebg_preview", "MUSIC 🎵", "frame/music_ring.svga"));
+        items.add(new StoreItemModel("frame_purple_star", "Purple Star 🌟", "FRAME", 2000000L, "Purple Starburst Frame", "_1000092464_removebg_preview", "STAR 🌟", "frame/purple_star.svga"));
+        items.add(new StoreItemModel("frame_golden_beast", "Golden Beast 🦁", "FRAME", 2000000L, "Golden Beast Aura Frame", "ic_crown_gold_frame", "VIP 👑", "frame/golden_beast.svga"));
+        items.add(new StoreItemModel("frame_flame_lion", "Flame Lion 🦁", "FRAME", 2000000L, "Mighty Flame Lion Frame", "_1000092470_removebg_preview", "LION 🦁", "frame/flame_lion.svga"));
+        items.add(new StoreItemModel("frame_imperial_glory", "Imperial Glory 👑", "FRAME", 2000000L, "Imperial Royal Glory Frame", "ic_crown_gold_frame", "IMPERIAL 🌟", "frame/imperial_glory.svga"));
+        items.add(new StoreItemModel("frame_golden_emperor", "Golden Emperor 👑", "FRAME", 2000000L, "Majestic Golden Emperor Frame", "ic_crown_gold_frame", "EMPEROR 👑", "frame/golden_emperor.svga"));
+        items.add(new StoreItemModel("frame_golden_wings", "Golden Wings 🪽", "FRAME", 2000000L, "Shining Golden Wings Frame", "ic_crown_gold_frame", "WINGS 🪽", "frame/golden_wings.svga"));
+        items.add(new StoreItemModel("frame_majestic_aura", "Majestic Aura 🌟", "FRAME", 2000000L, "Majestic Glowing Aura Frame", "_1000092464_removebg_preview", "FEATURED", "frame/majestic_aura.svga"));
+
+        items.add(new StoreItemModel("frame_inferno_crown", "Inferno Crown 🔥", "FRAME", 2500000L, "Inferno Flame Crown Frame", "_1000092470_removebg_preview", "HOT 🔥", "frame/inferno_crown.svga"));
         items.add(new StoreItemModel("frame_nature_ring", "Nature Ring 🌿", "FRAME", 3000000L, "Fresh Nature Ring Frame", "_1000092463_removebg_preview", "NATURE 🌿", "frame/nature_ring.svga"));
-        items.add(new StoreItemModel("frame_star_ring", "Star Ring ✨", "FRAME", 3000000L, "Shining Star Ring Frame", "_1000092462_removebg_preview", "POPULAR", "frame/star_ring.svga"));
-        items.add(new StoreItemModel("frame_ice_crystal", "Ice Crystal ❄️", "FRAME", 3000000L, "Cool Ice Crystal Frame", "_1000092466_removebg_preview", "COOL ❄️", "frame/ice_crystal.svga"));
-        items.add(new StoreItemModel("frame_diamond_glow", "Diamond Glow ✨", "FRAME", 3000000L, "Glowing Diamond Energy Frame", "_1000092462_removebg_preview", "HOT 🔥", "frame/diamond_glow.svga"));
-        items.add(new StoreItemModel("frame_crystal_ring", "Crystal Ring 💍", "FRAME", 3000000L, "Radiant Crystal Ring Frame", "_1000092466_removebg_preview", "NEW 🔥", "frame/crystal_ring.svga"));
         items.add(new StoreItemModel("frame_vip_1", "VIP 1 Frame 👑", "FRAME", 3000000L, "VIP Level 1 Avatar Frame", "ic_crown_bronze_frame", "VIP 1", "frame/vip_1.svga"));
+        items.add(new StoreItemModel("frame_purple_thunder", "Purple Thunder ⚡", "FRAME", 3000000L, "Electric Purple Thunder Frame", "_1000092464_removebg_preview", "THUNDER ⚡", "frame/purple_thunder.svga"));
 
-        items.add(new StoreItemModel("frame_crystal", "Crystal Frame 💎", "FRAME", 5000000L, "Sparkling Crystal Border", "_1000092469_removebg_preview", "CRYSTAL 💎", "frame/crystal_frame.svga"));
-        items.add(new StoreItemModel("frame_fire_ring", "Fire Ring 💥", "FRAME", 5000000L, "Blazing Fire Ring Frame", "_1000092470_removebg_preview", "FIRE 🔥", "frame/fire_ring_frame.svga"));
+        items.add(new StoreItemModel("frame_ice_crystal", "Ice Crystal ❄️", "FRAME", 3500000L, "Cool Ice Crystal Frame", "_1000092466_removebg_preview", "COOL ❄️", "frame/ice_crystal.svga"));
+        items.add(new StoreItemModel("frame_dragon", "Dragon Flame 🐉", "FRAME", 3500000L, "Fiery Dragon Frame", "_1000092470_removebg_preview", "EPIC 🐲", "frame/dragon_frame.svga"));
+        items.add(new StoreItemModel("frame_vip_2", "VIP 2 Frame 👑", "FRAME", 3500000L, "VIP Level 2 Avatar Frame", "ic_crown_silver_frame", "VIP 2", "frame/vip_2.svga"));
+
+        items.add(new StoreItemModel("frame_vip_3", "VIP 3 Frame 👑", "FRAME", 4000000L, "VIP Level 3 Avatar Frame", "ic_crown_gold_frame", "VIP 3", "frame/vip_3.svga"));
+        items.add(new StoreItemModel("frame_vip_4", "VIP 4 Frame 👑", "FRAME", 4500000L, "VIP Level 4 Avatar Frame", "ic_crown_gold_frame", "VIP 4", "frame/vip_4.svga"));
+
         items.add(new StoreItemModel("frame_purple_mask", "Purple Mask 🎭", "FRAME", 5000000L, "Mysterious Purple Mask Frame", "_1000092464_removebg_preview", "MYSTIC 🎭", "frame/purple_mask.svga"));
-        items.add(new StoreItemModel("frame_purple_star", "Purple Star 🌟", "FRAME", 5000000L, "Purple Starburst Frame", "_1000092464_removebg_preview", "STAR 🌟", "frame/purple_star.svga"));
-        items.add(new StoreItemModel("frame_diamond_ring", "Diamond Ring 💎", "FRAME", 5000000L, "Dazzling Diamond Ring Frame", "_1000092469_removebg_preview", "LUXURY", "frame/diamond_ring.svga"));
-        items.add(new StoreItemModel("frame_crown_circle", "Crown Circle 👑", "FRAME", 5000000L, "Royal Crown Ring Frame", "ic_crown_gold_frame", "ROYAL ✨", "frame/crown_circle.svga"));
-        items.add(new StoreItemModel("frame_vip_2", "VIP 2 Frame 👑", "FRAME", 5000000L, "VIP Level 2 Avatar Frame", "ic_crown_silver_frame", "VIP 2", "frame/vip_2.svga"));
-        items.add(new StoreItemModel("frame_vip_3", "VIP 3 Frame 👑", "FRAME", 8000000L, "VIP Level 3 Avatar Frame", "ic_crown_gold_frame", "VIP 3", "frame/vip_3.svga"));
+        items.add(new StoreItemModel("frame_vip_5", "VIP 5 Frame 👑", "FRAME", 5000000L, "VIP Level 5 Avatar Frame", "ic_crown_gold_frame", "VIP 5", "frame/vip_5.svga"));
 
-        items.add(new StoreItemModel("frame_champion", "Champion Frame 🏆", "FRAME", 10000000L, "Glorious Champion Frame", "ic_crown_gold_frame", "CHAMPION 👑", "frame/champion_frame.svga"));
-        items.add(new StoreItemModel("frame_majestic_aura", "Majestic Aura 🌟", "FRAME", 10000000L, "Majestic Glowing Aura Frame", "_1000092464_removebg_preview", "FEATURED", "frame/majestic_aura.svga"));
-        items.add(new StoreItemModel("frame_purple_thunder", "Purple Thunder ⚡", "FRAME", 10000000L, "Electric Purple Thunder Frame", "_1000092464_removebg_preview", "THUNDER ⚡", "frame/purple_thunder.svga"));
-        items.add(new StoreItemModel("frame_golden_wings", "Golden Wings 🪽", "FRAME", 10000000L, "Shining Golden Wings Frame", "ic_crown_gold_frame", "WINGS 🪽", "frame/golden_wings.svga"));
-        items.add(new StoreItemModel("frame_star_crown", "Star Crown 👑", "FRAME", 10000000L, "Star Crown Frame", "ic_crown_gold_frame", "CROWN 👑", "frame/star_crown.svga"));
-        items.add(new StoreItemModel("frame_inferno_crown", "Inferno Crown 🔥", "FRAME", 15000000L, "Inferno Flame Crown Frame", "_1000092470_removebg_preview", "HOT 🔥", "frame/inferno_crown.svga"));
-        items.add(new StoreItemModel("frame_vip_4", "VIP 4 Frame 👑", "FRAME", 20000000L, "VIP Level 4 Avatar Frame", "ic_crown_gold_frame", "VIP 4", "frame/vip_4.svga"));
-        items.add(new StoreItemModel("frame_vip_5", "VIP 5 Frame 👑", "FRAME", 30000000L, "VIP Level 5 Avatar Frame", "ic_crown_gold_frame", "VIP 5", "frame/vip_5.svga"));
+        items.add(new StoreItemModel("frame_star_crown", "Star Crown 👑", "FRAME", 6000000L, "Star Crown Frame", "ic_crown_gold_frame", "CROWN 👑", "frame/star_crown.svga"));
+        items.add(new StoreItemModel("frame_vip_6", "VIP 6 Frame 👑", "FRAME", 6000000L, "VIP Level 6 Avatar Frame", "ic_crown_gold_frame", "VIP 6", "frame/vip_6.svga"));
 
-        items.add(new StoreItemModel("frame_golden_beast", "Golden Beast 🦁", "FRAME", 50000000L, "Golden Beast Aura Frame", "ic_crown_gold_frame", "VIP 👑", "frame/golden_beast.svga"));
-        items.add(new StoreItemModel("frame_lion_glory", "Lion Glory 🦁", "FRAME", 50000000L, "Glorious Lion Spirit Frame", "_1000092467_removebg_preview", "LION 🦁", "frame/lion_glory.svga"));
-        items.add(new StoreItemModel("frame_flame_lion", "Flame Lion 🦁", "FRAME", 50000000L, "Mighty Flame Lion Frame", "_1000092470_removebg_preview", "LION 🦁", "frame/flame_lion.svga"));
-        items.add(new StoreItemModel("frame_rank_3", "Rank 3 Bronze Frame 🥉", "FRAME", 100000000L, "Top 3 Leaderboard Rank Frame", "ic_crown_bronze_frame", "RANK 3 🥉", "frame/frame_rank_3.svga"));
-        items.add(new StoreItemModel("frame_rank_2", "Rank 2 Silver Frame 🥈", "FRAME", 150000000L, "Top 2 Leaderboard Rank Frame", "ic_crown_silver_frame", "RANK 2 🥈", "frame/frame_rank_2.svga"));
-        items.add(new StoreItemModel("frame_dragon", "Dragon Flame 🐉", "FRAME", 150000000L, "Fiery Dragon Frame", "_1000092470_removebg_preview", "EPIC 🐲", "frame/dragon_frame.svga"));
-        items.add(new StoreItemModel("frame_imperial_glory", "Imperial Glory 👑", "FRAME", 200000000L, "Imperial Royal Glory Frame", "ic_crown_gold_frame", "IMPERIAL 🌟", "frame/imperial_glory.svga"));
-        items.add(new StoreItemModel("frame_vip_6", "VIP 6 Frame 👑", "FRAME", 200000000L, "VIP Level 6 Avatar Frame", "ic_crown_gold_frame", "VIP 6", "frame/vip_6.svga"));
-        items.add(new StoreItemModel("frame_golden_emperor", "Golden Emperor 👑", "FRAME", 300000000L, "Majestic Golden Emperor Frame", "ic_crown_gold_frame", "EMPEROR 👑", "frame/golden_emperor.svga"));
-        items.add(new StoreItemModel("frame_rank_1", "Rank 1 Gold Frame 🥇", "FRAME", 500000000L, "Top 1 Leaderboard Rank Frame", "ic_crown_gold_frame", "RANK 1 🥇", "frame/frame_rank_1.svga"));
-        items.add(new StoreItemModel("frame_vip_7", "VIP 7 Frame 👑", "FRAME", 900000000L, "Ultimate VIP Level 7 Frame", "ic_crown_gold_frame", "VIP 7 🔥", "frame/vip_7.svga"));
+        items.add(new StoreItemModel("frame_vip_7", "VIP 7 Frame 👑", "FRAME", 7000000L, "Ultimate VIP Level 7 Frame", "ic_crown_gold_frame", "VIP 7 🔥", "frame/vip_7.svga"));
+        items.add(new StoreItemModel("frame_rank_3", "Rank 3 Bronze Frame 🥉", "FRAME", 7500000L, "Top 3 Leaderboard Rank Frame", "ic_crown_bronze_frame", "RANK 3 🥉", "frame/frame_rank_3.svga"));
+        items.add(new StoreItemModel("frame_rank_2", "Rank 2 Silver Frame 🥈", "FRAME", 8000000L, "Top 2 Leaderboard Rank Frame", "ic_crown_silver_frame", "RANK 2 🥈", "frame/frame_rank_2.svga"));
+        items.add(new StoreItemModel("frame_rank_1", "Rank 1 Gold Frame 🥇", "FRAME", 9000000L, "Top 1 Leaderboard Rank Frame", "ic_crown_gold_frame", "RANK 1 🥇", "frame/frame_rank_1.svga"));
 
-        // Entrances / Rides (Scaled 10 Crore to 200 Crore / 1 Arab)
-        items.add(new StoreItemModel("entrance_toyota_car", "Toyota Car Entrance 🚗", "ENTRANCE", 100000000L, "Cruising into rooms in Toyota Car", "ic_entrance_toyota_car", "POPULAR", "Entry/toyota_car_entry.svga"));
-        items.add(new StoreItemModel("entrance_anime_man", "Anime Legend Arrival ⚡", "ENTRANCE", 2000000000L, "Enter rooms with Anime Hero Arrival", "ic_entrance_anime_man", "EPIC ⚡", "Entry/anime_man_entry.svga"));
-        items.add(new StoreItemModel("entrance_red_car", "Red Super Car 🏎️", "ENTRANCE", 500000000L, "Arrive in style with Red Super Car", "ic_entrance_red_car", "HOT 🔥", "Entry/red_super_car.svga"));
-        items.add(new StoreItemModel("entrance_golden_car", "Golden Super Car 🏎️", "ENTRANCE", 1000000000L, "Ride into rooms in a Golden Super Car", "ic_entrance_golden_car", "VIP 👑", "Entry/golden_super_car.svga"));
+        // Entrances / Rides - Exact Prices from Screenshots
+        items.add(new StoreItemModel("entrance_rose_ship", "Rose Ship 🚢", "ENTRANCE", 5000000L, "Sailing into rooms in a Rose Ship", "ic_entrance_golden_car", "NEW 🔥", "Entry/rose_ship.svga"));
+        items.add(new StoreItemModel("entrance_magic_deer", "Magic Deer 🦌", "ENTRANCE", 5400000L, "Arrive gracefully on Magic Deer", "ic_entrance_toyota_car", "MAGIC ✨", "Entry/magic_deer.svga"));
+        items.add(new StoreItemModel("entrance_unicorn", "Unicorn Ride 🦄", "ENTRANCE", 6000000L, "Ride into rooms on a Flying Unicorn", "ic_entrance_golden_car", "VIP 👑", "Entry/unicorn.svga"));
+        items.add(new StoreItemModel("entrance_golden_car", "Golden Super Car 🏎️", "ENTRANCE", 7000000L, "Ride into rooms in a Golden Super Car", "ic_entrance_golden_car", "VIP 👑", "Entry/golden_super_car.svga"));
+        items.add(new StoreItemModel("entrance_luxury_jet", "Luxury Jet 🛩️", "ENTRANCE", 8000000L, "Fly into rooms in a Private Luxury Jet", "ic_entrance_red_car", "LUXURY", "Entry/luxury_jet.svga"));
+        items.add(new StoreItemModel("entrance_toyota_car", "Toyota Car Entrance 🚗", "ENTRANCE", 8000000L, "Cruising into rooms in Toyota Car", "ic_entrance_toyota_car", "POPULAR", "Entry/toyota_car_entry.svga"));
+        items.add(new StoreItemModel("entrance_red_car", "Red Super Car 🏎️", "ENTRANCE", 8000000L, "Arrive in style with Red Super Car", "ic_entrance_red_car", "HOT 🔥", "Entry/red_super_car.svga"));
+        items.add(new StoreItemModel("entrance_anime_man", "Anime Legend Arrival ⚡", "ENTRANCE", 10000000L, "Enter rooms with Anime Hero Arrival", "ic_entrance_anime_man", "EPIC ⚡", "Entry/anime_man_entry.svga"));
 
         return items;
     }

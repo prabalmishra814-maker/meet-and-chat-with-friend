@@ -51,10 +51,10 @@ public class EconomyConfig {
     public static float COIN_TO_ENERGY_RATE = 1.0f;
 
     /**
-     * Validates if a gift price satisfies the 10 Lakh minimum rule.
+     * Validates if a gift price is valid (greater than 0).
      */
     public static boolean isValidGiftValue(long giftPrice) {
-        return giftPrice >= MIN_GIFT_VALUE;
+        return giftPrice > 0;
     }
 
     /**
