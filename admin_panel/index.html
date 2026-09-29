@@ -274,6 +274,7 @@
                     <th>User Profile</th>
                     <th>User ID</th>
                     <th>Coins</th>
+                    <th>Energy ⚡</th>
                     <th>Diamonds</th>
                     <th>Level</th>
                     <th>Gender</th>
@@ -281,7 +282,7 @@
                   </tr>
                 </thead>
                 <tbody id="userTableBody">
-                  <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading users from Firebase...</td></tr>
+                  <tr><td colspan="8" style="text-align:center; color: var(--text-muted);">Loading users from Firebase...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -441,6 +442,41 @@
 
         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
           Update Balance
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top-Up / Edit Energy Modal -->
+  <div class="modal-overlay" id="modalEnergy">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ Top-Up / Edit Energy</h3>
+        <button class="btn-icon" onclick="closeModal('modalEnergy')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formEnergy">
+        <input type="hidden" id="energyUid">
+        <div class="form-group">
+          <label>User Name</label>
+          <input type="text" id="energyUserName" class="form-control" readonly>
+        </div>
+
+        <div class="form-group">
+          <label>Energy Amount to Add / Set</label>
+          <input type="number" id="energyAmount" class="form-control" placeholder="e.g. 500" required>
+        </div>
+
+        <div class="form-group">
+          <label>Operation Type</label>
+          <select id="energyOpType" class="form-control">
+            <option value="ADD">Add Energy (+)</option>
+            <option value="SET">Set Exact Balance</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px; background: #00c896; border-color: #00c896;">
+          Update Energy Balance
         </button>
       </form>
     </div>

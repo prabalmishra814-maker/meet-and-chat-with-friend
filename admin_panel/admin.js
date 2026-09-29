@@ -678,7 +678,7 @@ function renderUsers() {
   const uids = Object.keys(usersData || {});
 
   if (uids.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No users found in database.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No users found in database.</td></tr>`;
     return;
   }
 
@@ -690,6 +690,7 @@ function renderUsers() {
     const name = u.name || u.userName || "User";
     const profileId = u.profileId || uid.substring(0, 6);
     const coins = u.coins || 0;
+    const energy = u.energy || 0;
     const diamonds = u.diamonds || 0;
     const level = u.level || "1";
     const gender = u.gender || "N/A";
@@ -713,6 +714,7 @@ function renderUsers() {
       </td>
       <td><span class="badge badge-purple">ID: ${escapeHtml(String(profileId))}</span></td>
       <td><strong style="color: var(--accent-gold);">🪙 ${coins}</strong></td>
+      <td><strong style="color: #00ffc2;">⚡ ${energy}</strong></td>
       <td><strong style="color: var(--primary);">💎 ${diamonds}</strong></td>
       <td><span class="badge badge-cyan">Lv.${escapeHtml(String(level))}</span></td>
       <td>${escapeHtml(gender)}</td>
@@ -720,6 +722,9 @@ function renderUsers() {
         <div style="display:flex; gap:6px;">
           <button class="btn-primary btn-user-coins" style="padding:4px 8px; font-size:11px;" data-uid="${escapeHtml(uid)}" data-name="${escapeHtml(name)}">
             🪙 Coins
+          </button>
+          <button class="btn-primary btn-user-energy" style="padding:4px 8px; font-size:11px; background: #00c896; border-color: #00c896;" data-uid="${escapeHtml(uid)}" data-name="${escapeHtml(name)}">
+            ⚡ Energy
           </button>
           <button class="btn-primary btn-user-edit" style="padding:4px 8px; font-size:11px; background: var(--secondary);" data-uid="${escapeHtml(uid)}">
             ✏️ Edit
@@ -734,13 +739,17 @@ function renderUsers() {
   });
 
   if (count === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No matching users found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No matching users found.</td></tr>`;
     return;
   }
 
   // Event Listeners for User actions
   tbody.querySelectorAll(".btn-user-coins").forEach(btn => {
     btn.addEventListener("click", () => openTopupModal(btn.getAttribute("data-uid"), btn.getAttribute("data-name")));
+  });
+
+  tbody.querySelectorAll(".btn-user-energy").forEach(btn => {
+    btn.addEventListener("click", () => openEnergyModal(btn.getAttribute("data-uid"), btn.getAttribute("data-name")));
   });
 
   tbody.querySelectorAll(".btn-user-edit").forEach(btn => {
@@ -1027,6 +1036,50 @@ function setupFormHandlers() {
     });
   }
 
+  // Energy Topup Form
+  const fEnergy = document.getElementById("formEnergy");
+  if (fEnergy) {
+    fEnergy.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const uid = document.getElementById("energyUid").value;
+      const amount = parseInt(document.getElementById("energyAmount").value, 10) || 0;
+      const op = document.getElementById("energyOpType").value;
+
+      if (!uid || !db) return;
+
+      const userRef = db.ref("users").child(uid);
+      userRef.child("energy").once("value").then((snap) => {
+        let current = parseInt(snap.val(), 10) || 0;
+        let newEnergy = op === "ADD" ? (current + amount) : amount;
+
+        // ⚡ Optimistic UI Update
+        if (usersData[uid]) {
+          usersData[uid].energy = newEnergy;
+          renderUsers();
+        }
+
+        return userRef.child("energy").set(newEnergy).then(() => newEnergy);
+      }).then((newEnergy) => {
+        const txRef = db.ref("wallet_transactions").child(uid).push();
+        return txRef.set({
+          txId: txRef.key,
+          title: "Admin Energy Top-Up ⚡",
+          description: `Admin updated energy balance by ${amount}`,
+          coinAmount: 0,
+          diamondAmount: 0,
+          type: "ENERGY_TOPUP",
+          timestamp: Date.now()
+        }).then(() => newEnergy);
+      }).then((newEnergy) => {
+        showToast(`Successfully updated energy to ${newEnergy}`, "success");
+        closeModal("modalEnergy");
+      }).catch((err) => {
+        console.error("Energy topup error:", err);
+        showToast("Energy topup failed: " + err.message, "danger");
+      });
+    });
+  }
+
   // Edit User Form
   const fEditUser = document.getElementById("formEditUser");
   if (fEditUser) {
@@ -1203,6 +1256,13 @@ function openTopupModal(uid, name) {
   document.getElementById("topupUserName").value = name;
   document.getElementById("topupCoins").value = "";
   openModal("modalTopup");
+}
+
+function openEnergyModal(uid, name) {
+  document.getElementById("energyUid").value = uid;
+  document.getElementById("energyUserName").value = name;
+  document.getElementById("energyAmount").value = "";
+  openModal("modalEnergy");
 }
 
 function openEditUserModal(uid) {

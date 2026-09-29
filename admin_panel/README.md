@@ -29,6 +29,7 @@ A complete, feature-packed Web HTML/CSS/JS Single-Page Control Panel for managin
 ### 2. 👥 Users Management (`users` node)
 - **Live Search**: Search users instantly by Name, Profile ID, or UID.
 - **🪙 Top-Up Coins**: Add or set coins for any user with automatic transaction logging.
+- **⚡ Top-Up Energy**: View live Energy balance and add or set energy for any user with transaction logging.
 - **✏️ Edit Profile**: Modify User Name, Level, Gender, and Bio.
 - **🗑️ Delete User**: Remove bad/banned user accounts from database.
 

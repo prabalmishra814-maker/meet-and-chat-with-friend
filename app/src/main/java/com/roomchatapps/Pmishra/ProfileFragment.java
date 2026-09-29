@@ -210,6 +210,22 @@ public class ProfileFragment extends Fragment {
                         binding.tvCoins.setText(formattedCoins);
                     }
 
+                    Object energyObj = snapshot.child("energy").getValue();
+                    long energyVal = 0;
+                    if (energyObj != null) {
+                        try {
+                            energyVal = Long.parseLong(String.valueOf(energyObj));
+                        } catch (Exception e) {
+                            try {
+                                energyVal = (long) Double.parseDouble(String.valueOf(energyObj));
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    String formattedEnergy = CoinUtils.formatCoins(energyVal);
+                    if (binding.tvEnergy != null) {
+                        binding.tvEnergy.setText(formattedEnergy);
+                    }
+
                     if (avatar != null && !avatar.isEmpty()) {
                         Glide.with(ProfileFragment.this)
                                 .load(avatar)
@@ -261,7 +277,21 @@ public class ProfileFragment extends Fragment {
             }
         };
 
+        View.OnClickListener openEnergyConvert = v -> {
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), EnergyConvertActivity.class);
+                startActivity(intent);
+            }
+        };
+
         binding.cardWallet.setOnClickListener(openWallet);
+        binding.cardEnergy.setOnClickListener(openEnergyConvert);
+        if (binding.btnEnergyCenter != null) {
+            binding.btnEnergyCenter.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(binding.btnEnergyCenter);
+                openEnergyConvert.onClick(v);
+            });
+        }
         binding.cardBuyCoin.setOnClickListener(v -> {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {

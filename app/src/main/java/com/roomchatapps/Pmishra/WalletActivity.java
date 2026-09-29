@@ -33,9 +33,9 @@ import java.util.Map;
 public class WalletActivity extends AppCompatActivity {
 
     private ImageView btnBack;
-    private TextView tvCoins, tvTxSummary;
+    private TextView tvCoins, tvEnergy, tvTxSummary;
     private View header;
-    private View cvCoins;
+    private View cvCoins, cvEnergy;
     private TextView btnRechargeHeader, btnRechargeQuick;
     private TextView tabTxAll, tabTxTopup, tabTxSent, tabTxReceived, tabTxStore, tabTxSpin;
     private RecyclerView rvTransactions;
@@ -75,9 +75,11 @@ public class WalletActivity extends AppCompatActivity {
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         tvCoins = findViewById(R.id.tvCoins);
+        tvEnergy = findViewById(R.id.tvEnergy);
         tvTxSummary = findViewById(R.id.tvTxSummary);
         header = findViewById(R.id.header);
         cvCoins = findViewById(R.id.cvCoins);
+        cvEnergy = findViewById(R.id.cvEnergy);
 
         btnRechargeHeader = findViewById(R.id.btnRechargeHeader);
         btnRechargeQuick = findViewById(R.id.btnRechargeQuick);
@@ -145,6 +147,13 @@ public class WalletActivity extends AppCompatActivity {
 
         if (btnRechargeHeader != null) btnRechargeHeader.setOnClickListener(openRecharge);
         if (btnRechargeQuick != null) btnRechargeQuick.setOnClickListener(openRecharge);
+
+        if (cvEnergy != null) {
+            cvEnergy.setOnClickListener(v -> {
+                Intent intent = new Intent(WalletActivity.this, EnergyConvertActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void loadWalletData() {
@@ -179,6 +188,26 @@ public class WalletActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         };
         userRef.addValueEventListener(userWalletListener);
+
+        DatabaseReference energyRef = FirebaseDatabase.getInstance().getReference("users").child(currentUid).child("energy");
+        energyRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                long energyVal = 0;
+                if (snapshot.exists() && snapshot.getValue() != null) {
+                    try {
+                        energyVal = Long.parseLong(String.valueOf(snapshot.getValue()));
+                    } catch (Exception ignored) {}
+                }
+                if (tvEnergy != null) {
+                    tvEnergy.setText(NumberFormat.getInstance().format(energyVal));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void loadTransactions() {
