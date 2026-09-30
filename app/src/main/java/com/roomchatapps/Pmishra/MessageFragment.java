@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,6 +24,8 @@ import com.roomchatapps.Pmishra.databinding.FragmentMessageBinding;
 import com.roomchatapps.Pmishra.databinding.ItemMessageBinding;
 import com.roomchatapps.Pmishra.models.FriendRequestModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
 import java.util.ArrayList;
@@ -46,6 +49,15 @@ public class MessageFragment extends Fragment {
         setupTabs();
         setupShortcuts();
         setupRecyclerView();
+
+        if (binding.btnSearch != null) {
+            binding.btnSearch.setOnClickListener(v -> {
+                if (getContext() != null) {
+                    Intent intent = new Intent(getContext(), SearchActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
     }
 
     private void setupShortcuts() {

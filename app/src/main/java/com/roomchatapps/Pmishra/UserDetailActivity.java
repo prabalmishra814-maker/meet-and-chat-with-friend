@@ -9,6 +9,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,6 +43,17 @@ public class UserDetailActivity extends AppCompatActivity {
         com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivityUserDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.headerLayout.setPadding(
+                    binding.headerLayout.getPaddingLeft(),
+                    systemBars.top + (int) (8 * getResources().getDisplayMetrics().density),
+                    binding.headerLayout.getPaddingRight(),
+                    binding.headerLayout.getPaddingBottom()
+            );
+            return insets;
+        });
 
         targetUid = getIntent().getStringExtra("uid");
         currentUid = FirebaseAuth.getInstance().getUid();

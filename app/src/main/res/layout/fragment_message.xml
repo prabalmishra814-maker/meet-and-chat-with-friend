@@ -41,11 +41,14 @@
 
         </LinearLayout>
 
-        <!-- Decorative Search / Notification Icon -->
+        <!-- Header Search Action Icon -->
         <ImageView
+            android:id="@+id/btnSearch"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_icon_circle_accent"
+            android:clickable="true"
+            android:focusable="true"
             android:padding="6dp"
             android:src="@drawable/ic_search"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -11,6 +11,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -43,7 +46,22 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_login);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            TextView tvFeedback = findViewById(R.id.tvFeedback);
+            if (tvFeedback != null) {
+                tvFeedback.setPadding(
+                        tvFeedback.getPaddingLeft(),
+                        systemBars.top + (int) (8 * getResources().getDisplayMetrics().density),
+                        tvFeedback.getPaddingRight(),
+                        tvFeedback.getPaddingBottom()
+                );
+            }
+            return insets;
+        });
 
         mAuth = FirebaseAuth.getInstance();
         loadingDialog = new LoadingDialog(this);
