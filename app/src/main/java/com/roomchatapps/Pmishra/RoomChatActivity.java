@@ -576,7 +576,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 systemMsg.setTimestamp(System.currentTimeMillis());
                 runOnUiThread(() -> {
                     if (chatAdapter != null) {
-                        chatAdapter.addAutoExpiringMessage(systemMsg, 6000);
+                        chatAdapter.addAutoExpiringMessage(systemMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
                 });
             }
@@ -597,7 +597,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 systemMsg.setTimestamp(System.currentTimeMillis());
                 runOnUiThread(() -> {
                     if (chatAdapter != null) {
-                        chatAdapter.addAutoExpiringMessage(systemMsg, 6000);
+                        chatAdapter.addAutoExpiringMessage(systemMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
                 });
             }
@@ -662,7 +662,7 @@ public class RoomChatActivity extends AppCompatActivity {
                             giftNoticeMsg.setTimestamp(System.currentTimeMillis());
 
                             if (chatAdapter != null) {
-                                chatAdapter.addAutoExpiringMessage(giftNoticeMsg, 8000);
+                                chatAdapter.addAutoExpiringMessage(giftNoticeMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                             }
                             if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                                 rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
@@ -1541,7 +1541,7 @@ public class RoomChatActivity extends AppCompatActivity {
                         msg.setTimestamp(ts != null ? ts : System.currentTimeMillis());
 
                         if (chatAdapter != null) {
-                            chatAdapter.addAutoExpiringMessage(msg, 10000);
+                            chatAdapter.addAutoExpiringMessage(msg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                         }
                         if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                             rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
@@ -1670,7 +1670,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     entryMsg.setTimestamp(ts != null ? ts : System.currentTimeMillis());
 
                     if (chatAdapter != null) {
-                        chatAdapter.addAutoExpiringMessage(entryMsg, 5000);
+                        chatAdapter.addAutoExpiringMessage(entryMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
                     if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                         rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);

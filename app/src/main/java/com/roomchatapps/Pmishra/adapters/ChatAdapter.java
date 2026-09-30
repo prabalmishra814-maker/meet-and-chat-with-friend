@@ -58,6 +58,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private final Handler expireHandler = new Handler(Looper.getMainLooper());
+    public static final long ROOM_MESSAGE_EXPIRE_MS = 15 * 60 * 1000L; // 15 minutes
 
     public void addAutoExpiringMessage(ChatMessage chatMsg, long expireMs) {
         if (chatMsg == null) return;
@@ -65,13 +66,15 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         int position = chatMessages.size() - 1;
         notifyItemInserted(position);
 
+        long delay = expireMs > 0 ? expireMs : ROOM_MESSAGE_EXPIRE_MS;
+
         expireHandler.postDelayed(() -> {
             int index = chatMessages.indexOf(chatMsg);
             if (index != -1) {
                 chatMessages.remove(index);
                 notifyItemRemoved(index);
             }
-        }, expireMs > 0 ? expireMs : 5000);
+        }, delay);
     }
 
     public void addMessages(List<ZegoBroadcastMessageInfo> zegoMessages) {
@@ -84,7 +87,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 chatMsg.setSenderId(msg.fromUser != null ? msg.fromUser.userID : "");
                 chatMsg.setMessage(sender + " : " + text);
                 chatMsg.setTimestamp(msg.sendTime > 0 ? msg.sendTime : System.currentTimeMillis());
-                addAutoExpiringMessage(chatMsg, 5000);
+                addAutoExpiringMessage(chatMsg, ROOM_MESSAGE_EXPIRE_MS);
             }
         }
     }
