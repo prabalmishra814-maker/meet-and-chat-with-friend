@@ -5,17 +5,29 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical|start"
     android:orientation="horizontal"
-    android:paddingVertical="3dp">
+    android:paddingHorizontal="4dp"
+    android:paddingVertical="2dp">
 
-    <!-- Compact Dark Pill Bubble for Audio Room -->
+    <!-- Compact Glassmorphism Capsule Bubble for Audio Room Chat -->
     <LinearLayout
+        android:id="@+id/bubbleLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_chat_input_pill"
+        android:background="@drawable/bg_room_chat_pill"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="10dp"
-        android:paddingVertical="5dp">
+        android:paddingVertical="4dp">
+
+        <!-- System Announcement Icon -->
+        <ImageView
+            android:id="@+id/ivSystemIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="6dp"
+            android:src="@drawable/ic_system_notice"
+            android:visibility="gone"
+            app:tint="#FFD700" />
 
         <!-- Level Badge Pill -->
         <TextView
@@ -25,16 +37,19 @@
             android:layout_marginEnd="6dp"
             android:background="@drawable/bg_level_badge_pink"
             android:gravity="center"
-            android:text="⬡ 1"
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="1.5dp"
+            android:text="Lv.1"
             android:textColor="#FFFFFF"
-            android:textSize="9.5sp"
-            android:textStyle="bold" />
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <!-- User Avatar Container -->
         <FrameLayout
             android:id="@+id/avatarContainer"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginEnd="6dp">
 
             <com.google.android.material.imageview.ShapeableImageView
@@ -49,16 +64,16 @@
 
             <ImageView
                 android:id="@+id/ivFrame"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:scaleType="fitCenter"
                 android:visibility="gone" />
 
             <com.opensource.svgaplayer.SVGAImageView
                 android:id="@+id/svgaFrame"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:scaleType="fitCenter"
                 android:visibility="gone" />
@@ -69,7 +84,8 @@
             android:id="@+id/tvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxWidth="260dp"
+            android:lineSpacingExtra="2dp"
+            android:maxWidth="270dp"
             android:text="User : Hello!"
             android:textColor="#FFFFFF"
             android:textSize="12.5sp" />
