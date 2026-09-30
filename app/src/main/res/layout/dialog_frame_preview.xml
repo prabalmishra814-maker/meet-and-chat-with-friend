@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:text="✨ Frame Live Preview"
+            android:text="Frame Live Preview"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -96,7 +96,7 @@
             android:background="@drawable/chip_charm_bg"
             android:paddingHorizontal="8dp"
             android:paddingVertical="3dp"
-            android:text="ROYAL 👑"
+            android:text="ROYAL"
             android:textColor="#FFFFFF"
             android:textSize="10sp"
             android:textStyle="bold" />
@@ -118,7 +118,7 @@
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:backgroundTint="#FFD700"
-        android:text="Buy for 500 🪙"
+        android:text="Buy for 500"
         android:textColor="#050E1E"
         android:textSize="16sp"
         android:textStyle="bold"

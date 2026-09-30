@@ -26,7 +26,7 @@
             android:background="@drawable/chip_charm_bg"
             android:paddingHorizontal="8dp"
             android:paddingVertical="2dp"
-            android:text="HOT 🔥"
+            android:text="HOT"
             android:textColor="#FFFFFF"
             android:textSize="9sp"
             android:textStyle="bold" />
@@ -90,7 +90,7 @@
             android:fontFamily="sans-serif-bold"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="300 🪙"
+            android:text="300"
             android:textColor="#050E1E"
             android:textSize="12sp"
             app:cornerRadius="19dp" />

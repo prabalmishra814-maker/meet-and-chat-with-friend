@@ -23,6 +23,8 @@ import com.roomchatapps.Pmishra.adapters.ChatAdapter;
 import com.roomchatapps.Pmishra.databinding.ActivityChatBinding;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
+import com.roomchatapps.Pmishra.utils.StatusBarUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,24 +47,33 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
+        StatusBarUtils.makeTransparent(this);
         binding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
             binding.chatHeader.setPadding(
                     binding.chatHeader.getPaddingLeft(),
                     systemBars.top + 8,
                     binding.chatHeader.getPaddingRight(),
                     binding.chatHeader.getPaddingBottom()
             );
+
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom) + 8;
             binding.inputLayout.setPadding(
                     binding.inputLayout.getPaddingLeft(),
                     binding.inputLayout.getPaddingTop(),
                     binding.inputLayout.getPaddingRight(),
-                    systemBars.bottom + 8
+                    bottomPadding
             );
+
+            if (ime.bottom > 0) {
+                binding.rvChatMessages.post(() -> scrollToBottom(false));
+            }
+
             return insets;
         });
 
@@ -107,6 +118,22 @@ public class ChatActivity extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         binding.rvChatMessages.setLayoutManager(layoutManager);
         binding.rvChatMessages.setAdapter(chatAdapter);
+
+        binding.rvChatMessages.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (bottom < oldBottom) {
+                binding.rvChatMessages.postDelayed(() -> scrollToBottom(false), 50);
+            }
+        });
+
+        binding.etMessage.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                binding.rvChatMessages.postDelayed(() -> scrollToBottom(false), 150);
+            }
+        });
+
+        binding.etMessage.setOnClickListener(v -> {
+            binding.rvChatMessages.postDelayed(() -> scrollToBottom(false), 150);
+        });
 
         // Scroll listener for "Scroll to Bottom" Floating Action Button
         binding.rvChatMessages.addOnScrollListener(new RecyclerView.OnScrollListener() {

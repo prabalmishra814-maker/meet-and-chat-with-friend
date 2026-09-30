@@ -84,7 +84,10 @@
         <activity android:name=".CommentsActivity" />
         <activity android:name=".FollowListActivity" />
         <activity android:name=".UserDetailActivity" />
-        <activity android:name=".ChatActivity" />
+        <activity
+            android:name=".ChatActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection|smallestScreenSize|screenLayout|uiMode|density"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".SettingsActivity" />
 
         <activity android:name=".NotificationActivity" />

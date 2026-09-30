@@ -151,7 +151,7 @@ public class StoreActivity extends AppCompatActivity {
             StoreManager.unequipItem(currentUid, item, new StoreManager.ActionCallback() {
                 @Override
                 public void onSuccess(String message) {
-                    Toast.makeText(StoreActivity.this, "✨ " + message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StoreActivity.this, message, Toast.LENGTH_SHORT).show();
                     loadCatalog(); // refresh catalog & equipped states
                 }
 
@@ -169,7 +169,7 @@ public class StoreActivity extends AppCompatActivity {
             StoreManager.equipItem(currentUid, item, new StoreManager.ActionCallback() {
                 @Override
                 public void onSuccess(String message) {
-                    Toast.makeText(StoreActivity.this, "✨ " + message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StoreActivity.this, message, Toast.LENGTH_SHORT).show();
                     loadCatalog(); // refresh states
                 }
 
@@ -216,7 +216,7 @@ public class StoreActivity extends AppCompatActivity {
         SVGAImageView svgaFrame = view.findViewById(R.id.svgaFramePreview);
 
         if (tvDialogTitle != null) {
-            tvDialogTitle.setText(isEntrance ? "⚡ Entrance Live Preview" : "✨ Frame Live Preview");
+            tvDialogTitle.setText(isEntrance ? "Entrance Live Preview" : "Frame Live Preview");
         }
 
         // Hide profile avatar when previewing Entrance effects!
@@ -230,15 +230,15 @@ public class StoreActivity extends AppCompatActivity {
 
         if (btnAction != null) {
             if (item.isEquipped()) {
-                btnAction.setText("Unequip ✨");
+                btnAction.setText("Unequip");
                 btnAction.setBackgroundColor(Color.parseColor("#FF6B6B"));
                 btnAction.setTextColor(Color.parseColor("#FFFFFF"));
             } else if (item.isOwned()) {
-                btnAction.setText(isEntrance ? "Equip Entrance ✨" : "Equip Frame ✨");
+                btnAction.setText(isEntrance ? "Equip Entrance" : "Equip Frame");
                 btnAction.setBackgroundColor(Color.parseColor("#40E0D0"));
                 btnAction.setTextColor(Color.parseColor("#050E1E"));
             } else {
-                btnAction.setText("Buy for " + item.getPriceCoins() + " 🪙");
+                btnAction.setText("Buy for " + item.getPriceCoins());
                 btnAction.setBackgroundColor(Color.parseColor("#FFD700"));
                 btnAction.setTextColor(Color.parseColor("#050E1E"));
             }
