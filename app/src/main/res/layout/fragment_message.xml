@@ -41,44 +41,6 @@
 
         </LinearLayout>
 
-        <!-- User Avatar & Frame Container -->
-        <FrameLayout
-            android:id="@+id/flUserAvatarContainer"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btnSearch"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/ivUserProfile"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_person"
-                app:shapeAppearanceOverlay="@style/CircleImage" />
-
-            <ImageView
-                android:id="@+id/ivUserFrame"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:visibility="gone" />
-
-            <com.opensource.svgaplayer.SVGAImageView
-                android:id="@+id/svgaUserFrame"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                app:autoPlay="true"
-                app:loopCount="0" />
-        </FrameLayout>
-
         <!-- Header Search Action Icon -->
         <ImageView
             android:id="@+id/btnSearch"

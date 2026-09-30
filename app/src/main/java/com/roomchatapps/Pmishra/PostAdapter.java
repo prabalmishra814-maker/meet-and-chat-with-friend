@@ -254,182 +254,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 });
             });
         }
-
-        if (holder.btnGift != null) {
-            holder.btnGift.setOnClickListener(v -> showPostGiftDialog(post, holder));
-        }
-    }
-
-    private void showPostGiftDialog(Post post, PostViewHolder holder) {
-        if (post == null || post.getUid() == null) return;
-        if (currentUid != null && currentUid.equals(post.getUid())) {
-            android.widget.Toast.makeText(context, "You cannot send a gift to yourself!", android.widget.Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        com.google.android.material.bottomsheet.BottomSheetDialog dialog = new com.google.android.material.bottomsheet.BottomSheetDialog(context);
-        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_gift_store, null, false);
-        if (dialogView == null) return;
-        dialog.setContentView(dialogView);
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
-        }
-
-        RecyclerView rvGiftRecipients = dialogView.findViewById(R.id.rvGiftRecipients);
-        RecyclerView rvGifts = dialogView.findViewById(R.id.rvGifts);
-        View btnSendAction = dialogView.findViewById(R.id.btnSendGiftAction);
-        TextView tvSendActionText = dialogView.findViewById(R.id.tvSendActionText);
-        com.google.android.material.tabs.TabLayout tabCategory = dialogView.findViewById(R.id.tabCategoryGifts);
-        TextView tvGiftDialogCoins = dialogView.findViewById(R.id.tvGiftDialogCoins);
-        View llCoinBalance = dialogView.findViewById(R.id.llCoinBalance);
-
-        if (tvGiftDialogCoins != null) {
-            com.roomchatapps.Pmishra.utils.WalletManager.getUserCoins(currentUid, balance -> {
-                if (context instanceof android.app.Activity) {
-                    ((android.app.Activity) context).runOnUiThread(() -> tvGiftDialogCoins.setText(String.valueOf(balance)));
-                }
-            });
-        }
-
-        if (llCoinBalance != null) {
-            llCoinBalance.setOnClickListener(v -> {
-                dialog.dismiss();
-                context.startActivity(new android.content.Intent(context, CoinRechargeActivity.class));
-            });
-        }
-
-        if (rvGiftRecipients != null) {
-            List<com.roomchatapps.Pmishra.models.GiftRecipientModel> recipientList = new java.util.ArrayList<>();
-            UserProfileCache.getUserProfile(post.getUid(), profile -> {
-                String authorName = (profile != null && profile.name != null) ? profile.name : "Post Author";
-                String authorAvatar = (profile != null && profile.avatarUrl != null) ? profile.avatarUrl : "";
-                String authorFrame = (profile != null) ? profile.equippedFrame : "";
-                recipientList.add(new com.roomchatapps.Pmishra.models.GiftRecipientModel(post.getUid(), authorName, authorAvatar, authorFrame, false, true));
-
-                com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter recipientAdapter = new com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter(recipientList);
-                rvGiftRecipients.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(context, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
-                rvGiftRecipients.setAdapter(recipientAdapter);
-            });
-        }
-
-        List<com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem> giftList = new java.util.ArrayList<>();
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 10L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 500L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 2000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, 5000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, 10000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, 20000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, 50000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, 100000L, "Gift"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, 500L, "Lucky"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, 10000L, "Lucky"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, 50000L, "Lucky"));
-        giftList.add(new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 1500000L, "Relationship"));
-
-        final int[] selectedQuantity = new int[]{1};
-        TextView chipQty1 = dialogView.findViewById(R.id.chipQty1);
-        TextView chipQty7 = dialogView.findViewById(R.id.chipQty7);
-        TextView chipQty77 = dialogView.findViewById(R.id.chipQty77);
-        TextView chipQty777 = dialogView.findViewById(R.id.chipQty777);
-
-        View.OnClickListener qtyClickListener = v -> {
-            if (chipQty1 != null) chipQty1.setBackgroundResource(R.drawable.bg_room_chat_pill);
-            if (chipQty7 != null) chipQty7.setBackgroundResource(R.drawable.bg_room_chat_pill);
-            if (chipQty77 != null) chipQty77.setBackgroundResource(R.drawable.bg_room_chat_pill);
-            if (chipQty777 != null) chipQty777.setBackgroundResource(R.drawable.bg_room_chat_pill);
-
-            v.setBackgroundResource(R.drawable.bg_send_button_glow);
-            int qty = 1;
-            if (v.getId() == R.id.chipQty7) qty = 7;
-            else if (v.getId() == R.id.chipQty77) qty = 77;
-            else if (v.getId() == R.id.chipQty777) qty = 777;
-
-            selectedQuantity[0] = qty;
-            if (tvSendActionText != null) {
-                tvSendActionText.setText(qty > 1 ? "Send (x" + qty + ")" : "Send");
-            }
-        };
-
-        if (chipQty1 != null) chipQty1.setOnClickListener(qtyClickListener);
-        if (chipQty7 != null) chipQty7.setOnClickListener(qtyClickListener);
-        if (chipQty77 != null) chipQty77.setOnClickListener(qtyClickListener);
-        if (chipQty777 != null) chipQty777.setOnClickListener(qtyClickListener);
-
-        if (rvGifts != null) {
-            rvGifts.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(context, 4));
-            com.roomchatapps.Pmishra.adapters.GiftStoreAdapter adapter = new com.roomchatapps.Pmishra.adapters.GiftStoreAdapter(giftList);
-            rvGifts.setAdapter(adapter);
-
-            if (tabCategory != null) {
-                String[] categories = new String[]{"Gift", "Lucky", "Relationship"};
-                tabCategory.removeAllTabs();
-                for (String cat : categories) {
-                    tabCategory.addTab(tabCategory.newTab().setText(cat));
-                }
-                tabCategory.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
-                    @Override
-                    public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
-                        String selected = tab.getText() != null ? tab.getText().toString() : "Gift";
-                        List<com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem> filtered = new java.util.ArrayList<>();
-                        for (com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem item : giftList) {
-                            if (selected.equalsIgnoreCase(item.category)) {
-                                filtered.add(item);
-                            }
-                        }
-                        adapter.updateItems(filtered.isEmpty() ? giftList : filtered);
-                    }
-
-                    @Override
-                    public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-
-                    @Override
-                    public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-                });
-            }
-
-            if (btnSendAction != null) {
-                btnSendAction.setOnClickListener(v -> {
-                    com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem selectedItem = adapter.getSelectedGift();
-                    if (selectedItem == null) {
-                        android.widget.Toast.makeText(context, "Please select a gift first", android.widget.Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    btnSendAction.setEnabled(false);
-                    long totalCost = selectedItem.cost * Math.max(1, selectedQuantity[0]);
-
-                    com.roomchatapps.Pmishra.utils.WalletManager.spendCoinsForGift(currentUid, post.getUid(), totalCost, "Post Gift: " + selectedItem.name, new com.roomchatapps.Pmishra.utils.WalletManager.WalletCallback() {
-                        @Override
-                        public void onSuccess(String message, long newCoinBalance) {
-                            btnSendAction.setEnabled(true);
-                            dialog.dismiss();
-
-                            if (holder != null && holder.btnGift != null) {
-                                ReactionAnimator.animateLikeButtonClick(holder.btnGift, holder.btnGift);
-                                if (holder.itemView.getRootView() instanceof ViewGroup) {
-                                    ReactionAnimator.spawnFloatingReaction((ViewGroup) holder.itemView.getRootView(), holder.btnGift, R.drawable.room_gift_ic);
-                                }
-                            }
-
-                            com.roomchatapps.Pmishra.utils.NotificationHelper.sendGiftNotification(post.getUid(), selectedItem.name);
-
-                            android.widget.Toast.makeText(context, "✨ Sent " + selectedItem.name + " to post author!", android.widget.Toast.LENGTH_LONG).show();
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            btnSendAction.setEnabled(true);
-                            android.widget.Toast.makeText(context, "Failed: " + error, android.widget.Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                });
-            }
-        }
-
-        dialog.show();
     }
 
     @Override
@@ -438,7 +262,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivUserProfile, ivUserFrame, ivPostImage, ivLikeIcon, btnGift;
+        ImageView ivUserProfile, ivUserFrame, ivPostImage, ivLikeIcon;
         SVGAImageView svgaUserFrame;
         TextView tvUsername, tvPostTime, tvPostContent, tvLikeCount, tvCommentCount, tvTopComment, tvUserFollowers;
         View btnLike, btnComment, btnMessage, commentPreviewLayout;
@@ -458,7 +282,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             ivLikeIcon = itemView.findViewById(R.id.ivLikeIcon);
             btnComment = itemView.findViewById(R.id.btnComment);
             btnMessage = itemView.findViewById(R.id.btnMessage);
-            btnGift = itemView.findViewById(R.id.btnGift);
             tvCommentCount = itemView.findViewById(R.id.tvCommentCount);
             tvTopComment = itemView.findViewById(R.id.tvTopComment);
             commentPreviewLayout = itemView.findViewById(R.id.commentPreviewLayout);

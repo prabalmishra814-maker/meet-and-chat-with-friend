@@ -49,45 +49,11 @@ public class MessageFragment extends Fragment {
         setupTabs();
         setupShortcuts();
         setupRecyclerView();
-        setupUserProfileHeader();
 
         if (binding.btnSearch != null) {
             binding.btnSearch.setOnClickListener(v -> {
                 if (getContext() != null) {
                     Intent intent = new Intent(getContext(), SearchActivity.class);
-                    startActivity(intent);
-                }
-            });
-        }
-    }
-
-    private void setupUserProfileHeader() {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null || binding == null) return;
-
-        UserProfileCache.getUserProfile(uid, profile -> {
-            if (!isAdded() || getContext() == null || binding == null) return;
-            if (profile != null) {
-                if (binding.ivUserProfile != null && profile.avatarUrl != null && !profile.avatarUrl.isEmpty()) {
-                    Glide.with(this)
-                            .load(profile.avatarUrl)
-                            .placeholder(R.drawable.ic_person)
-                            .into(binding.ivUserProfile);
-                }
-                if (binding.ivUserFrame != null && binding.svgaUserFrame != null) {
-                    FrameUtils.displayFrame(getContext(), profile.equippedFrame, binding.ivUserFrame, binding.svgaUserFrame);
-                }
-            } else {
-                if (binding.ivUserFrame != null && binding.svgaUserFrame != null) {
-                    FrameUtils.clearFrame(binding.ivUserFrame, binding.svgaUserFrame);
-                }
-            }
-        });
-
-        if (binding.flUserAvatarContainer != null) {
-            binding.flUserAvatarContainer.setOnClickListener(v -> {
-                if (getContext() != null) {
-                    Intent intent = new Intent(getContext(), EditProfileActivity.class);
                     startActivity(intent);
                 }
             });
