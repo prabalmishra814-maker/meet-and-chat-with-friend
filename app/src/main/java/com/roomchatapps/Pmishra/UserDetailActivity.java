@@ -37,6 +37,7 @@ public class UserDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivityUserDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 

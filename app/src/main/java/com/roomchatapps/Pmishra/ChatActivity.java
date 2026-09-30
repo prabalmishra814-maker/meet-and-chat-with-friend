@@ -3,8 +3,10 @@ package com.roomchatapps.Pmishra;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -35,8 +37,8 @@ public class ChatActivity extends AppCompatActivity {
     private String receiverId;
     private String senderId;
     private String chatRoomId;
-    private DatabaseReference chatRef;
-    private DatabaseReference roomChatRef;
+    private DatabaseReference directChatRef;
+    private DatabaseReference legacyChatRef;
     private LinearLayoutManager layoutManager;
     private boolean isInitialLoad = true;
 
@@ -95,6 +97,10 @@ public class ChatActivity extends AppCompatActivity {
         binding.ivChatUserAvatar.setOnClickListener(openProfile);
         binding.tvChatUserName.setOnClickListener(openProfile);
 
+        if (binding.ivMoreOptions != null) {
+            binding.ivMoreOptions.setOnClickListener(v -> showMoreOptionsMenu(v, openProfile));
+        }
+
         chatMessages = new ArrayList<>();
         chatAdapter = new ChatAdapter(chatMessages);
         layoutManager = new LinearLayoutManager(this);
@@ -123,12 +129,53 @@ public class ChatActivity extends AppCompatActivity {
 
         binding.btnScrollBottom.setOnClickListener(v -> scrollToBottom(true));
 
-        chatRef = FirebaseDatabase.getInstance().getReference("Chats");
-        roomChatRef = FirebaseDatabase.getInstance().getReference("Chats").child(chatRoomId);
+        directChatRef = FirebaseDatabase.getInstance().getReference("DirectChats").child(chatRoomId);
+        legacyChatRef = FirebaseDatabase.getInstance().getReference("Chats");
 
         loadMessages();
 
         binding.btnSend.setOnClickListener(v -> sendMessage());
+    }
+
+    private void showMoreOptionsMenu(View view, View.OnClickListener openProfileListener) {
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenu().add("View Profile");
+        popupMenu.getMenu().add("Clear Chat History");
+        popupMenu.setOnMenuItemClickListener(item -> {
+            CharSequence title = item.getTitle();
+            if (title != null && "View Profile".contentEquals(title)) {
+                if (openProfileListener != null) openProfileListener.onClick(view);
+                return true;
+            } else if (title != null && "Clear Chat History".contentEquals(title)) {
+                confirmClearChat();
+                return true;
+            }
+            return false;
+        });
+        popupMenu.show();
+    }
+
+    private void confirmClearChat() {
+        new AlertDialog.Builder(this)
+                .setTitle("Clear Chat")
+                .setMessage("Are you sure you want to delete all messages in this conversation?")
+                .setPositiveButton("Clear", (dialog, which) -> clearChatHistory())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void clearChatHistory() {
+        if (directChatRef != null) {
+            directChatRef.removeValue();
+        }
+        if (senderId != null && receiverId != null) {
+            FirebaseDatabase.getInstance().getReference("RecentChats")
+                    .child(senderId).child(receiverId).removeValue();
+        }
+        messageMap.clear();
+        chatMessages.clear();
+        chatAdapter.notifyDataSetChanged();
+        Toast.makeText(this, "Chat history cleared", Toast.LENGTH_SHORT).show();
     }
 
     private String getChatRoomId(String uid1, String uid2) {
@@ -147,42 +194,30 @@ public class ChatActivity extends AppCompatActivity {
                 .child(senderId).child(receiverId);
         userRecentRef.child("read").setValue(true);
 
-        ValueEventListener messageListener = new ValueEventListener() {
+        // Listen to permanent DirectChats/{chatRoomId}
+        directChatRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) return;
-
                 boolean wasAtBottom = isAtBottom();
 
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String key = ds.getKey();
-                    if (key == null) continue;
+                if (snapshot.exists()) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String key = ds.getKey();
+                        if (key == null) continue;
 
-                    ChatMessage chat = ds.getValue(ChatMessage.class);
-                    if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
-                        boolean isSenderAndRecv = chat.getSenderId().equals(senderId) && chat.getReceiverId().equals(receiverId);
-                        boolean isRecvAndSender = chat.getSenderId().equals(receiverId) && chat.getReceiverId().equals(senderId);
-
-                        if (isSenderAndRecv || isRecvAndSender) {
+                        ChatMessage chat = ds.getValue(ChatMessage.class);
+                        if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
                             messageMap.put(key, chat);
 
                             // Mark received messages as read
-                            if (isRecvAndSender && !chat.isRead()) {
+                            if (chat.getSenderId().equals(receiverId) && !chat.isRead()) {
                                 ds.getRef().child("read").setValue(true);
                             }
                         }
                     }
                 }
 
-                chatMessages.clear();
-                chatMessages.addAll(messageMap.values());
-                Collections.sort(chatMessages, (c1, c2) -> Long.compare(c1.getTimestamp(), c2.getTimestamp()));
-                chatAdapter.notifyDataSetChanged();
-
-                if (isInitialLoad || wasAtBottom) {
-                    scrollToBottom(false);
-                    isInitialLoad = false;
-                }
+                updateMessageList(wasAtBottom);
             }
 
             @Override
@@ -191,11 +226,49 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(ChatActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
-        };
+        });
 
-        // Listen to legacy flat Chats and dedicated chatRoomId node
-        chatRef.addValueEventListener(messageListener);
-        roomChatRef.addValueEventListener(messageListener);
+        // Load legacy flat Chats for backwards compatibility and migrate to DirectChats
+        legacyChatRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    boolean wasAtBottom = isAtBottom();
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String key = ds.getKey();
+                        if (key == null) continue;
+
+                        ChatMessage chat = ds.getValue(ChatMessage.class);
+                        if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
+                            boolean isSenderAndRecv = chat.getSenderId().equals(senderId) && chat.getReceiverId().equals(receiverId);
+                            boolean isRecvAndSender = chat.getSenderId().equals(receiverId) && chat.getReceiverId().equals(senderId);
+
+                            if (isSenderAndRecv || isRecvAndSender) {
+                                messageMap.put(key, chat);
+                                // Save permanently into DirectChats so it's never lost
+                                directChatRef.child(key).setValue(chat);
+                            }
+                        }
+                    }
+                    updateMessageList(wasAtBottom);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void updateMessageList(boolean wasAtBottom) {
+        chatMessages.clear();
+        chatMessages.addAll(messageMap.values());
+        Collections.sort(chatMessages, (c1, c2) -> Long.compare(c1.getTimestamp(), c2.getTimestamp()));
+        chatAdapter.notifyDataSetChanged();
+
+        if (isInitialLoad || wasAtBottom) {
+            scrollToBottom(false);
+            isInitialLoad = false;
+        }
     }
 
     private boolean isAtBottom() {
@@ -218,13 +291,13 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage() {
         String msg = binding.etMessage.getText().toString().trim();
         if (!msg.isEmpty() && !senderId.isEmpty() && receiverId != null && !receiverId.isEmpty()) {
-            String msgId = roomChatRef.push().getKey();
+            String msgId = directChatRef.push().getKey();
             long time = System.currentTimeMillis();
             ChatMessage chatMessage = new ChatMessage(senderId, receiverId, msg, time, false);
 
             if (msgId != null) {
-                roomChatRef.child(msgId).setValue(chatMessage);
-                chatRef.child(msgId).setValue(chatMessage);
+                // Save permanently in DirectChats/{chatRoomId}/{msgId}
+                directChatRef.child(msgId).setValue(chatMessage);
 
                 // Update RecentChats for sender
                 ChatMessage senderChatMessage = new ChatMessage(senderId, receiverId, msg, time, true);

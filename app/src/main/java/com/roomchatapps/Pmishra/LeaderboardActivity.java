@@ -67,6 +67,7 @@ public class LeaderboardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_leaderboard);
 
         currentUid = FirebaseAuth.getInstance().getUid();

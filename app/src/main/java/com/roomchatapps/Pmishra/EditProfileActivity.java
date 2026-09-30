@@ -9,6 +9,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -64,8 +67,20 @@ public class EditProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivityEditProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.headerLayout.setPadding(
+                    binding.headerLayout.getPaddingLeft(),
+                    systemBars.top + 8,
+                    binding.headerLayout.getPaddingRight(),
+                    binding.headerLayout.getPaddingBottom()
+            );
+            return insets;
+        });
 
         mAuth = FirebaseAuth.getInstance();
         String uid = mAuth.getUid();

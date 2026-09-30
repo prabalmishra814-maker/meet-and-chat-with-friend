@@ -23,6 +23,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityNotificationBinding;
 import com.roomchatapps.Pmishra.models.NotificationModel;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +43,20 @@ public class NotificationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivityNotificationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.header.setPadding(
+                    binding.header.getPaddingLeft(),
+                    systemBars.top + 8,
+                    binding.header.getPaddingRight(),
+                    binding.header.getPaddingBottom()
+            );
+            return insets;
+        });
 
         currentUid = FirebaseAuth.getInstance().getUid();
 
