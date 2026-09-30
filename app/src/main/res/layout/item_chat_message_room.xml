@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical|start"
+    android:orientation="horizontal"
+    android:paddingVertical="3dp">
+
+    <!-- Compact Dark Pill Bubble for Audio Room -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_chat_input_pill"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp">
+
+        <!-- Level Badge Pill -->
+        <TextView
+            android:id="@+id/tvLevelBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_level_badge_pink"
+            android:gravity="center"
+            android:text="⬡ 1"
+            android:textColor="#FFFFFF"
+            android:textSize="9.5sp"
+            android:textStyle="bold" />
+
+        <!-- User Avatar Container -->
+        <FrameLayout
+            android:id="@+id/avatarContainer"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="6dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+            <ImageView
+                android:id="@+id/ivFrame"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaFrame"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Room Message Content -->
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="260dp"
+            android:text="User : Hello!"
+            android:textColor="#FFFFFF"
+            android:textSize="12.5sp" />
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="12:00 PM"
+            android:textColor="#80FFFFFF"
+            android:textSize="9sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>
