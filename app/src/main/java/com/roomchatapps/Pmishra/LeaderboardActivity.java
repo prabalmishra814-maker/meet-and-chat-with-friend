@@ -40,7 +40,7 @@ import java.util.Map;
 public class LeaderboardActivity extends AppCompatActivity {
 
     private ImageView btnBack;
-    private TextView tabDaily, tabWeekly, tabMonthly;
+    private TextView tvHeaderTitle, tabDaily, tabWeekly, tabMonthly;
 
     // Podium Views
     private View podiumContainer, podiumRank1, podiumRank2, podiumRank3;
@@ -110,9 +110,21 @@ public class LeaderboardActivity extends AppCompatActivity {
 
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
+        tvHeaderTitle = findViewById(R.id.tvHeaderTitle);
         tabDaily = findViewById(R.id.tabDaily);
         tabWeekly = findViewById(R.id.tabWeekly);
         tabMonthly = findViewById(R.id.tabMonthly);
+
+        String type = getIntent().getStringExtra("type");
+        if (tvHeaderTitle != null && type != null) {
+            if ("AGENCY_CENTER".equalsIgnoreCase(type)) {
+                tvHeaderTitle.setText("Agency Ranking Leaderboard");
+            } else if ("HOST_CENTER".equalsIgnoreCase(type)) {
+                tvHeaderTitle.setText("Host Ranking Leaderboard");
+            } else if ("BD_CENTER".equalsIgnoreCase(type)) {
+                tvHeaderTitle.setText("BD Ranking Leaderboard");
+            }
+        }
 
         podiumContainer = findViewById(R.id.podiumContainer);
         podiumRank1 = findViewById(R.id.podiumRank1);
@@ -311,10 +323,13 @@ public class LeaderboardActivity extends AppCompatActivity {
     private void updateUI(List<LeaderboardModel> fullList) {
         listRank4Plus.clear();
 
-        // Populate Top 3 Podium
+        // Populate Top 3 Podium & Auto-Equip Rank Frames
         if (fullList.size() >= 1) {
             LeaderboardModel top1 = fullList.get(0);
-            bindPodiumSlot(top1, podiumRank1, tvNameRank1, tvCoinsRank1, ivAvatarRank1, ivFrameRank1, svgaFrameRank1);
+            if (top1.getSpentCoins() > 0 && top1.getUid() != null) {
+                syncRankFrameToUser(top1.getUid(), "frame_rank_1");
+            }
+            bindPodiumSlot(top1, podiumRank1, tvNameRank1, tvCoinsRank1, ivAvatarRank1, ivFrameRank1, svgaFrameRank1, "frame_rank_1");
             if (podiumRank1 != null) podiumRank1.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank1 != null) podiumRank1.setVisibility(View.INVISIBLE);
@@ -322,7 +337,10 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 2) {
             LeaderboardModel top2 = fullList.get(1);
-            bindPodiumSlot(top2, podiumRank2, tvNameRank2, tvCoinsRank2, ivAvatarRank2, ivFrameRank2, svgaFrameRank2);
+            if (top2.getSpentCoins() > 0 && top2.getUid() != null) {
+                syncRankFrameToUser(top2.getUid(), "frame_rank_2");
+            }
+            bindPodiumSlot(top2, podiumRank2, tvNameRank2, tvCoinsRank2, ivAvatarRank2, ivFrameRank2, svgaFrameRank2, "frame_rank_2");
             if (podiumRank2 != null) podiumRank2.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank2 != null) podiumRank2.setVisibility(View.INVISIBLE);
@@ -330,7 +348,10 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 3) {
             LeaderboardModel top3 = fullList.get(2);
-            bindPodiumSlot(top3, podiumRank3, tvNameRank3, tvCoinsRank3, ivAvatarRank3, ivFrameRank3, svgaFrameRank3);
+            if (top3.getSpentCoins() > 0 && top3.getUid() != null) {
+                syncRankFrameToUser(top3.getUid(), "frame_rank_3");
+            }
+            bindPodiumSlot(top3, podiumRank3, tvNameRank3, tvCoinsRank3, ivAvatarRank3, ivFrameRank3, svgaFrameRank3, "frame_rank_3");
             if (podiumRank3 != null) podiumRank3.setVisibility(View.VISIBLE);
         } else {
             if (podiumRank3 != null) podiumRank3.setVisibility(View.INVISIBLE);
@@ -353,8 +374,18 @@ public class LeaderboardActivity extends AppCompatActivity {
         updateMyRankBar(fullList);
     }
 
-    private void bindPodiumSlot(LeaderboardModel model, View container, TextView tvName, TextView tvCoins, ShapeableImageView ivAvatar, ImageView ivFrame, SVGAImageView svgaFrame) {
-        if (container == null) return;
+    private void syncRankFrameToUser(String uid, String rankFrameId) {
+        if (uid == null || uid.trim().isEmpty() || rankFrameId == null) return;
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid.trim());
+        userRef.child("equipped_frame").setValue(rankFrameId).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                UserProfileCache.invalidate(uid);
+            }
+        });
+    }
+
+    private void bindPodiumSlot(LeaderboardModel model, View container, TextView tvName, TextView tvCoins, ShapeableImageView ivAvatar, ImageView ivFrame, SVGAImageView svgaFrame, String defaultRankFrameId) {
+        if (container == null || model == null) return;
 
         if (tvName != null) tvName.setText(model.getName() != null ? model.getName() : "User");
         if (tvCoins != null) tvCoins.setText(LeaderboardAdapter.formatCoins(model.getSpentCoins()));
@@ -371,9 +402,12 @@ public class LeaderboardActivity extends AppCompatActivity {
             }
         }
 
-        if (model.getUid() != null && !model.getUid().trim().isEmpty()) {
+        String frameToDisplay = (model.getSpentCoins() > 0) ? defaultRankFrameId : null;
+        if (frameToDisplay != null) {
+            FrameUtils.displayFrame(LeaderboardActivity.this, frameToDisplay, ivFrame, svgaFrame);
+        } else if (model.getUid() != null && !model.getUid().trim().isEmpty()) {
             UserProfileCache.getUserProfile(model.getUid(), profile -> {
-                if (profile != null) {
+                if (profile != null && profile.equippedFrame != null) {
                     FrameUtils.displayFrame(LeaderboardActivity.this, profile.equippedFrame, ivFrame, svgaFrame);
                 } else {
                     FrameUtils.clearFrame(ivFrame, svgaFrame);

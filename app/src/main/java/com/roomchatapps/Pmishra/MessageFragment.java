@@ -47,7 +47,6 @@ public class MessageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupTabs();
-        setupShortcuts();
         setupRecyclerView();
 
         if (binding.btnSearch != null) {
@@ -56,35 +55,6 @@ public class MessageFragment extends Fragment {
                     Intent intent = new Intent(getContext(), SearchActivity.class);
                     startActivity(intent);
                 }
-            });
-        }
-    }
-
-    private void setupShortcuts() {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) return;
-
-        if (binding.llFriendRequest != null) {
-            AnimationHelper.applyClickAnimation(binding.llFriendRequest);
-            binding.llFriendRequest.setOnClickListener(v -> {
-                showCategory("Friend Requests");
-                loadFriendRequests(uid);
-            });
-        }
-
-        if (binding.llGift != null) {
-            AnimationHelper.applyClickAnimation(binding.llGift);
-            binding.llGift.setOnClickListener(v -> {
-                showCategory("Gift History");
-                loadGiftHistory(uid);
-            });
-        }
-
-        if (binding.llReward != null) {
-            AnimationHelper.applyClickAnimation(binding.llReward);
-            binding.llReward.setOnClickListener(v -> {
-                showCategory("Rewards");
-                loadRewards(uid);
             });
         }
     }

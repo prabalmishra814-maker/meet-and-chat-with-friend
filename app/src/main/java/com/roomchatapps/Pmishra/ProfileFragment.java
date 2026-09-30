@@ -332,6 +332,7 @@ public class ProfileFragment extends Fragment {
             AnimationHelper.bounceAnimation(binding.btnAgencyCenter);
             if (getActivity() != null) {
                 Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                intent.putExtra("type", "AGENCY_CENTER");
                 startActivity(intent);
             }
         });
@@ -340,6 +341,7 @@ public class ProfileFragment extends Fragment {
             AnimationHelper.bounceAnimation(binding.btnBdCenter);
             if (getActivity() != null) {
                 Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                intent.putExtra("type", "BD_CENTER");
                 startActivity(intent);
             }
         });
@@ -348,6 +350,7 @@ public class ProfileFragment extends Fragment {
             AnimationHelper.bounceAnimation(binding.btnHostCenter);
             if (getActivity() != null) {
                 Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
+                intent.putExtra("type", "HOST_CENTER");
                 startActivity(intent);
             }
         });
