@@ -72,118 +72,7 @@
             android:orientation="vertical"
             android:paddingBottom="90dp">
 
-            <!-- Quick Shortcuts Section (Requests, Gifts, Rewards) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:paddingHorizontal="20dp"
-                android:weightSum="3">
 
-                <!-- Friend Requests Shortcut -->
-                <LinearLayout
-                    android:id="@+id/llFriendRequest"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:background="@drawable/bg_glass_card">
-
-                        <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/message_home_entry_friend_ic" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Requests"
-                        android:textColor="#B3FFFFFF"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <!-- Gifts History Shortcut -->
-                <LinearLayout
-                    android:id="@+id/llGift"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:background="@drawable/bg_glass_card">
-
-                        <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/message_home_entry_gift_ic" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Gifts"
-                        android:textColor="#B3FFFFFF"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <!-- Rewards Shortcut -->
-                <LinearLayout
-                    android:id="@+id/llReward"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:background="@drawable/bg_glass_card">
-
-                        <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/message_home_entry_reward_ic" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Rewards"
-                        android:textColor="#B3FFFFFF"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-            </LinearLayout>
 
             <!-- Expanded Category Content Section -->
             <LinearLayout
@@ -222,15 +111,6 @@
             </LinearLayout>
 
             <!-- Message List Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="24dp"
-                android:fontFamily="sans-serif-black"
-                android:text="Recent Chats"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvMessages"

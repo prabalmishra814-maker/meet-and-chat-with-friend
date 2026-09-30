@@ -90,6 +90,14 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
 
         String userId = user.getUserId();
         if (userId != null && !userId.trim().isEmpty()) {
+            View.OnClickListener openProfile = v -> {
+                android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.UserDetailActivity.class);
+                intent.putExtra("uid", userId);
+                v.getContext().startActivity(intent);
+            };
+            if (holder.ivAudienceProfile != null) holder.ivAudienceProfile.setOnClickListener(openProfile);
+            if (holder.tvAudienceName != null) holder.tvAudienceName.setOnClickListener(openProfile);
+
             UserProfileCache.getUserProfile(userId, profile -> {
                 if (profile != null) {
                     FrameUtils.displayFrame(holder.itemView.getContext(), profile.equippedFrame, holder.ivAudienceFrame, holder.svgaAudienceFrame);

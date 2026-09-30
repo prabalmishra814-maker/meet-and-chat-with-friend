@@ -82,6 +82,17 @@ public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder
             FrameUtils.clearFrame(holder.binding.ivFrame, holder.binding.svgaFrame);
         }
 
+        View.OnClickListener openUserProfile = v -> {
+            if (user.getUserId() != null) {
+                android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.UserDetailActivity.class);
+                intent.putExtra("uid", user.getUserId());
+                v.getContext().startActivity(intent);
+            }
+        };
+
+        holder.binding.ivAvatar.setOnClickListener(openUserProfile);
+        holder.binding.tvName.setOnClickListener(openUserProfile);
+
         if (currentUid != null && !currentUid.equals(user.getUserId())) {
             holder.binding.btnAction.setVisibility(View.VISIBLE);
             checkFollowStatus(user.getUserId(), holder.binding.btnAction);

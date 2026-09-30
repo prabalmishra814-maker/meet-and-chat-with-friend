@@ -57,6 +57,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         holder.tvCommentTime.setText(comment.getTimestamp());
 
         if (comment.getUid() != null && !comment.getUid().trim().isEmpty()) {
+            View.OnClickListener openUserProfile = v -> {
+                android.content.Intent intent = new android.content.Intent(context, UserDetailActivity.class);
+                intent.putExtra("uid", comment.getUid());
+                context.startActivity(intent);
+            };
+            holder.ivCommentUser.setOnClickListener(openUserProfile);
+            holder.tvCommentUsername.setOnClickListener(openUserProfile);
+
             UserProfileCache.getUserProfile(comment.getUid(), profile -> {
                 if (profile != null) {
                     holder.tvCommentUsername.setText(profile.name != null ? profile.name : "User");
