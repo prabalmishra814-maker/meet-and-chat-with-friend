@@ -42,6 +42,7 @@ public class CommentsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_comments);
         View mainView = findViewById(android.R.id.content);
         if (mainView != null) {

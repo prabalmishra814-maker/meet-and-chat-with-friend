@@ -11,6 +11,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -69,6 +72,31 @@ public class LeaderboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_leaderboard);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            View headerBar = findViewById(R.id.headerBar);
+            if (headerBar != null) {
+                headerBar.setPadding(
+                        headerBar.getPaddingLeft(),
+                        systemBars.top,
+                        headerBar.getPaddingRight(),
+                        headerBar.getPaddingBottom()
+                );
+            }
+
+            View llMyRankBar = findViewById(R.id.llMyRankBar);
+            if (llMyRankBar != null) {
+                llMyRankBar.setPadding(
+                        llMyRankBar.getPaddingLeft(),
+                        llMyRankBar.getPaddingTop(),
+                        llMyRankBar.getPaddingRight(),
+                        systemBars.bottom
+                );
+            }
+            return insets;
+        });
 
         currentUid = FirebaseAuth.getInstance().getUid();
 

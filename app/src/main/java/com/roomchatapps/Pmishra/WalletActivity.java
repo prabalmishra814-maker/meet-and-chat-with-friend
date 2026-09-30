@@ -10,6 +10,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,6 +64,20 @@ public class WalletActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_wallet);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            View header = findViewById(R.id.header);
+            if (header != null) {
+                header.setPadding(
+                        header.getPaddingLeft(),
+                        systemBars.top + (int) (4 * getResources().getDisplayMetrics().density),
+                        header.getPaddingRight(),
+                        header.getPaddingBottom()
+                );
+            }
+            return insets;
+        });
 
         currentUid = FirebaseAuth.getInstance().getUid();
 

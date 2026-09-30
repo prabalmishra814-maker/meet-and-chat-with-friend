@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.roomchatapps.Pmishra.databinding.ActivitySettingsBinding;
@@ -20,8 +23,20 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.headerLayout.setPadding(
+                    binding.headerLayout.getPaddingLeft(),
+                    systemBars.top + (int) (8 * getResources().getDisplayMetrics().density),
+                    binding.headerLayout.getPaddingRight(),
+                    binding.headerLayout.getPaddingBottom()
+            );
+            return insets;
+        });
 
         mAuth = FirebaseAuth.getInstance();
 

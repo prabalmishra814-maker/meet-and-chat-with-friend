@@ -18,6 +18,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -115,6 +118,29 @@ public class CoinRechargeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         setContentView(R.layout.activity_coin_recharge);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            View topBar = findViewById(R.id.topBar);
+            if (topBar != null) {
+                topBar.setPadding(
+                        topBar.getPaddingLeft(),
+                        systemBars.top + (int) (4 * getResources().getDisplayMetrics().density),
+                        topBar.getPaddingRight(),
+                        topBar.getPaddingBottom()
+                );
+            }
+            View bottomBar = findViewById(R.id.bottomBar);
+            if (bottomBar != null) {
+                bottomBar.setPadding(
+                        bottomBar.getPaddingLeft(),
+                        bottomBar.getPaddingTop(),
+                        bottomBar.getPaddingRight(),
+                        systemBars.bottom + (int) (4 * getResources().getDisplayMetrics().density)
+                );
+            }
+            return insets;
+        });
 
         currentUid = FirebaseAuth.getInstance().getUid();
 

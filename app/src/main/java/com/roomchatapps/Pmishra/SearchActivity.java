@@ -6,6 +6,9 @@ import android.text.TextWatcher;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +35,25 @@ public class SearchActivity extends AppCompatActivity {
         com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
         binding = ActivitySearchBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            int topPadding = systemBars.top + (int) (8 * getResources().getDisplayMetrics().density);
+            binding.topBar.setPadding(
+                    binding.topBar.getPaddingLeft(),
+                    topPadding,
+                    binding.topBar.getPaddingRight(),
+                    binding.topBar.getPaddingBottom()
+            );
+            int bottomPadding = systemBars.bottom + (int) (8 * getResources().getDisplayMetrics().density);
+            binding.rvSearchResults.setPadding(
+                    binding.rvSearchResults.getPaddingLeft(),
+                    binding.rvSearchResults.getPaddingTop(),
+                    binding.rvSearchResults.getPaddingRight(),
+                    bottomPadding
+            );
+            return insets;
+        });
 
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         userList = new ArrayList<>();
