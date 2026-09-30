@@ -121,22 +121,9 @@ public class StoreManager {
         });
     }
 
-    private static boolean isRemovedItem(StoreItemModel item) {
-        if (item == null) return true;
-        String id = item.getId() != null ? item.getId().toLowerCase() : "";
-        String name = item.getName() != null ? item.getName().toLowerCase() : "";
-        return id.contains("golden_car") || id.contains("gold_sport") || id.contains("luxury_jet")
-                || id.contains("phoenix") || id.contains("rose_ship") || id.contains("unicorn")
-                || name.contains("jet") || name.contains("phoenix") || name.contains("rose ship")
-                || name.contains("unicorn") || name.contains("gold sport") || name.contains("golden car");
-    }
-
     private static void filterAndReturn(List<StoreItemModel> catalog, String categoryFilter, CatalogCallback callback) {
         List<StoreItemModel> filtered = new ArrayList<>();
         for (StoreItemModel item : catalog) {
-            if (isRemovedItem(item)) {
-                continue;
-            }
             // Keep ONLY FRAME and ENTRANCE categories
             if (!"FRAME".equalsIgnoreCase(item.getCategory()) && !"ENTRANCE".equalsIgnoreCase(item.getCategory())) {
                 continue;
@@ -279,7 +266,11 @@ public class StoreManager {
         items.add(new StoreItemModel("frame_rank_1", "Rank 1 Gold Frame 🥇", "FRAME", 9000000L, "Top 1 Leaderboard Rank Frame", "ic_crown_gold_frame", "RANK 1 🥇", "frame/frame_rank_1.svga"));
 
         // Entrances / Rides - Exact Prices from Screenshots
+        items.add(new StoreItemModel("entrance_rose_ship", "Rose Ship 🚢", "ENTRANCE", 5000000L, "Sailing into rooms in a Rose Ship", "ic_entrance_golden_car", "NEW 🔥", "Entry/rose_ship.svga"));
         items.add(new StoreItemModel("entrance_magic_deer", "Magic Deer 🦌", "ENTRANCE", 5400000L, "Arrive gracefully on Magic Deer", "ic_entrance_toyota_car", "MAGIC ✨", "Entry/magic_deer.svga"));
+        items.add(new StoreItemModel("entrance_unicorn", "Unicorn Ride 🦄", "ENTRANCE", 6000000L, "Ride into rooms on a Flying Unicorn", "ic_entrance_golden_car", "VIP 👑", "Entry/unicorn.svga"));
+        items.add(new StoreItemModel("entrance_golden_car", "Golden Super Car 🏎️", "ENTRANCE", 7000000L, "Ride into rooms in a Golden Super Car", "ic_entrance_golden_car", "VIP 👑", "Entry/golden_super_car.svga"));
+        items.add(new StoreItemModel("entrance_luxury_jet", "Luxury Jet 🛩️", "ENTRANCE", 8000000L, "Fly into rooms in a Private Luxury Jet", "ic_entrance_red_car", "LUXURY", "Entry/luxury_jet.svga"));
         items.add(new StoreItemModel("entrance_toyota_car", "Toyota Car Entrance 🚗", "ENTRANCE", 8000000L, "Cruising into rooms in Toyota Car", "ic_entrance_toyota_car", "POPULAR", "Entry/toyota_car_entry.svga"));
         items.add(new StoreItemModel("entrance_red_car", "Red Super Car 🏎️", "ENTRANCE", 8000000L, "Arrive in style with Red Super Car", "ic_entrance_red_car", "HOT 🔥", "Entry/red_super_car.svga"));
         items.add(new StoreItemModel("entrance_anime_man", "Anime Legend Arrival ⚡", "ENTRANCE", 10000000L, "Enter rooms with Anime Hero Arrival", "ic_entrance_anime_man", "EPIC ⚡", "Entry/anime_man_entry.svga"));
