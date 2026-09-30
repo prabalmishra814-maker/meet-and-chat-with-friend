@@ -6,6 +6,8 @@
     <string name="following">Following</string>
     <string name="no_users_found">No users found</string>
     <string name="wallet">Wallet</string>
+    <string name="energy">Energy</string>
+    <string name="energy_center">Energy\nCenter</string>
     <string name="store">Store</string>
     <string name="agency_center">Agency\nCenter</string>
     <string name="bd_center">BD\nCenter</string>

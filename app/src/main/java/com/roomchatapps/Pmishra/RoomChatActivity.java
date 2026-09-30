@@ -2956,83 +2956,68 @@ public class RoomChatActivity extends AppCompatActivity {
 
         List<GiftStoreItem> giftList = new ArrayList<>();
 
-        // 1. Gift Category
-        giftList.add(new GiftStoreItem("Angel Heart", "gift/love_wing.svga", R.drawable.gift_love, 1000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Tiger", "gift/tiger.svga", R.drawable.gift_golden_tea, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Big Marry", "gift/big_marry.svga", R.drawable.gift_wedding_proposal, 750000L, "Gift"));
-        giftList.add(new GiftStoreItem("Sky Gift", "gift/sky_gift.svga", R.drawable.gift_blue_gown, 200000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Wings", "gift/love_wings.svga", R.drawable.gift_love_fireworks, 1800000L, "Gift"));
-        giftList.add(new GiftStoreItem("Dream Castle", "gift/dream_castle.svga", R.drawable.gift_fantasy_castle, 800000L, "Gift"));
-        giftList.add(new GiftStoreItem("Summer Girl", "gift/summer_girl.svga", R.drawable.gift_makeup_box, 900000L, "Gift"));
-        giftList.add(new GiftStoreItem("Indian Gift", "gift/indian_gift.svga", R.drawable.gift_pearls_necklace, 1000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Dating Table", "gift/dating_table.svga", R.drawable.gift_love_proposal, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Balloon Love Ring", "gift/balloon_love_ring.svga", R.drawable.gift_blue_ring, 800000L, "Gift"));
-        giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000L, "Gift"));
-        giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000L, "Gift"));
-        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000L, "Gift"));
-        giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, 1000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Blue Princess Gown", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, 1500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Fireworks", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, 1000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, 600000L, "Gift"));
-        giftList.add(new GiftStoreItem("Cosmic Float", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, 4000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Fire Rocket", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, 100000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Couple", "gift/love_couple.svga", R.drawable.gift_love_couple, 1500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, 3000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, 300000L, "Gift"));
-        giftList.add(new GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, 1000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000L, "Gift"));
-        giftList.add(new GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, 2000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 500000L, "Gift"));
-        giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, 5000000L, "Gift"));
-        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, 100L, "Gift"));
+        // 1. Gift Category (Tiered by SVGA Animation Quality: 10L to 10Cr)
+        giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Blue Princess Gown", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Love Fireworks", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, EconomyConfig.GIFT_TIER_4, "Gift"));
+        giftList.add(new GiftStoreItem("Fire Rocket", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, EconomyConfig.GIFT_TIER_4, "Gift"));
+        giftList.add(new GiftStoreItem("Cosmic Float", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, EconomyConfig.GIFT_TIER_4, "Gift"));
+        giftList.add(new GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, EconomyConfig.GIFT_TIER_5, "Gift"));
+        giftList.add(new GiftStoreItem("Love Couple", "gift/love_couple.svga", R.drawable.gift_love_couple, EconomyConfig.GIFT_TIER_5, "Gift"));
+        giftList.add(new GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, EconomyConfig.GIFT_TIER_6, "Gift"));
+        giftList.add(new GiftStoreItem("Wedding Hall", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, EconomyConfig.GIFT_TIER_6, "Gift"));
+        giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, EconomyConfig.GIFT_TIER_7, "Gift"));
+        giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, EconomyConfig.GIFT_TIER_7, "Gift"));
 
         // 2. Lucky Category
-        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, 500L, "Lucky"));
-        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, 1000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, 2000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, 5000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, 10000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, 20000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, 50000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, 100000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, 500000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, 1000000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, 5000000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, 3000000L, "Lucky"));
-        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 10000000L, "Lucky"));
+        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, EconomyConfig.GIFT_TIER_1, "Lucky"));
+        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Lucky"));
+        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, EconomyConfig.GIFT_TIER_2, "Lucky"));
+        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, EconomyConfig.GIFT_TIER_2, "Lucky"));
+        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, EconomyConfig.GIFT_TIER_2, "Lucky"));
+        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, EconomyConfig.GIFT_TIER_3, "Lucky"));
+        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, EconomyConfig.GIFT_TIER_3, "Lucky"));
+        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, EconomyConfig.GIFT_TIER_3, "Lucky"));
+        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, EconomyConfig.GIFT_TIER_4, "Lucky"));
+        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, EconomyConfig.GIFT_TIER_5, "Lucky"));
+        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, EconomyConfig.GIFT_TIER_6, "Lucky"));
+        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, EconomyConfig.GIFT_TIER_6, "Lucky"));
+        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, EconomyConfig.GIFT_TIER_7, "Lucky"));
 
         // 3. Relationship Category
-        giftList.add(new GiftStoreItem("CP Celebration Anim", "gift/cp_anim.svga", R.drawable.gift_cp_celebration, 10000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Romantic Proposal", "gift/romantic_proposal.svga", R.drawable.gift_love_proposal, 8000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, 4500000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Red Box Diamond", "gift/red_box_diamond.svga", R.drawable.gift_golden_rings, 4000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 3500000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 3000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Royal Romance", "gift/royal_romance.svga", R.drawable.gift_forever_love, 2000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 1500000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Wedding Couple", "gift/wedding_couple.svga", R.drawable.gift_wedding_proposal, 1500000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 1000000L, "Relationship"));
-        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 500000L, "Relationship"));
+        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, EconomyConfig.GIFT_TIER_2, "Relationship"));
+        giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, EconomyConfig.GIFT_TIER_3, "Relationship"));
+        giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, EconomyConfig.GIFT_TIER_4, "Relationship"));
+        giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, EconomyConfig.GIFT_TIER_5, "Relationship"));
+        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, EconomyConfig.GIFT_TIER_5, "Relationship"));
+        giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, EconomyConfig.GIFT_TIER_6, "Relationship"));
+        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, EconomyConfig.GIFT_TIER_6, "Relationship"));
+        giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, EconomyConfig.GIFT_TIER_7, "Relationship"));
+        giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, EconomyConfig.GIFT_TIER_7, "Relationship"));
 
         // 4. Nation Flag Category
-        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, 100000L, "Nation Flag"));
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, EconomyConfig.GIFT_TIER_1, "Nation Flag"));
 
         // 5. Luxury Category
-        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 8000000L, "Luxury"));
-        giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, 5500000L, "Luxury"));
-        giftList.add(new GiftStoreItem("Castle Night", "gift/castle_night.svga", R.drawable.gift_church, 5000000L, "Luxury"));
-        giftList.add(new GiftStoreItem("Castle", "gift/castle.svga", R.drawable.gift_floating_castle, 5000000L, "Luxury"));
-        giftList.add(new GiftStoreItem("Royal Suit", "gift/royal_suit.svga", R.drawable.gift_royal_suit, 5000000L, "Luxury"));
-        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, 3500000L, "Luxury"));
+        giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, EconomyConfig.GIFT_TIER_4, "Luxury"));
+        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, EconomyConfig.GIFT_TIER_5, "Luxury"));
+        giftList.add(new GiftStoreItem("Royal Suit", "gift/royal_suit.svga", R.drawable.gift_royal_suit, EconomyConfig.GIFT_TIER_6, "Luxury"));
+        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, EconomyConfig.GIFT_TIER_7, "Luxury"));
+        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 12000000, "Luxury"));
+        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, 8500000, "Luxury"));
 
         // 6. Customization Category
-        giftList.add(new GiftStoreItem("Flower Arch", "gift/flower_arch.svga", R.drawable.king_icon, 10000000L, "Customization"));
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 1000000, "Customization"));
 
         String[] categories = new String[]{"Gift", "Lucky", "Relationship", "Nation Flag", "Luxury", "Customization"};
 

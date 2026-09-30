@@ -94,6 +94,7 @@
         <activity android:name=".ReferralActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".LeaderboardActivity" />
+        <activity android:name=".EnergyConvertActivity" />
         <activity
             android:name=".CheckActivity"
             android:exported="false"

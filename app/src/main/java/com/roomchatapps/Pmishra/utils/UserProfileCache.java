@@ -21,6 +21,7 @@ public class UserProfileCache {
         public String avatarUrl;
         public String equippedFrame = "";
         public long coinsSpent = 0;
+        public long energy = 0;
         public long level = 1;
         public long totalXp = 0;
         public int currentLevelXp = 0;
@@ -98,6 +99,11 @@ public class UserProfileCache {
                     }
 
                     profile.coinsSpent = spent;
+                    if (snapshot.child("energy").exists() && snapshot.child("energy").getValue() != null) {
+                        try {
+                            profile.energy = Long.parseLong(String.valueOf(snapshot.child("energy").getValue()));
+                        } catch (Exception ignored) {}
+                    }
                     profile.level = LevelUtils.calculateLevel(spent);
                     profile.totalXp = LevelUtils.calculateTotalXp(spent);
                     profile.currentLevelXp = LevelUtils.calculateCurrentXpInLevel(spent);
