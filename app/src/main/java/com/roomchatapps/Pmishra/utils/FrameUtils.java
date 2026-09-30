@@ -280,7 +280,6 @@ public class FrameUtils {
 
         switch (entranceId.trim()) {
             case "entrance_anime_man": return "Entry/anime_man_entry.svga";
-            case "entrance_golden_car": return "Entry/golden_super_car.svga";
             case "entrance_red_car": return "Entry/red_super_car.svga";
             case "entrance_toyota_car": return "Entry/toyota_car_entry.svga";
         }

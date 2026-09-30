@@ -121,9 +121,22 @@ public class StoreManager {
         });
     }
 
+    private static boolean isRemovedItem(StoreItemModel item) {
+        if (item == null) return true;
+        String id = item.getId() != null ? item.getId().toLowerCase() : "";
+        String name = item.getName() != null ? item.getName().toLowerCase() : "";
+        return id.contains("golden_car") || id.contains("gold_sport") || id.contains("luxury_jet")
+                || id.contains("phoenix") || id.contains("rose_ship") || id.contains("unicorn")
+                || name.contains("jet") || name.contains("phoenix") || name.contains("rose ship")
+                || name.contains("unicorn") || name.contains("gold sport") || name.contains("golden car");
+    }
+
     private static void filterAndReturn(List<StoreItemModel> catalog, String categoryFilter, CatalogCallback callback) {
         List<StoreItemModel> filtered = new ArrayList<>();
         for (StoreItemModel item : catalog) {
+            if (isRemovedItem(item)) {
+                continue;
+            }
             // Keep ONLY FRAME and ENTRANCE categories
             if (!"FRAME".equalsIgnoreCase(item.getCategory()) && !"ENTRANCE".equalsIgnoreCase(item.getCategory())) {
                 continue;

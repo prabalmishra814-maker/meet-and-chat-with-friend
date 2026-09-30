@@ -412,6 +412,77 @@ public class WalletManager {
         });
     }
 
+    public static void exchangeCoinsForEnergy(String uid, long coinAmount, WalletCallback callback) {
+        if (uid == null || uid.isEmpty()) {
+            if (callback != null) callback.onError("Invalid user ID");
+            return;
+        }
+
+        if (coinAmount <= 0) {
+            if (callback != null) callback.onError("Amount must be greater than 0");
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long currentEnergy = 0;
+                long currentCoins = 0;
+
+                if (snapshot.exists()) {
+                    if (snapshot.child("energy").exists() && snapshot.child("energy").getValue() != null) {
+                        try {
+                            currentEnergy = Long.parseLong(String.valueOf(snapshot.child("energy").getValue()));
+                        } catch (Exception ignored) {}
+                    }
+
+                    if (snapshot.child("coins").exists() && snapshot.child("coins").getValue() != null) {
+                        try {
+                            currentCoins = Long.parseLong(String.valueOf(snapshot.child("coins").getValue()));
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                if (currentCoins < coinAmount) {
+                    if (callback != null) callback.onError("Insufficient coin balance!");
+                    return;
+                }
+
+                long updatedCoins = currentCoins - coinAmount;
+                long updatedEnergy = currentEnergy + coinAmount;
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("coins", updatedCoins);
+                updates.put("energy", updatedEnergy);
+
+                userRef.updateChildren(updates).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        UserProfileCache.invalidate(uid);
+                        logTransaction(uid, "ENERGY_BUY", -coinAmount, 0, "Coin Exchange", "Exchanged " + coinAmount + " Coins for " + coinAmount + " Energy");
+                        if (callback != null) {
+                            callback.onSuccess("Successfully exchanged " + coinAmount + " Coins for Energy!", updatedCoins);
+                        }
+                    } else {
+                        if (callback != null) {
+                            callback.onError("Failed to exchange coins.");
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (callback != null) callback.onError(error.getMessage());
+            }
+        });
+    }
+
+    public static void spendCoinsForRichGift(String roomId, String senderUid, String senderName, String recipientUid, String recipientName, String giftItemName, String giftName, long singleCost, int quantity, WalletCallback callback) {
+        long totalCost = singleCost * Math.max(1, quantity);
+        spendCoinsForGift(senderUid, recipientUid, totalCost, giftName, callback);
+    }
+
     public static void logTransaction(String uid, String type, long coinAmount, long diamondAmount, String title, String description) {
         DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(uid);
         String txId = txRef.push().getKey();
