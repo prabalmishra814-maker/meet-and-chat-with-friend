@@ -80,11 +80,11 @@
         android:textColor="#B0FFFFFF"
         android:textSize="12.5sp" />
 
-    <!-- Responsive Layered 9-Asset Spin Wheel View -->
+    <!-- Responsive Transparent Spin Wheel View -->
     <com.roomchatapps.Pmishra.spinwheel.SpinWheelView
         android:id="@+id/spinWheelView"
-        android:layout_width="320dp"
-        android:layout_height="320dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp" />
 

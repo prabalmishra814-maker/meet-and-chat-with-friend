@@ -524,6 +524,12 @@ public class RoomChatActivity extends AppCompatActivity {
         findViewById(R.id.btnGame).setOnClickListener(v -> showRoomGameDialog());
         findViewById(R.id.btnGift).setOnClickListener(v -> showGiftDialog());
 
+        View btnSpinWheel = findViewById(R.id.btnSpinWheel);
+        if (btnSpinWheel != null) {
+            AnimationHelper.applyClickAnimation(btnSpinWheel);
+            btnSpinWheel.setOnClickListener(v -> showLuckySpinWheelDialog());
+        }
+
         ImageView btnSettings = findViewById(R.id.btnSettings);
         if (btnSettings != null) {
             btnSettings.setOnClickListener(v -> showThemeSelectionDialog());
@@ -2979,20 +2985,20 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, EconomyConfig.GIFT_TIER_7, "Gift"));
         giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, EconomyConfig.GIFT_TIER_7, "Gift"));
 
-        // 2. Lucky Category
-        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, EconomyConfig.GIFT_TIER_1, "Lucky"));
-        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Lucky"));
-        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, EconomyConfig.GIFT_TIER_2, "Lucky"));
-        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, EconomyConfig.GIFT_TIER_2, "Lucky"));
-        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, EconomyConfig.GIFT_TIER_2, "Lucky"));
-        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, EconomyConfig.GIFT_TIER_3, "Lucky"));
-        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, EconomyConfig.GIFT_TIER_3, "Lucky"));
-        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, EconomyConfig.GIFT_TIER_3, "Lucky"));
-        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, EconomyConfig.GIFT_TIER_4, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, EconomyConfig.GIFT_TIER_5, "Lucky"));
-        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, EconomyConfig.GIFT_TIER_6, "Lucky"));
-        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, EconomyConfig.GIFT_TIER_6, "Lucky"));
-        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, EconomyConfig.GIFT_TIER_7, "Lucky"));
+        // 2. Extra Gifts (Formerly Lucky Category)
+        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Gift"));
+        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, EconomyConfig.GIFT_TIER_2, "Gift"));
+        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, EconomyConfig.GIFT_TIER_3, "Gift"));
+        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, EconomyConfig.GIFT_TIER_4, "Gift"));
+        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, EconomyConfig.GIFT_TIER_5, "Gift"));
+        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, EconomyConfig.GIFT_TIER_6, "Gift"));
+        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, EconomyConfig.GIFT_TIER_6, "Gift"));
+        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, EconomyConfig.GIFT_TIER_7, "Gift"));
 
         // 3. Relationship Category
         giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, EconomyConfig.GIFT_TIER_2, "Relationship"));
@@ -3019,7 +3025,7 @@ public class RoomChatActivity extends AppCompatActivity {
         // 6. Customization Category
         giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 1000000, "Customization"));
 
-        String[] categories = new String[]{"Gift", "Lucky", "Relationship", "Nation Flag", "Luxury", "Customization"};
+        String[] categories = new String[]{"Gift", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
         List<GiftStoreItem> initialCategoryGifts = new ArrayList<>();
         for (GiftStoreItem item : giftList) {
@@ -3072,14 +3078,6 @@ public class RoomChatActivity extends AppCompatActivity {
             rvGifts.setAdapter(adapter);
 
             adapter.setOnGiftSelectedListener((item, position, isReSelected) -> {
-                if ("Lucky".equalsIgnoreCase(item.category)) {
-                    if (dialog != null && dialog.isShowing()) {
-                        dialog.dismiss();
-                    }
-                    showLuckySpinWheelDialog();
-                    return;
-                }
-
                 if (isReSelected) {
                     selectedQuantity[0]++;
                 } else {
@@ -3107,12 +3105,6 @@ public class RoomChatActivity extends AppCompatActivity {
                     @Override
                     public void onTabSelected(TabLayout.Tab tab) {
                         String selectedCategory = categories[tab.getPosition()];
-                        if ("Lucky".equalsIgnoreCase(selectedCategory)) {
-                            if (dialog != null && dialog.isShowing()) {
-                                dialog.dismiss();
-                            }
-                            showLuckySpinWheelDialog();
-                        }
                         List<GiftStoreItem> filtered = new ArrayList<>();
                         for (GiftStoreItem item : giftList) {
                             if (item.category.equalsIgnoreCase(selectedCategory)) {
@@ -3194,7 +3186,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
                             String senderDisplayName = userName != null ? userName : "User";
                             try {
-                                org.json.JSONObject giftJson = new org.json.JSONObject();
+                                JSONObject giftJson = new JSONObject();
                                 giftJson.put("type", "GIFT");
                                 giftJson.put("giftId", uniqueGiftId);
                                 giftJson.put("senderName", senderDisplayName);
@@ -3302,31 +3294,29 @@ public class RoomChatActivity extends AppCompatActivity {
                         winner -> {
                             if (btnSpin != null) btnSpin.setEnabled(true);
 
-                            // Show Custom Neon Winner Result Dialog
+                            long rewardCoins = winner.getRewardCoins();
+
+                            // Add won coins to user balance in Firebase & UI if reward > 0
+                            if (rewardCoins > 0) {
+                                WalletManager.addCoins(userID, rewardCoins, "LUCKY_SPIN", "Lucky Spin Reward", "Won " + rewardCoins + " Coins on Lucky Wheel", new WalletManager.WalletCallback() {
+                                    @Override
+                                    public void onSuccess(String message, long newCoinBalance) {
+                                        runOnUiThread(() -> {
+                                            cachedCoins[0] = newCoinBalance;
+                                            if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + newCoinBalance);
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        refreshCoins.run();
+                                    }
+                                });
+                            }
+
+                            // Show Custom Winner Result Dialog
                             SpinWinnerDialog winnerDialog = new SpinWinnerDialog(RoomChatActivity.this);
                             winnerDialog.showWinner(winner, () -> {
-                                // Close Spin Wheel Dialog so ALL dialogs are closed before SVGA animation plays!
-                                if (dialog != null && dialog.isShowing()) {
-                                    dialog.dismiss();
-                                }
-
-                                // Broadcast to Firebase Room Gifts feed (Firebase listener plays SVGA animation & banner ONCE)
-                                if (roomGiftsRef != null) {
-                                    Map<String, Object> giftData = new HashMap<>();
-                                    giftData.put("senderName", userName != null ? userName : "User");
-                                    giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                    giftData.put("giftName", winner.getName());
-                                    giftData.put("giftSvga", winner.getSvgaPath());
-                                    giftData.put("iconRes", (long) winner.getDrawableRes());
-                                    giftData.put("timestamp", System.currentTimeMillis());
-                                    roomGiftsRef.push().setValue(giftData);
-                                } else {
-                                    // Offline fallback
-                                    playSvgaAnimation(winner.getSvgaPath());
-                                    showGoldenGiftBanner(userName, "🎰 Lucky Spin Won: " + winner.getName());
-                                }
-
-                                Toast.makeText(RoomChatActivity.this, "🎉 You won and sent " + winner.getName() + "!", Toast.LENGTH_SHORT).show();
                                 refreshCoins.run();
                                 return Unit.INSTANCE;
                             });

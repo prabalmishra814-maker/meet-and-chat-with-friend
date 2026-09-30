@@ -52,7 +52,7 @@ class SpinWheelView @JvmOverloads constructor(
     val ivPointer: ImageView = ImageView(context)
     val ivSpinButton: ImageView = ImageView(context)
 
-    private var currentRotation: Float = 0f
+    private var currentRotation: Float = SpinWheelController.START_ANGLE
     private var isSpinningState: Boolean = false
 
     private var spinButtonClickListener: OnSpinButtonClickListener? = null
@@ -82,9 +82,10 @@ class SpinWheelView @JvmOverloads constructor(
         ivStand.scaleType = ImageView.ScaleType.FIT_CENTER
         addView(ivStand, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL))
 
-        // 4. Rotating Wheel Artwork
-        ivWheel.setImageResource(R.drawable.wheel)
+        // 4. Rotating Wheel Artwork (Initial -15 deg offset aligns segment center at top)
+        ivWheel.setImageResource(R.drawable.lucky_spin_wheel)
         ivWheel.scaleType = ImageView.ScaleType.FIT_CENTER
+        ivWheel.rotation = SpinWheelController.START_ANGLE
         addView(ivWheel, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER))
 
         // 5. Fixed Outer Ring
@@ -226,8 +227,10 @@ class SpinWheelView @JvmOverloads constructor(
             fullRotations
         )
 
-        val rotateAnimator = ObjectAnimator.ofFloat(ivWheel,
-            ROTATION, currentRotation, targetRotation).apply {
+        val rotateAnimator = ObjectAnimator.ofFloat(
+            ivWheel,
+            ROTATION, currentRotation, targetRotation
+        ).apply {
             duration = durationMs
             interpolator = DecelerateInterpolator(2.2f)
             addListener(object : AnimatorListenerAdapter() {

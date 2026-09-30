@@ -3,25 +3,26 @@ package com.roomchatapps.Pmishra.spinwheel
 import com.roomchatapps.Pmishra.R
 
 /**
- * Controller and data model for the 13-segment Lucky Spin Wheel.
+ * Controller and data model for the 12-segment Lucky Spin Wheel.
  */
 object SpinWheelController {
 
     /**
-     * Starting angle offset in degrees.
-     * seg1.png (Magic Gift) is centered at the top (12 o'clock / 0 degrees) in wheel.png.
+     * Initial rotation offset in degrees.
+     * With -15 degree initial wheel rotation, Index 0 ("Battle Luck next time")
+     * is centered at top center (12 o'clock / 0 degrees).
      */
-    const val START_ANGLE: Float = 0f
+    const val START_ANGLE: Float = -15f
 
     /**
-     * Total number of segments on the wheel artwork.
+     * Total number of segments on the wheel artwork (12 segments).
      */
-    const val NUM_SEGMENTS: Int = 13
+    const val NUM_SEGMENTS: Int = 12
 
     /**
-     * Exact angular size of each segment in degrees.
+     * Exact angular size of each segment in degrees (360 / 12 = 30 degrees).
      */
-    val SEGMENT_ANGLE: Float = 360f / NUM_SEGMENTS.toFloat() // 27.6923077 degrees
+    val SEGMENT_ANGLE: Float = 360f / NUM_SEGMENTS.toFloat()
 
     /**
      * Default spin animation duration in milliseconds.
@@ -36,37 +37,33 @@ object SpinWheelController {
     data class SpinSegment(
         val index: Int,
         val name: String,
-        val drawableRes: Int,
-        val svgaPath: String,
-        val costCoins: Long
+        val rewardCoins: Long,
+        val drawableRes: Int = R.drawable.coin,
+        val svgaPath: String = "",
+        val costCoins: Long = 0L
     )
 
     /**
-     * 13 Lucky Segments Pool mapped to seg1.png .. seg13.png.
+     * 12 Lucky Segments mapped directly to the wheel artwork clockwise starting from top center.
      */
     val SEGMENTS: List<SpinSegment> = listOf(
-        SpinSegment(0, "Magic Gift 🎁", R.drawable.seg1, "gift/magic_gift.svga", 300),
-        SpinSegment(1, "Angel Queen Crown 👑", R.drawable.seg2, "gift/angel_queen_crown.svga", 600),
-        SpinSegment(2, "Forever Couple 💑", R.drawable.seg3, "gift/forever_couple.svga", 700),
-        SpinSegment(3, "Crystal Rose 🌹", R.drawable.seg4, "gift/crystal_rose.svga", 350),
-        SpinSegment(4, "Angel Bride 👰", R.drawable.seg5, "gift/angel_bride.svga", 500),
-        SpinSegment(5, "Popcorn 🍿", R.drawable.seg6, "gift/popcorn.svga", 40),
-        SpinSegment(6, "Baklava 🥮", R.drawable.seg7, "gift/baklava.svga", 80),
-        SpinSegment(7, "Glass Glow Rose 🌹", R.drawable.seg8, "gift/glass_glow_rose.svga", 400),
-        SpinSegment(8, "Money Stack 💵", R.drawable.seg9, "gift/money.svga", 200),
-        SpinSegment(9, "Refrigerator 🧊", R.drawable.seg10, "gift/refrigerator.svga", 500),
-        SpinSegment(10, "Party Popper 🎉", R.drawable.seg11, "gift/party_popper.svga", 160),
-        SpinSegment(11, "Gold Bar 🪙", R.drawable.seg12, "gift/gold_bar.svga", 250),
-        SpinSegment(12, "Magic Sword ⚔️", R.drawable.seg13, "gift/magic_sword.svga", 700)
+        SpinSegment(0, "Battle Luck next time", 0L, R.drawable.coin),
+        SpinSegment(1, "700,000 Coins", 700000L, R.drawable.coin),
+        SpinSegment(2, "200,000 Coins", 200000L, R.drawable.coin),
+        SpinSegment(3, "100,000 Coins", 100000L, R.drawable.coin),
+        SpinSegment(4, "Battle Luck next time", 0L, R.drawable.coin),
+        SpinSegment(5, "500,000 Coins", 500000L, R.drawable.coin),
+        SpinSegment(6, "200,000 Coins", 200000L, R.drawable.coin),
+        SpinSegment(7, "2,000,000 Coins", 2000000L, R.drawable.coin),
+        SpinSegment(8, "300,000 Coins", 300000L, R.drawable.coin),
+        SpinSegment(9, "100,000 Coins", 100000L, R.drawable.coin),
+        SpinSegment(10, "Battle Luck next time", 0L, R.drawable.coin),
+        SpinSegment(11, "100,000 Coins", 100000L, R.drawable.coin)
     )
 
     /**
      * Calculates the exact final rotation angle so that the winning segment center aligns with
      * the pointer fixed at top center (0 degrees screen angle).
-     *
-     * @param currentRotation Current rotation angle of wheel.png in degrees.
-     * @param winnerIndex Index of winning segment (0 to 12).
-     * @param fullRotations Number of complete 360-degree rotations to execute.
      */
     fun calculateTargetRotation(
         currentRotation: Float,
@@ -74,15 +71,18 @@ object SpinWheelController {
         fullRotations: Int = DEFAULT_FULL_ROTATIONS
     ): Float {
         val safeIndex = winnerIndex.coerceIn(0, NUM_SEGMENTS - 1)
-        val winnerCenterAngle = START_ANGLE + (safeIndex * SEGMENT_ANGLE)
-        val desiredWheelAngle = (360f - (winnerCenterAngle % 360f)) % 360f
+        // Segment center angle relative to unrotated wheel artwork:
+        val segmentCenterAngle = 15f + (safeIndex * SEGMENT_ANGLE)
 
-        val currentAngle = (currentRotation % 360f + 360f) % 360f
-        var neededDegrees = (desiredWheelAngle - currentAngle) % 360f
-        if (neededDegrees < 0f) {
-            neededDegrees += 360f
+        // Desired wheel rotation R mod 360 such that (segmentCenterAngle + R) % 360 == 0
+        val desiredModulo = (360f - (segmentCenterAngle % 360f)) % 360f
+
+        val currentModulo = (currentRotation % 360f + 360f) % 360f
+        var addDegrees = (desiredModulo - currentModulo) % 360f
+        if (addDegrees <= 0f) {
+            addDegrees += 360f
         }
 
-        return currentRotation + (fullRotations * 360f) + neededDegrees
+        return currentRotation + (fullRotations * 360f) + addDegrees
     }
 }

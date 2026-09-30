@@ -151,7 +151,7 @@
         app:fabSize="normal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:maxImageSize="26dp"
+        app:maxImageSize="40dp"
         app:tint="@null" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

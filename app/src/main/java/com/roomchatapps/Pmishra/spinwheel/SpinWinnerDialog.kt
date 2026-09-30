@@ -12,10 +12,12 @@ import com.google.android.material.button.MaterialButton
 import com.roomchatapps.Pmishra.R
 
 /**
- * Custom neon-styled popup dialog displayed when the spin wheel stops.
+ * Custom glass-styled popup dialog displayed when the spin wheel stops.
  */
 class SpinWinnerDialog(context: Context) : Dialog(context) {
 
+    private val tvWinnerTitle: TextView
+    private val tvWinnerSubtitle: TextView
     private val ivWinnerSegmentImage: ImageView
     private val tvWinnerName: TextView
     private val btnWinnerOk: MaterialButton
@@ -25,9 +27,14 @@ class SpinWinnerDialog(context: Context) : Dialog(context) {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_spin_winner_popup, null, false)
         setContentView(view)
 
-        window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
         setCancelable(true)
 
+        tvWinnerTitle = view.findViewById(R.id.tvWinnerTitle)
+        tvWinnerSubtitle = view.findViewById(R.id.tvWinnerSubtitle)
         ivWinnerSegmentImage = view.findViewById(R.id.ivWinnerSegmentImage)
         tvWinnerName = view.findViewById(R.id.tvWinnerName)
         btnWinnerOk = view.findViewById(R.id.btnWinnerOk)
@@ -39,7 +46,18 @@ class SpinWinnerDialog(context: Context) : Dialog(context) {
 
     fun showWinner(segment: SpinWheelController.SpinSegment, onClaim: (() -> Unit)? = null) {
         ivWinnerSegmentImage.setImageResource(segment.drawableRes)
-        tvWinnerName.text = segment.name
+
+        if (segment.rewardCoins > 0) {
+            tvWinnerTitle.text = "🎉 CONGRATULATIONS! 🎉"
+            tvWinnerSubtitle.text = "YOU WON A LUCKY REWARD!"
+            tvWinnerName.text = "Won ${segment.name}!"
+            btnWinnerOk.text = "CLAIM REWARD"
+        } else {
+            tvWinnerTitle.text = "🍀 BETTER LUCK NEXT TIME!"
+            tvWinnerSubtitle.text = "NO COINS WON THIS SPIN"
+            tvWinnerName.text = segment.name
+            btnWinnerOk.text = "TRY AGAIN"
+        }
 
         btnWinnerOk.setOnClickListener {
             dismiss()

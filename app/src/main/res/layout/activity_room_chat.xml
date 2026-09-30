@@ -295,7 +295,7 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="115dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <!-- Bottom Menu Bar -->
@@ -304,7 +304,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
-        android:gravity="center_vertical"
+        android:gravity="bottom"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingBottom="16dp"
@@ -355,17 +355,39 @@
             android:padding="10dp"
             android:src="@drawable/ic_speaker_on" />
 
-        <!-- 4. Gift Button -->
-        <ImageView
-            android:id="@+id/btnGift"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+        <!-- 4. Spin & Gift Buttons Stack -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:background="@drawable/bg_control_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="8dp"
-            android:src="@drawable/gift_icon" />
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Spin Wheel Icon (Positioned directly above Gift icon) -->
+            <ImageView
+                android:id="@+id/btnSpinWheel"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_control_button"
+                android:clickable="true"
+                android:contentDescription="Lucky Spin"
+                android:focusable="true"
+                android:padding="4dp"
+                android:src="@drawable/lucky_spin_wheel" />
+
+            <!-- Gift Button -->
+            <ImageView
+                android:id="@+id/btnGift"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_control_button"
+                android:clickable="true"
+                android:contentDescription="Gift"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/gift_icon" />
+        </LinearLayout>
 
         <!-- 5. More Icon Button -->
         <ImageView

@@ -4,14 +4,15 @@
     android:layout_width="320dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@drawable/bg_glass_gift_dialog"
+    android:background="@drawable/bg_glass_claim_dialog"
     android:orientation="vertical"
     android:paddingHorizontal="24dp"
-    android:paddingTop="24dp"
-    android:paddingBottom="24dp">
+    android:paddingTop="28dp"
+    android:paddingBottom="28dp">
 
     <!-- Header Title -->
     <TextView
+        android:id="@+id/tvWinnerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -22,40 +23,43 @@
 
     <!-- Winner Subtitle -->
     <TextView
+        android:id="@+id/tvWinnerSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:text="YOU WON A LUCKY REWARD!"
         android:textColor="#E0FFFFFF"
         android:textSize="12sp"
         android:letterSpacing="0.05" />
 
-    <!-- Winning Segment Asset Image (seg1.png .. seg13.png) -->
+    <!-- Winning Segment Asset Image container with Glassy Backdrop -->
     <FrameLayout
         android:layout_width="160dp"
         android:layout_height="160dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_glass_card"
+        android:padding="16dp">
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:src="@drawable/bg_send_button_glow"
-            android:alpha="0.4" />
+            android:alpha="0.5" />
 
         <ImageView
             android:id="@+id/ivWinnerSegmentImage"
-            android:layout_width="140dp"
-            android:layout_height="140dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:contentDescription="Winning Segment"
             android:scaleType="fitCenter"
-            android:src="@drawable/seg1" />
+            android:src="@drawable/coin" />
     </FrameLayout>
 
-    <!-- Winner Gift Name -->
+    <!-- Winner Gift Name / Reward Text -->
     <TextView
         android:id="@+id/tvWinnerName"
         android:layout_width="wrap_content"
@@ -70,13 +74,13 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnWinnerOk"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
         android:backgroundTint="#FFD700"
         android:text="CLAIM REWARD"
         android:textColor="#050E1E"
-        android:textSize="15sp"
+        android:textSize="16sp"
         android:textStyle="bold"
-        app:cornerRadius="25dp" />
+        app:cornerRadius="26dp" />
 
 </LinearLayout>
