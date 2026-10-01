@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra.utils;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -28,6 +29,7 @@ public class LoadingDialog {
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null);
         dialog.setContentView(view);
         dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -37,10 +39,16 @@ public class LoadingDialog {
     }
 
     public void show(String message) {
-        if (dialog != null && !dialog.isShowing()) {
-            if (tvMessage != null && message != null) {
-                tvMessage.setText(message);
-            }
+        if (context instanceof Activity && ((Activity) context).isFinishing()) {
+            return;
+        }
+        if (dialog == null) {
+            initDialog();
+        }
+        if (tvMessage != null && message != null) {
+            tvMessage.setText(message);
+        }
+        if (!dialog.isShowing()) {
             try {
                 dialog.show();
             } catch (Exception ignored) {}
@@ -50,6 +58,9 @@ public class LoadingDialog {
     public void setMessage(String message) {
         if (tvMessage != null && message != null) {
             tvMessage.setText(message);
+        }
+        if (dialog != null && !dialog.isShowing()) {
+            show(message);
         }
     }
 

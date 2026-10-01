@@ -48,6 +48,28 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
         return selected;
     }
 
+    // GIFT COIN/ENERGY FIX
+    public boolean isAllSelected() {
+        if (recipientList != null && !recipientList.isEmpty()) {
+            GiftRecipientModel first = recipientList.get(0);
+            if (first.isAll() && first.isSelected()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // GIFT COIN/ENERGY FIX
+    public int getMemberCount() {
+        int count = 0;
+        for (GiftRecipientModel item : recipientList) {
+            if (!item.isAll()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

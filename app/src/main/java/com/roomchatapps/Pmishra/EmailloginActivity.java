@@ -7,6 +7,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log; // LOGIN FIX
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -27,7 +28,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.snackbar.Snackbar; // LOGIN UI FEEDBACK FIX
+import com.google.firebase.FirebaseNetworkException; // LOGIN FIX
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException; // LOGIN FIX
+import com.google.firebase.auth.FirebaseAuthInvalidUserException; // LOGIN FIX
+import com.google.firebase.auth.FirebaseAuthUserCollisionException; // LOGIN FIX
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -70,6 +76,7 @@ public class EmailloginActivity extends AppCompatActivity {
     
     private boolean isLoginMode = true;
     private boolean isPasswordVisible = false;
+    private boolean isAuthenticating = false; // LOGIN FIX
     private Uri imageUri;
 
     private static final String IMGBB_API_KEY = "d909717479f29f4de1b6efc62ec33528";
@@ -110,10 +117,14 @@ public class EmailloginActivity extends AppCompatActivity {
             return insets;
         });
 
-        findViewById(R.id.ivBack).setOnClickListener(v -> finish());
+        findViewById(R.id.ivBack).setOnClickListener(v -> {
+            if (!isAuthenticating) { // LOGIN FIX
+                finish();
+            }
+        });
 
         ivProfile.setOnClickListener(v -> {
-            if (!isLoginMode) {
+            if (!isLoginMode && !isAuthenticating) { // LOGIN FIX
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
                 imagePickerLauncher.launch(intent);
@@ -122,31 +133,52 @@ public class EmailloginActivity extends AppCompatActivity {
 
         ivTogglePassword.setOnClickListener(v -> togglePasswordVisibility());
 
-        tvToggleMode.setOnClickListener(v -> toggleMode());
+        tvToggleMode.setOnClickListener(v -> {
+            if (!isAuthenticating) { // LOGIN FIX
+                toggleMode();
+            }
+        });
 
-        llForgetPassword.setOnClickListener(v -> showForgotPasswordDialog());
+        llForgetPassword.setOnClickListener(v -> {
+            if (!isAuthenticating) { // LOGIN FIX
+                showForgotPasswordDialog();
+            }
+        });
 
         btnNext.setOnClickListener(v -> {
+            if (isAuthenticating) return; // LOGIN FIX - Rapid multiple click protection
+
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
-                return;
+            // LOGIN FIX - Validation before calling Firebase
+            if (TextUtils.isEmpty(email)) { // LOGIN FIX
+                showFeedback("Please enter your email address"); // LOGIN UI FEEDBACK FIX
+                return; // LOGIN FIX
             }
 
-            if (password.length() < 6) {
-                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-                return;
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // LOGIN FIX
+                showFeedback("Please enter a valid email address"); // LOGIN UI FEEDBACK FIX
+                return; // LOGIN FIX
+            }
+
+            if (TextUtils.isEmpty(password)) { // LOGIN FIX
+                showFeedback("Please enter your password"); // LOGIN UI FEEDBACK FIX
+                return; // LOGIN FIX
+            }
+
+            if (password.length() < 6) { // LOGIN FIX
+                showFeedback("Password must be at least 6 characters"); // LOGIN UI FEEDBACK FIX
+                return; // LOGIN FIX
             }
 
             if (isLoginMode) {
                 loginUser(email, password);
             } else {
                 String name = etName.getText().toString().trim();
-                if (TextUtils.isEmpty(name)) {
-                    Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
-                    return;
+                if (TextUtils.isEmpty(name)) { // LOGIN FIX
+                    showFeedback("Please enter your name"); // LOGIN UI FEEDBACK FIX
+                    return; // LOGIN FIX
                 }
                 registerUser(name, email, password);
             }
@@ -155,6 +187,53 @@ public class EmailloginActivity extends AppCompatActivity {
         // Initialize mode to Login
         isLoginMode = false; // toggling will set it to true
         toggleMode();
+    }
+
+    // LOGIN FIX - Loading state & click protection helper
+    private void setLoadingState(boolean loading, String message) {
+        isAuthenticating = loading; // LOGIN FIX
+        if (btnNext != null) btnNext.setEnabled(!loading); // LOGIN FIX
+        if (tvToggleMode != null) tvToggleMode.setEnabled(!loading); // LOGIN FIX
+        if (llForgetPassword != null) llForgetPassword.setEnabled(!loading); // LOGIN FIX
+        ImageView ivBack = findViewById(R.id.ivBack); // LOGIN FIX
+        if (ivBack != null) ivBack.setEnabled(!loading); // LOGIN FIX
+
+        if (loading) { // LOGIN FIX
+            if (message != null) { // LOGIN FIX
+                loadingDialog.show(message); // LOGIN FIX
+            }
+        } else {
+            loadingDialog.dismiss(); // LOGIN FIX
+        }
+    }
+
+    // LOGIN UI FEEDBACK FIX - Toast and Professional Snackbar feedback
+    private void showFeedback(String message) {
+        if (message == null || message.isEmpty()) return;
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        View mainView = findViewById(R.id.main);
+        if (mainView != null) {
+            Snackbar snackbar = Snackbar.make(mainView, message, Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }
+    }
+
+    // LOGIN FIX - Map Firebase exceptions to user-friendly messages
+    private String getFriendlyAuthErrorMessage(Exception exception) {
+        if (exception == null) { // LOGIN FIX
+            return "Unable to sign in. Please try again."; // LOGIN UI FEEDBACK FIX
+        }
+        if (exception instanceof FirebaseNetworkException) { // LOGIN FIX
+            return "No internet connection. Please check your connection."; // LOGIN UI FEEDBACK FIX
+        }
+        if (exception instanceof FirebaseAuthInvalidUserException ||
+            exception instanceof FirebaseAuthInvalidCredentialsException) { // LOGIN FIX
+            return "Incorrect email or password"; // LOGIN UI FEEDBACK FIX
+        }
+        if (exception instanceof FirebaseAuthUserCollisionException) { // LOGIN FIX
+            return "An account with this email already exists."; // LOGIN UI FEEDBACK FIX
+        }
+        return "Unable to sign in. Please try again."; // LOGIN UI FEEDBACK FIX
     }
 
     private void togglePasswordVisibility() {
@@ -209,8 +288,12 @@ public class EmailloginActivity extends AppCompatActivity {
 
         builder.setPositiveButton("Send Reset Link", (dialog, which) -> {
             String email = input.getText().toString().trim();
-            if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(EmailloginActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
+            if (TextUtils.isEmpty(email)) { // LOGIN FIX
+                showFeedback("Please enter your email address"); // LOGIN UI FEEDBACK FIX
+                return;
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // LOGIN FIX
+                showFeedback("Please enter a valid email address"); // LOGIN UI FEEDBACK FIX
                 return;
             }
             sendPasswordReset(email);
@@ -220,21 +303,22 @@ public class EmailloginActivity extends AppCompatActivity {
     }
 
     private void sendPasswordReset(String email) {
-        loadingDialog.show("Sending reset link...");
+        setLoadingState(true, "Sending reset link..."); // LOGIN FIX
         mAuth.sendPasswordResetEmail(email)
                 .addOnCompleteListener(task -> {
-                    loadingDialog.dismiss();
+                    setLoadingState(false, null); // LOGIN FIX
                     if (task.isSuccessful()) {
-                        Toast.makeText(EmailloginActivity.this, "Password reset email sent! Check your inbox.", Toast.LENGTH_LONG).show();
+                        showFeedback("Password reset email sent! Check your inbox."); // LOGIN UI FEEDBACK FIX
                     } else {
-                        String error = task.getException() != null ? task.getException().getMessage() : "Failed to send reset email";
-                        Toast.makeText(EmailloginActivity.this, error, Toast.LENGTH_SHORT).show();
+                        Log.e("EmailloginActivity", "Password reset failed", task.getException()); // LOGIN FIX
+                        String error = getFriendlyAuthErrorMessage(task.getException()); // LOGIN FIX
+                        showFeedback(error); // LOGIN UI FEEDBACK FIX
                     }
                 });
     }
 
     private void loginUser(String email, String password) {
-        loadingDialog.show("Logging in...");
+        setLoadingState(true, "Logging in..."); // LOGIN FIX
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -242,14 +326,14 @@ public class EmailloginActivity extends AppCompatActivity {
                         if (user != null) {
                             fetchUserAndCreateSession(user);
                         } else {
-                            loadingDialog.dismiss();
+                            setLoadingState(false, null); // LOGIN FIX
                             navigateToMainActivity();
                         }
                     } else {
-                        loadingDialog.dismiss();
-                        String err = (task.getException() != null && task.getException().getMessage() != null)
-                                ? task.getException().getMessage() : "Authentication failed";
-                        Toast.makeText(EmailloginActivity.this, "Login failed: " + err, Toast.LENGTH_SHORT).show();
+                        setLoadingState(false, null); // LOGIN FIX
+                        Log.e("EmailloginActivity", "Login failed", task.getException()); // LOGIN FIX
+                        String err = getFriendlyAuthErrorMessage(task.getException()); // LOGIN FIX
+                        showFeedback(err); // LOGIN UI FEEDBACK FIX
                     }
                 });
     }
@@ -262,7 +346,7 @@ public class EmailloginActivity extends AppCompatActivity {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                loadingDialog.dismiss();
+                setLoadingState(false, null); // LOGIN FIX
                 String name = snapshot.child("name").getValue(String.class);
                 String profileId = snapshot.child("profileId").getValue(String.class);
                 String avatar = snapshot.child("avtar").getValue(String.class);
@@ -276,7 +360,8 @@ public class EmailloginActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                loadingDialog.dismiss();
+                setLoadingState(false, null); // LOGIN FIX
+                Log.e("EmailloginActivity", "Database error fetching user", error.toException()); // LOGIN FIX
                 sessionManager.createLoginSession(user.getUid(), "User", user.getEmail(), "", "", "email");
                 navigateToMainActivity();
             }
@@ -284,7 +369,7 @@ public class EmailloginActivity extends AppCompatActivity {
     }
 
     private void registerUser(String name, String email, String password) {
-        loadingDialog.show("Creating account...");
+        setLoadingState(true, "Creating account..."); // LOGIN FIX
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -297,9 +382,10 @@ public class EmailloginActivity extends AppCompatActivity {
                             saveUserToDatabase(user, name, null);
                         }
                     } else {
-                        loadingDialog.dismiss();
-                        String err = task.getException() != null ? task.getException().getMessage() : "Registration failed";
-                        Toast.makeText(EmailloginActivity.this, "Registration failed: " + err, Toast.LENGTH_SHORT).show();
+                        setLoadingState(false, null); // LOGIN FIX
+                        Log.e("EmailloginActivity", "Registration failed", task.getException()); // LOGIN FIX
+                        String err = getFriendlyAuthErrorMessage(task.getException()); // LOGIN FIX
+                        showFeedback(err); // LOGIN UI FEEDBACK FIX
                     }
                 });
     }
@@ -332,7 +418,7 @@ public class EmailloginActivity extends AppCompatActivity {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     runOnUiThread(() -> {
                         saveUserToDatabase(user, name, null);
-                        Toast.makeText(EmailloginActivity.this, "Avatar upload failed, continuing with default", Toast.LENGTH_SHORT).show();
+                        showFeedback("Avatar upload failed, continuing with default profile"); // LOGIN UI FEEDBACK FIX
                     });
                 }
 
@@ -395,7 +481,7 @@ public class EmailloginActivity extends AppCompatActivity {
             }
 
             userRef.setValue(map).addOnCompleteListener(task -> {
-                loadingDialog.dismiss();
+                setLoadingState(false, null); // LOGIN FIX
                 if (task.isSuccessful()) {
                     WalletManager.logTransaction(
                             user.getUid(), "WELCOME_BONUS", 500, 0,
@@ -404,11 +490,13 @@ public class EmailloginActivity extends AppCompatActivity {
                     sessionManager.createLoginSession(user.getUid(), name, user.getEmail(), generatedProfileId, avatarUrl, "email");
                     navigateToMainActivity();
                 } else {
-                    Toast.makeText(EmailloginActivity.this, "Data upload failed", Toast.LENGTH_SHORT).show();
+                    Log.e("EmailloginActivity", "Data upload failed", task.getException()); // LOGIN FIX
+                    showFeedback("Unable to set up profile. Please try again."); // LOGIN UI FEEDBACK FIX
                 }
             });
         } else {
-            loadingDialog.dismiss();
+            setLoadingState(false, null); // LOGIN FIX
+            showFeedback("Unable to register. Please try again."); // LOGIN UI FEEDBACK FIX
         }
     }
 

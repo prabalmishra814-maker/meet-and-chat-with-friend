@@ -3,6 +3,7 @@ package com.roomchatapps.Pmishra;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View; // LOGIN FIX
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,10 +20,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes; // LOGIN FIX
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar; // LOGIN UI FEEDBACK FIX
+import com.google.firebase.FirebaseNetworkException; // LOGIN FIX
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException; // LOGIN FIX
+import com.google.firebase.auth.FirebaseAuthInvalidUserException; // LOGIN FIX
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
@@ -41,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private LoadingDialog loadingDialog;
     private SessionManager sessionManager;
+    private boolean isAuthenticating = false; // LOGIN FIX
     private static final String TAG = "LoginActivity";
 
     @Override
@@ -105,30 +112,96 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        llGoogle.setOnClickListener(v -> signIn());
+        llGoogle.setOnClickListener(v -> {
+            if (!isAuthenticating) { // LOGIN FIX
+                signIn();
+            }
+        });
 
         llEmail.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, EmailloginActivity.class);
-            startActivity(intent);
+            if (!isAuthenticating) { // LOGIN FIX
+                Intent intent = new Intent(LoginActivity.this, EmailloginActivity.class);
+                startActivity(intent);
+            }
         });
 
         tvFeedback.setOnClickListener(v -> {
-            Toast.makeText(this, "Feedback feature coming soon", Toast.LENGTH_SHORT).show();
+            showFeedback("Feedback feature coming soon"); // LOGIN UI FEEDBACK FIX
         });
 
         tvTerms.setOnClickListener(v -> {
-            Toast.makeText(this, "Terms of Service", Toast.LENGTH_SHORT).show();
+            showFeedback("Terms of Service"); // LOGIN UI FEEDBACK FIX
         });
 
         tvPrivacy.setOnClickListener(v -> {
-            Toast.makeText(this, "Privacy Policy", Toast.LENGTH_SHORT).show();
+            showFeedback("Privacy Policy"); // LOGIN UI FEEDBACK FIX
         });
     }
 
+    // LOGIN FIX - Loading state & click protection helper
+    private void setLoadingState(boolean loading, String message) {
+        isAuthenticating = loading; // LOGIN FIX
+        LinearLayout llEmail = findViewById(R.id.llEmail); // LOGIN FIX
+        LinearLayout llGoogle = findViewById(R.id.llGoogle); // LOGIN FIX
+        if (llEmail != null) llEmail.setEnabled(!loading); // LOGIN FIX
+        if (llGoogle != null) llGoogle.setEnabled(!loading); // LOGIN FIX
+
+        if (loading) { // LOGIN FIX
+            if (message != null) { // LOGIN FIX
+                loadingDialog.show(message); // LOGIN FIX
+            }
+        } else {
+            loadingDialog.dismiss(); // LOGIN FIX
+        }
+    }
+
+    // LOGIN UI FEEDBACK FIX - Toast and Professional Snackbar feedback
+    private void showFeedback(String message) {
+        if (message == null || message.isEmpty()) return;
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        View mainView = findViewById(R.id.main);
+        if (mainView != null) {
+            Snackbar snackbar = Snackbar.make(mainView, message, Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }
+    }
+
+    // LOGIN FIX - Map Firebase exceptions to user-friendly messages
+    private String getFriendlyAuthErrorMessage(Exception exception) {
+        if (exception == null) {
+            return "Unable to sign in. Please try again.";
+        }
+        if (exception instanceof FirebaseNetworkException) {
+            return "No internet connection. Please check your connection.";
+        }
+        if (exception instanceof FirebaseAuthInvalidUserException ||
+            exception instanceof FirebaseAuthInvalidCredentialsException) {
+            return "Incorrect email or password";
+        }
+        return "Unable to sign in. Please try again.";
+    }
+
     private void signIn() {
-        loadingDialog.show("Signing in with Google...");
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        if (isAuthenticating) return;
+        setLoadingState(true, "Signing in with Google...");
+        
+        // Sign out previous Google session to ensure clean account picker
+        if (mGoogleSignInClient != null) {
+            mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> launchGoogleSignInIntent());
+        } else {
+            launchGoogleSignInIntent();
+        }
+    }
+
+    private void launchGoogleSignInIntent() {
+        try {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        } catch (Exception e) {
+            setLoadingState(false, null);
+            Log.e(TAG, "Error launching Google Sign In", e);
+            showFeedback("Unable to open Google sign in: " + e.getLocalizedMessage());
+        }
     }
 
     @Override
@@ -136,33 +209,67 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_CANCELED) {
+                setLoadingState(false, null);
+                showFeedback("Google sign-in was cancelled");
+                return;
+            }
+
+            // Ensure loading dialog is showing while processing result
+            loadingDialog.show("Processing Google sign-in...");
+
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                if (account != null) {
+                if (account != null && account.getIdToken() != null && !account.getIdToken().isEmpty()) {
                     loadingDialog.setMessage("Authenticating with Firebase...");
                     firebaseAuthWithGoogle(account.getIdToken());
                 } else {
-                    loadingDialog.dismiss();
-                    Toast.makeText(this, "Google Sign In failed", Toast.LENGTH_SHORT).show();
+                    setLoadingState(false, null);
+                    if (account != null && (account.getIdToken() == null || account.getIdToken().isEmpty())) {
+                        Log.e(TAG, "Google Account ID token is null. Verify default_web_client_id & SHA-1 in Firebase Console.");
+                        showFeedback("Sign in failed: ID Token missing. Verify SHA-1 in Firebase.");
+                    } else {
+                        showFeedback("Google sign-in failed. Please try again.");
+                    }
                 }
             } catch (ApiException e) {
-                loadingDialog.dismiss();
-                // Google Sign In failed, update UI appropriately
-                Log.e(TAG, "Google sign in failed code=" + e.getStatusCode(), e);
-                String message = "Sign in failed";
-                if (e.getStatusCode() == 10) {
-                    message = "Developer Error (10): Check SHA-1 in Firebase Console";
-                } else if (e.getStatusCode() == 12500) {
-                    message = "Sign in failed (12500): Check Support Email in Firebase Settings";
+                setLoadingState(false, null);
+                int statusCode = e.getStatusCode();
+                Log.e(TAG, "Google sign in failed code=" + statusCode, e);
+
+                String userMessage;
+                switch (statusCode) {
+                    case GoogleSignInStatusCodes.SIGN_IN_CANCELLED:
+                        userMessage = "Google sign-in was cancelled";
+                        break;
+                    case GoogleSignInStatusCodes.NETWORK_ERROR:
+                        userMessage = "No internet connection. Please check your network.";
+                        break;
+                    case GoogleSignInStatusCodes.DEVELOPER_ERROR:
+                        userMessage = "Sign in failed (Code 10: SHA-1 fingerprint mismatch in Firebase Console).";
+                        break;
+                    case GoogleSignInStatusCodes.INTERNAL_ERROR:
+                        userMessage = "Google Play Services internal error. Please try again.";
+                        break;
+                    case 12500:
+                        userMessage = "Sign in failed (Code 12500). Please check Google Play Services.";
+                        break;
+                    default:
+                        userMessage = "Sign in failed (Code " + statusCode + "). Please try again.";
+                        break;
                 }
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                showFeedback(userMessage);
+            } catch (Exception e) {
+                setLoadingState(false, null);
+                Log.e(TAG, "Unexpected error in Google Sign In result", e);
+                showFeedback("Sign in failed: " + e.getLocalizedMessage());
             }
         }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        loadingDialog.setMessage("Authenticating with Firebase...");
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
@@ -171,15 +278,21 @@ public class LoginActivity extends AppCompatActivity {
                         loadingDialog.setMessage("Syncing profile data...");
                         saveUserToDatabase(user);
                     } else {
-                        loadingDialog.dismiss();
-                        Log.e(TAG, "Firebase Authentication failed", task.getException());
-                        Toast.makeText(LoginActivity.this, "Firebase Authentication Failed.", Toast.LENGTH_SHORT).show();
+                        setLoadingState(false, null);
+                        Exception e = task.getException();
+                        Log.e(TAG, "Firebase Authentication failed", e);
+                        String userMessage = getFriendlyAuthErrorMessage(e);
+                        if (e != null && e.getMessage() != null && !e.getMessage().isEmpty()) {
+                            userMessage = "Firebase Auth failed: " + e.getLocalizedMessage();
+                        }
+                        showFeedback(userMessage);
                     }
                 });
     }
 
     private void saveUserToDatabase(FirebaseUser user) {
         if (user != null) {
+            loadingDialog.setMessage("Syncing profile data...");
             DatabaseReference userRef = FirebaseDatabase.getInstance()
                     .getReference("users")
                     .child(user.getUid());
@@ -187,74 +300,82 @@ public class LoginActivity extends AppCompatActivity {
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String name = user.getDisplayName() != null ? user.getDisplayName() : "User";
-                    String email = user.getEmail() != null ? user.getEmail() : "";
-                    String avatar = user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "";
-                    String generatedProfileId;
+                    try {
+                        String name = user.getDisplayName() != null ? user.getDisplayName() : "User";
+                        String email = user.getEmail() != null ? user.getEmail() : "";
+                        String avatar = user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "";
+                        String generatedProfileId;
 
-                    if (!snapshot.exists()) {
-                        // New User Registration
-                        generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                        if (!snapshot.exists()) {
+                            // New User Registration
+                            generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
 
-                        userRef.child("name").setValue(name);
-                        userRef.child("email").setValue(email);
-                        userRef.child("uid").setValue(user.getUid());
-                        userRef.child("profileId").setValue(generatedProfileId);
-                        userRef.child("premium").setValue("no");
-                        userRef.child("Followers").setValue("0");
-                        userRef.child("Following").setValue("0");
-                        userRef.child("level").setValue("0");
-                        userRef.child("coinsSpent").setValue(0);
-                        userRef.child("xp").setValue(0);
-                        userRef.child("money").setValue(0);
-                        userRef.child("coins").setValue(500);
-
-                        if (!avatar.isEmpty()) {
-                            userRef.child("avtar").setValue(avatar);
-                        }
-
-                        WalletManager.logTransaction(
-                                user.getUid(), "WELCOME_BONUS", 500, 0,
-                                "Welcome Signup Bonus", "Received 500 Free Signup Coins!"
-                        );
-                    } else {
-                        // Existing User
-                        String dbProfileId = snapshot.child("profileId").getValue(String.class);
-                        generatedProfileId = dbProfileId != null ? dbProfileId : String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
-                        
-                        String dbName = snapshot.child("name").getValue(String.class);
-                        if (dbName != null && !dbName.isEmpty()) {
-                            name = dbName;
-                        } else if (!name.isEmpty()) {
                             userRef.child("name").setValue(name);
-                        }
-
-                        String dbAvatar = snapshot.child("avtar").getValue(String.class);
-                        if (dbAvatar != null && !dbAvatar.isEmpty()) {
-                            avatar = dbAvatar;
-                        } else if (!avatar.isEmpty()) {
-                            userRef.child("avtar").setValue(avatar);
-                        }
-
-                        if (!snapshot.hasChild("coins")) {
+                            userRef.child("email").setValue(email);
+                            userRef.child("uid").setValue(user.getUid());
+                            userRef.child("profileId").setValue(generatedProfileId);
+                            userRef.child("premium").setValue("no");
+                            userRef.child("Followers").setValue("0");
+                            userRef.child("Following").setValue("0");
+                            userRef.child("level").setValue("0");
+                            userRef.child("coinsSpent").setValue(0);
+                            userRef.child("xp").setValue(0);
+                            userRef.child("money").setValue(0);
                             userRef.child("coins").setValue(500);
-                        }
-                    }
 
-                    sessionManager.createLoginSession(user.getUid(), name, email, generatedProfileId, avatar, "google");
-                    loadingDialog.dismiss();
-                    navigateToMainActivity();
+                            if (!avatar.isEmpty()) {
+                                userRef.child("avtar").setValue(avatar);
+                            }
+
+                            WalletManager.logTransaction(
+                                    user.getUid(), "WELCOME_BONUS", 500, 0,
+                                    "Welcome Signup Bonus", "Received 500 Free Signup Coins!"
+                            );
+                        } else {
+                            // Existing User
+                            String dbProfileId = snapshot.child("profileId").getValue(String.class);
+                            generatedProfileId = dbProfileId != null ? dbProfileId : String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+
+                            String dbName = snapshot.child("name").getValue(String.class);
+                            if (dbName != null && !dbName.isEmpty()) {
+                                name = dbName;
+                            } else if (!name.isEmpty()) {
+                                userRef.child("name").setValue(name);
+                            }
+
+                            String dbAvatar = snapshot.child("avtar").getValue(String.class);
+                            if (dbAvatar != null && !dbAvatar.isEmpty()) {
+                                avatar = dbAvatar;
+                            } else if (!avatar.isEmpty()) {
+                                userRef.child("avtar").setValue(avatar);
+                            }
+
+                            if (!snapshot.hasChild("coins")) {
+                                userRef.child("coins").setValue(500);
+                            }
+                        }
+
+                        sessionManager.createLoginSession(user.getUid(), name, email, generatedProfileId, avatar, "google");
+                        setLoadingState(false, null);
+                        navigateToMainActivity();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error saving user data", e);
+                        setLoadingState(false, null);
+                        showFeedback("Profile setup error: " + e.getLocalizedMessage());
+                    }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    loadingDialog.dismiss();
-                    sessionManager.createLoginSession(user.getUid(), user.getDisplayName(), user.getEmail(), "", "", "google");
+                    Log.e(TAG, "Database error saving user", error.toException());
+                    sessionManager.createLoginSession(user.getUid(), user.getDisplayName() != null ? user.getDisplayName() : "User", user.getEmail() != null ? user.getEmail() : "", "", "", "google");
+                    setLoadingState(false, null);
                     navigateToMainActivity();
                 }
             });
         } else {
-            loadingDialog.dismiss();
+            setLoadingState(false, null);
+            showFeedback("Unable to sign in. User account is null.");
         }
     }
 

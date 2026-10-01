@@ -3056,68 +3056,64 @@ public class RoomChatActivity extends AppCompatActivity {
 
         List<GiftStoreItem> giftList = new ArrayList<>();
 
-        // 1. Gift Category (Tiered by SVGA Animation Quality: 10L to 10Cr)
-        giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Blue Princess Gown", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Love Fireworks", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, EconomyConfig.GIFT_TIER_4, "Gift"));
-        giftList.add(new GiftStoreItem("Fire Rocket", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, EconomyConfig.GIFT_TIER_4, "Gift"));
-        giftList.add(new GiftStoreItem("Cosmic Float", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, EconomyConfig.GIFT_TIER_4, "Gift"));
-        giftList.add(new GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, EconomyConfig.GIFT_TIER_5, "Gift"));
-        giftList.add(new GiftStoreItem("Love Couple", "gift/love_couple.svga", R.drawable.gift_love_couple, EconomyConfig.GIFT_TIER_5, "Gift"));
-        giftList.add(new GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, EconomyConfig.GIFT_TIER_6, "Gift"));
-        giftList.add(new GiftStoreItem("Wedding Hall", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, EconomyConfig.GIFT_TIER_6, "Gift"));
-        giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, EconomyConfig.GIFT_TIER_7, "Gift"));
-        giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, EconomyConfig.GIFT_TIER_7, "Gift"));
+        // 1. Gift Category (गिफ्ट)
+        giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000, "Gift"));
+        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, 100000, "Gift"));
+        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 250000, "Gift"));
+        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000, "Gift"));
+        giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, 300000, "Gift"));
+        giftList.add(new GiftStoreItem("Love Gift Box", "gift/love_gift_box.svga", R.drawable.gift_love_gift_box, 2000000, "Gift"));
+        giftList.add(new GiftStoreItem("Blue Princess Gown", "gift/blue_princess_gown.svga", R.drawable.gift_blue_gown, 1500000, "Gift"));
+        giftList.add(new GiftStoreItem("Makeup Box", "gift/makeup_box.svga", R.drawable.gift_makeup_box, 1000000, "Gift"));
+        giftList.add(new GiftStoreItem("Pearls Necklace", "gift/pearls_necklace.svga", R.drawable.gift_pearls_necklace, 600000, "Gift"));
+        giftList.add(new GiftStoreItem("Love Fireworks", "gift/love_fireworks.svga", R.drawable.gift_love_fireworks, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Fire Rocket", "gift/fire_rocket.svga", R.drawable.gift_fire_rocket, 99999, "Gift"));
+        giftList.add(new GiftStoreItem("Cosmic Float", "gift/cosmic_float.svga", R.drawable.gift_cosmic_float, 4000000, "Gift"));
+        giftList.add(new GiftStoreItem("Love Proposal", "gift/love_proposal.svga", R.drawable.gift_love_proposal, 3000000, "Gift"));
+        giftList.add(new GiftStoreItem("Love Couple", "gift/love_couple.svga", R.drawable.gift_love_couple, 1500000, "Gift"));
+        giftList.add(new GiftStoreItem("Fantasy Castle", "gift/fantasy_castle.svga", R.drawable.gift_fantasy_castle, 1000000, "Gift"));
+        giftList.add(new GiftStoreItem("Wedding Hall", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Royal Couple", "gift/royal_couple.svga", R.drawable.gift_royal_couple, 1999999, "Gift"));
+        giftList.add(new GiftStoreItem("Hassan II Mosque", "gift/hassan_mosque.svga", R.drawable.gift_hassan_mosque, 5000000, "Gift"));
+        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, 100000, "Gift"));
+        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, 290000, "Gift"));
+        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, 99999, "Gift"));
+        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, 300000, "Gift"));
+        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, 1800000, "Gift"));
+        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, 999999, "Gift"));
+        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, 77777, "Gift"));
+        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, 600000, "Gift"));
+        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, 300000, "Gift"));
+        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, 500000, "Gift"));
+        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 700000, "Gift"));
 
-        // 2. Extra Gifts (Formerly Lucky Category)
-        giftList.add(new GiftStoreItem("Popcorn", "gift/popcorn.svga", R.drawable.gift_popcorn, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Baklava", "gift/baklava.svga", R.drawable.gift_baklava, EconomyConfig.GIFT_TIER_1, "Gift"));
-        giftList.add(new GiftStoreItem("Party Popper", "gift/party_popper.svga", R.drawable.gift_party_popper, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Money Stack", "gift/money.svga", R.drawable.gift_money, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Gold Bar", "gift/gold_bar.svga", R.drawable.gift_gold_bar, EconomyConfig.GIFT_TIER_2, "Gift"));
-        giftList.add(new GiftStoreItem("Magic Gift", "gift/magic_gift.svga", R.drawable.gift_magic_gift, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Crystal Rose", "gift/crystal_rose.svga", R.drawable.gift_crystal_rose, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Glass Glow Rose", "gift/glass_glow_rose.svga", R.drawable.gift_glass_glow_rose, EconomyConfig.GIFT_TIER_3, "Gift"));
-        giftList.add(new GiftStoreItem("Refrigerator", "gift/refrigerator.svga", R.drawable.gift_refrigerator, EconomyConfig.GIFT_TIER_4, "Gift"));
-        giftList.add(new GiftStoreItem("Angel Bride", "gift/angel_bride.svga", R.drawable.gift_angel_bride, EconomyConfig.GIFT_TIER_5, "Gift"));
-        giftList.add(new GiftStoreItem("Angel Queen Crown", "gift/angel_queen_crown.svga", R.drawable.gift_angel_queen, EconomyConfig.GIFT_TIER_6, "Gift"));
-        giftList.add(new GiftStoreItem("Forever Couple", "gift/forever_couple.svga", R.drawable.gift_forever_couple, EconomyConfig.GIFT_TIER_6, "Gift"));
-        giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, EconomyConfig.GIFT_TIER_7, "Gift"));
+        // 2. Relationship Category (रिलेशनशिप)
+        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 1000000, "Relationship"));
+        giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000, "Relationship"));
+        giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000, "Relationship"));
+        giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000, "Relationship"));
+        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 1500000, "Relationship"));
+        giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 500000, "Relationship"));
+        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 1200000, "Relationship"));
+        giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 3500000, "Relationship"));
+        giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, 4500000, "Relationship"));
 
-        // 3. Relationship Category
-        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, EconomyConfig.GIFT_TIER_2, "Relationship"));
-        giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, EconomyConfig.GIFT_TIER_3, "Relationship"));
-        giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, EconomyConfig.GIFT_TIER_4, "Relationship"));
-        giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, EconomyConfig.GIFT_TIER_5, "Relationship"));
-        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, EconomyConfig.GIFT_TIER_5, "Relationship"));
-        giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, EconomyConfig.GIFT_TIER_6, "Relationship"));
-        giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, EconomyConfig.GIFT_TIER_6, "Relationship"));
-        giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, EconomyConfig.GIFT_TIER_7, "Relationship"));
-        giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, EconomyConfig.GIFT_TIER_7, "Relationship"));
+        // 3. Nation Flag Category (नेशन फ्लैग)
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, 30000, "Nation Flag"));
 
-        // 4. Nation Flag Category
-        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, EconomyConfig.GIFT_TIER_1, "Nation Flag"));
+        // 4. Luxury Category (लक्ज़री)
+        giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, 5500000, "Luxury"));
+        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, 3500000, "Luxury"));
+        giftList.add(new GiftStoreItem("Royal Suit", "gift/royal_suit.svga", R.drawable.gift_royal_suit, 5000000, "Luxury"));
+        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 8000000, "Luxury"));
 
-        // 5. Luxury Category
-        giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, EconomyConfig.GIFT_TIER_4, "Luxury"));
-        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, EconomyConfig.GIFT_TIER_5, "Luxury"));
-        giftList.add(new GiftStoreItem("Royal Suit", "gift/royal_suit.svga", R.drawable.gift_royal_suit, EconomyConfig.GIFT_TIER_6, "Luxury"));
-        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, EconomyConfig.GIFT_TIER_7, "Luxury"));
-        giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 12000000, "Luxury"));
-        giftList.add(new GiftStoreItem("Church", "gift/church.svga", R.drawable.gift_church, 8500000, "Luxury"));
-
-        // 6. Customization Category
-        giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 1000000, "Customization"));
+        // 5. Customization Category (कस्टमाइजेशन)
+        giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 500000, "Customization"));
 
         String[] categories = new String[]{"Gift", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
@@ -3240,100 +3236,127 @@ public class RoomChatActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // GIFT COIN/ENERGY FIX
                     // Immediately lock button and set processing flag
                     isSendingGift[0] = true;
                     btnSendAction.setEnabled(false);
 
                     long singleCost = selectedItem.cost;
                     int quantity = selectedQuantity[0];
-                    int recipientCount = selectedRecipients.size();
-                    long totalCost = EconomyConfig.calculateTotalCost(singleCost, quantity, recipientCount);
                     String giftName = selectedItem.name;
                     selectedGiftSvga = selectedItem.svgaPath;
 
-                    String primaryRecipientUid = selectedRecipients.get(0).getUid();
-                    String primaryRecipientName = selectedRecipients.get(0).getName();
+                    // Generate unique gift transaction ID BEFORE transaction execution
+                    String uniqueGiftId = userID + "_" + System.currentTimeMillis() + "_" + (new Random().nextInt(9000) + 1000);
+
+                    boolean isAllSelected = recipientAdapter.isAllSelected();
+                    List<String> targetUidsList = null;
+                    if (!isAllSelected && !selectedRecipients.isEmpty()) {
+                        targetUidsList = new ArrayList<>();
+                        for (GiftRecipientModel model : selectedRecipients) {
+                            if (!model.isAll() && model.getUid() != null && !model.getUid().trim().isEmpty()) {
+                                targetUidsList.add(model.getUid().trim());
+                            }
+                        }
+                        if (targetUidsList.isEmpty()) {
+                            targetUidsList = null;
+                        }
+                    }
+
+                    final List<String> targetUids = targetUidsList;
+                    boolean isRoomGift = (targetUids == null || targetUids.isEmpty());
+                    int recipientCount = isRoomGift ? 1 : targetUids.size();
+                    long totalCost = EconomyConfig.calculateTotalCost(singleCost, quantity, recipientCount, isRoomGift);
+
+                    List<String> activeRoomMemberUids = getActiveRoomMemberUids();
 
                     try {
-                        WalletManager.spendCoinsForRichGift(roomID, userID, userName, primaryRecipientUid, primaryRecipientName, selectedItem.name, giftName, singleCost, quantity, new WalletManager.WalletCallback() {
-                            @Override
-                            public void onSuccess(String message, long newCoinBalance) {
-                                // Unlock button after operation completes successfully
-                                isSendingGift[0] = false;
-                                btnSendAction.setEnabled(true);
-                                if (tvGiftDialogCoins != null) {
-                                    tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
-                                }
+                        WalletManager.processGiftTransaction(
+                            uniqueGiftId,
+                            roomID,
+                            userID,
+                            targetUids,
+                            totalCost,
+                            giftName,
+                            activeRoomMemberUids,
+                            new WalletManager.WalletCallback() {
+                                @Override
+                                public void onSuccess(String message, long newCoinBalance) {
+                                    // Unlock button after operation completes successfully
+                                    isSendingGift[0] = false;
+                                    btnSendAction.setEnabled(true);
+                                    if (tvGiftDialogCoins != null) {
+                                        tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
+                                    }
 
-                                String uniqueGiftId = userID + "_" + System.currentTimeMillis() + "_" + (new Random().nextInt(9000) + 1000);
-
-                                StringBuilder recipientNames = new StringBuilder();
-                                for (int i = 0; i < selectedRecipients.size(); i++) {
-                                    GiftRecipientModel recipient = selectedRecipients.get(i);
-                                    if (i > 0) recipientNames.append(", ");
-                                    recipientNames.append(recipient.getName());
+                                    StringBuilder recipientNames = new StringBuilder();
+                                    if (isRoomGift) {
+                                        recipientNames.append("All Members");
+                                    } else {
+                                        for (int i = 0; i < selectedRecipients.size(); i++) {
+                                            GiftRecipientModel recipient = selectedRecipients.get(i);
+                                            if (i > 0) recipientNames.append(", ");
+                                            recipientNames.append(recipient.getName());
+                                        }
+                                    }
 
                                     if (roomGiftsRef != null) {
                                         Map<String, Object> giftData = new HashMap<>();
                                         giftData.put("giftId", uniqueGiftId);
                                         giftData.put("senderName", userName != null ? userName : "User");
                                         giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                        giftData.put("recipientName", recipient.getName());
-                                        giftData.put("recipientUid", recipient.getUid());
+                                        giftData.put("recipientName", recipientNames.toString());
+                                        giftData.put("recipientUid", isRoomGift ? "" : (targetUids != null && !targetUids.isEmpty() ? targetUids.get(0) : ""));
                                         giftData.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
                                         giftData.put("giftSvga", selectedGiftSvga);
                                         giftData.put("iconRes", (long) selectedItem.iconRes);
                                         giftData.put("timestamp", System.currentTimeMillis());
                                         roomGiftsRef.push().setValue(giftData);
                                     }
+
+                                    String senderDisplayName = userName != null ? userName : "User";
+                                    try {
+                                        JSONObject giftJson = new JSONObject();
+                                        giftJson.put("type", "GIFT");
+                                        giftJson.put("giftId", uniqueGiftId);
+                                        giftJson.put("senderName", senderDisplayName);
+                                        giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                        giftJson.put("recipientName", recipientNames.toString());
+                                        giftJson.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                        giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
+                                        giftJson.put("iconRes", selectedItem.iconRes);
+                                        ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
+                                    } catch (Exception ignored) {}
+
+                                    // Animation Threshold Evaluation (Low vs High Value Gifts)
+                                    if (totalCost >= EconomyConfig.HIGH_ANIMATION_THRESHOLD) {
+                                        if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                            markGiftProcessed(uniqueGiftId);
+                                            playSvgaAnimation(selectedGiftSvga);
+                                        }
+                                        showGoldenGiftBanner(senderDisplayName, giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                    } else {
+                                        if (notificationAnimator != null) {
+                                            notificationAnimator.showNotification(senderDisplayName, "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : ""), selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                        }
+                                        if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                            markGiftProcessed(uniqueGiftId);
+                                            playSvgaAnimation(selectedGiftSvga);
+                                        }
+                                    }
+
+                                    Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + (quantity > 1 ? " x" + quantity : "") + "!", Toast.LENGTH_SHORT).show();
                                 }
 
-                                String senderDisplayName = userName != null ? userName : "User";
-                                try {
-                                    JSONObject giftJson = new JSONObject();
-                                    giftJson.put("type", "GIFT");
-                                    giftJson.put("giftId", uniqueGiftId);
-                                    giftJson.put("senderName", senderDisplayName);
-                                    giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                    giftJson.put("recipientName", recipientNames.toString());
-                                    giftJson.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                                    giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
-                                    giftJson.put("iconRes", selectedItem.iconRes);
-                                    ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
-                                } catch (Exception ignored) {}
-
-                                // Animation Threshold Evaluation (Low vs High Value Gifts)
-                                if (totalCost >= EconomyConfig.HIGH_ANIMATION_THRESHOLD) {
-                                    // Prominent animation / banner for high-value gifts
-                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                        markGiftProcessed(uniqueGiftId);
-                                        playSvgaAnimation(selectedGiftSvga);
-                                    }
-                                    showGoldenGiftBanner(senderDisplayName, giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                                } else {
-                                    // Lightweight notification for low-value gifts
-                                    if (notificationAnimator != null) {
-                                        notificationAnimator.showNotification(senderDisplayName, "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : ""), selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                    }
-                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                        markGiftProcessed(uniqueGiftId);
-                                        playSvgaAnimation(selectedGiftSvga);
-                                    }
+                                @Override
+                                public void onError(String error) {
+                                    isSendingGift[0] = false;
+                                    btnSendAction.setEnabled(true);
+                                    Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
                                 }
-
-                                Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + (quantity > 1 ? " x" + quantity : "") + "!", Toast.LENGTH_SHORT).show();
                             }
-
-                            @Override
-                            public void onError(String error) {
-                                // Unlock button if operation fails or returns an error
-                                isSendingGift[0] = false;
-                                btnSendAction.setEnabled(true);
-                                Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
-                            }
-                        });
+                        );
                     } catch (Exception e) {
-                        // Unlock button if an exception occurs
                         isSendingGift[0] = false;
                         btnSendAction.setEnabled(true);
                         Toast.makeText(RoomChatActivity.this, "❌ Error sending gift: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -3474,14 +3497,14 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // --- ANIMATION & BANNER QUEUE MANAGER ---
-    private static class GiftAnimationItem {
+    static class GiftAnimationItem {
         String svgaPath;
         GiftAnimationItem(String svgaPath) {
             this.svgaPath = svgaPath;
         }
     }
 
-    private static class BannerQueueItem {
+    static class BannerQueueItem {
         String svgaAsset;
         String htmlNotice;
         boolean isEntryBanner;
@@ -3498,6 +3521,27 @@ public class RoomChatActivity extends AppCompatActivity {
     private final Handler giftHandler = new Handler(Looper.getMainLooper());
     private Runnable giftTimeoutRunnable = null;
     private final Set<String> processedGiftIds = Collections.synchronizedSet(new HashSet<>());
+
+    // GIFT COIN/ENERGY FIX
+    private List<String> getActiveRoomMemberUids() {
+        List<String> uids = new ArrayList<>();
+        Set<String> set = new HashSet<>();
+
+        List<SeatModel> seats = SeatManager.getInstance().getSeats();
+        if (seats != null) {
+            for (SeatModel seat : seats) {
+                if (seat != null && !seat.isEmpty() && seat.userID != null && !seat.userID.trim().isEmpty()) {
+                    if (set.add(seat.userID.trim())) {
+                        uids.add(seat.userID.trim());
+                    }
+                }
+            }
+        }
+        if (userID != null && !userID.trim().isEmpty() && set.add(userID.trim())) {
+            uids.add(userID.trim());
+        }
+        return uids;
+    }
 
     private boolean markGiftProcessed(String giftId) {
         if (giftId == null || giftId.trim().isEmpty()) return false;

@@ -3,10 +3,9 @@ package com.roomchatapps.Pmishra.utils;
 public class EconomyConfig {
 
     /**
-     * MANDATORY RULE: Minimum Gift Value = 10,00,000 (10 Lakh Coins).
-     * No gift below 10 Lakh is allowed anywhere in the system.
+     * Minimum Gift Value = 30,000 Coins.
      */
-    public static long MIN_GIFT_VALUE = 1000000L; // 10 Lakh
+    public static long MIN_GIFT_VALUE = 30000L;
 
     /**
      * Configurable Gift Tiers (Examples: 10L, 20L, 50L, 1Cr, 2Cr, 5Cr, 10Cr)
@@ -21,11 +20,16 @@ public class EconomyConfig {
 
     /**
      * FINAL RULE: Gift -> Energy Economy
-     * - Receiver earns 60% of total gift coins as ENERGY (0 Coins, 0 Diamonds)
-     * - System/Platform cut = 40%
+     * - Targeted receiver earns 30% of total gift coins as ENERGY
+     * - Room-wide gifts distribute 70% of total gift coins as ENERGY among eligible room members
+     * - Platform/Remaining portion = 70% for targeted / 30% for room
      */
-    public static float ENERGY_AWARD_PERCENTAGE = 0.60f; // 60% Energy
-    public static float SYSTEM_CUT_PERCENTAGE = 0.40f;   // 40% System Cut
+    // GIFT COIN/ENERGY FIX
+    public static float TARGETED_ENERGY_PERCENTAGE = 0.30f; // 30% Energy for selected receiver
+    // GIFT COIN/ENERGY FIX
+    public static float ROOM_ENERGY_PERCENTAGE = 0.70f;     // 70% Energy for room-wide distribution
+    public static float ENERGY_AWARD_PERCENTAGE = 0.30f;     // Default 30% Energy
+    public static float SYSTEM_CUT_PERCENTAGE = 0.70f;       // Default 70% System Cut
 
     /**
      * Animation thresholds:
@@ -60,18 +64,39 @@ public class EconomyConfig {
     /**
      * Calculates the total coin cost for sending a gift.
      */
+    // GIFT COIN/ENERGY FIX
+    public static long calculateTotalCost(long singlePrice, int quantity, int recipientCount, boolean isRoomGift) {
+        if (singlePrice <= 0 || quantity <= 0) return 0;
+        if (isRoomGift) {
+            return singlePrice * (long) quantity;
+        } else {
+            return singlePrice * (long) quantity * (long) Math.max(1, recipientCount);
+        }
+    }
+
+    // GIFT COIN/ENERGY FIX
     public static long calculateTotalCost(long singlePrice, int quantity, int recipientCount) {
-        if (singlePrice <= 0 || quantity <= 0 || recipientCount <= 0) return 0;
-        return singlePrice * (long) quantity * (long) recipientCount;
+        return calculateTotalCost(singlePrice, quantity, recipientCount, false);
     }
 
     /**
-     * Calculates 30% Energy awarded to the receiver from total gift coins.
-     * Example: 10,00,000 Total Gift Coins -> 3,00,000 Energy
+     * Calculates 30% Energy awarded to the selected receiver from total gift coins.
+     * Example: 100 Total Gift Coins -> 30 Energy
      */
+    // GIFT COIN/ENERGY FIX
     public static long calculateEnergyAwarded(long totalGiftCoins) {
         if (totalGiftCoins <= 0) return 0;
-        return (long) Math.floor(totalGiftCoins * ENERGY_AWARD_PERCENTAGE);
+        return (long) Math.floor(totalGiftCoins * TARGETED_ENERGY_PERCENTAGE);
+    }
+
+    /**
+     * Calculates 70% Energy distributed across the room from total gift coins.
+     * Example: 100 Total Gift Coins -> 70 Energy Total Room Distribution
+     */
+    // GIFT COIN/ENERGY FIX
+    public static long calculateRoomEnergyDistributed(long totalGiftCoins) {
+        if (totalGiftCoins <= 0) return 0;
+        return (long) Math.floor(totalGiftCoins * ROOM_ENERGY_PERCENTAGE);
     }
 
     /**
