@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DAILY CHECK-IN UI REDESIGN - FLUSH BOTTOM SHEET -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#EE0B1E28"
+        android:centerColor="#F2051E38"
+        android:endColor="#F8030D20" />
+    <corners
+        android:topLeftRadius="28dp"
+        android:topRightRadius="28dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+    <stroke
+        android:width="1.5dp"
+        android:color="#8000E6FF" />
+</shape>

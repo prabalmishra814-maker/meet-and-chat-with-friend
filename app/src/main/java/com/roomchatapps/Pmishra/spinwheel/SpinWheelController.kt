@@ -9,10 +9,9 @@ object SpinWheelController {
 
     /**
      * Initial rotation offset in degrees.
-     * With -15 degree initial wheel rotation, Index 0 ("Battle Luck next time")
-     * is centered at top center (12 o'clock / 0 degrees).
+     * Segments are aligned with Segment 0 centered at top center (12 o'clock / 0 degrees).
      */
-    const val START_ANGLE: Float = -15f
+    const val START_ANGLE: Float = 0f // LUCKY WHEEL FIX
 
     /**
      * Total number of segments on the wheel artwork (12 segments).
@@ -69,20 +68,21 @@ object SpinWheelController {
         currentRotation: Float,
         winnerIndex: Int,
         fullRotations: Int = DEFAULT_FULL_ROTATIONS
-    ): Float {
-        val safeIndex = winnerIndex.coerceIn(0, NUM_SEGMENTS - 1)
-        // Segment center angle relative to unrotated wheel artwork:
-        val segmentCenterAngle = 15f + (safeIndex * SEGMENT_ANGLE)
+    ): Float { // LUCKY WHEEL FIX
+        val safeIndex = winnerIndex.coerceIn(0, NUM_SEGMENTS - 1) // LUCKY WHEEL FIX
+        // Segment center angle relative to unrotated wheel artwork (Segment 0 is centered at 0°):
+        val segmentCenterAngle = (safeIndex * SEGMENT_ANGLE) % 360f // LUCKY WHEEL FIX
 
         // Desired wheel rotation R mod 360 such that (segmentCenterAngle + R) % 360 == 0
-        val desiredModulo = (360f - (segmentCenterAngle % 360f)) % 360f
+        val desiredModulo = (360f - segmentCenterAngle) % 360f // LUCKY WHEEL FIX
 
-        val currentModulo = (currentRotation % 360f + 360f) % 360f
-        var addDegrees = (desiredModulo - currentModulo) % 360f
-        if (addDegrees <= 0f) {
-            addDegrees += 360f
-        }
+        val currentModulo = (currentRotation % 360f + 360f) % 360f // LUCKY WHEEL FIX
+        var addDegrees = (desiredModulo - currentModulo) % 360f // LUCKY WHEEL FIX
+        if (addDegrees <= 0f) { // LUCKY WHEEL FIX
+            addDegrees += 360f // LUCKY WHEEL FIX
+        } // LUCKY WHEEL FIX
 
-        return currentRotation + (fullRotations * 360f) + addDegrees
+        return currentRotation + (fullRotations * 360f) + addDegrees // LUCKY WHEEL FIX
     }
 }
+

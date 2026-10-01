@@ -44,28 +44,29 @@ class SpinWinnerDialog(context: Context) : Dialog(context) {
         }
     }
 
-    fun showWinner(segment: SpinWheelController.SpinSegment, onClaim: (() -> Unit)? = null) {
-        ivWinnerSegmentImage.setImageResource(segment.drawableRes)
+    fun showWinner(segment: SpinWheelController.SpinSegment, onClaim: (() -> Unit)? = null) { // LUCKY WHEEL FIX
+        ivWinnerSegmentImage.setImageResource(segment.drawableRes) // LUCKY WHEEL FIX
 
-        if (segment.rewardCoins > 0) {
-            tvWinnerTitle.text = "🎉 CONGRATULATIONS! 🎉"
-            tvWinnerSubtitle.text = "YOU WON A LUCKY REWARD!"
-            tvWinnerName.text = "Won ${segment.name}!"
-            btnWinnerOk.text = "CLAIM REWARD"
+        if (segment.rewardCoins > 0) { // LUCKY WHEEL FIX
+            tvWinnerTitle.text = "🎉 CONGRATULATIONS! 🎉" // LUCKY WHEEL FIX
+            tvWinnerSubtitle.text = "YOU WON A LUCKY REWARD!" // LUCKY WHEEL FIX
+            tvWinnerName.text = "Won ${segment.name}!" // LUCKY WHEEL FIX
+            btnWinnerOk.text = "CLAIM REWARD" // LUCKY WHEEL FIX
         } else {
-            tvWinnerTitle.text = "🍀 BETTER LUCK NEXT TIME!"
-            tvWinnerSubtitle.text = "NO COINS WON THIS SPIN"
-            tvWinnerName.text = segment.name
-            btnWinnerOk.text = "TRY AGAIN"
+            tvWinnerTitle.text = "🍀 BETTER LUCK NEXT TIME!" // LUCKY WHEEL FIX
+            tvWinnerSubtitle.text = "NO COINS WON THIS SPIN" // LUCKY WHEEL FIX
+            tvWinnerName.text = segment.name // LUCKY WHEEL FIX
+            btnWinnerOk.text = "TRY AGAIN" // LUCKY WHEEL FIX
         }
 
-        btnWinnerOk.setOnClickListener {
-            dismiss()
-            onClaim?.invoke()
+        btnWinnerOk.setOnClickListener { // LUCKY WHEEL FIX
+            dismiss() // LUCKY WHEEL FIX
+            onClaim?.invoke() // LUCKY WHEEL FIX
         }
 
-        if (!isShowing) {
-            show()
+        if (!isShowing) { // LUCKY WHEEL FIX
+            show() // LUCKY WHEEL FIX
         }
     }
 }
+

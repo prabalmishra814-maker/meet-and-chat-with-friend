@@ -215,17 +215,17 @@ class SpinWheelView @JvmOverloads constructor(
         durationMs: Long,
         fullRotations: Int,
         listener: OnSpinCompleteListener?
-    ) {
-        if (isSpinningState) return
-        isSpinningState = true
-        ivSpinButton.isEnabled = false
+    ) { // LUCKY WHEEL FIX
+        if (isSpinningState) return // LUCKY WHEEL FIX
+        isSpinningState = true // LUCKY WHEEL FIX
+        ivSpinButton.isEnabled = false // LUCKY WHEEL FIX
 
-        val safeIndex = winnerIndex.coerceIn(0, SpinWheelController.NUM_SEGMENTS - 1)
+        val safeIndex = winnerIndex.coerceIn(0, SpinWheelController.NUM_SEGMENTS - 1) // LUCKY WHEEL FIX
         val targetRotation = SpinWheelController.calculateTargetRotation(
             currentRotation,
             safeIndex,
             fullRotations
-        )
+        ) // LUCKY WHEEL FIX
 
         val rotateAnimator = ObjectAnimator.ofFloat(
             ivWheel,
@@ -235,11 +235,11 @@ class SpinWheelView @JvmOverloads constructor(
             interpolator = DecelerateInterpolator(2.2f)
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    currentRotation = targetRotation
-                    isSpinningState = false
-                    ivSpinButton.isEnabled = true
-                    val winner = SpinWheelController.SEGMENTS[safeIndex]
-                    listener?.onSpinComplete(winner)
+                    currentRotation = targetRotation // LUCKY WHEEL FIX
+                    isSpinningState = false // LUCKY WHEEL FIX
+                    ivSpinButton.isEnabled = true // LUCKY WHEEL FIX
+                    val winner = SpinWheelController.SEGMENTS[safeIndex] // LUCKY WHEEL FIX
+                    listener?.onSpinComplete(winner) // LUCKY WHEEL FIX
                 }
             })
         }

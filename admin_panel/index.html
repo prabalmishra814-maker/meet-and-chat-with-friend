@@ -96,10 +96,6 @@
           <i class="fa-solid fa-newspaper"></i>
           <span>Posts &amp; Feed</span>
         </a>
-        <a class="nav-item" data-target="store">
-          <i class="fa-solid fa-store"></i>
-          <span>Store Catalog</span>
-        </a>
         <a class="nav-item" data-target="notifications">
           <i class="fa-solid fa-bullhorn"></i>
           <span>Broadcast Push</span>
@@ -214,9 +210,6 @@
               <button class="btn-primary" onclick="switchTab('users')">
                 <i class="fa-solid fa-user-plus"></i> Manage Users &amp; Topup Coins
               </button>
-              <button class="btn-primary" onclick="switchTab('store')">
-                <i class="fa-solid fa-plus-circle"></i> Add Store Frame/Item
-              </button>
               <button class="btn-primary" onclick="switchTab('notifications')">
                 <i class="fa-solid fa-paper-plane"></i> Send System Broadcast
               </button>
@@ -319,23 +312,6 @@
 
             <div class="cards-grid" id="postsGrid">
               <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading posts...</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 6. STORE CATALOG TAB -->
-        <section id="store" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>🛒 Store Catalog Items (Frames &amp; Themes)</h2>
-              <button class="btn-primary" id="btnAddStoreItem">
-                <i class="fa-solid fa-plus"></i>
-                <span>Add Store Item</span>
-              </button>
-            </div>
-
-            <div class="cards-grid" id="storeGrid">
-              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading store catalog...</div>
             </div>
           </div>
         </section>
@@ -518,46 +494,6 @@
 
         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
           Save Changes
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Add Store Item Modal -->
-  <div class="modal-overlay" id="modalAddStoreItem">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>🛒 Add New Store Item</h3>
-        <button class="btn-icon" onclick="closeModal('modalAddStoreItem')"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="formAddStoreItem">
-        <div class="form-group">
-          <label>Item Name</label>
-          <input type="text" id="storeItemName" class="form-control" placeholder="e.g. Royal Gold Frame 👑" required>
-        </div>
-
-        <div class="form-group">
-          <label>Item Type</label>
-          <select id="storeItemType" class="form-control">
-            <option value="FRAME">Avatar Frame (FRAME)</option>
-            <option value="THEME">Room Theme (THEME)</option>
-            <option value="VIP">VIP Badge (VIP)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Price in Coins</label>
-          <input type="number" id="storeItemPrice" class="form-control" placeholder="500" required>
-        </div>
-
-        <div class="form-group">
-          <label>Icon Drawable Name (e.g. _1000092519_removebg_preview)</label>
-          <input type="text" id="storeItemIcon" class="form-control" placeholder="Drawable res name..." required>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
-          Create Store Item
         </button>
       </form>
     </div>

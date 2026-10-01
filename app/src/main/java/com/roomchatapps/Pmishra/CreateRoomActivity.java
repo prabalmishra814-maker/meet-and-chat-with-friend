@@ -168,6 +168,8 @@ public class CreateRoomActivity extends AppCompatActivity {
         }
 
         btnCreate.setOnClickListener(v -> {
+            if (isSavingRoom) return; // ROOM CREATION FIX: Fast click protection
+
             String currentUserId = getCurrentUserId();
             if (currentUserId == null) {
                 Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
@@ -185,6 +187,7 @@ public class CreateRoomActivity extends AppCompatActivity {
                 return;
             }
 
+            isSavingRoom = true; // ROOM CREATION FIX
             btnCreate.setEnabled(false);
             if (imageUri != null) {
                 uploadImageAndSaveRoom();
@@ -197,6 +200,7 @@ public class CreateRoomActivity extends AppCompatActivity {
     }
 
     private boolean isFetchingBanner = false;
+    private boolean isSavingRoom = false; // ROOM CREATION FIX: Prevents duplicate room creation calls
 
     private void fetchRandomGirlPhotoBanner(boolean showToast) {
         if (isFetchingBanner) return;
@@ -254,41 +258,79 @@ public class CreateRoomActivity extends AppCompatActivity {
         return "Host";
     }
 
-    private void loadExistingRoom(String userId) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms").child(userId);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void loadExistingRoom(String userId) { // ROOM CREATION FIX: Reuse active room if user already has one
+        DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms"); // ROOM CREATION FIX
+        roomsRef.orderByChild("uid").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() { // ROOM CREATION FIX
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
+                boolean found = false; // ROOM CREATION FIX
                 if (snapshot.exists()) {
-                    RoomModel existingRoom = snapshot.getValue(RoomModel.class);
-                    if (existingRoom != null) {
-                        if (existingRoom.getRoomId() != null && is6DigitNumber(existingRoom.getRoomId())) {
-                            existing6DigitRoomId = existingRoom.getRoomId();
+                    for (DataSnapshot child : snapshot.getChildren()) { // ROOM CREATION FIX
+                        RoomModel existingRoom = child.getValue(RoomModel.class);
+                        if (existingRoom != null) {
+                            String foundRoomId = existingRoom.getRoomId(); // ROOM CREATION FIX
+                            if (foundRoomId == null || foundRoomId.isEmpty()) { // ROOM CREATION FIX
+                                foundRoomId = child.getKey(); // ROOM CREATION FIX
+                            } // ROOM CREATION FIX
+                            if (foundRoomId != null && is6DigitNumber(foundRoomId)) { // ROOM CREATION FIX
+                                existing6DigitRoomId = foundRoomId; // ROOM CREATION FIX
+                                found = true; // ROOM CREATION FIX
+                            }
+                            if (existingRoom.getRoom_name() != null && etRoomTitle != null) {
+                                etRoomTitle.setText(existingRoom.getRoom_name());
+                            }
+                            if (existingRoom.getImg() != null && !existingRoom.getImg().isEmpty()) {
+                                imgUrl = existingRoom.getImg();
+                                Glide.with(CreateRoomActivity.this)
+                                        .load(imgUrl)
+                                        .placeholder(R.drawable.app_create_room_ic)
+                                        .into(ivRoomCover);
+                            }
+                            if (btnCreate != null) {
+                                btnCreate.setText("Update Room");
+                            }
+                            if (tvTitle != null) {
+                                tvTitle.setText("Update Room");
+                            }
+                            break; // ROOM CREATION FIX
                         }
-                        if (existingRoom.getRoom_name() != null && etRoomTitle != null) {
-                            etRoomTitle.setText(existingRoom.getRoom_name());
-                        }
-                        if (existingRoom.getImg() != null && !existingRoom.getImg().isEmpty()) {
-                            imgUrl = existingRoom.getImg();
-                            Glide.with(CreateRoomActivity.this)
-                                    .load(imgUrl)
-                                    .placeholder(R.drawable.app_create_room_ic)
-                                    .into(ivRoomCover);
-                        } else {
+                    }
+                }
+                if (!found) { // ROOM CREATION FIX: Fallback to direct child if legacy format exists
+                    roomsRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() { // ROOM CREATION FIX
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot legacySnapshot) { // ROOM CREATION FIX
+                            if (isFinishing() || isDestroyed()) return;
+                            if (legacySnapshot.exists()) {
+                                RoomModel legacyRoom = legacySnapshot.getValue(RoomModel.class); // ROOM CREATION FIX
+                                if (legacyRoom != null) { // ROOM CREATION FIX
+                                    if (legacyRoom.getRoomId() != null && is6DigitNumber(legacyRoom.getRoomId())) { // ROOM CREATION FIX
+                                        existing6DigitRoomId = legacyRoom.getRoomId(); // ROOM CREATION FIX
+                                    }
+                                    if (legacyRoom.getRoom_name() != null && etRoomTitle != null) {
+                                        etRoomTitle.setText(legacyRoom.getRoom_name());
+                                    }
+                                    if (legacyRoom.getImg() != null && !legacyRoom.getImg().isEmpty()) {
+                                        imgUrl = legacyRoom.getImg();
+                                        Glide.with(CreateRoomActivity.this)
+                                                .load(imgUrl)
+                                                .placeholder(R.drawable.app_create_room_ic)
+                                                .into(ivRoomCover);
+                                    }
+                                    if (btnCreate != null) btnCreate.setText("Update Room");
+                                    if (tvTitle != null) tvTitle.setText("Update Room");
+                                    return; // ROOM CREATION FIX
+                                }
+                            }
                             fetchRandomGirlPhotoBanner(false);
                         }
-                        if (btnCreate != null) {
-                            btnCreate.setText("Update Room");
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            fetchRandomGirlPhotoBanner(false);
                         }
-                        if (tvTitle != null) {
-                            tvTitle.setText("Update Room");
-                        }
-                    } else {
-                        fetchRandomGirlPhotoBanner(false);
-                    }
-                } else {
-                    fetchRandomGirlPhotoBanner(false);
+                    });
                 }
             }
 
@@ -385,6 +427,7 @@ public class CreateRoomActivity extends AppCompatActivity {
         String userName = getCurrentUserName();
 
         if (userId == null) {
+            isSavingRoom = false; // ROOM CREATION FIX
             btnCreate.setEnabled(true);
             Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(CreateRoomActivity.this, LoginActivity.class));
@@ -394,6 +437,7 @@ public class CreateRoomActivity extends AppCompatActivity {
 
         String roomTitle = etRoomTitle != null ? etRoomTitle.getText().toString().trim() : "";
         if (roomTitle.isEmpty()) {
+            isSavingRoom = false; // ROOM CREATION FIX
             btnCreate.setEnabled(true);
             if (etRoomTitle != null) {
                 etRoomTitle.setError("Please enter room title");
@@ -415,7 +459,7 @@ public class CreateRoomActivity extends AppCompatActivity {
         final String finalRoomTitle = roomTitle;
 
         ensure6DigitRoomId(generatedRoomId -> {
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms");
+            DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms"); // ROOM CREATION FIX
             String roomId = generatedRoomId;
 
             HashMap<String, Object> map = new HashMap<>();
@@ -424,8 +468,11 @@ public class CreateRoomActivity extends AppCompatActivity {
             map.put("uid", finalUserId);
             map.put("roomId", roomId);
 
-            ref.child(userId).setValue(map)
+            roomsRef.child(roomId).updateChildren(map) // ROOM CREATION FIX: Save room under rooms/{roomId}
                     .addOnSuccessListener(unused -> {
+                        if (!finalUserId.equals(roomId)) { // ROOM CREATION FIX: Cleanup legacy rooms/{userId} node if present
+                            roomsRef.child(finalUserId).removeValue(); // ROOM CREATION FIX
+                        } // ROOM CREATION FIX
                         Toast.makeText(this, "Room Saved Successfully! Room ID: " + roomId, Toast.LENGTH_SHORT).show();
                         
                         // Start RoomChatActivity as Host
@@ -438,9 +485,11 @@ public class CreateRoomActivity extends AppCompatActivity {
                         intent.putExtra("img", imgUrl);
                         intent.putExtra("host", true); // Creator is the Host
                         startActivity(intent);
+                        overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
                         finish();
                     })
                     .addOnFailureListener(e -> {
+                        isSavingRoom = false; // ROOM CREATION FIX
                         btnCreate.setEnabled(true);
                         Toast.makeText(this, "Failed to save room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
@@ -454,7 +503,35 @@ public class CreateRoomActivity extends AppCompatActivity {
             listener.onGenerated(existing6DigitRoomId);
             return;
         }
-        generateUniqueRoomId(listener);
+        
+        // ROOM CREATION FIX: Double check Firebase before generating a new room ID
+        String userId = getCurrentUserId(); // ROOM CREATION FIX
+        if (userId != null) { // ROOM CREATION FIX
+            DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms"); // ROOM CREATION FIX
+            roomsRef.orderByChild("uid").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() { // ROOM CREATION FIX
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        for (DataSnapshot child : snapshot.getChildren()) { // ROOM CREATION FIX
+                            RoomModel r = child.getValue(RoomModel.class); // ROOM CREATION FIX
+                            if (r != null && r.getRoomId() != null && is6DigitNumber(r.getRoomId())) { // ROOM CREATION FIX
+                                existing6DigitRoomId = r.getRoomId(); // ROOM CREATION FIX
+                                listener.onGenerated(existing6DigitRoomId); // ROOM CREATION FIX
+                                return; // ROOM CREATION FIX
+                            }
+                        }
+                    }
+                    generateUniqueRoomId(listener); // ROOM CREATION FIX
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    generateUniqueRoomId(listener); // ROOM CREATION FIX
+                }
+            });
+        } else {
+            generateUniqueRoomId(listener); // ROOM CREATION FIX
+        }
     }
 
     private void generateUniqueRoomId(OnRoomIdGeneratedListener listener) {

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="64dp"
+    android:layout_height="64dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        app:cardBackgroundColor="#1A1B29"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="8dp"
+        app:cardMaxElevation="10dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_exit_circle_ripple"
+            android:padding="3dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgFloatingLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Room Minimized Logo"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_20260904_135725"
+                app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <View
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/bg_green_dot" />
+
+</FrameLayout>

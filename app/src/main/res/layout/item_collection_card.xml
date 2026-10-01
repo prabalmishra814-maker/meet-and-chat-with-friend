@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardCollectionItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="#131A28"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeColor="#20FFFFFF"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Top Right Quantity Badge (For Received Gifts x4, x10) -->
+        <TextView
+            android:id="@+id/tvQuantityBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/chip_charm_bg"
+            android:elevation="6dp"
+            android:fontFamily="sans-serif-black"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="x4"
+            tools:visibility="visible" />
+
+        <!-- Top Left Equipped / Item Type Badge -->
+        <TextView
+            android:id="@+id/tvStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_room_chat_pill_gift"
+            android:elevation="6dp"
+            android:fontFamily="sans-serif-bold"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="2dp"
+            android:text="EQUIPPED ✨"
+            android:textColor="#40E0D0"
+            android:textSize="10sp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
+        <!-- Center Item Preview Frame -->
+        <FrameLayout
+            android:id="@+id/flPreviewContainer"
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_gift_dialog"
+            android:padding="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivStaticPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                tools:src="@drawable/gift_golden_tea" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Item Name -->
+        <TextView
+            android:id="@+id/tvItemName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/flPreviewContainer"
+            tools:text="Golden Tea" />
+
+        <!-- Subtitle / Coin Value -->
+        <TextView
+            android:id="@+id/tvItemSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textColor="#FFD700"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvItemName"
+            tools:text="🪙 200,000" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

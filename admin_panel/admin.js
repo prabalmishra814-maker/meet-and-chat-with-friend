@@ -197,7 +197,6 @@ function initFirebase() {
     listenToUsers();
     listenToRooms();
     listenToPosts();
-    listenToStore();
     listenToTransactions();
     listenToRecharges();
 
@@ -322,17 +321,6 @@ function listenToPosts() {
   }, (err) => {
     console.error("Error loading Posts node:", err);
     showToast("Firebase Read Error (Posts): " + err.message, "danger");
-  });
-}
-
-// Realtime Listener: Store Items
-function listenToStore() {
-  db.ref("store_items").on("value", (snapshot) => {
-    storeData = snapshot.val() || {};
-    renderStore();
-  }, (err) => {
-    console.error("Error loading store_items node:", err);
-    showToast("Firebase Read Error (store_items): " + err.message, "danger");
   });
 }
 
@@ -892,46 +880,6 @@ function renderPosts() {
   });
 }
 
-// Render Store Catalog
-function renderStore() {
-  const container = document.getElementById("storeGrid");
-  if (!container) return;
-
-  container.innerHTML = "";
-  const itemIds = Object.keys(storeData || {});
-
-  if (itemIds.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">No store items in database. Click 'Add Store Item' to create one.</div>`;
-    return;
-  }
-
-  itemIds.forEach(itemId => {
-    const item = storeData[itemId];
-    if (!item) return;
-
-    const name = item.name || "Store Item";
-    const type = item.type || "FRAME";
-    const priceCoins = item.priceCoins || item.price || 0;
-
-    const card = document.createElement("div");
-    card.className = "grid-card";
-    card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span class="badge badge-purple">${escapeHtml(type)}</span>
-        <span class="badge badge-gold">🪙 ${priceCoins} Coins</span>
-      </div>
-      <h3 style="font-size:16px; font-weight:700; margin-bottom:6px;">${escapeHtml(name)}</h3>
-      <p style="font-size:12px; color: var(--text-muted); margin-bottom:12px;">Resource: ${escapeHtml(item.iconResName || 'N/A')}</p>
-      <button class="btn-danger btn-store-delete" style="width:100%;" data-itemid="${escapeHtml(itemId)}">🗑️ Remove Item</button>
-    `;
-    container.appendChild(card);
-  });
-
-  container.querySelectorAll(".btn-store-delete").forEach(btn => {
-    btn.addEventListener("click", () => deleteStoreItem(btn.getAttribute("data-itemid")));
-  });
-}
-
 // Render Wallet Transactions Log
 function renderTransactions() {
   const tbody = document.getElementById("txTableBody");
@@ -1113,50 +1061,6 @@ function setupFormHandlers() {
       }).catch((err) => {
         console.error("Edit user error:", err);
         showToast("Failed to update user: " + err.message, "danger");
-      });
-    });
-  }
-
-  // Add Store Item Form
-  const btnAddStore = document.getElementById("btnAddStoreItem");
-  if (btnAddStore) btnAddStore.addEventListener("click", () => openModal("modalAddStoreItem"));
-
-  const fAddStore = document.getElementById("formAddStoreItem");
-  if (fAddStore) {
-    fAddStore.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = document.getElementById("storeItemName").value;
-      const type = document.getElementById("storeItemType").value;
-      const price = parseInt(document.getElementById("storeItemPrice").value, 10) || 0;
-      const icon = document.getElementById("storeItemIcon").value;
-
-      if (!db) return;
-
-      const newRef = db.ref("store_items").push();
-
-      // ⚡ Optimistic UI Update
-      storeData[newRef.key] = {
-        id: newRef.key,
-        name: name,
-        type: type,
-        priceCoins: price,
-        iconResName: icon
-      };
-      renderStore();
-
-      newRef.set({
-        id: newRef.key,
-        name: name,
-        type: type,
-        priceCoins: price,
-        iconResName: icon
-      }).then(() => {
-        showToast("Store item added successfully!", "success");
-        closeModal("modalAddStoreItem");
-        fAddStore.reset();
-      }).catch((err) => {
-        console.error("Add store item error:", err);
-        showToast("Failed to add store item: " + err.message, "danger");
       });
     });
   }
@@ -1347,23 +1251,6 @@ function deletePost(postId) {
   }
 }
 
-// Store Actions
-function deleteStoreItem(itemId) {
-  if (!db) return;
-  if (confirm(`Are you sure you want to remove this store item?`)) {
-
-    // ⚡ Optimistic Instant UI Update
-    delete storeData[itemId];
-    renderStore();
-
-    db.ref("store_items").child(itemId).remove().then(() => {
-      showToast("Store item removed!", "success");
-    }).catch((err) => {
-      showToast("Delete store item failed: " + err.message, "danger");
-    });
-  }
-}
-
 // Modal Helpers
 function openModal(id) {
   const m = document.getElementById(id);
@@ -1376,9 +1263,22 @@ function closeModal(id) {
 }
 
 // Toast Helper
+let lastPermissionToastTime = 0;
+
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
   if (!container) return;
+
+  // Deduplicate repeated permission_denied toasts
+  if (message.includes("permission_denied") || message.includes("permission to access")) {
+    const now = Date.now();
+    if (now - lastPermissionToastTime < 5000) {
+      return; // Skip repeated permission toasts
+    }
+    lastPermissionToastTime = now;
+    message = "⚠️ Firebase Rules Error: Permission denied. Please update Database Rules in Firebase Console.";
+    type = "danger";
+  }
 
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
@@ -1389,7 +1289,7 @@ function showToast(message, type = "info") {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
     setTimeout(() => toast.remove(), 300);
-  }, 3500);
+  }, 4000);
 }
 
 // Utility: HTML Escaper

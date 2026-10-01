@@ -1,20 +1,23 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
+import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.roomchatapps.Pmishra.adapters.DailyCheckInAdapter;
 import com.roomchatapps.Pmishra.models.DayRewardConfig;
@@ -24,10 +27,10 @@ import com.roomchatapps.Pmishra.utils.DailyCheckInManager;
 import java.util.List;
 
 // DAILY CHECK-IN
-public class CheckActivity extends AppCompatActivity {
+public class DailyCheckInDialog extends BottomSheetDialog {
 
-    private ImageView btnBack;
     private TextView tvTitle, tvSubtitle, tvStreakTitle, tvStreakNote;
+    private ImageView btnClose;
     private RecyclerView rvCheckInDays;
     private ProgressBar progressBar;
 
@@ -37,34 +40,62 @@ public class CheckActivity extends AppCompatActivity {
     private String currentUid;
     private boolean isClaiming = false;
 
+    public DailyCheckInDialog(@NonNull Context context) {
+        super(context, R.style.CustomBottomSheetDialogTheme);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        com.roomchatapps.Pmishra.utils.StatusBarUtils.makeTransparent(this);
-        setContentView(R.layout.activity_check);
+        setContentView(R.layout.dialog_daily_checkin);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Remove default bottom sheet background and expand flush to bottom with 0 gap
+        if (getWindow() != null) {
+            getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            getWindow().setGravity(Gravity.BOTTOM);
+            getWindow().getDecorView().setPadding(0, 0, 0, 0);
+
+            View bottomSheet = getWindow().findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                bottomSheet.setBackground(null);
+                bottomSheet.setPadding(0, 0, 0, 0);
+                
+                ViewGroup.LayoutParams lp = bottomSheet.getLayoutParams();
+                if (lp instanceof ViewGroup.MarginLayoutParams) {
+                    ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
+                    bottomSheet.setLayoutParams(lp);
+                }
+
+                ViewCompat.setOnApplyWindowInsetsListener(bottomSheet, (v, insets) -> {
+                    v.setPadding(0, 0, 0, 0);
+                    return insets;
+                });
+
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                behavior.setSkipCollapsed(true);
+            }
+        }
 
         currentUid = FirebaseAuth.getInstance().getUid();
 
         initViews();
         setupRecyclerView();
-        setupClickListeners();
-        loadCheckInState();
+        setupListeners();
+        loadState();
     }
 
     private void initViews() {
-        btnBack = findViewById(R.id.btnBack);
         tvTitle = findViewById(R.id.tvTitle);
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvStreakTitle = findViewById(R.id.tvStreakTitle);
         tvStreakNote = findViewById(R.id.tvStreakNote);
+        btnClose = findViewById(R.id.btnClose);
         rvCheckInDays = findViewById(R.id.rvCheckInDays);
         progressBar = findViewById(R.id.progressBar);
+
+        if (tvTitle != null) tvTitle.setText("Daily Check-In");
+        if (tvSubtitle != null) tvSubtitle.setText("Check in every day to claim your rewards");
     }
 
     private void setupRecyclerView() {
@@ -73,9 +104,9 @@ public class CheckActivity extends AppCompatActivity {
         rewardList = DailyCheckInManager.get7DayRewards();
         currentState = new UserCheckInState();
 
-        rvCheckInDays.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        rvCheckInDays.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
 
-        adapter = new DailyCheckInAdapter(this, rewardList, currentState, new DailyCheckInAdapter.OnClaimClickListener() {
+        adapter = new DailyCheckInAdapter(getContext(), rewardList, currentState, new DailyCheckInAdapter.OnClaimClickListener() {
             @Override
             public void onClaimClick(DayRewardConfig reward, int position) {
                 handleRewardClaim(reward);
@@ -85,15 +116,15 @@ public class CheckActivity extends AppCompatActivity {
         rvCheckInDays.setAdapter(adapter);
     }
 
-    private void setupClickListeners() {
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
+    private void setupListeners() {
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dismiss());
         }
     }
 
-    private void loadCheckInState() {
+    private void loadState() {
         if (currentUid == null || currentUid.isEmpty()) {
-            Toast.makeText(this, "Please log in to view daily check-in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please log in to claim daily rewards", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -111,7 +142,7 @@ public class CheckActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
-                Toast.makeText(CheckActivity.this, error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -136,7 +167,7 @@ public class CheckActivity extends AppCompatActivity {
         if (isClaiming) return; // Prevent double taps during active transaction
 
         if (currentUid == null || currentUid.isEmpty()) {
-            Toast.makeText(this, "Please log in to claim rewards", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please log in to claim rewards", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -149,10 +180,10 @@ public class CheckActivity extends AppCompatActivity {
                 isClaiming = false;
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
 
-                Toast.makeText(CheckActivity.this, message, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
 
-                // Reload state to update UI
-                loadCheckInState();
+                // Refresh state and reload UI
+                loadState();
             }
 
             @Override
@@ -161,7 +192,7 @@ public class CheckActivity extends AppCompatActivity {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
 
                 String displayError = (error != null && !error.isEmpty()) ? error : "Unable to claim reward. Please try again.";
-                Toast.makeText(CheckActivity.this, displayError, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), displayError, Toast.LENGTH_SHORT).show();
             }
         });
     }

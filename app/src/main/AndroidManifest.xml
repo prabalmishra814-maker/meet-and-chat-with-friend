@@ -70,6 +70,8 @@
         <activity
             android:name=".RoomChatActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection|smallestScreenSize|screenLayout|uiMode|density"
+            android:launchMode="singleTask"
+            android:taskAffinity=".room_task"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".LoginActivity" />
@@ -94,6 +96,7 @@
         <activity android:name=".WalletActivity" />
         <activity android:name=".CoinRechargeActivity" />
         <activity android:name=".StoreActivity" />
+        <activity android:name=".CollectionActivity" />
         <activity android:name=".ReferralActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".LeaderboardActivity" />

@@ -1,11 +1,13 @@
 package com.roomchatapps.Pmishra;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -28,7 +30,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.models.NotificationModel;
+import com.roomchatapps.Pmishra.models.UserCheckInState;
 import com.roomchatapps.Pmishra.services.AppNotificationService;
+import com.roomchatapps.Pmishra.utils.DailyCheckInManager;
 import com.roomchatapps.Pmishra.utils.SystemNotificationManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -74,6 +78,36 @@ public class MainActivity extends AppCompatActivity {
             loadFragment(new HomeFragment());
             updateNavUI(0);
         }
+
+        // DAILY CHECK-IN AUTO SHOW IF NOT CLAIMED TODAY
+        checkAndShowDailyCheckIn();
+    }
+
+    // DAILY CHECK-IN AUTO SHOW
+    private void checkAndShowDailyCheckIn() {
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        if (currentUid == null || currentUid.isEmpty()) return;
+
+        DailyCheckInManager.loadUserCheckInState(currentUid, new DailyCheckInManager.StateCallback() {
+            @Override
+            public void onStateLoaded(UserCheckInState state) {
+                if (isFinishing() || isDestroyed()) return;
+                // Show Daily Check-In dialog ONLY if today's reward has NOT been claimed yet
+                if (state != null && !state.isTodayClaimed()) {
+                    findViewById(android.R.id.content).postDelayed(() -> {
+                        if (!isFinishing() && !isDestroyed()) {
+                            DailyCheckInDialog dialog = new DailyCheckInDialog(MainActivity.this);
+                            dialog.show();
+                        }
+                    }, 600);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Silently ignore errors on automatic background check
+            }
+        });
     }
 
     private void startBackgroundNotificationService() {
@@ -85,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
     }
@@ -251,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
         navIndicator.animate()
                 .translationX(targetX)
                 .setDuration(260)
-                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .setInterpolator(new DecelerateInterpolator())
                 .start();
     }
 

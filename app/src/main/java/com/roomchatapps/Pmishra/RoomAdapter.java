@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -160,6 +161,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             intent.putExtra("host", isHost);
 
             context.startActivity(intent);
+            if (context instanceof Activity) {
+                ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
+            }
         });
     }
 

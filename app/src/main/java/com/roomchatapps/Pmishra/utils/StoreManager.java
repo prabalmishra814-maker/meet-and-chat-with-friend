@@ -219,6 +219,25 @@ public class StoreManager {
         });
     }
 
+    // DAILY CHECK-IN STORE REWARD
+    public static void grantStoreItemOwnership(String uid, String itemId, ActionCallback callback) {
+        if (uid == null || itemId == null || itemId.trim().isEmpty()) {
+            if (callback != null) callback.onError("Invalid parameters");
+            return;
+        }
+
+        DatabaseReference invRef = FirebaseDatabase.getInstance().getReference("user_inventory")
+                .child(uid).child(itemId.trim());
+
+        invRef.setValue(System.currentTimeMillis()).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onSuccess("Item unlocked successfully!");
+            } else {
+                if (callback != null) callback.onError("Failed to record inventory item.");
+            }
+        });
+    }
+
     private static List<StoreItemModel> seedDefaultItems() {
         List<StoreItemModel> items = new ArrayList<>();
         
@@ -270,6 +289,8 @@ public class StoreManager {
         items.add(new StoreItemModel("entrance_toyota_car", "Toyota Car Entrance 🚗", "ENTRANCE", 8000000L, "Cruising into rooms in Toyota Car", "ic_entrance_toyota_car", "POPULAR", "Entry/toyota_car_entry.svga"));
         items.add(new StoreItemModel("entrance_red_car", "Red Super Car 🏎️", "ENTRANCE", 8000000L, "Arrive in style with Red Super Car", "ic_entrance_red_car", "HOT 🔥", "Entry/red_super_car.svga"));
         items.add(new StoreItemModel("entrance_anime_man", "Anime Legend Arrival ⚡", "ENTRANCE", 10000000L, "Enter rooms with Anime Hero Arrival", "ic_entrance_anime_man", "EPIC ⚡", "Entry/anime_man_entry.svga"));
+        // DAILY CHECK-IN STORE REWARD
+        items.add(new StoreItemModel("entrance_golden_super_car", "Golden Super Car 🏎️", "ENTRANCE", 12000000L, "Arrive like royalty in Golden Super Car", "ic_entrance_golden_car", "LEGENDARY 👑", "Entry/golden_super_car.svga"));
 
         return items;
     }

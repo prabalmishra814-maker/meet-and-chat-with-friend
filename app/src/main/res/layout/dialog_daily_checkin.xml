@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DAILY CHECK-IN UI REDESIGN - GLASSMORPHISM -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_daily_reward_dialog"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Top Header Layout -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/ivDecoration"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily Reward"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Sign in for 7 days to get a surprise"
+                android:textColor="#B2DFDB"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <!-- Decorative Artwork -->
+        <ImageView
+            android:id="@+id/ivDecoration"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="12dp"
+            android:layout_toStartOf="@id/btnClose"
+            android:contentDescription="Reward Artwork"
+            android:src="@drawable/coin" />
+
+        <!-- Close X Button -->
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:padding="4dp"
+            android:src="@drawable/ic_close"
+            app:tint="#B2DFDB" />
+
+    </RelativeLayout>
+
+    <!-- Streak Info Summary -->
+    <LinearLayout
+        android:id="@+id/llStreakBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/chip_room_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/tvStreakTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Current Streak: 0 Days 🔥"
+            android:textColor="#FFD54F"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvStreakNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 Claim / Day"
+            android:textColor="#B2DFDB"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="16dp"
+        android:visibility="gone" />
+
+    <!-- Vertical 7-Day Timeline List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCheckInDays"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
+        tools:listitem="@layout/item_daily_checkin_day" />
+
+</LinearLayout>

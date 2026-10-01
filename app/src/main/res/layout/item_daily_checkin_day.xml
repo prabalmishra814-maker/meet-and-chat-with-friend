@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DAILY CHECK-IN UI REDESIGN - GLASSMORPHISM -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rlDayContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="5dp">
+
+    <!-- Day Label -->
+    <TextView
+        android:id="@+id/tvDayBadge"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:text="Day 1"
+        android:textColor="#FFD700"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Timeline Container -->
+    <RelativeLayout
+        android:id="@+id/rlTimeline"
+        android:layout_width="16dp"
+        android:layout_height="56dp"
+        android:layout_toEndOf="@id/tvDayBadge">
+
+        <View
+            android:id="@+id/vLineTop"
+            android:layout_width="2dp"
+            android:layout_height="28dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:background="#4000E6FF" />
+
+        <View
+            android:id="@+id/vLineBottom"
+            android:layout_width="2dp"
+            android:layout_height="28dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="#4000E6FF" />
+
+        <View
+            android:id="@+id/vNodeCircle"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/bg_timeline_node_current" />
+
+    </RelativeLayout>
+
+    <!-- Gift Box Icon -->
+    <ImageView
+        android:id="@+id/ivGiftBox"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="2dp"
+        android:layout_toEndOf="@id/rlTimeline"
+        android:contentDescription="Gift Box"
+        android:src="@drawable/bg_bonus_badge" />
+
+    <!-- Pointer Arrow (Visible for Current Day) -->
+    <ImageView
+        android:id="@+id/ivArrow"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="2dp"
+        android:layout_toEndOf="@id/ivGiftBox"
+        android:contentDescription="Arrow"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="#FFD700"
+        android:visibility="visible" />
+
+    <!-- Glass Reward Card Container -->
+    <LinearLayout
+        android:id="@+id/llRewardCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="4dp"
+        android:layout_toEndOf="@id/ivArrow"
+        android:background="@drawable/bg_timeline_card_current"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="6dp">
+
+        <!-- Icon Container -->
+        <FrameLayout
+            android:id="@+id/flIconContainer"
+            android:layout_width="34dp"
+            android:layout_height="34dp">
+
+            <ImageView
+                android:id="@+id/ivRewardIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:contentDescription="Reward Icon"
+                android:scaleType="fitCenter"
+                tools:src="@drawable/coin" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaRewardPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- Reward Title / Subtitle -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvRewardName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="2,500 Coins"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRewardSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Entry Effect"
+                android:textColor="#B2DFDB"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <!-- Action / Status -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClaim"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_claim_button_gold"
+                app:backgroundTint="@null"
+                app:strokeWidth="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="54dp"
+                android:padding="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="CLAIM"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                app:cornerRadius="14dp" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="LOCKED"
+                android:textColor="#B0FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

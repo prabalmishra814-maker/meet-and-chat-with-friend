@@ -326,6 +326,15 @@ public class StoreActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+
+        View btnMyCollection = findViewById(R.id.btnMyCollection);
+        if (btnMyCollection != null) {
+            btnMyCollection.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(v);
+                Intent intent = new Intent(StoreActivity.this, CollectionActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void loadWalletBalance() {

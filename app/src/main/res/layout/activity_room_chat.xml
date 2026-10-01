@@ -374,7 +374,8 @@
                 android:contentDescription="Lucky Spin"
                 android:focusable="true"
                 android:padding="4dp"
-                android:src="@drawable/lucky_spin_wheel" />
+                android:src="@drawable/lucky_spin_wheel"
+                android:visibility="gone" />
 
             <!-- Gift Button -->
             <ImageView

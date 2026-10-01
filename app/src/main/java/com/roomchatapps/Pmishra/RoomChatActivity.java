@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
+import com.roomchatapps.Pmishra.utils.RoomFloatingManager; // ROOM MINIMIZE FIX
 
 import android.Manifest;
 import android.app.Dialog;
@@ -322,6 +323,10 @@ public class RoomChatActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (isMinimized) { // ROOM MINIMIZE FIX
+            isMinimized = false; // ROOM MINIMIZE FIX
+            RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
+        } // ROOM MINIMIZE FIX
         if (userID != null) {
             UserProfileCache.invalidate(userID);
             UserProfileCache.getUserProfile(userID, profile -> {
@@ -552,6 +557,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnSpinWheel = findViewById(R.id.btnSpinWheel);
         if (btnSpinWheel != null) {
+            btnSpinWheel.setVisibility(View.GONE);
             AnimationHelper.applyClickAnimation(btnSpinWheel);
             btnSpinWheel.setOnClickListener(v -> {
                 if (isFastClick(v)) return;
@@ -1305,6 +1311,8 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private void leaveRoom() {
         try {
+            isMinimized = false; // ROOM MINIMIZE FIX
+            RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
             int mySeatIndex = SeatManager.getInstance().findUserSeatIndex(userID);
             if (mySeatIndex != -1) {
                 SeatManager.getInstance().leaveSeat(mySeatIndex);
@@ -1349,6 +1357,7 @@ public class RoomChatActivity extends AppCompatActivity {
             SeatManager.getInstance().removeListener(seatListener);
             if (!isFinishing() && !isDestroyed()) {
                 finish();
+                overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom); // ROOM ANIMATION FIX
             }
         } catch (Exception e) {
             Log.e("RoomChatActivity", "Error leaving room", e);
@@ -2304,14 +2313,13 @@ public class RoomChatActivity extends AppCompatActivity {
 
         DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
 
-        // 1. Direct update to rooms/{roomID}
+        // ROOM CREATION FIX: Update room details at canonical location rooms/{roomID}
         if (roomID != null && !roomID.isEmpty()) {
             roomsRef.child(roomID).updateChildren(updateMap);
-        }
-
-        // 2. Direct update to rooms/{userID} if userID is available
-        if (userID != null && !userID.isEmpty()) {
-            roomsRef.child(userID).updateChildren(updateMap);
+            // ROOM CREATION FIX: Clean up legacy rooms/{userID} node if distinct from roomID
+            if (userID != null && !userID.isEmpty() && !userID.equals(roomID)) {
+                roomsRef.child(userID).removeValue(); // ROOM CREATION FIX
+            }
         }
 
         // 3. Find any matching room node by roomId in rooms list
@@ -2393,8 +2401,7 @@ public class RoomChatActivity extends AppCompatActivity {
         if (btnMinimize != null) {
             btnMinimize.setOnClickListener(v -> {
                 dialog.dismiss();
-                Toast.makeText(this, "Room running in background 🎙️", Toast.LENGTH_SHORT).show();
-                moveTaskToBack(true);
+                minimizeRoom(); // ROOM MINIMIZE FIX
             });
         }
 
@@ -2406,6 +2413,17 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         dialog.show();
+    }
+
+    // ROOM MINIMIZE FIX
+    private boolean isMinimized = false;
+
+    // ROOM MINIMIZE FIX
+    public void minimizeRoom() {
+        isMinimized = true; // ROOM MINIMIZE FIX
+        RoomFloatingManager.getInstance().showFloatingBubble(this, roomID, roomNameLabel); // ROOM MINIMIZE FIX
+        moveTaskToBack(true); // ROOM MINIMIZE FIX
+        overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom); // ROOM ANIMATION FIX
     }
 
     private void showSeatCapacityDialog() {
@@ -3410,11 +3428,13 @@ public class RoomChatActivity extends AppCompatActivity {
         if (btnCloseWheel != null) btnCloseWheel.setOnClickListener(v -> dialog.dismiss());
 
         Random random = new Random();
+        final boolean[] isSpinInProgress = new boolean[]{false}; // LUCKY WHEEL FIX: Rapid click guard
 
         View.OnClickListener spinAction = v -> {
-            if (isFastClick(v)) return;
-            if (spinWheelView != null && spinWheelView.isSpinning()) return;
-            if (btnSpin != null && !btnSpin.isEnabled()) return;
+            if (isFastClick(v)) return; // LUCKY WHEEL FIX
+            if (isSpinInProgress[0]) return; // LUCKY WHEEL FIX
+            if (spinWheelView != null && spinWheelView.isSpinning()) return; // LUCKY WHEEL FIX
+            if (btnSpin != null && !btnSpin.isEnabled()) return; // LUCKY WHEEL FIX
 
             final long spinCost = 100;
             if (cachedCoins[0] > 0 && cachedCoins[0] < spinCost) {
@@ -3422,24 +3442,26 @@ public class RoomChatActivity extends AppCompatActivity {
                 return;
             }
 
-            // Immediately update local UI balance & disable button for ZERO MS delay
+            // Immediately set spinning guard & disable spin button to prevent multiple rapid clicks
+            isSpinInProgress[0] = true; // LUCKY WHEEL FIX
+            if (btnSpin != null) btnSpin.setEnabled(false); // LUCKY WHEEL FIX
+
+            // Immediately update local UI balance
             cachedCoins[0] = Math.max(0, cachedCoins[0] - spinCost);
             if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + cachedCoins[0]);
-            if (btnSpin != null) btnSpin.setEnabled(false);
 
-            // Select random winner immediately
-            int randomWinnerIndex = random.nextInt(SpinWheelController.NUM_SEGMENTS);
+            // Select single authoritative winning segment ONCE before starting animation
+            int randomWinnerIndex = random.nextInt(SpinWheelController.NUM_SEGMENTS); // LUCKY WHEEL FIX
+            SpinWheelController.SpinSegment winningSegment = SpinWheelController.INSTANCE.getSEGMENTS().get(randomWinnerIndex); // LUCKY WHEEL FIX
 
-            // START SPINNING INSTANTLY (0ms latency!)
+            // START SPINNING INSTANTLY
             if (spinWheelView != null) {
                 spinWheelView.spinToSegment(
-                        randomWinnerIndex,
+                        winningSegment.getIndex(), // LUCKY WHEEL FIX: Target authoritative segment index
                         SpinWheelController.SPIN_DURATION_MS,
                         SpinWheelController.DEFAULT_FULL_ROTATIONS,
                         winner -> {
-                            if (btnSpin != null) btnSpin.setEnabled(true);
-
-                            long rewardCoins = winner.getRewardCoins();
+                            long rewardCoins = winner.getRewardCoins(); // LUCKY WHEEL FIX
 
                             // Add won coins to user balance in Firebase & UI if reward > 0
                             if (rewardCoins > 0) {
@@ -3459,16 +3481,19 @@ public class RoomChatActivity extends AppCompatActivity {
                                 });
                             }
 
-                            // Show Custom Winner Result Dialog
-                            SpinWinnerDialog winnerDialog = new SpinWinnerDialog(RoomChatActivity.this);
-                            winnerDialog.showWinner(winner, () -> {
+                            // Show Custom Winner Result Dialog with authoritative winner segment
+                            SpinWinnerDialog winnerDialog = new SpinWinnerDialog(RoomChatActivity.this); // LUCKY WHEEL FIX
+                            winnerDialog.showWinner(winner, () -> { // LUCKY WHEEL FIX: Re-enable spin button only after claim
+                                isSpinInProgress[0] = false; // LUCKY WHEEL FIX
+                                if (btnSpin != null) btnSpin.setEnabled(true); // LUCKY WHEEL FIX
                                 refreshCoins.run();
                                 return Unit.INSTANCE;
                             });
                         }
                 );
             } else {
-                if (btnSpin != null) btnSpin.setEnabled(true);
+                isSpinInProgress[0] = false; // LUCKY WHEEL FIX
+                if (btnSpin != null) btnSpin.setEnabled(true); // LUCKY WHEEL FIX
             }
 
             // Deduct coins on Firebase asynchronously in background while wheel is spinning
@@ -3874,6 +3899,9 @@ public class RoomChatActivity extends AppCompatActivity {
             } catch (Exception ignored) {} // GIFT SVGA FIX
         } // GIFT SVGA FIX
         isBannerPlaying = false;
-        leaveRoom();
+        RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
+        if (!isMinimized) { // ROOM MINIMIZE FIX
+            leaveRoom(); // ROOM MINIMIZE FIX
+        } // ROOM MINIMIZE FIX
     }
 }

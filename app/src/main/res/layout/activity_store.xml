@@ -120,6 +120,19 @@
                 android:text="Entry Effects"
                 android:textColor="#88FFFFFF"
                 android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/btnMyCollection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/bg_room_chat_pill_gift"
+                android:fontFamily="sans-serif-bold"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="10dp"
+                android:text="My Collection 🏆"
+                android:textColor="#FFD700"
+                android:textSize="14sp" />
         </LinearLayout>
     </HorizontalScrollView>
 
