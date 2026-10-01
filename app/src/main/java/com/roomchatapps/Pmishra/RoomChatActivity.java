@@ -25,8 +25,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.OpenableColumns;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -385,14 +388,14 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnCopyRoomId = findViewById(R.id.btnCopyRoomId);
         if (btnCopyRoomId != null) {
-            btnCopyRoomId.setOnClickListener(copyRoomIdListener);
+            btnCopyRoomId.setOnClickListener(v -> { if (!isFastClick(v)) copyRoomIdListener.onClick(v); });
         }
         if (tvRoomId != null) {
-            tvRoomId.setOnClickListener(copyRoomIdListener);
+            tvRoomId.setOnClickListener(v -> { if (!isFastClick(v)) copyRoomIdListener.onClick(v); });
         }
         View layoutRoomId = findViewById(R.id.layoutRoomId);
         if (layoutRoomId != null) {
-            layoutRoomId.setOnClickListener(copyRoomIdListener);
+            layoutRoomId.setOnClickListener(v -> { if (!isFastClick(v)) copyRoomIdListener.onClick(v); });
         }
         if (ivRoomAvatar != null && roomImg != null && !roomImg.isEmpty()) {
             Glide.with(this)
@@ -404,12 +407,16 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnRoomClose = findViewById(R.id.btnRoomClose);
         if (btnRoomClose != null) {
-            btnRoomClose.setOnClickListener(v -> showExitOptionsDialog());
+            btnRoomClose.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showExitOptionsDialog();
+            });
         }
 
         View layoutUserInfo = findViewById(R.id.layoutUserInfo);
         if (layoutUserInfo != null) {
             layoutUserInfo.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
                 List<SeatModel> seats = SeatManager.getInstance().getSeats();
                 if (seats != null && !seats.isEmpty()) {
                     String hostUid = SeatManager.getInstance().getHostUserID();
@@ -430,6 +437,7 @@ public class RoomChatActivity extends AppCompatActivity {
         View btnRoomShare = findViewById(R.id.btnRoomShare);
         if (btnRoomShare != null) {
             btnRoomShare.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
                 String displayRoomName = (roomNameLabel != null && !roomNameLabel.trim().isEmpty()) ? roomNameLabel : "Audio Party Room";
                 String displayHostName = (userName != null && !userName.trim().isEmpty()) ? userName : "Room Host";
 
@@ -471,13 +479,17 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void setupBottomButtons() {
-        findViewById(R.id.btnChat).setOnClickListener(v -> showCommentInputDialog());
-        
+        findViewById(R.id.btnChat).setOnClickListener(v -> {
+            if (isFastClick(v)) return;
+            showCommentInputDialog();
+        });
+
         btnSpeaker = findViewById(R.id.btnSpeaker);
         if (btnSpeaker != null) {
             boolean speakerState = ZegoManager.getInstance().isSpeakerOn();
             btnSpeaker.setImageResource(speakerState ? R.drawable.ic_speaker_on : R.drawable.ic_speaker_off);
             btnSpeaker.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
                 boolean newState = !ZegoManager.getInstance().isSpeakerOn();
                 ZegoManager.getInstance().setSpeakerOn(newState);
                 btnSpeaker.setImageResource(newState ? R.drawable.ic_speaker_on : R.drawable.ic_speaker_off);
@@ -488,6 +500,7 @@ public class RoomChatActivity extends AppCompatActivity {
         btnMic = findViewById(R.id.btnMic);
         if (btnMic != null) {
             btnMic.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
                 int seatIndex = SeatManager.getInstance().findUserSeatIndex(userID);
                 if (seatIndex != -1) {
                     SeatModel model = SeatManager.getInstance().getSeats().get(seatIndex);
@@ -512,27 +525,46 @@ public class RoomChatActivity extends AppCompatActivity {
         View moreView = findViewById(R.id.more);
         if (moreView != null) {
             moreView.setVisibility(isHost ? View.VISIBLE : View.GONE);
-            moreView.setOnClickListener(v -> showMorePanelDialog());
+            moreView.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showMorePanelDialog();
+            });
         }
 
         View btnMore = findViewById(R.id.btnMore);
         if (btnMore != null) {
             btnMore.setVisibility(isHost ? View.VISIBLE : View.GONE);
-            btnMore.setOnClickListener(v -> showMorePanelDialog());
+            btnMore.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showMorePanelDialog();
+            });
         }
 
-        findViewById(R.id.btnGame).setOnClickListener(v -> showRoomGameDialog());
-        findViewById(R.id.btnGift).setOnClickListener(v -> showGiftDialog());
+        findViewById(R.id.btnGame).setOnClickListener(v -> {
+            if (isFastClick(v)) return;
+            showRoomGameDialog();
+        });
+
+        findViewById(R.id.btnGift).setOnClickListener(v -> {
+            if (isFastClick(v)) return;
+            showGiftDialog();
+        });
 
         View btnSpinWheel = findViewById(R.id.btnSpinWheel);
         if (btnSpinWheel != null) {
             AnimationHelper.applyClickAnimation(btnSpinWheel);
-            btnSpinWheel.setOnClickListener(v -> showLuckySpinWheelDialog());
+            btnSpinWheel.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showLuckySpinWheelDialog();
+            });
         }
 
         ImageView btnSettings = findViewById(R.id.btnSettings);
         if (btnSettings != null) {
-            btnSettings.setOnClickListener(v -> showThemeSelectionDialog());
+            btnSettings.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showThemeSelectionDialog();
+            });
         }
     }
 
@@ -630,7 +662,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 for (ZegoBroadcastMessageInfo info : messageList) {
                     if (info != null && info.message != null && info.message.trim().startsWith("{\"type\":\"GIFT\"")) {
                         try {
-                            org.json.JSONObject json = new org.json.JSONObject(info.message);
+                            JSONObject json = new JSONObject(info.message);
                             String giftId = json.optString("giftId", "");
                             String sName = json.optString("senderName", "User");
                             String gName = json.optString("giftName", "Gift");
@@ -1289,6 +1321,9 @@ public class RoomChatActivity extends AppCompatActivity {
             if (roomMessagesRef != null && roomMessagesChildEventListener != null) {
                 roomMessagesRef.removeEventListener(roomMessagesChildEventListener);
             }
+            if (roomGiftsRef != null && giftsChildEventListener != null) { // GIFT SVGA FIX: remove orphaned Firebase gift listener
+                roomGiftsRef.removeEventListener(giftsChildEventListener); // GIFT SVGA FIX
+            } // GIFT SVGA FIX
             if (roomMusicRef != null && roomMusicValueEventListener != null) {
                 roomMusicRef.removeEventListener(roomMusicValueEventListener);
             }
@@ -1883,8 +1918,15 @@ public class RoomChatActivity extends AppCompatActivity {
         ref.setValue(map);
     }
 
+    private BottomSheetDialog roomGameDialog;
+
     private void showRoomGameDialog() {
+        if (roomGameDialog != null && roomGameDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        roomGameDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (roomGameDialog == d) roomGameDialog = null;
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_room_game, null, false);
         if (dialogView != null) {
@@ -1925,7 +1967,7 @@ public class RoomChatActivity extends AppCompatActivity {
         }));
 
         if (etCoinsInput != null) {
-            etCoinsInput.addTextChangedListener(new android.text.TextWatcher() {
+            etCoinsInput.addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                 @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                     try {
@@ -1936,7 +1978,7 @@ public class RoomChatActivity extends AppCompatActivity {
                         if (tvEnergyPreview != null) tvEnergyPreview.setText("0 Energy ⚡");
                     }
                 }
-                @Override public void afterTextChanged(android.text.Editable s) {}
+                @Override public void afterTextChanged(Editable s) {}
             });
         }
 
@@ -1982,8 +2024,15 @@ public class RoomChatActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private BottomSheetDialog morePanelDialog;
+
     private void showMorePanelDialog() {
+        if (morePanelDialog != null && morePanelDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        morePanelDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (morePanelDialog == d) morePanelDialog = null;
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_more_panel, null, false);
         if (dialogView == null) return;
@@ -2314,9 +2363,16 @@ public class RoomChatActivity extends AppCompatActivity {
         Toast.makeText(RoomChatActivity.this, "Room Details Updated! 🎉", Toast.LENGTH_SHORT).show();
     }
 
+    private Dialog exitOptionsDialog;
+
     private void showExitOptionsDialog() {
         if (isFinishing() || isDestroyed()) return;
+        if (exitOptionsDialog != null && exitOptionsDialog.isShowing()) return;
         Dialog dialog = new Dialog(this);
+        exitOptionsDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (exitOptionsDialog == d) exitOptionsDialog = null;
+        });
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_exit_room, null, false);
         if (dialogView == null) return;
@@ -2672,8 +2728,15 @@ public class RoomChatActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private BottomSheetDialog themeSelectionDialog;
+
     private void showThemeSelectionDialog() {
+        if (themeSelectionDialog != null && themeSelectionDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        themeSelectionDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (themeSelectionDialog == d) themeSelectionDialog = null;
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_theme_selection, null, false);
         if (dialogView == null) return;
@@ -2770,12 +2833,19 @@ public class RoomChatActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private BottomSheetDialog commentInputDialog;
+
     private void showCommentInputDialog() {
         showCommentInputDialogWithText(null);
     }
 
     private void showCommentInputDialogWithText(String initialText) {
+        if (commentInputDialog != null && commentInputDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        commentInputDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (commentInputDialog == d) commentInputDialog = null;
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_comment_input, null, false);
         if (dialogView == null) return;
@@ -2858,14 +2928,38 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isFastClick(View v) {
+        if (v == null) return false;
+        long currentTime = SystemClock.elapsedRealtime();
+        Object tag = v.getTag(R.id.tvRoomName);
+        if (tag instanceof Long) {
+            long lastTime = (Long) tag;
+            if (currentTime - lastTime < 400) {
+                return true;
+            }
+        }
+        v.setTag(R.id.tvRoomName, currentTime);
+        return false;
+    }
+
     private String selectedGiftSvga = "gift/aladdin.svga";
+    private BottomSheetDialog giftBottomSheetDialog;
 
     private void showGiftDialog() {
         showGiftDialog(null);
     }
 
     private void showGiftDialog(String targetUid) {
+        if (giftBottomSheetDialog != null && giftBottomSheetDialog.isShowing()) {
+            return;
+        }
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        giftBottomSheetDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (giftBottomSheetDialog == d) {
+                giftBottomSheetDialog = null;
+            }
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_gift_store, null, false);
         if (dialogView == null) return;
@@ -3127,7 +3221,13 @@ public class RoomChatActivity extends AppCompatActivity {
             }
 
             if (btnSendAction != null) {
+                final boolean[] isSendingGift = new boolean[]{false};
                 btnSendAction.setOnClickListener(v -> {
+                    // Prevent duplicate rapid click execution if processing or button disabled
+                    if (isSendingGift[0] || !btnSendAction.isEnabled()) {
+                        return;
+                    }
+
                     GiftStoreItem selectedItem = adapter.getSelectedGift();
                     if (selectedItem == null) {
                         Toast.makeText(RoomChatActivity.this, "Please select a gift first! 🎁", Toast.LENGTH_SHORT).show();
@@ -3140,7 +3240,8 @@ public class RoomChatActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // Debounce / Disable button while processing to prevent accidental double tap
+                    // Immediately lock button and set processing flag
+                    isSendingGift[0] = true;
                     btnSendAction.setEnabled(false);
 
                     long singleCost = selectedItem.cost;
@@ -3153,78 +3254,90 @@ public class RoomChatActivity extends AppCompatActivity {
                     String primaryRecipientUid = selectedRecipients.get(0).getUid();
                     String primaryRecipientName = selectedRecipients.get(0).getName();
 
-                    WalletManager.spendCoinsForRichGift(roomID, userID, userName, primaryRecipientUid, primaryRecipientName, selectedItem.name, giftName, singleCost, quantity, new WalletManager.WalletCallback() {
-                        @Override
-                        public void onSuccess(String message, long newCoinBalance) {
-                            btnSendAction.setEnabled(true);
-                            if (tvGiftDialogCoins != null) {
-                                tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
+                    try {
+                        WalletManager.spendCoinsForRichGift(roomID, userID, userName, primaryRecipientUid, primaryRecipientName, selectedItem.name, giftName, singleCost, quantity, new WalletManager.WalletCallback() {
+                            @Override
+                            public void onSuccess(String message, long newCoinBalance) {
+                                // Unlock button after operation completes successfully
+                                isSendingGift[0] = false;
+                                btnSendAction.setEnabled(true);
+                                if (tvGiftDialogCoins != null) {
+                                    tvGiftDialogCoins.setText(String.valueOf(newCoinBalance));
+                                }
+
+                                String uniqueGiftId = userID + "_" + System.currentTimeMillis() + "_" + (new Random().nextInt(9000) + 1000);
+
+                                StringBuilder recipientNames = new StringBuilder();
+                                for (int i = 0; i < selectedRecipients.size(); i++) {
+                                    GiftRecipientModel recipient = selectedRecipients.get(i);
+                                    if (i > 0) recipientNames.append(", ");
+                                    recipientNames.append(recipient.getName());
+
+                                    if (roomGiftsRef != null) {
+                                        Map<String, Object> giftData = new HashMap<>();
+                                        giftData.put("giftId", uniqueGiftId);
+                                        giftData.put("senderName", userName != null ? userName : "User");
+                                        giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                        giftData.put("recipientName", recipient.getName());
+                                        giftData.put("recipientUid", recipient.getUid());
+                                        giftData.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                        giftData.put("giftSvga", selectedGiftSvga);
+                                        giftData.put("iconRes", (long) selectedItem.iconRes);
+                                        giftData.put("timestamp", System.currentTimeMillis());
+                                        roomGiftsRef.push().setValue(giftData);
+                                    }
+                                }
+
+                                String senderDisplayName = userName != null ? userName : "User";
+                                try {
+                                    JSONObject giftJson = new JSONObject();
+                                    giftJson.put("type", "GIFT");
+                                    giftJson.put("giftId", uniqueGiftId);
+                                    giftJson.put("senderName", senderDisplayName);
+                                    giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                    giftJson.put("recipientName", recipientNames.toString());
+                                    giftJson.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                    giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
+                                    giftJson.put("iconRes", selectedItem.iconRes);
+                                    ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
+                                } catch (Exception ignored) {}
+
+                                // Animation Threshold Evaluation (Low vs High Value Gifts)
+                                if (totalCost >= EconomyConfig.HIGH_ANIMATION_THRESHOLD) {
+                                    // Prominent animation / banner for high-value gifts
+                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                        markGiftProcessed(uniqueGiftId);
+                                        playSvgaAnimation(selectedGiftSvga);
+                                    }
+                                    showGoldenGiftBanner(senderDisplayName, giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                } else {
+                                    // Lightweight notification for low-value gifts
+                                    if (notificationAnimator != null) {
+                                        notificationAnimator.showNotification(senderDisplayName, "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : ""), selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                    }
+                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                        markGiftProcessed(uniqueGiftId);
+                                        playSvgaAnimation(selectedGiftSvga);
+                                    }
+                                }
+
+                                Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + (quantity > 1 ? " x" + quantity : "") + "!", Toast.LENGTH_SHORT).show();
                             }
 
-                            String uniqueGiftId = userID + "_" + System.currentTimeMillis() + "_" + (new Random().nextInt(9000) + 1000);
-
-                            StringBuilder recipientNames = new StringBuilder();
-                            for (int i = 0; i < selectedRecipients.size(); i++) {
-                                GiftRecipientModel recipient = selectedRecipients.get(i);
-                                if (i > 0) recipientNames.append(", ");
-                                recipientNames.append(recipient.getName());
-
-                                if (roomGiftsRef != null) {
-                                    Map<String, Object> giftData = new HashMap<>();
-                                    giftData.put("giftId", uniqueGiftId);
-                                    giftData.put("senderName", userName != null ? userName : "User");
-                                    giftData.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                    giftData.put("recipientName", recipient.getName());
-                                    giftData.put("recipientUid", recipient.getUid());
-                                    giftData.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                                    giftData.put("giftSvga", selectedGiftSvga);
-                                    giftData.put("iconRes", (long) selectedItem.iconRes);
-                                    giftData.put("timestamp", System.currentTimeMillis());
-                                    roomGiftsRef.push().setValue(giftData);
-                                }
+                            @Override
+                            public void onError(String error) {
+                                // Unlock button if operation fails or returns an error
+                                isSendingGift[0] = false;
+                                btnSendAction.setEnabled(true);
+                                Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
                             }
-
-                            String senderDisplayName = userName != null ? userName : "User";
-                            try {
-                                JSONObject giftJson = new JSONObject();
-                                giftJson.put("type", "GIFT");
-                                giftJson.put("giftId", uniqueGiftId);
-                                giftJson.put("senderName", senderDisplayName);
-                                giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                giftJson.put("recipientName", recipientNames.toString());
-                                giftJson.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                                giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
-                                giftJson.put("iconRes", selectedItem.iconRes);
-                                ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
-                            } catch (Exception ignored) {}
-
-                            // Animation Threshold Evaluation (Low vs High Value Gifts)
-                            if (totalCost >= EconomyConfig.HIGH_ANIMATION_THRESHOLD) {
-                                // Prominent animation / banner for high-value gifts
-                                if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                    markGiftProcessed(uniqueGiftId);
-                                    playSvgaAnimation(selectedGiftSvga);
-                                }
-                                showGoldenGiftBanner(senderDisplayName, giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                            } else {
-                                // Lightweight notification for low-value gifts
-                                if (notificationAnimator != null) {
-                                    notificationAnimator.showNotification(senderDisplayName, "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : ""), selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                }
-                                if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                    markGiftProcessed(uniqueGiftId);
-                                    playSvgaAnimation(selectedGiftSvga);
-                                }
-                            }
-
-                            Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + (quantity > 1 ? " x" + quantity : "") + "!", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            Toast.makeText(RoomChatActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
-                        }
-                    });
+                        });
+                    } catch (Exception e) {
+                        // Unlock button if an exception occurs
+                        isSendingGift[0] = false;
+                        btnSendAction.setEnabled(true);
+                        Toast.makeText(RoomChatActivity.this, "❌ Error sending gift: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
             }
         }
@@ -3243,8 +3356,15 @@ public class RoomChatActivity extends AppCompatActivity {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
 
+    private BottomSheetDialog luckySpinWheelDialog;
+
     private void showLuckySpinWheelDialog() {
+        if (luckySpinWheelDialog != null && luckySpinWheelDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+        luckySpinWheelDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (luckySpinWheelDialog == d) luckySpinWheelDialog = null;
+        });
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_lucky_spin_wheel, null, false);
         if (dialogView == null) return;
@@ -3269,7 +3389,9 @@ public class RoomChatActivity extends AppCompatActivity {
         Random random = new Random();
 
         View.OnClickListener spinAction = v -> {
+            if (isFastClick(v)) return;
             if (spinWheelView != null && spinWheelView.isSpinning()) return;
+            if (btnSpin != null && !btnSpin.isEnabled()) return;
 
             final long spinCost = 100;
             if (cachedCoins[0] > 0 && cachedCoins[0] < spinCost) {
@@ -3372,6 +3494,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private final Queue<GiftAnimationItem> giftAnimationQueue = new ConcurrentLinkedQueue<>();
     private boolean isGiftAnimationPlaying = false;
+    private long currentGiftPlayId = 0L; // GIFT SVGA FIX
     private final Handler giftHandler = new Handler(Looper.getMainLooper());
     private Runnable giftTimeoutRunnable = null;
     private final Set<String> processedGiftIds = Collections.synchronizedSet(new HashSet<>());
@@ -3393,122 +3516,153 @@ public class RoomChatActivity extends AppCompatActivity {
     private boolean isBannerPlaying = false;
 
     public void playSvgaAnimation(String fileName) {
+        if (isFinishing() || isDestroyed()) return; // GIFT SVGA FIX
         if (fileName == null || fileName.trim().isEmpty()) return;
-        giftAnimationQueue.offer(new GiftAnimationItem(fileName));
-        processNextGiftAnimation();
+        giftAnimationQueue.offer(new GiftAnimationItem(fileName)); // GIFT SVGA FIX
+        giftHandler.post(this::processNextGiftAnimation); // GIFT SVGA FIX
     }
 
-    private synchronized void processNextGiftAnimation() {
-        if (isGiftAnimationPlaying) return;
-        GiftAnimationItem nextItem = giftAnimationQueue.poll();
-        if (nextItem == null) return;
+    private void processNextGiftAnimation() { // GIFT SVGA FIX
+        if (isFinishing() || isDestroyed()) return; // GIFT SVGA FIX
+        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
+            giftHandler.post(this::processNextGiftAnimation); // GIFT SVGA FIX
+            return; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
+        if (isGiftAnimationPlaying) return; // GIFT SVGA FIX
+        GiftAnimationItem nextItem = giftAnimationQueue.poll(); // GIFT SVGA FIX
+        if (nextItem == null) return; // GIFT SVGA FIX
 
-        isGiftAnimationPlaying = true;
-        playSvgaAnimationInternal(nextItem.svgaPath);
+        isGiftAnimationPlaying = true; // GIFT SVGA FIX
+        final long playId = ++currentGiftPlayId; // GIFT SVGA FIX
+
+        if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
+            giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
+        } // GIFT SVGA FIX
+        giftTimeoutRunnable = () -> { // GIFT SVGA FIX
+            Log.w("RoomChatActivity", "Gift SVGA overall safety timeout reached for playId: " + playId); // GIFT SVGA FIX
+            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+        }; // GIFT SVGA FIX
+        giftHandler.postDelayed(giftTimeoutRunnable, 10000L); // GIFT SVGA FIX
+
+        playSvgaAnimationInternal(nextItem.svgaPath, playId); // GIFT SVGA FIX
     }
 
-    private void finishCurrentGiftAnimation() {
-        runOnUiThread(() -> {
-            if (giftTimeoutRunnable != null) {
-                giftHandler.removeCallbacks(giftTimeoutRunnable);
-                giftTimeoutRunnable = null;
-            }
-            if (svgaPlayer != null) {
-                try {
-                    svgaPlayer.setCallback(null);
-                    svgaPlayer.stopAnimation();
-                    if (giftAnimationQueue.isEmpty()) {
-                        svgaPlayer.setVisibility(View.GONE);
-                        svgaPlayer.clear();
-                    }
-                } catch (Exception ignored) {}
-            }
-            isGiftAnimationPlaying = false;
-            processNextGiftAnimation();
-        });
+    private void finishCurrentGiftAnimation(final long playId) { // GIFT SVGA FIX
+        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
+            runOnUiThread(() -> finishCurrentGiftAnimation(playId)); // GIFT SVGA FIX
+            return; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
+
+        if (playId != currentGiftPlayId || playId == 0L) return; // GIFT SVGA FIX
+        currentGiftPlayId = 0L; // GIFT SVGA FIX
+
+        if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
+            giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
+            giftTimeoutRunnable = null; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
+
+        if (svgaPlayer != null) { // GIFT SVGA FIX
+            try { // GIFT SVGA FIX
+                svgaPlayer.setCallback(null); // GIFT SVGA FIX
+                svgaPlayer.stopAnimation(); // GIFT SVGA FIX
+                if (giftAnimationQueue.isEmpty()) { // GIFT SVGA FIX
+                    svgaPlayer.setVisibility(View.GONE); // GIFT SVGA FIX
+                    svgaPlayer.clear(); // GIFT SVGA FIX
+                } // GIFT SVGA FIX
+            } catch (Exception ignored) {} // GIFT SVGA FIX
+        } // GIFT SVGA FIX
+
+        isGiftAnimationPlaying = false; // GIFT SVGA FIX
+        processNextGiftAnimation(); // GIFT SVGA FIX
     }
 
     private final Map<String, SVGAVideoEntity> svgaEntityCache = new ConcurrentHashMap<>();
 
-    private void playSvgaAnimationInternal(String fileName) {
-        if (svgaPlayer == null || fileName == null || fileName.trim().isEmpty()) {
-            finishCurrentGiftAnimation();
-            return;
-        }
+    private void playSvgaAnimationInternal(String fileName, final long playId) { // GIFT SVGA FIX
+        if (svgaPlayer == null || fileName == null || fileName.trim().isEmpty() || playId != currentGiftPlayId) { // GIFT SVGA FIX
+            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+            return; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
 
-        runOnUiThread(() -> {
-            try {
-                svgaPlayer.setCallback(null);
-                svgaPlayer.stopAnimation();
-            } catch (Exception ignored) {}
-        });
+        try { // GIFT SVGA FIX
+            svgaPlayer.setCallback(null); // GIFT SVGA FIX
+            svgaPlayer.stopAnimation(); // GIFT SVGA FIX
+        } catch (Exception ignored) {} // GIFT SVGA FIX
 
-        if (svgaEntityCache.containsKey(fileName)) {
-            SVGAVideoEntity cachedEntity = svgaEntityCache.get(fileName);
-            if (cachedEntity != null) {
-                playVideoEntity(cachedEntity);
-                return;
-            }
-        }
+        // GIFT SVGA FIX: Decode fresh SVGAVideoEntity every time to guarantee SVGA player drawable state is never stale/recycled from prior playback
+        try { // GIFT SVGA FIX
+            SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this); // GIFT SVGA FIX
+            parser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() { // GIFT SVGA FIX
+                @Override
+                public void onComplete(@NotNull SVGAVideoEntity videoItem) { // GIFT SVGA FIX
+                    runOnUiThread(() -> { // GIFT SVGA FIX
+                        if (playId != currentGiftPlayId) return; // GIFT SVGA FIX
+                        playVideoEntity(videoItem, playId); // GIFT SVGA FIX
+                    }); // GIFT SVGA FIX
+                } // GIFT SVGA FIX
 
-        SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
-        parser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() {
-            @Override
-            public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                svgaEntityCache.put(fileName, videoItem);
-                playVideoEntity(videoItem);
-            }
-
-            @Override
-            public void onError() {
-                Log.e("RoomChatActivity", "Error parsing SVGA file: " + fileName);
-                finishCurrentGiftAnimation();
-            }
-        }, null);
+                @Override
+                public void onError() { // GIFT SVGA FIX
+                    Log.e("RoomChatActivity", "Error parsing SVGA file: " + fileName); // GIFT SVGA FIX
+                    runOnUiThread(() -> finishCurrentGiftAnimation(playId)); // GIFT SVGA FIX
+                } // GIFT SVGA FIX
+            }, null); // GIFT SVGA FIX
+        } catch (Exception e) { // GIFT SVGA FIX
+            Log.e("RoomChatActivity", "Exception parsing SVGA file: " + fileName, e); // GIFT SVGA FIX
+            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+        } // GIFT SVGA FIX
     }
 
-    private void playVideoEntity(@NotNull SVGAVideoEntity videoItem) {
-        runOnUiThread(() -> {
-            if (isFinishing() || isDestroyed() || svgaPlayer == null) {
-                finishCurrentGiftAnimation();
-                return;
-            }
+    private void playVideoEntity(@NotNull SVGAVideoEntity videoItem, final long playId) { // GIFT SVGA FIX
+        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
+            runOnUiThread(() -> playVideoEntity(videoItem, playId)); // GIFT SVGA FIX
+            return; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
 
-            try {
-                svgaPlayer.setCallback(null);
-                svgaPlayer.stopAnimation();
+        if (isFinishing() || isDestroyed() || svgaPlayer == null || playId != currentGiftPlayId) { // GIFT SVGA FIX
+            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+            return; // GIFT SVGA FIX
+        } // GIFT SVGA FIX
 
-                int frames = videoItem.getFrames();
-                int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
-                long durationMs = (long) (((double) frames / fps) * 1000L);
-                long safetyTimeoutMs = Math.max(3000L, durationMs + 1000L);
+        try { // GIFT SVGA FIX
+            svgaPlayer.setCallback(null); // GIFT SVGA FIX
+            svgaPlayer.stopAnimation(); // GIFT SVGA FIX
 
-                if (giftTimeoutRunnable != null) {
-                    giftHandler.removeCallbacks(giftTimeoutRunnable);
-                }
-                giftTimeoutRunnable = this::finishCurrentGiftAnimation;
-                giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs);
+            int frames = videoItem.getFrames(); // GIFT SVGA FIX
+            int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20; // GIFT SVGA FIX
+            long durationMs = (long) (((double) frames / fps) * 1000L); // GIFT SVGA FIX
+            long safetyTimeoutMs = Math.max(3500L, durationMs + 1000L); // GIFT SVGA FIX
 
-                svgaPlayer.setVisibility(View.VISIBLE);
-                svgaPlayer.setVideoItem(videoItem);
-                svgaPlayer.setLoops(1);
-                svgaPlayer.stepToFrame(0, false);
-                svgaPlayer.setCallback(new SVGACallback() {
-                    @Override
-                    public void onFinished() {
-                        finishCurrentGiftAnimation();
-                    }
+            if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
+                giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
+            } // GIFT SVGA FIX
+            giftTimeoutRunnable = () -> finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+            giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs); // GIFT SVGA FIX
 
-                    @Override public void onPause() {}
-                    @Override public void onRepeat() {}
-                    @Override public void onStep(int frame, double percentage) {}
-                });
-                svgaPlayer.startAnimation();
-            } catch (Exception e) {
-                Log.e("RoomChatActivity", "Error playing SVGA animation entity", e);
-                finishCurrentGiftAnimation();
-            }
-        });
+            svgaPlayer.setVisibility(View.VISIBLE); // GIFT SVGA FIX
+            svgaPlayer.setVideoItem(videoItem); // GIFT SVGA FIX
+            svgaPlayer.setLoops(1); // GIFT SVGA FIX
+            svgaPlayer.stepToFrame(0, false); // GIFT SVGA FIX
+            svgaPlayer.setCallback(new SVGACallback() { // GIFT SVGA FIX
+                private boolean isFinishedHandled = false; // GIFT SVGA FIX
+
+                @Override
+                public void onFinished() { // GIFT SVGA FIX
+                    if (!isFinishedHandled) { // GIFT SVGA FIX
+                        isFinishedHandled = true; // GIFT SVGA FIX
+                        finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+                    } // GIFT SVGA FIX
+                } // GIFT SVGA FIX
+
+                @Override public void onPause() {} // GIFT SVGA FIX
+                @Override public void onRepeat() {} // GIFT SVGA FIX
+                @Override public void onStep(int frame, double percentage) {} // GIFT SVGA FIX
+            }); // GIFT SVGA FIX
+            svgaPlayer.startAnimation(); // GIFT SVGA FIX
+        } catch (Exception e) { // GIFT SVGA FIX
+            Log.e("RoomChatActivity", "Error playing SVGA animation entity for playId: " + playId, e); // GIFT SVGA FIX
+            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
+        } // GIFT SVGA FIX
     }
 
     public void showUserEntryBanner(String displayUserName) {
@@ -3660,11 +3814,21 @@ public class RoomChatActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable);
+        if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
         if (bannerTimeoutRunnable != null) bannerHandler.removeCallbacks(bannerTimeoutRunnable);
-        giftAnimationQueue.clear();
+        giftAnimationQueue.clear(); // GIFT SVGA FIX
         bannerQueue.clear();
-        isGiftAnimationPlaying = false;
+        currentGiftPlayId = 0L; // GIFT SVGA FIX
+        isGiftAnimationPlaying = false; // GIFT SVGA FIX
+        if (svgaEntityCache != null) svgaEntityCache.clear(); // GIFT SVGA FIX
+        if (svgaPlayer != null) { // GIFT SVGA FIX
+            try { // GIFT SVGA FIX
+                svgaPlayer.setCallback(null); // GIFT SVGA FIX
+                svgaPlayer.stopAnimation(); // GIFT SVGA FIX
+                svgaPlayer.clear(); // GIFT SVGA FIX
+                svgaPlayer.setVisibility(View.GONE); // GIFT SVGA FIX
+            } catch (Exception ignored) {} // GIFT SVGA FIX
+        } // GIFT SVGA FIX
         isBannerPlaying = false;
         leaveRoom();
     }
