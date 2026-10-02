@@ -107,14 +107,21 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
 
         // Configure button state & appearance
         if (item.isEquipped()) {
+            holder.btnAction.setIcon(null);
             holder.btnAction.setText("Unequip");
             holder.btnAction.setBackgroundColor(Color.parseColor("#FF6B6B")); // Coral Red
             holder.btnAction.setTextColor(Color.parseColor("#FFFFFF"));
         } else if (item.isOwned()) {
+            holder.btnAction.setIcon(null);
             holder.btnAction.setText("Equip");
             holder.btnAction.setBackgroundColor(Color.parseColor("#40E0D0")); // Cyan
             holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
         } else {
+            holder.btnAction.setIconResource(R.drawable.coin);
+            holder.btnAction.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
+            holder.btnAction.setIconSize((int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics()));
+            holder.btnAction.setIconPadding((int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics()));
+            holder.btnAction.setIconTint(null); // Preserve original coin drawable colors
             holder.btnAction.setText(CoinUtils.formatCoins(item.getPriceCoins()));
             holder.btnAction.setBackgroundColor(Color.parseColor("#FFD700")); // Gold
             holder.btnAction.setTextColor(Color.parseColor("#050E1E"));

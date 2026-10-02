@@ -202,7 +202,7 @@ public class ReferralActivity extends AppCompatActivity {
                 referralList.addAll(referrals);
 
                 if (tvTotalInvited != null) tvTotalInvited.setText(String.valueOf(referrals.size()));
-                if (tvCoinsEarned != null) tvCoinsEarned.setText(totalCoinsEarned + " 🪙");
+                if (tvCoinsEarned != null) tvCoinsEarned.setText(com.roomchatapps.Pmishra.utils.CoinUtils.getCoinSpannable(ReferralActivity.this, totalCoinsEarned));
 
                 if (adapter != null) adapter.notifyDataSetChanged();
                 updateEmptyState();

@@ -93,7 +93,7 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
         boolean isSelected = (position == selectedIndex);
 
         holder.tvGiftName.setText(item.name);
-        holder.tvGiftCost.setText(com.roomchatapps.Pmishra.utils.CoinUtils.formatCoins(item.cost) + " 🪙");
+        holder.tvGiftCost.setText(com.roomchatapps.Pmishra.utils.CoinUtils.getCoinSpannable(holder.itemView.getContext(), item.cost));
         holder.imgGiftStatic.setImageResource(item.iconRes);
         holder.imgGiftStatic.setVisibility(View.VISIBLE);
 

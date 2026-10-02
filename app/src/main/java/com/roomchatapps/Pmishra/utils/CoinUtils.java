@@ -1,42 +1,54 @@
 package com.roomchatapps.Pmishra.utils;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ImageSpan;
+import android.util.TypedValue;
+
+import androidx.core.content.ContextCompat;
+
+import com.roomchatapps.Pmishra.R;
+
+import java.text.NumberFormat;
 import java.util.Locale;
 
 public class CoinUtils {
 
     /**
-     * Formats coin values into compact human-readable strings.
+     * Formats coin/energy values into full formatted numbers.
      * Examples:
      * - 500       -> "500"
-     * - 1000      -> "1k"
-     * - 3600      -> "3.6k"
-     * - 3650      -> "3.65k"
-     * - 100000    -> "1L"   (1 Lakh)
-     * - 150000    -> "1.5L" (1.5 Lakh)
-     * - 360000    -> "3.6L" (3.6 Lakh)
-     * - 10000000  -> "1Cr"  (1 Crore)
+     * - 1000      -> "1,000"
+     * - 100000    -> "100,000"
+     * - 150000    -> "150,000"
+     * - 10000000  -> "10,000,000"
      */
     public static String formatCoins(long coins) {
         if (coins <= 0) {
             return "0";
-        } else if (coins < 1000) {
-            return String.valueOf(coins);
-        } else if (coins < 100000) {
-            double val = coins / 1000.0;
-            return formatDecimal(val) + "k";
-        } else if (coins < 10000000) {
-            double val = coins / 100000.0;
-            return formatDecimal(val) + "L";
-        } else {
-            double val = coins / 10000000.0;
-            return formatDecimal(val) + "Cr";
         }
+        return NumberFormat.getInstance(Locale.US).format(coins);
     }
 
-    private static String formatDecimal(double val) {
-        DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
-        return df.format(val);
+    /**
+     * Returns a CharSequence with the @drawable/coin image icon placed BEFORE the coin number text.
+     */
+    public static CharSequence getCoinSpannable(Context context, String coinText) {
+        if (context == null || coinText == null) return coinText != null ? coinText : "0";
+        SpannableStringBuilder builder = new SpannableStringBuilder("  " + coinText);
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.coin);
+        if (drawable != null) {
+            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, context.getResources().getDisplayMetrics());
+            drawable.setBounds(0, 0, size, size);
+            ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+            builder.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return builder;
+    }
+
+    public static CharSequence getCoinSpannable(Context context, long coins) {
+        return getCoinSpannable(context, formatCoins(coins));
     }
 }
