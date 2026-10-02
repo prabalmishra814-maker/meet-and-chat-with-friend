@@ -128,10 +128,14 @@ public class SeatManager {
     }
 
     public boolean takeSeat(int index, String userID, String userName, String avatar) {
-        return takeSeat(index, userID, userName, avatar, "");
+        return takeSeat(index, userID, userName, avatar, "", false);
     }
 
     public boolean takeSeat(int index, String userID, String userName, String avatar, String equippedFrame) {
+        return takeSeat(index, userID, userName, avatar, equippedFrame, false);
+    }
+
+    public boolean takeSeat(int index, String userID, String userName, String avatar, String equippedFrame, boolean allowLockedSeat) {
         if (index < 0 || index >= totalSeats) return false;
 
         String uid = userID != null ? userID.trim() : "";
@@ -139,7 +143,7 @@ public class SeatManager {
 
         synchronized (this) {
             SeatModel model = seatList.get(index);
-            if (model.isClosed) return false;
+            if (model.isClosed && !allowLockedSeat) return false;
 
             // Seat 0 Security: Strictly reserved for Room Host ONLY
             if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !hostUserID.equals(uid)) {
@@ -149,6 +153,10 @@ public class SeatManager {
             // Prevent 2 users on 1 seat: Check if seat is already occupied by another user
             if (!model.isEmpty() && !uid.equals(model.userID)) {
                 return false;
+            }
+
+            if (model.isClosed && allowLockedSeat) {
+                model.isClosed = false; // Unlock seat for invited user
             }
 
             // Leave any existing seat first & preserve equipped frame/avatar/mic state if seat switching

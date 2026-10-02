@@ -39,6 +39,11 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
         this.inviteClickListener = inviteClickListener;
     }
 
+    public void updateList(List<User> newList) {
+        this.audienceList = newList;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

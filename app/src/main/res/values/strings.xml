@@ -14,4 +14,11 @@
     <string name="host_center">Host\nCenter</string>
     <string name="become_vip">Become\nVIP</string>
     <string name="default_web_client_id">686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com</string>
+
+    <!-- Forgot Password Dialog -->
+    <string name="reset_password_title">Reset Password</string>
+    <string name="reset_password_subtitle">Enter your registered email address to receive a password reset link.</string>
+    <string name="reset_password_email_hint">Email Address</string>
+    <string name="reset_password_cancel">Cancel</string>
+    <string name="reset_password_send">Send Reset Link</string>
 </resources>

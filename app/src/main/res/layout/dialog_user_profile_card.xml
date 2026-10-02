@@ -193,8 +193,94 @@
                 android:textSize="10.5sp" />
         </LinearLayout>
 
-        <!-- First Action Buttons Row (Follow, Add, @tag, Send) -->
+        <!-- Medal Card Row (Hayi style) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/llMedalCard"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#1AFFFFFF"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:rippleColor="#30FFFFFF"
+            app:strokeColor="#25FFFFFF"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:id="@+id/tvMedalTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Collection"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvMedalWear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="open ›"
+                    android:textColor="#C0FFFFFF"
+                    android:textSize="13.5sp" />
+
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Own User Bottom Action Buttons (Leave the Mic, Send Gift) -->
         <LinearLayout
+            android:id="@+id/llOwnUserActionsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnOwnLeaveMic"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_cancel_button"
+                android:text="Leave the Mic"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnOwnSendGift"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/btn_next_bg"
+                android:drawableStart="@drawable/gift_icon"
+                android:drawablePadding="6dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:text="Send Gift"
+                android:textAllCaps="false"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Other User Action Buttons Row (Follow, Add, Send, Collection) -->
+        <LinearLayout
+            android:id="@+id/llOtherUserActionsRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"

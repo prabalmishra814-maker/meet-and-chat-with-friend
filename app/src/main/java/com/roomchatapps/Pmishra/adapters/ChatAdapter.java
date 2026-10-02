@@ -82,6 +82,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }, delay);
     }
 
+    public void clearAllMessages() {
+        if (expireHandler != null) {
+            expireHandler.removeCallbacksAndMessages(null);
+        }
+        int size = chatMessages.size();
+        if (size > 0) {
+            chatMessages.clear();
+            notifyDataSetChanged();
+        }
+    }
+
     public void addMessages(List<ZegoBroadcastMessageInfo> zegoMessages) {
         if (zegoMessages == null || zegoMessages.isEmpty()) return;
         for (ZegoBroadcastMessageInfo msg : zegoMessages) {

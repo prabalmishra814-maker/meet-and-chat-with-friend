@@ -44,13 +44,18 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
         public boolean isAdmin() { return "admin".equalsIgnoreCase(role); }
     }
 
-    private final List<AdminMemberItem> memberList;
+    private List<AdminMemberItem> memberList;
     private final OnRoleActionListener listener;
     private long lastClickTime = 0;
 
     public AdminMemberAdapter(List<AdminMemberItem> memberList, OnRoleActionListener listener) {
         this.memberList = memberList;
         this.listener = listener;
+    }
+
+    public void updateList(List<AdminMemberItem> newList) {
+        this.memberList = newList;
+        notifyDataSetChanged();
     }
 
     @NonNull

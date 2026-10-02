@@ -329,6 +329,15 @@ public class WalletManager {
             return;
         }
 
+        // Self-gifting protection: Prevent sending gifts to oneself
+        if (targetUids != null && targetUids.contains(senderUid)) {
+            synchronized (processedTransactionIds) {
+                processedTransactionIds.remove(cleanTxId);
+            }
+            if (callback != null) callback.onError("You cannot send gifts to yourself! 🎁");
+            return;
+        }
+
         if (giftValue <= 0) {
             if (callback != null) callback.onError("Invalid gift value");
             return;

@@ -108,7 +108,9 @@ import com.opensource.svgaplayer.SVGACallback;
 import com.opensource.svgaplayer.SVGAImageView;
 import com.opensource.svgaplayer.SVGAParser;
 import com.opensource.svgaplayer.SVGAVideoEntity;
+import com.roomchatapps.Pmishra.adapters.AdminMemberAdapter;
 import com.roomchatapps.Pmishra.adapters.AudienceAdapter;
+import com.roomchatapps.Pmishra.adapters.BlacklistAdapter;
 import com.roomchatapps.Pmishra.adapters.ChatAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
@@ -213,6 +215,11 @@ public class RoomChatActivity extends AppCompatActivity {
     private ValueEventListener roomRolesValueListener;
     private String currentRoomRole = "member";
     private final Map<String, String> userRoomRolesMap = new HashMap<>();
+
+    // ROOM WELCOME MESSAGES & CLEAR SCREEN
+    private String currentRoomWelcomeMessage = "";
+    private String currentNewUserWelcomeMessage = "";
+    private long lastClearedTimestamp = 0L;
 
     // ADMIN PERMISSION FIX
     private boolean isAdminOrHost() {
@@ -835,8 +842,8 @@ public class RoomChatActivity extends AppCompatActivity {
         boolean isEmpty = model.userID == null || model.userID.trim().isEmpty();
 
         if (isEmpty) {
-            if (model.isClosed && !isHost) {
-                Toast.makeText(this, "This seat is locked", Toast.LENGTH_SHORT).show();
+            if (model.isClosed && !isAdminOrHost()) {
+                Toast.makeText(this, "This seat is locked 🔒", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -869,8 +876,8 @@ public class RoomChatActivity extends AppCompatActivity {
             if (tvOptionOnMic != null) {
                 tvOptionOnMic.setText("Take Seat");
                 tvOptionOnMic.setOnClickListener(v -> {
-                    if (model.isClosed && !isHost) {
-                        Toast.makeText(this, "This seat is locked", Toast.LENGTH_SHORT).show();
+                    if (model.isClosed && !isAdminOrHost()) {
+                        Toast.makeText(this, "This seat is locked 🔒", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     if (model.index == 0 && !isHost) {
@@ -900,12 +907,16 @@ public class RoomChatActivity extends AppCompatActivity {
                 });
             }
 
-            // 3. Lock / Unlock
+            // 3. Lock / Unlock (Admin & Host Only)
             if (tvOptionLock != null) {
                 tvOptionLock.setOnClickListener(v -> {
+                    if (!isAdminOrHost()) {
+                        Toast.makeText(this, "Only Room Host or Administrators can lock or unlock seats 🔒", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     boolean newClosedState = !model.isClosed;
                     SeatManager.getInstance().closeSeat(model.index, newClosedState);
-                    Toast.makeText(this, newClosedState ? "Seat Locked" : "Seat Unlocked", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, newClosedState ? "Seat Locked 🔒" : "Seat Unlocked 🔓", Toast.LENGTH_SHORT).show();
                     emptyDialog.dismiss();
                 });
             }
@@ -1088,15 +1099,67 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
-        // 1. Follow Action Button
-        if (btnActionFollow != null && targetUid.equals(userID)) {
-            if (tvActionFollowText != null) tvActionFollowText.setText("Leave");
-            btnActionFollow.setOnClickListener(v -> {
-                SeatManager.getInstance().leaveSeat(model.index);
-                ZegoManager.getInstance().stopPublishing();
+        boolean isSelf = targetUid.equals(userID);
+
+        // Own Profile vs Other User Action Rows (Hayi/Hayaa style)
+        View llOwnUserActionsRow = profileView.findViewById(R.id.llOwnUserActionsRow);
+        View llOtherUserActionsRow = profileView.findViewById(R.id.llOtherUserActionsRow);
+
+        if (llOwnUserActionsRow != null) {
+            llOwnUserActionsRow.setVisibility(isSelf ? View.VISIBLE : View.GONE);
+        }
+        if (llOtherUserActionsRow != null) {
+            llOtherUserActionsRow.setVisibility(isSelf ? View.GONE : View.VISIBLE);
+        }
+
+        // Medal Card Row
+        View llMedalCard = profileView.findViewById(R.id.llMedalCard);
+        TextView tvMedalWear = profileView.findViewById(R.id.tvMedalWear);
+        if (tvMedalWear != null) {
+            tvMedalWear.setText(isSelf ? "Wear ›" : "View ›");
+        }
+        if (llMedalCard != null) {
+            llMedalCard.setOnClickListener(v -> {
+                profileDialog.dismiss();
+                if (isSelf) {
+                    Intent intent = new Intent(RoomChatActivity.this, CollectionActivity.class);
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(RoomChatActivity.this, OtherCollectionActivity.class);
+                    intent.putExtra("selectedUserId", targetUid);
+                    intent.putExtra("selectedUserName", initialName);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        // Own Profile Action Buttons (Leave the Mic, Send Gift)
+        View btnOwnLeaveMic = profileView.findViewById(R.id.btnOwnLeaveMic);
+        View btnOwnSendGift = profileView.findViewById(R.id.btnOwnSendGift);
+
+        if (btnOwnLeaveMic != null) {
+            btnOwnLeaveMic.setOnClickListener(v -> {
+                if (model != null && model.index >= 0 && userID.equals(model.userID)) {
+                    SeatManager.getInstance().leaveSeat(model.index);
+                    ZegoManager.getInstance().stopPublishing();
+                    ZegoManager.getInstance().sendInRoomTextMessage(userName + " left the seat.");
+                    Toast.makeText(RoomChatActivity.this, "You left the seat 🎙️", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "You left the mic 🎙️", Toast.LENGTH_SHORT).show();
+                }
                 profileDialog.dismiss();
             });
-        } else if (btnActionFollow != null) {
+        }
+
+        if (btnOwnSendGift != null) {
+            btnOwnSendGift.setOnClickListener(v -> {
+                profileDialog.dismiss();
+                showGiftDialog(null); // Open general gift store (cannot gift self)
+            });
+        }
+
+        // 1. Follow Action Button (Other users)
+        if (btnActionFollow != null) {
             DatabaseReference followRef = FirebaseDatabase.getInstance().getReference("Follow")
                     .child(userID).child("following").child(targetUid);
 
@@ -1229,16 +1292,24 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnActionKick = profileView.findViewById(R.id.btnActionKick);
 
-        // ADMIN PERMISSION FIX: Allow Host, Administrators, or seat occupant to manage seat
-        boolean canControlSeat = isAdminOrHost() || targetUid.equals(userID);
+        // Host seat controls are shown ONLY when viewing another user's profile and viewer is Admin/Host
+        boolean showHostControls = !isSelf && isAdminOrHost();
         if (llHostSeatControlsRow != null) {
-            llHostSeatControlsRow.setVisibility(canControlSeat ? View.VISIBLE : View.GONE);
+            llHostSeatControlsRow.setVisibility(showHostControls ? View.VISIBLE : View.GONE);
         }
         if (vHostDivider != null) {
-            vHostDivider.setVisibility(canControlSeat ? View.VISIBLE : View.GONE);
+            vHostDivider.setVisibility(showHostControls ? View.VISIBLE : View.GONE);
         }
 
-        if (canControlSeat) {
+        // Lock Seat and Kick User buttons are strictly reserved for Host and Administrators (Like Hayaa/Hayi)
+        if (btnHostLock != null) {
+            btnHostLock.setVisibility(showHostControls ? View.VISIBLE : View.GONE);
+        }
+        if (btnActionKick != null) {
+            btnActionKick.setVisibility(showHostControls ? View.VISIBLE : View.GONE);
+        }
+
+        if (showHostControls) {
             // Initial states
             if (ivHostMicIcon != null) {
                 ivHostMicIcon.setImageResource(model.isMicOn ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
@@ -1276,6 +1347,10 @@ public class RoomChatActivity extends AppCompatActivity {
 
             if (btnHostLock != null) {
                 btnHostLock.setOnClickListener(v -> {
+                    if (!isAdminOrHost()) {
+                        Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can lock or unlock seats 🔒", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     boolean newClosedState = !model.isClosed;
                     model.isClosed = newClosedState;
                     SeatManager.getInstance().closeSeat(model.index, newClosedState);
@@ -1298,6 +1373,10 @@ public class RoomChatActivity extends AppCompatActivity {
 
             if (btnActionKick != null) {
                 btnActionKick.setOnClickListener(v -> {
+                    if (!isAdminOrHost()) {
+                        Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can kick/blacklist users 🚫", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     if (targetUid.equals(userID)) {
                         Toast.makeText(RoomChatActivity.this, "You cannot kick yourself!", Toast.LENGTH_SHORT).show();
                         return;
@@ -1309,23 +1388,8 @@ public class RoomChatActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (model != null && model.index >= 0) {
-                        SeatManager.getInstance().leaveSeat(model.index);
-                    }
-
-                    DatabaseReference kickedRef = FirebaseDatabase.getInstance().getReference("rooms")
-                            .child(roomID).child("kicked_users").child(targetUid);
-                    Map<String, Object> kickData = new HashMap<>();
-                    kickData.put("timestamp", System.currentTimeMillis());
-                    kickData.put("kickedBy", userID);
-                    kickData.put("userName", initialName);
-                    kickedRef.setValue(kickData);
-
-                    String notice = "Host kicked " + initialName + " out of the room!";
-                    ZegoManager.getInstance().sendInRoomTextMessage(notice);
-
-                    Toast.makeText(RoomChatActivity.this, "Kicked " + initialName + " out of the room!", Toast.LENGTH_SHORT).show();
                     profileDialog.dismiss();
+                    showKickDurationDialog(targetUid, initialName, model != null ? model.index : -1);
                 });
             }
         }
@@ -1341,6 +1405,73 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         profileDialog.show();
+    }
+
+    // Prompt Admin/Host to select kick/blacklist duration
+    private void showKickDurationDialog(String targetUid, String targetName, int seatIndex) {
+        if (!isAdminOrHost()) return;
+
+        BottomSheetDialog durationDialog = new BottomSheetDialog(this);
+        applyGlassyStyle(durationDialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_kick_duration, null, false);
+        if (dialogView == null) return;
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvKickDurationTitle);
+        if (tvTitle != null && targetName != null) {
+            tvTitle.setText("Blacklist " + targetName + " 🚫");
+        }
+
+        View btn2Hr = dialogView.findViewById(R.id.btnDuration2Hr);
+        View btn12Hr = dialogView.findViewById(R.id.btnDuration12Hr);
+        View btn24Hr = dialogView.findViewById(R.id.btnDuration24Hr);
+        View btnPermanent = dialogView.findViewById(R.id.btnDurationPermanent);
+
+        View.OnClickListener clickListener = v -> {
+            long now = System.currentTimeMillis();
+            long expiryTs = 0L;
+            int id = v.getId();
+            if (id == R.id.btnDuration2Hr) {
+                expiryTs = now + (2L * 3600 * 1000);
+            } else if (id == R.id.btnDuration12Hr) {
+                expiryTs = now + (12L * 3600 * 1000);
+            } else if (id == R.id.btnDuration24Hr) {
+                expiryTs = now + (24L * 3600 * 1000);
+            } else if (id == R.id.btnDurationPermanent) {
+                expiryTs = 0L; // Permanent
+            }
+            durationDialog.dismiss();
+            executeKickUser(targetUid, targetName, seatIndex, expiryTs);
+        };
+
+        if (btn2Hr != null) btn2Hr.setOnClickListener(clickListener);
+        if (btn12Hr != null) btn12Hr.setOnClickListener(clickListener);
+        if (btn24Hr != null) btn24Hr.setOnClickListener(clickListener);
+        if (btnPermanent != null) btnPermanent.setOnClickListener(clickListener);
+
+        durationDialog.setContentView(dialogView);
+        durationDialog.show();
+    }
+
+    private void executeKickUser(String targetUid, String targetName, int seatIndex, long expiryTimestamp) {
+        if (seatIndex >= 0) {
+            SeatManager.getInstance().leaveSeat(seatIndex);
+        }
+
+        DatabaseReference kickedRef = FirebaseDatabase.getInstance().getReference("rooms")
+                .child(roomID).child("kicked_users").child(targetUid);
+
+        Map<String, Object> kickData = new HashMap<>();
+        kickData.put("timestamp", System.currentTimeMillis());
+        kickData.put("kickedBy", userID);
+        kickData.put("userName", targetName != null ? targetName : "User");
+        kickData.put("expiryTimestamp", expiryTimestamp);
+
+        kickedRef.setValue(kickData).addOnSuccessListener(aVoid -> {
+            String durationLabel = expiryTimestamp == 0L ? "permanently" : "temporarily";
+            String notice = "Admin blacklisted " + targetName + " from room (" + durationLabel + ").";
+            ZegoManager.getInstance().sendInRoomTextMessage(notice);
+            Toast.makeText(RoomChatActivity.this, "Blacklisted " + targetName + " from room 🚫", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void leaveRoom() {
@@ -1411,7 +1542,13 @@ public class RoomChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists() && !isHost && !isFinishing() && !isDestroyed()) {
-                    Toast.makeText(RoomChatActivity.this, "🚫 You were kicked out of the room by Host!", Toast.LENGTH_LONG).show();
+                    Long expiryTs = snapshot.child("expiryTimestamp").getValue(Long.class);
+                    if (expiryTs != null && expiryTs > 0 && System.currentTimeMillis() > expiryTs) {
+                        // Ban expired! Clean up Firebase entry
+                        myKickRef.removeValue();
+                        return;
+                    }
+                    Toast.makeText(RoomChatActivity.this, "🚫 You were blacklisted from this room by Admin!", Toast.LENGTH_LONG).show();
                     if (myKickRef != null && myKickListener != null) {
                         myKickRef.removeEventListener(myKickListener);
                     }
@@ -1432,7 +1569,13 @@ public class RoomChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists() && !isFinishing() && !isDestroyed()) {
-                    Toast.makeText(RoomChatActivity.this, "🚫 You have been kicked from this room by Host!", Toast.LENGTH_LONG).show();
+                    Long expiryTs = snapshot.child("expiryTimestamp").getValue(Long.class);
+                    if (expiryTs != null && expiryTs > 0 && System.currentTimeMillis() > expiryTs) {
+                        // Ban expired! Clean up Firebase entry
+                        checkKickRef.removeValue();
+                        return;
+                    }
+                    Toast.makeText(RoomChatActivity.this, "🚫 You are blacklisted from this room by Admin!", Toast.LENGTH_LONG).show();
                     leaveRoom();
                 }
             }
@@ -1570,6 +1713,21 @@ public class RoomChatActivity extends AppCompatActivity {
                                     .placeholder(R.drawable.logo_placeholder)
                                     .error(R.drawable.logo_placeholder)
                                     .into(ivRoomAvatar);
+                        }
+                    }
+
+                    // Welcome messages sync
+                    String wMsg = snapshot.child("welcomeMessage").getValue(String.class);
+                    String newWMsg = snapshot.child("newUserWelcomeMessage").getValue(String.class);
+                    if (wMsg != null) currentRoomWelcomeMessage = wMsg;
+                    if (newWMsg != null) currentNewUserWelcomeMessage = newWMsg;
+
+                    // Real-Time Clear Room Chat Screen Sync
+                    Long clearTs = snapshot.child("clearScreenTimestamp").getValue(Long.class);
+                    if (clearTs != null && clearTs > lastClearedTimestamp) {
+                        lastClearedTimestamp = clearTs;
+                        if (chatAdapter != null) {
+                            chatAdapter.clearAllMessages();
                         }
                     }
                 }
@@ -1816,6 +1974,46 @@ public class RoomChatActivity extends AppCompatActivity {
                     if (chatAdapter != null) {
                         chatAdapter.addAutoExpiringMessage(entryMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
+
+                    // 1. ROOM WELCOME MESSAGE (Show in chat when someone enters)
+                    String welcomeNoticeText = (currentRoomWelcomeMessage != null && !currentRoomWelcomeMessage.trim().isEmpty())
+                            ? currentRoomWelcomeMessage.trim()
+                            : ("📢 Welcome to " + (roomNameLabel != null ? roomNameLabel : "our room") + "! Enjoy chatting & party 🎙️");
+
+                    ChatMessage roomWelcomeNotice = new ChatMessage();
+                    roomWelcomeNotice.setSenderId("ROOM_WELCOME");
+                    roomWelcomeNotice.setMessage("📢 " + welcomeNoticeText);
+                    roomWelcomeNotice.setTimestamp((ts != null ? ts : System.currentTimeMillis()) + 1);
+
+                    if (chatAdapter != null) {
+                        chatAdapter.addAutoExpiringMessage(roomWelcomeNotice, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
+                    }
+
+                    // 2. NEW USER WELCOME MESSAGE (Show dedicated message to new member entering room)
+                    if (userID != null && userID.equals(senderId)) {
+                        SharedPreferences prefs = getSharedPreferences("RoomNewUserPrefs", MODE_PRIVATE);
+                        String prefKey = "is_new_user_room_" + roomID + "_" + userID;
+                        boolean hasEnteredRoomBefore = prefs.getBoolean(prefKey, false);
+
+                        if (!hasEnteredRoomBefore) {
+                            prefs.edit().putBoolean(prefKey, true).apply();
+
+                            String newUserMsgText = (currentNewUserWelcomeMessage != null && !currentNewUserWelcomeMessage.trim().isEmpty())
+                                    ? currentNewUserWelcomeMessage.trim()
+                                    : "👋 Welcome new member! Feel free to tap a seat to join the mic or send gifts.";
+
+                            ChatMessage newUserNotice = new ChatMessage();
+                            newUserNotice.setSenderId("NEW_USER_WELCOME");
+                            newUserNotice.setMessage("👋 " + newUserMsgText);
+                            newUserNotice.setTimestamp((ts != null ? ts : System.currentTimeMillis()) + 2);
+
+                            if (chatAdapter != null) {
+                                chatAdapter.addAutoExpiringMessage(newUserNotice, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS * 2);
+                            }
+                            Toast.makeText(RoomChatActivity.this, "👋 " + newUserMsgText, Toast.LENGTH_LONG).show();
+                        }
+                    }
+
                     if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                         rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
                     }
@@ -1847,28 +2045,55 @@ public class RoomChatActivity extends AppCompatActivity {
     private void broadcastUserEntry() {
         if (isEntryBroadcasted) return;
         if (userID == null || userID.trim().isEmpty() || roomID == null) return;
-        isEntryBroadcasted = true;
 
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userID);
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Blacklist Check: Do NOT broadcast entry or show notifications if user is blacklisted/banned
+        DatabaseReference checkKickRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID).child("kicked_users").child(userID);
+        checkKickRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String equippedEntranceId = snapshot.child("equipped_entrance").getValue(String.class);
-                String entranceSvga = FrameUtils.getEntranceSvgaPath(equippedEntranceId);
+            public void onDataChange(@NonNull DataSnapshot kickSnapshot) {
+                if (isFinishing() || isDestroyed()) return;
 
-                Map<String, Object> entryMap = new HashMap<>();
-                entryMap.put("userId", userID);
-                entryMap.put("userName", userName != null ? userName : "User");
-                if (entranceSvga != null) {
-                    entryMap.put("entranceSvga", entranceSvga);
+                if (kickSnapshot.exists() && !isHost) {
+                    Long expiryTs = kickSnapshot.child("expiryTimestamp").getValue(Long.class);
+                    long now = System.currentTimeMillis();
+                    if (expiryTs == null || expiryTs == 0L || now <= expiryTs) {
+                        // User is blacklisted/banned! Immediately abort without writing to room_entries
+                        leaveRoom();
+                        return;
+                    } else {
+                        // Ban expired! Remove from Firebase
+                        checkKickRef.removeValue();
+                    }
                 }
-                if (equippedEntranceId != null) {
-                    entryMap.put("entranceId", equippedEntranceId);
-                }
-                entryMap.put("timestamp", System.currentTimeMillis());
 
-                FirebaseDatabase.getInstance().getReference("room_entries")
-                        .child(roomID).push().setValue(entryMap);
+                if (isEntryBroadcasted) return;
+                isEntryBroadcasted = true;
+
+                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userID);
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String equippedEntranceId = snapshot.child("equipped_entrance").getValue(String.class);
+                        String entranceSvga = FrameUtils.getEntranceSvgaPath(equippedEntranceId);
+
+                        Map<String, Object> entryMap = new HashMap<>();
+                        entryMap.put("userId", userID);
+                        entryMap.put("userName", userName != null ? userName : "User");
+                        if (entranceSvga != null) {
+                            entryMap.put("entranceSvga", entranceSvga);
+                        }
+                        if (equippedEntranceId != null) {
+                            entryMap.put("entranceId", equippedEntranceId);
+                        }
+                        entryMap.put("timestamp", System.currentTimeMillis());
+
+                        FirebaseDatabase.getInstance().getReference("room_entries")
+                                .child(roomID).push().setValue(entryMap);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
             }
 
             @Override
@@ -2196,6 +2421,64 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
+        // Option: Room Welcome Message
+        View btnOptionRoomWelcome = dialogView.findViewById(R.id.btnOptionRoomWelcome);
+        if (btnOptionRoomWelcome != null) {
+            btnOptionRoomWelcome.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            btnOptionRoomWelcome.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (isAdminOrHost()) {
+                    showEditWelcomeMessageDialog(false);
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can edit welcome message 📢", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // Option: New User Welcome Message
+        View btnOptionNewUserWelcome = dialogView.findViewById(R.id.btnOptionNewUserWelcome);
+        if (btnOptionNewUserWelcome != null) {
+            btnOptionNewUserWelcome.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            btnOptionNewUserWelcome.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (isAdminOrHost()) {
+                    showEditWelcomeMessageDialog(true);
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can edit new user welcome message 👋", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // Option: Clear Room Screen
+        View btnOptionClearScreen = dialogView.findViewById(R.id.btnOptionClearScreen);
+        if (btnOptionClearScreen != null) {
+            btnOptionClearScreen.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            btnOptionClearScreen.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (isAdminOrHost()) {
+                    FirebaseDatabase.getInstance().getReference("rooms").child(roomID)
+                            .child("clearScreenTimestamp").setValue(System.currentTimeMillis());
+                    Toast.makeText(RoomChatActivity.this, "Room chat screen cleared 🧹", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can clear the screen 🧹", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // Option: Room Blacklist
+        View btnOptionBlacklist = dialogView.findViewById(R.id.btnOptionBlacklist);
+        if (btnOptionBlacklist != null) {
+            btnOptionBlacklist.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            btnOptionBlacklist.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (isAdminOrHost()) {
+                    showBlacklistManagementDialog();
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can manage blacklist 🚫", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         // Option 1: Theme Selection
         if (btnOptionTheme != null) {
             btnOptionTheme.setOnClickListener(v -> {
@@ -2282,6 +2565,7 @@ public class RoomChatActivity extends AppCompatActivity {
         if (dialogView == null) return;
 
         TextView tvAdminCountBadge = dialogView.findViewById(R.id.tvAdminCountBadge);
+        EditText etSearchAdminMembers = dialogView.findViewById(R.id.etSearchAdminMembers);
         RecyclerView rvAdminMembers = dialogView.findViewById(R.id.rvAdminMembers);
 
         List<AdminMemberAdapter.AdminMemberItem> adminMemberList = new ArrayList<>();
@@ -2369,6 +2653,27 @@ public class RoomChatActivity extends AppCompatActivity {
                         }
                     });
                     rvAdminMembers.setAdapter(adapter);
+
+                    // Real-Time Search Filtering for Admin Management
+                    if (etSearchAdminMembers != null) {
+                        etSearchAdminMembers.addTextChangedListener(new TextWatcher() {
+                            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                String query = s.toString().trim().toLowerCase();
+                                List<AdminMemberAdapter.AdminMemberItem> filtered = new ArrayList<>();
+                                for (AdminMemberAdapter.AdminMemberItem item : adminMemberList) {
+                                    String name = item.getUserName() != null ? item.getUserName().toLowerCase() : "";
+                                    String uid = item.getUserId() != null ? item.getUserId().toLowerCase() : "";
+                                    if (name.contains(query) || uid.contains(query)) {
+                                        filtered.add(item);
+                                    }
+                                }
+                                adapter.updateList(filtered);
+                            }
+                            @Override public void afterTextChanged(Editable s) {}
+                        });
+                    }
                 }
             }
 
@@ -2380,6 +2685,169 @@ public class RoomChatActivity extends AppCompatActivity {
 
         adminDialog.setContentView(dialogView);
         adminDialog.show();
+    }
+
+    // Room Blacklist Management Dialog
+    private void showBlacklistManagementDialog() {
+        if (!isAdminOrHost()) {
+            Toast.makeText(this, "Only Room Host or Administrators can manage blacklist", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog blacklistDialog = new BottomSheetDialog(this);
+        applyGlassyStyle(blacklistDialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_black_list, null, false);
+        if (dialogView == null) return;
+
+        TextView tvCountBadge = dialogView.findViewById(R.id.tvBlacklistCountBadge);
+        EditText etSearch = dialogView.findViewById(R.id.etSearchBlacklist);
+        RecyclerView rvBlacklist = dialogView.findViewById(R.id.rvBlacklistMembers);
+
+        List<BlacklistAdapter.BlacklistItem> blacklist = new ArrayList<>();
+        DatabaseReference kickedUsersRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID).child("kicked_users");
+
+        kickedUsersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+
+                long now = System.currentTimeMillis();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String uid = child.getKey();
+                    if (uid == null) continue;
+
+                    Long expiryTs = child.child("expiryTimestamp").getValue(Long.class);
+                    long exp = expiryTs != null ? expiryTs : 0L;
+
+                    if (exp > 0 && now > exp) {
+                        // Expired ban -> Clean up Firebase
+                        kickedUsersRef.child(uid).removeValue();
+                        continue;
+                    }
+
+                    String name = child.child("userName").getValue(String.class);
+                    String avatar = child.child("userAvatar").getValue(String.class);
+
+                    blacklist.add(new BlacklistAdapter.BlacklistItem(uid, name != null ? name : "User", avatar != null ? avatar : "", exp));
+                }
+
+                if (tvCountBadge != null) {
+                    tvCountBadge.setText(blacklist.size() + " Banned");
+                }
+
+                if (rvBlacklist != null) {
+                    rvBlacklist.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
+                    final BlacklistAdapter[] adapterHolder = new BlacklistAdapter[1];
+                    BlacklistAdapter adapter = new BlacklistAdapter(blacklist, item -> {
+                        kickedUsersRef.child(item.getUserId()).removeValue().addOnSuccessListener(aVoid -> {
+                            blacklist.remove(item);
+                            if (adapterHolder[0] != null) adapterHolder[0].updateList(blacklist);
+                            if (tvCountBadge != null) {
+                                tvCountBadge.setText(blacklist.size() + " Banned");
+                            }
+                            Toast.makeText(RoomChatActivity.this, "Removed " + item.getUserName() + " from room blacklist 🔓", Toast.LENGTH_SHORT).show();
+                        });
+                    });
+                    adapterHolder[0] = adapter;
+                    rvBlacklist.setAdapter(adapter);
+
+                    if (etSearch != null) {
+                        etSearch.addTextChangedListener(new TextWatcher() {
+                            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                String query = s.toString().trim().toLowerCase();
+                                List<BlacklistAdapter.BlacklistItem> filtered = new ArrayList<>();
+                                for (BlacklistAdapter.BlacklistItem item : blacklist) {
+                                    String name = item.getUserName() != null ? item.getUserName().toLowerCase() : "";
+                                    String uid = item.getUserId() != null ? item.getUserId().toLowerCase() : "";
+                                    if (name.contains(query) || uid.contains(query)) {
+                                        filtered.add(item);
+                                    }
+                                }
+                                if (adapterHolder[0] != null) adapterHolder[0].updateList(filtered);
+                            }
+                            @Override public void afterTextChanged(Editable s) {}
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        blacklistDialog.setContentView(dialogView);
+        blacklistDialog.show();
+    }
+
+    // Edit Welcome Message Dialog for Admins and Host
+    private void showEditWelcomeMessageDialog(boolean isNewUserMessage) {
+        if (!isAdminOrHost()) {
+            Toast.makeText(this, "Only Room Host or Administrators can edit welcome messages", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        applyGlassyStyle(dialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_welcome_message, null, false);
+        if (dialogView == null) return;
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvWelcomeDialogTitle);
+        TextView tvSubtitle = dialogView.findViewById(R.id.tvWelcomeDialogSubtitle);
+        EditText etInput = dialogView.findViewById(R.id.etWelcomeMessageInput);
+        ProgressBar pbLoading = dialogView.findViewById(R.id.pbWelcomeLoading);
+        View btnCancel = dialogView.findViewById(R.id.btnCancelWelcome);
+        View btnSave = dialogView.findViewById(R.id.btnSaveWelcome);
+
+        if (tvTitle != null) {
+            tvTitle.setText(isNewUserMessage ? "New User Welcome Message 👋" : "Room Welcome Message 📢");
+        }
+        if (tvSubtitle != null) {
+            tvSubtitle.setText(isNewUserMessage ?
+                    "Set the dedicated welcome message that will be displayed when new members enter the room." :
+                    "Set the welcome message that will be displayed in room chat to all members on entry.");
+        }
+
+        String currentMsg = isNewUserMessage ? currentNewUserWelcomeMessage : currentRoomWelcomeMessage;
+        if (etInput != null && currentMsg != null && !currentMsg.trim().isEmpty()) {
+            etInput.setText(currentMsg);
+            etInput.setSelection(currentMsg.length());
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> {
+                String inputMsg = etInput != null ? etInput.getText().toString().trim() : "";
+                if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
+                btnSave.setEnabled(false);
+
+                String key = isNewUserMessage ? "newUserWelcomeMessage" : "welcomeMessage";
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms").child(roomID).child(key);
+
+                ref.setValue(inputMsg).addOnCompleteListener(task -> {
+                    if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                    btnSave.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        if (isNewUserMessage) {
+                            currentNewUserWelcomeMessage = inputMsg;
+                        } else {
+                            currentRoomWelcomeMessage = inputMsg;
+                        }
+                        Toast.makeText(RoomChatActivity.this, "Welcome message saved successfully! 📢", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(RoomChatActivity.this, "Failed to save message. Please try again.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
     }
 
     // ROOM ADMIN FIX: Confirmation Dialog to Promote to Admin
@@ -2809,6 +3277,12 @@ public class RoomChatActivity extends AppCompatActivity {
     public void sendSeatInvitation(String targetUserId, String targetUserName, int seatIndex) {
         if (targetUserId == null || targetUserId.trim().isEmpty()) return;
 
+        // Prevent self-invitation: No user (Admin/Host/Member) can invite themselves
+        if (userID != null && userID.equals(targetUserId.trim())) {
+            Toast.makeText(RoomChatActivity.this, "You cannot invite yourself to a seat! 🎙️", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         DatabaseReference inviteRef = FirebaseDatabase.getInstance()
                 .getReference("room_seat_invitations")
                 .child(roomID)
@@ -2926,7 +3400,10 @@ public class RoomChatActivity extends AppCompatActivity {
 
         int seatToTake = targetSeat;
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
-        if (seatToTake < 0 || seatToTake >= seats.size() || !seats.get(seatToTake).isEmpty() || seats.get(seatToTake).isClosed) {
+
+        // Exact Target Seat Priority: If the target invited seat is valid and empty (even if locked), take that exact seat!
+        if (seatToTake < 0 || seatToTake >= seats.size() || !seats.get(seatToTake).isEmpty()) {
+            // Fallback: If target seat is occupied or invalid, find first open unlocked seat
             seatToTake = -1;
             for (SeatModel seat : seats) {
                 if (seat != null && seat.isEmpty() && !seat.isClosed) {
@@ -2938,7 +3415,7 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         if (seatToTake == -1) {
-            Toast.makeText(this, "Sorry, all seats are currently full or locked!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sorry, the invited seat is no longer available!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -2946,7 +3423,8 @@ public class RoomChatActivity extends AppCompatActivity {
         String myAvatar = SessionManager.getInstance(this).getAvatar();
         UserProfileCache.getUserProfile(userID, profile -> {
             String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
-            boolean success = SeatManager.getInstance().takeSeat(finalSeatToTake, userID, userName, myAvatar, frame);
+            // Allow taking locked seat because Admin/Host explicitly invited the user to this seat
+            boolean success = SeatManager.getInstance().takeSeat(finalSeatToTake, userID, userName, myAvatar, frame, true);
             if (success) {
                 ZegoManager.getInstance().startPublishing();
                 Toast.makeText(this, "You accepted the invitation and took Seat " + (finalSeatToTake + 1) + "! 🎙️", Toast.LENGTH_SHORT).show();
@@ -2975,6 +3453,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         TextView tvMembersCountBadge = dialogView.findViewById(R.id.tvMembersCountBadge);
         TextView tvMembersDialogTitle = dialogView.findViewById(R.id.tvMembersDialogTitle);
+        EditText etSearchMembers = dialogView.findViewById(R.id.etSearchMembers);
         RecyclerView rvMembers = dialogView.findViewById(R.id.rvRoomMembers);
 
         List<User> activeUsers = new ArrayList<>();
@@ -2983,6 +3462,7 @@ public class RoomChatActivity extends AppCompatActivity {
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
         for (SeatModel seat : seats) {
             if (seat != null && !seat.isEmpty()) {
+                if (userID != null && userID.equals(seat.userID)) continue; // Do not invite self
                 User u = new User();
                 u.setUserId(seat.userID);
                 u.setUserName(seat.userName != null && !seat.userName.isEmpty() ? seat.userName : "Member");
@@ -3000,6 +3480,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uid = child.child("userId").getValue(String.class);
                     if (uid == null) uid = child.getKey();
+                    if (uid != null && uid.equals(userID)) continue; // Do not invite self
                     if (uid != null && !userMap.containsKey(uid)) {
                         String name = child.child("userName").getValue(String.class);
                         String avatar = child.child("userAvatar").getValue(String.class);
@@ -3032,10 +3513,32 @@ public class RoomChatActivity extends AppCompatActivity {
 
                 if (rvMembers != null) {
                     rvMembers.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
-                    rvMembers.setAdapter(new AudienceAdapter(activeUsers, isAdminOrHost(), targetUser -> {
+                    AudienceAdapter adapter = new AudienceAdapter(activeUsers, isAdminOrHost(), targetUser -> {
                         sendSeatInvitation(targetUser.getUserId(), targetUser.getUserName(), targetSeatIndex);
                         dialog.dismiss();
-                    }));
+                    });
+                    rvMembers.setAdapter(adapter);
+
+                    // Real-Time Search Filtering for Room Members / Invitation
+                    if (etSearchMembers != null) {
+                        etSearchMembers.addTextChangedListener(new TextWatcher() {
+                            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                String query = s.toString().trim().toLowerCase();
+                                List<User> filtered = new ArrayList<>();
+                                for (User u : activeUsers) {
+                                    String name = u.getUserName() != null ? u.getUserName().toLowerCase() : "";
+                                    String uid = u.getUserId() != null ? u.getUserId().toLowerCase() : "";
+                                    if (name.contains(query) || uid.contains(query)) {
+                                        filtered.add(u);
+                                    }
+                                }
+                                adapter.updateList(filtered);
+                            }
+                            @Override public void afterTextChanged(Editable s) {}
+                        });
+                    }
                 }
             }
 
@@ -3306,24 +3809,26 @@ public class RoomChatActivity extends AppCompatActivity {
         List<GiftRecipientModel> recipientList = new ArrayList<>();
         Set<String> addedUids = new HashSet<>();
 
+        // Self-gifting check: Do not target self
+        if (targetUid != null && targetUid.equals(userID)) {
+            targetUid = null;
+        }
+
         boolean isTargeted = (targetUid != null && !targetUid.isEmpty());
 
         // "ALL" option
         GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, !isTargeted);
         recipientList.add(allItem);
 
-        // 1. Host Info
+        // 1. Host Info (Exclude self if current user is host)
         String roomHostUid = SeatManager.getInstance().getHostUserID();
         if (roomHostUid == null || roomHostUid.isEmpty()) {
             roomHostUid = getIntent().getStringExtra("uid");
         }
-        if (roomHostUid == null || roomHostUid.isEmpty()) {
-            if (isHost) roomHostUid = userID;
-        }
 
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
 
-        if (roomHostUid != null && !roomHostUid.isEmpty()) {
+        if (roomHostUid != null && !roomHostUid.isEmpty() && !roomHostUid.equals(userID)) {
             String hName = "Host";
             String hAvatar = "";
             String hFrame = "";
@@ -3338,32 +3843,23 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                 }
             }
-            if (roomHostUid.equals(userID)) {
-                if (userName != null && !userName.isEmpty()) hName = userName;
-                hAvatar = SessionManager.getInstance(this).getAvatar();
-            }
 
-            boolean selectHost = !isTargeted || roomHostUid.equals(targetUid);
+            boolean selectHost = isTargeted && roomHostUid.equals(targetUid);
             recipientList.add(new GiftRecipientModel(roomHostUid, hName, hAvatar, hFrame, "Host", false, selectHost));
             addedUids.add(roomHostUid);
         }
 
-        // 2. Seated Members
+        // 2. Seated Members (Exclude self)
         if (seats != null) {
             for (SeatModel seat : seats) {
-                if (seat != null && !seat.isEmpty() && !addedUids.contains(seat.userID)) {
+                if (seat != null && !seat.isEmpty() && !seat.userID.equals(userID) && !addedUids.contains(seat.userID)) {
                     String seatBadge = seat.isHost() ? "Host" : String.valueOf(seat.index + 1);
                     String uName = (seat.userName != null && !seat.userName.isEmpty()) ? seat.userName : "Member";
-                    boolean selectSeat = !isTargeted || seat.userID.equals(targetUid);
+                    boolean selectSeat = isTargeted && seat.userID.equals(targetUid);
                     recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seat.equippedFrame, seatBadge, false, selectSeat));
                     addedUids.add(seat.userID);
                 }
             }
-        }
-
-        if (recipientList.size() <= 1) { // Only ALL item present, add current user as fallback
-            boolean selectUser = !isTargeted || userID.equals(targetUid);
-            recipientList.add(new GiftRecipientModel(userID, userName != null ? userName : "User", SessionManager.getInstance(this).getAvatar(), "", "Host", false, selectUser));
         }
 
         GiftRecipientAdapter recipientAdapter = new GiftRecipientAdapter(recipientList);
