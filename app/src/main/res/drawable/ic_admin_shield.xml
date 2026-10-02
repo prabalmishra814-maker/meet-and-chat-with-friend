@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ROOM ADMIN FIX: Vector drawable icon for Administrator option in Room Settings -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+
+    <!-- Shield Background Gradient -->
+    <path
+        android:pathData="M18,3 C24,3 30,5.5 30,12 C30,22 21,29.5 18,32 C15,29.5 6,22 6,12 C6,5.5 12,3 18,3 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="18"
+                android:startY="3"
+                android:endX="18"
+                android:endY="32"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0"/>
+                <item android:color="#00838F" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Shield Highlight Border -->
+    <path
+        android:pathData="M18,5.5 C22.8,5.5 27.5,7.5 27.5,12.8 C27.5,21 20.3,27.2 18,29.3 C15.7,27.2 8.5,21 8.5,12.8 C8.5,7.5 13.2,5.5 18,5.5 Z"
+        android:strokeColor="#80FFFFFF"
+        android:strokeWidth="1"/>
+
+    <!-- Central Crown / Star Emblem -->
+    <path
+        android:pathData="M18,10 L20.2,14.5 L25,15.2 L21.5,18.6 L22.3,23.4 L18,21.1 L13.7,23.4 L14.5,18.6 L11,15.2 L15.8,14.5 Z"
+        android:fillColor="#FFD54F"/>
+</vector>

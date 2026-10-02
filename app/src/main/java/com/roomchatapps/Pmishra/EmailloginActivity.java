@@ -73,6 +73,7 @@ public class EmailloginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private LoadingDialog loadingDialog;
     private SessionManager sessionManager;
+    private AlertDialog resetPasswordDialog;
     
     private boolean isLoginMode = true;
     private boolean isPasswordVisible = false;
@@ -267,39 +268,83 @@ public class EmailloginActivity extends AppCompatActivity {
         }
     }
 
-    private void showForgotPasswordDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Reset Password");
-        builder.setMessage("Enter your registered email to receive password reset instructions:");
-
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        String currentEmail = etEmail.getText().toString().trim();
-        if (!currentEmail.isEmpty()) {
-            input.setText(currentEmail);
+    // LOGIN FIX - Map Firebase exceptions to user-friendly messages for password reset
+    private String getFriendlyResetPasswordErrorMessage(Exception exception) {
+        if (exception == null) {
+            return "Unable to send password reset email. Please try again.";
         }
-        input.setHint("email@example.com");
-        
-        int paddingPx = (int) (16 * getResources().getDisplayMetrics().density);
-        FrameLayout container = new FrameLayout(this);
-        container.setPadding(paddingPx, 0, paddingPx, 0);
-        container.addView(input);
-        builder.setView(container);
+        if (exception instanceof FirebaseNetworkException) {
+            return "No internet connection. Please check your network connection.";
+        }
+        if (exception instanceof FirebaseAuthInvalidUserException) {
+            return "No account found with this email address. Please check your email or register.";
+        }
+        if (exception instanceof FirebaseAuthInvalidCredentialsException) {
+            return "Please enter a valid email address.";
+        }
+        return "Unable to send reset link. Please try again.";
+    }
 
-        builder.setPositiveButton("Send Reset Link", (dialog, which) -> {
-            String email = input.getText().toString().trim();
-            if (TextUtils.isEmpty(email)) { // LOGIN FIX
-                showFeedback("Please enter your email address"); // LOGIN UI FEEDBACK FIX
-                return;
+    private void showForgotPasswordDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_forgot_password, null);
+        EditText etResetEmail = dialogView.findViewById(R.id.etResetEmail);
+        TextView tvResetError = dialogView.findViewById(R.id.tvResetError);
+        Button btnResetCancel = dialogView.findViewById(R.id.btnResetCancel);
+        Button btnResetSend = dialogView.findViewById(R.id.btnResetSend);
+
+        if (etResetEmail != null) {
+            etResetEmail.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+            String currentEmail = etEmail.getText().toString().trim();
+            if (!currentEmail.isEmpty()) {
+                etResetEmail.setText(currentEmail);
+                etResetEmail.setSelection(currentEmail.length());
             }
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // LOGIN FIX
-                showFeedback("Please enter a valid email address"); // LOGIN UI FEEDBACK FIX
-                return;
-            }
-            sendPasswordReset(email);
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+
+        resetPasswordDialog = builder.create();
+        if (resetPasswordDialog.getWindow() != null) {
+            resetPasswordDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (btnResetCancel != null) {
+            btnResetCancel.setOnClickListener(v -> resetPasswordDialog.dismiss());
+        }
+
+        if (btnResetSend != null) {
+            btnResetSend.setOnClickListener(v -> {
+                if (etResetEmail == null) return;
+                String email = etResetEmail.getText().toString().trim();
+
+                if (TextUtils.isEmpty(email)) {
+                    if (tvResetError != null) {
+                        tvResetError.setText("Please enter your email address.");
+                        tvResetError.setVisibility(View.VISIBLE);
+                    }
+                    return;
+                }
+
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    if (tvResetError != null) {
+                        tvResetError.setText("Please enter a valid email address.");
+                        tvResetError.setVisibility(View.VISIBLE);
+                    }
+                    return;
+                }
+
+                if (tvResetError != null) {
+                    tvResetError.setVisibility(View.GONE);
+                }
+                resetPasswordDialog.dismiss();
+                sendPasswordReset(email);
+            });
+        }
+
+        resetPasswordDialog.show();
     }
 
     private void sendPasswordReset(String email) {
@@ -308,11 +353,14 @@ public class EmailloginActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     setLoadingState(false, null); // LOGIN FIX
                     if (task.isSuccessful()) {
-                        showFeedback("Password reset email sent! Check your inbox."); // LOGIN UI FEEDBACK FIX
+                        if (etEmail.getText().toString().trim().isEmpty()) {
+                            etEmail.setText(email);
+                        }
+                        showFeedback("Password reset email sent to " + email + ". Check your inbox and spam folder.");
                     } else {
                         Log.e("EmailloginActivity", "Password reset failed", task.getException()); // LOGIN FIX
-                        String error = getFriendlyAuthErrorMessage(task.getException()); // LOGIN FIX
-                        showFeedback(error); // LOGIN UI FEEDBACK FIX
+                        String error = getFriendlyResetPasswordErrorMessage(task.getException());
+                        showFeedback(error);
                     }
                 });
     }
@@ -511,6 +559,9 @@ public class EmailloginActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (loadingDialog != null) {
             loadingDialog.dismiss();
+        }
+        if (resetPasswordDialog != null && resetPasswordDialog.isShowing()) {
+            resetPasswordDialog.dismiss();
         }
         super.onDestroy();
     }

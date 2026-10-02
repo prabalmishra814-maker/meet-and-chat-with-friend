@@ -63,6 +63,7 @@ import androidx.annotation.Nullable;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import java.io.ByteArrayOutputStream;
@@ -87,6 +88,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.roomchatapps.Pmishra.adapters.AdminMemberAdapter;
+import com.roomchatapps.Pmishra.adapters.AdminMemberAdapter.AdminMemberItem;
+import com.roomchatapps.Pmishra.adapters.AdminMemberAdapter.OnRoleActionListener;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
@@ -203,6 +207,17 @@ public class RoomChatActivity extends AppCompatActivity {
     private DatabaseReference mySeatInviteRef;
     private ValueEventListener mySeatInviteListener;
     private Dialog currentInviteDialog;
+
+    // ROOM ROLE PERSISTENCE
+    private DatabaseReference roomRolesRef;
+    private ValueEventListener roomRolesValueListener;
+    private String currentRoomRole = "member";
+    private final Map<String, String> userRoomRolesMap = new HashMap<>();
+
+    // ADMIN PERMISSION FIX
+    private boolean isAdminOrHost() {
+        return isHost || "admin".equalsIgnoreCase(currentRoomRole) || "host".equalsIgnoreCase(currentRoomRole);
+    }
 
     private final ActivityResultLauncher<Intent> audioPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -529,7 +544,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View moreView = findViewById(R.id.more);
         if (moreView != null) {
-            moreView.setVisibility(isHost ? View.VISIBLE : View.GONE);
+            moreView.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             moreView.setOnClickListener(v -> {
                 if (isFastClick(v)) return;
                 showMorePanelDialog();
@@ -538,7 +553,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnMore = findViewById(R.id.btnMore);
         if (btnMore != null) {
-            btnMore.setVisibility(isHost ? View.VISIBLE : View.GONE);
+            btnMore.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             btnMore.setOnClickListener(v -> {
                 if (isFastClick(v)) return;
                 showMorePanelDialog();
@@ -837,17 +852,17 @@ public class RoomChatActivity extends AppCompatActivity {
             View btnOptionCancel = emptyView.findViewById(R.id.btnOptionCancel);
 
             if (tvOptionLock != null) {
-                tvOptionLock.setVisibility(isHost ? View.VISIBLE : View.GONE);
+                tvOptionLock.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
                 tvOptionLock.setText(model.isClosed ? "Unlock" : "Lock");
             }
 
             if (tvOptionMute != null) {
-                tvOptionMute.setVisibility(isHost ? View.VISIBLE : View.GONE);
+                tvOptionMute.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
                 tvOptionMute.setText(model.isMuted ? "Unmute" : "Mute");
             }
 
             if (tvOptionInvite != null) {
-                tvOptionInvite.setVisibility(isHost ? View.VISIBLE : View.GONE);
+                tvOptionInvite.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             }
 
             // 1. Take Seat option
@@ -1185,6 +1200,18 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
+        // OTHER COLLECTION NAVIGATION
+        View btnActionCollection = profileView.findViewById(R.id.btnActionCollection);
+        if (btnActionCollection != null) {
+            btnActionCollection.setOnClickListener(v -> {
+                Intent intent = new Intent(RoomChatActivity.this, OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", targetUid);
+                intent.putExtra("selectedUserName", initialName);
+                startActivity(intent);
+                profileDialog.dismiss();
+            });
+        }
+
         // Host Seat Controls Row
         View vHostDivider = profileView.findViewById(R.id.vHostDivider);
         View llHostSeatControlsRow = profileView.findViewById(R.id.llHostSeatControlsRow);
@@ -1202,7 +1229,8 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnActionKick = profileView.findViewById(R.id.btnActionKick);
 
-        boolean canControlSeat = isHost || targetUid.equals(userID);
+        // ADMIN PERMISSION FIX: Allow Host, Administrators, or seat occupant to manage seat
+        boolean canControlSeat = isAdminOrHost() || targetUid.equals(userID);
         if (llHostSeatControlsRow != null) {
             llHostSeatControlsRow.setVisibility(canControlSeat ? View.VISIBLE : View.GONE);
         }
@@ -1275,6 +1303,12 @@ public class RoomChatActivity extends AppCompatActivity {
                         return;
                     }
 
+                    String hostUid = SeatManager.getInstance().getHostUserID();
+                    if (targetUid.equals(hostUid)) {
+                        Toast.makeText(RoomChatActivity.this, "Cannot kick the Room Host!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     if (model != null && model.index >= 0) {
                         SeatManager.getInstance().leaveSeat(model.index);
                     }
@@ -1325,6 +1359,9 @@ public class RoomChatActivity extends AppCompatActivity {
             }
             if (roomSeatsRef != null && seatsValueEventListener != null) {
                 roomSeatsRef.removeEventListener(seatsValueEventListener);
+            }
+            if (roomRolesRef != null && roomRolesValueListener != null) { // ROOM ROLE PERSISTENCE
+                roomRolesRef.removeEventListener(roomRolesValueListener); // ROOM ROLE PERSISTENCE
             }
             if (roomMessagesRef != null && roomMessagesChildEventListener != null) {
                 roomMessagesRef.removeEventListener(roomMessagesChildEventListener);
@@ -1435,6 +1472,7 @@ public class RoomChatActivity extends AppCompatActivity {
         setupRoomInfoListener();
         setupRoomGiftListener();
         setupRoomSeatsListener();
+        setupRoomRolesListener(); // ROOM ROLE PERSISTENCE
         setupRoomMessagesListener();
         setupRoomMusicListener();
         setupRoomThemeListener();
@@ -1444,6 +1482,62 @@ public class RoomChatActivity extends AppCompatActivity {
         checkInitialRoomKick();
         registerOnlineUser();
         setupSeatInviteListener();
+    }
+
+    // ROOM ROLE PERSISTENCE
+    private void setupRoomRolesListener() {
+        if (roomID == null || roomID.trim().isEmpty()) return;
+        if (roomRolesRef != null && roomRolesValueListener != null) {
+            roomRolesRef.removeEventListener(roomRolesValueListener);
+        }
+
+        roomRolesRef = FirebaseDatabase.getInstance().getReference("room_roles").child(roomID);
+        roomRolesValueListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                userRoomRolesMap.clear();
+                if (snapshot.exists()) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String targetUid = child.getKey();
+                        String roleVal = child.child("role").getValue(String.class);
+                        if (targetUid != null && roleVal != null) {
+                            userRoomRolesMap.put(targetUid, roleVal.toLowerCase());
+                        }
+                    }
+                }
+
+                if (isHost) {
+                    currentRoomRole = "host";
+                } else if (userID != null && userRoomRolesMap.containsKey(userID)) {
+                    currentRoomRole = userRoomRolesMap.get(userID);
+                } else {
+                    currentRoomRole = "member";
+                }
+
+                updateAdminUIVisibility();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("RoomChatActivity", "Error listening to room roles", error.toException());
+            }
+        };
+        roomRolesRef.addValueEventListener(roomRolesValueListener);
+    }
+
+    // ADMIN PERMISSION FIX
+    private void updateAdminUIVisibility() {
+        View btnMore = findViewById(R.id.btnMore);
+        View moreView = findViewById(R.id.more);
+        boolean hasAdminAccess = isAdminOrHost();
+
+        if (btnMore != null) {
+            btnMore.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
+        }
+        if (moreView != null) {
+            moreView.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setupRoomInfoListener() {
@@ -1836,7 +1930,7 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         if (btnSelectSong != null) {
-            btnSelectSong.setVisibility(isHost ? View.VISIBLE : View.GONE);
+            btnSelectSong.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             btnSelectSong.setOnClickListener(v -> {
                 dialog.dismiss();
                 openAudioFilePicker();
@@ -1844,7 +1938,7 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         if (btnStopMusic != null) {
-            btnStopMusic.setVisibility(isHost ? View.VISIBLE : View.GONE);
+            btnStopMusic.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             btnStopMusic.setOnClickListener(v -> {
                 ZegoManager.getInstance().stopMusic();
                 syncMusicStateToFirebase("", false);
@@ -1857,8 +1951,8 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void openAudioFilePicker() {
-        if (!isHost) {
-            Toast.makeText(this, "Only room owner/host can select and play live music!", Toast.LENGTH_SHORT).show();
+        if (!isAdminOrHost()) {
+            Toast.makeText(this, "Only Room Host or Administrators can select and play live music!", Toast.LENGTH_SHORT).show();
             return;
         }
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -2075,15 +2169,29 @@ public class RoomChatActivity extends AppCompatActivity {
 
 
 
-        // Option 0: Edit Room Info (Title & Cover Thumbnail)
+        // ROOM ADMIN FIX: Option for Administrator Management (Host Only)
+        View btnOptionAdministrator = dialogView.findViewById(R.id.btnOptionAdministrator);
+        if (btnOptionAdministrator != null) {
+            btnOptionAdministrator.setVisibility(isHost ? View.VISIBLE : View.GONE);
+            btnOptionAdministrator.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (isHost) {
+                    showAdminManagementDialog();
+                } else {
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host can manage administrators 👑", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // ADMIN PERMISSION FIX: Option 0: Edit Room Info (Title & Cover Thumbnail)
         View btnOptionEditRoom = dialogView.findViewById(R.id.btnOptionEditRoom);
         if (btnOptionEditRoom != null) {
             btnOptionEditRoom.setOnClickListener(v -> {
                 dialog.dismiss();
-                if (isHost) {
+                if (isAdminOrHost()) {
                     showEditRoomDialog();
                 } else {
-                    Toast.makeText(RoomChatActivity.this, "Only Room Host can edit room details 👑", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can edit room details 👑", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -2159,6 +2267,199 @@ public class RoomChatActivity extends AppCompatActivity {
 
         dialog.setContentView(dialogView);
         dialog.show();
+    }
+
+    // ROOM ADMIN FIX: Administrator Management BottomSheet Dialog
+    private void showAdminManagementDialog() {
+        if (!isHost) {
+            Toast.makeText(this, "Only Room Host can manage administrators", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog adminDialog = new BottomSheetDialog(this);
+        applyGlassyStyle(adminDialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_admin_management, null, false);
+        if (dialogView == null) return;
+
+        TextView tvAdminCountBadge = dialogView.findViewById(R.id.tvAdminCountBadge);
+        RecyclerView rvAdminMembers = dialogView.findViewById(R.id.rvAdminMembers);
+
+        List<AdminMemberAdapter.AdminMemberItem> adminMemberList = new ArrayList<>();
+        Map<String, AdminMemberAdapter.AdminMemberItem> itemMap = new HashMap<>();
+
+        final String effectiveHostUid = (SeatManager.getInstance().getHostUserID() != null && !SeatManager.getInstance().getHostUserID().trim().isEmpty())
+                ? SeatManager.getInstance().getHostUserID() : userID;
+
+        // 1. Add seated members
+        List<SeatModel> seats = SeatManager.getInstance().getSeats();
+        for (SeatModel seat : seats) {
+            if (seat != null && !seat.isEmpty()) {
+                String uid = seat.userID;
+                String name = seat.userName != null && !seat.userName.trim().isEmpty() ? seat.userName : "Member";
+                String avatar = seat.userAvatar;
+
+                String role = "member";
+                if (uid.equals(effectiveHostUid)) {
+                    role = "host";
+                } else if (userRoomRolesMap.containsKey(uid)) {
+                    role = userRoomRolesMap.get(uid);
+                }
+
+                AdminMemberAdapter.AdminMemberItem item = new AdminMemberAdapter.AdminMemberItem(uid, name, avatar, role);
+                itemMap.put(uid, item);
+                adminMemberList.add(item);
+            }
+        }
+
+        // 2. Add connected room users from room_users/{roomID}
+        DatabaseReference onlineRef = FirebaseDatabase.getInstance().getReference("room_users").child(roomID);
+        onlineRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String uid = child.child("userId").getValue(String.class);
+                    if (uid == null) uid = child.getKey();
+                    if (uid != null && !itemMap.containsKey(uid)) {
+                        String name = child.child("userName").getValue(String.class);
+                        String avatar = child.child("userAvatar").getValue(String.class);
+
+                        String role = "member";
+                        if (uid.equals(effectiveHostUid)) {
+                            role = "host";
+                        } else if (userRoomRolesMap.containsKey(uid)) {
+                            role = userRoomRolesMap.get(uid);
+                        }
+
+                        AdminMemberAdapter.AdminMemberItem item = new AdminMemberAdapter.AdminMemberItem(uid, name, avatar, role);
+                        itemMap.put(uid, item);
+                        adminMemberList.add(item);
+                    }
+                }
+
+                // 3. Ensure Host is included
+                if (!itemMap.containsKey(effectiveHostUid)) {
+                    String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                    AdminMemberAdapter.AdminMemberItem hostItem = new AdminMemberAdapter.AdminMemberItem(effectiveHostUid, userName != null ? userName : "Host", myAvatar, "host");
+                    adminMemberList.add(0, hostItem);
+                    itemMap.put(effectiveHostUid, hostItem);
+                }
+
+                int adminCount = 0;
+                for (AdminMemberAdapter.AdminMemberItem item : adminMemberList) {
+                    if (item.isAdmin()) adminCount++;
+                }
+
+                if (tvAdminCountBadge != null) {
+                    tvAdminCountBadge.setText(adminCount + " Admin" + (adminCount != 1 ? "s" : ""));
+                }
+
+                if (rvAdminMembers != null) {
+                    rvAdminMembers.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
+                    AdminMemberAdapter adapter = new AdminMemberAdapter(adminMemberList, new AdminMemberAdapter.OnRoleActionListener() {
+                        @Override
+                        public void onMakeAdmin(AdminMemberAdapter.AdminMemberItem item) {
+                            showPromoteAdminConfirmation(item, adminDialog);
+                        }
+
+                        @Override
+                        public void onRemoveAdmin(AdminMemberAdapter.AdminMemberItem item) {
+                            showRemoveAdminConfirmation(item, adminDialog);
+                        }
+                    });
+                    rvAdminMembers.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("RoomChatActivity", "Error loading room members for admin management", error.toException());
+            }
+        });
+
+        adminDialog.setContentView(dialogView);
+        adminDialog.show();
+    }
+
+    // ROOM ADMIN FIX: Confirmation Dialog to Promote to Admin
+    private void showPromoteAdminConfirmation(AdminMemberAdapter.AdminMemberItem item, BottomSheetDialog parentDialog) {
+        if (!isHost) return;
+        String name = item.getUserName() != null ? item.getUserName() : "User";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Make Administrator?")
+                .setMessage(name + " will receive administrator permissions in this room.")
+                .setPositiveButton("Make Admin", (dialog, which) -> {
+                    promoteToAdmin(item);
+                    if (parentDialog != null && parentDialog.isShowing()) {
+                        parentDialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    // ROOM ADMIN FIX: Confirmation Dialog to Remove Admin
+    private void showRemoveAdminConfirmation(AdminMemberAdapter.AdminMemberItem item, BottomSheetDialog parentDialog) {
+        if (!isHost) return;
+        String name = item.getUserName() != null ? item.getUserName() : "User";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Remove Administrator?")
+                .setMessage(name + " will lose administrator permissions in this room.")
+                .setPositiveButton("Remove", (dialog, which) -> {
+                    removeAdmin(item);
+                    if (parentDialog != null && parentDialog.isShowing()) {
+                        parentDialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    // ROOM ROLE PERSISTENCE: Save role in Firebase Realtime Database
+    private void promoteToAdmin(AdminMemberAdapter.AdminMemberItem item) {
+        if (roomID == null || item == null || item.getUserId() == null) return;
+        String targetUid = item.getUserId();
+
+        Map<String, Object> roleData = new HashMap<>();
+        roleData.put("role", "admin");
+        roleData.put("updatedAt", System.currentTimeMillis());
+        roleData.put("updatedBy", userID);
+
+        FirebaseDatabase.getInstance().getReference("room_roles")
+                .child(roomID)
+                .child(targetUid)
+                .setValue(roleData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(RoomChatActivity.this, item.getUserName() + " is now an Administrator 🛡️", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(RoomChatActivity.this, "Failed to promote user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // ROOM ROLE PERSISTENCE: Remove admin role in Firebase Realtime Database
+    private void removeAdmin(AdminMemberAdapter.AdminMemberItem item) {
+        if (roomID == null || item == null || item.getUserId() == null) return;
+        String targetUid = item.getUserId();
+
+        Map<String, Object> roleData = new HashMap<>();
+        roleData.put("role", "member");
+        roleData.put("updatedAt", System.currentTimeMillis());
+        roleData.put("updatedBy", userID);
+
+        FirebaseDatabase.getInstance().getReference("room_roles")
+                .child(roomID)
+                .child(targetUid)
+                .setValue(roleData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(RoomChatActivity.this, "Removed administrator permissions from " + item.getUserName(), Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(RoomChatActivity.this, "Failed to remove admin role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void showEditRoomDialog() {
@@ -2437,8 +2738,8 @@ public class RoomChatActivity extends AppCompatActivity {
         View cardOption24 = dialogView.findViewById(R.id.cardOption24Seats);
 
         View.OnClickListener select8 = v -> {
-            if (!isHost) {
-                Toast.makeText(this, "Only room owner/host can change seat capacity!", Toast.LENGTH_SHORT).show();
+            if (!isAdminOrHost()) {
+                Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
             SeatManager.getInstance().setTotalSeats(8);
@@ -2447,8 +2748,8 @@ public class RoomChatActivity extends AppCompatActivity {
         };
 
         View.OnClickListener select16 = v -> {
-            if (!isHost) {
-                Toast.makeText(this, "Only room owner/host can change seat capacity!", Toast.LENGTH_SHORT).show();
+            if (!isAdminOrHost()) {
+                Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
             SeatManager.getInstance().setTotalSeats(16);
@@ -2457,8 +2758,8 @@ public class RoomChatActivity extends AppCompatActivity {
         };
 
         View.OnClickListener select24 = v -> {
-            if (!isHost) {
-                Toast.makeText(this, "Only room owner/host can change seat capacity!", Toast.LENGTH_SHORT).show();
+            if (!isAdminOrHost()) {
+                Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
             SeatManager.getInstance().setTotalSeats(24);
@@ -2731,7 +3032,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
                 if (rvMembers != null) {
                     rvMembers.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
-                    rvMembers.setAdapter(new AudienceAdapter(activeUsers, isHost, targetUser -> {
+                    rvMembers.setAdapter(new AudienceAdapter(activeUsers, isAdminOrHost(), targetUser -> {
                         sendSeatInvitation(targetUser.getUserId(), targetUser.getUserName(), targetSeatIndex);
                         dialog.dismiss();
                     }));

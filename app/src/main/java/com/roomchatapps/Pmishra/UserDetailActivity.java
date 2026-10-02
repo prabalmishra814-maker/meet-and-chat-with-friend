@@ -77,6 +77,17 @@ public class UserDetailActivity extends AppCompatActivity {
         if (currentUid != null && currentUid.equals(targetUid)) {
             binding.bottomBar.setVisibility(View.GONE);
         }
+
+        // OTHER COLLECTION NAVIGATION
+        if (binding.cardUserCollection != null) {
+            binding.cardUserCollection.setOnClickListener(v -> {
+                String name = binding.userName.getText().toString();
+                Intent intent = new Intent(UserDetailActivity.this, OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", targetUid);
+                intent.putExtra("selectedUserName", name);
+                startActivity(intent);
+            });
+        }
         
         binding.btnMessage.setOnClickListener(v -> {
             String name = binding.userName.getText().toString();
