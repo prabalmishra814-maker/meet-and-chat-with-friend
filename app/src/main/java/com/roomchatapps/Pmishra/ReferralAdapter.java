@@ -39,7 +39,7 @@ public class ReferralAdapter extends RecyclerView.Adapter<ReferralAdapter.ViewHo
 
         holder.tvUsername.setText(item.getReferredName() != null ? item.getReferredName() : "Referred User");
         holder.tvJoinedTime.setText(formatTimeAgo(item.getTimestamp()));
-        holder.tvRewardBadge.setText("+" + item.getRewardCoins() + " 🪙");
+        holder.tvRewardBadge.setText(com.roomchatapps.Pmishra.utils.CoinUtils.getCoinSpannable(context, "+" + item.getRewardCoins()));
 
         if (item.getReferredAvatar() != null && !item.getReferredAvatar().isEmpty()) {
             Glide.with(context)

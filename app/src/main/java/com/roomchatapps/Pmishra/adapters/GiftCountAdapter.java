@@ -41,7 +41,7 @@ public class GiftCountAdapter extends RecyclerView.Adapter<GiftCountAdapter.View
         if (item.getCostCoins() == 0) {
             holder.tvGiftPrice.setText("FREE");
         } else {
-            holder.tvGiftPrice.setText(item.getCostCoins() + " 🪙");
+            holder.tvGiftPrice.setText(com.roomchatapps.Pmishra.utils.CoinUtils.getCoinSpannable(holder.itemView.getContext(), item.getCostCoins()));
         }
 
         if (item.getIconRes() != 0) {
