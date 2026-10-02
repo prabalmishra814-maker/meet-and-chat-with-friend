@@ -323,12 +323,9 @@ public class LeaderboardActivity extends AppCompatActivity {
     private void updateUI(List<LeaderboardModel> fullList) {
         listRank4Plus.clear();
 
-        // Populate Top 3 Podium & Auto-Equip Rank Frames
+        // Populate Top 3 Podium (Temporary Leaderboard Rank Frames ONLY)
         if (fullList.size() >= 1) {
             LeaderboardModel top1 = fullList.get(0);
-            if (top1.getSpentCoins() > 0 && top1.getUid() != null) {
-                syncRankFrameToUser(top1.getUid(), "frame_rank_1");
-            }
             bindPodiumSlot(top1, podiumRank1, tvNameRank1, tvCoinsRank1, ivAvatarRank1, ivFrameRank1, svgaFrameRank1, "frame_rank_1");
             if (podiumRank1 != null) podiumRank1.setVisibility(View.VISIBLE);
         } else {
@@ -337,9 +334,6 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 2) {
             LeaderboardModel top2 = fullList.get(1);
-            if (top2.getSpentCoins() > 0 && top2.getUid() != null) {
-                syncRankFrameToUser(top2.getUid(), "frame_rank_2");
-            }
             bindPodiumSlot(top2, podiumRank2, tvNameRank2, tvCoinsRank2, ivAvatarRank2, ivFrameRank2, svgaFrameRank2, "frame_rank_2");
             if (podiumRank2 != null) podiumRank2.setVisibility(View.VISIBLE);
         } else {
@@ -348,9 +342,6 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         if (fullList.size() >= 3) {
             LeaderboardModel top3 = fullList.get(2);
-            if (top3.getSpentCoins() > 0 && top3.getUid() != null) {
-                syncRankFrameToUser(top3.getUid(), "frame_rank_3");
-            }
             bindPodiumSlot(top3, podiumRank3, tvNameRank3, tvCoinsRank3, ivAvatarRank3, ivFrameRank3, svgaFrameRank3, "frame_rank_3");
             if (podiumRank3 != null) podiumRank3.setVisibility(View.VISIBLE);
         } else {
@@ -372,16 +363,6 @@ public class LeaderboardActivity extends AppCompatActivity {
 
         // Update Bottom My Rank Bar
         updateMyRankBar(fullList);
-    }
-
-    private void syncRankFrameToUser(String uid, String rankFrameId) {
-        if (uid == null || uid.trim().isEmpty() || rankFrameId == null) return;
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid.trim());
-        userRef.child("equipped_frame").setValue(rankFrameId).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                UserProfileCache.invalidate(uid);
-            }
-        });
     }
 
     private void bindPodiumSlot(LeaderboardModel model, View container, TextView tvName, TextView tvCoins, ShapeableImageView ivAvatar, ImageView ivFrame, SVGAImageView svgaFrame, String defaultRankFrameId) {
@@ -455,18 +436,31 @@ public class LeaderboardActivity extends AppCompatActivity {
                 }
             }
 
+            int rank = myModel.getRank();
+            long spent = myModel.getSpentCoins();
+            if (spent > 0 && rank >= 1 && rank <= 3) {
+                String tempRankFrame = "frame_rank_" + rank;
+                FrameUtils.displayFrame(LeaderboardActivity.this, tempRankFrame, ivMyFrame, svgaMyFrame);
+            } else {
+                UserProfileCache.getUserProfile(currentUid, profile -> {
+                    if (profile != null && profile.equippedFrame != null) {
+                        FrameUtils.displayFrame(LeaderboardActivity.this, profile.equippedFrame, ivMyFrame, svgaMyFrame);
+                    } else {
+                        FrameUtils.clearFrame(ivMyFrame, svgaMyFrame);
+                    }
+                });
+            }
+        } else {
+            if (tvMyRank != null) tvMyRank.setText("Rank: --");
+            if (tvMyName != null) tvMyName.setText("You");
+            if (tvMySpentCoins != null) tvMySpentCoins.setText("0");
             UserProfileCache.getUserProfile(currentUid, profile -> {
-                if (profile != null) {
+                if (profile != null && profile.equippedFrame != null) {
                     FrameUtils.displayFrame(LeaderboardActivity.this, profile.equippedFrame, ivMyFrame, svgaMyFrame);
                 } else {
                     FrameUtils.clearFrame(ivMyFrame, svgaMyFrame);
                 }
             });
-        } else {
-            if (tvMyRank != null) tvMyRank.setText("Rank: --");
-            if (tvMyName != null) tvMyName.setText("You");
-            if (tvMySpentCoins != null) tvMySpentCoins.setText("0");
-            FrameUtils.clearFrame(ivMyFrame, svgaMyFrame);
         }
     }
 }
