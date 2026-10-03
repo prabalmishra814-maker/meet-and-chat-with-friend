@@ -34,9 +34,9 @@
         android:textColor="#B0FFFFFF"
         android:textSize="12.5sp" />
 
-    <!-- Option 1: 8 Seats -->
+    <!-- Option 1: 9 Seats -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardOption8Seats"
+        android:id="@+id/cardOption9Seats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -61,7 +61,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/bg_glass_icon_pill"
                 android:gravity="center"
-                android:text="8"
+                android:text="9"
                 android:textColor="#00FFC6"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -76,7 +76,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8 Seats Grid"
+                    android:text="9 Seats Grid"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -85,16 +85,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="1 Host Seat + 7 Audience Voice Seats"
+                    android:text="1 Host Seat + 8 Audience Voice Seats"
                     android:textColor="#B0FFFFFF"
                     android:textSize="11.5sp" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Option 2: 16 Seats (Default) -->
+    <!-- Option 2: 17 Seats -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardOption16Seats"
+        android:id="@+id/cardOption17Seats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -119,7 +119,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/bg_glass_icon_pill"
                 android:gravity="center"
-                android:text="16"
+                android:text="17"
                 android:textColor="#FF007A"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -134,7 +134,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="16 Seats Grid (Standard)"
+                    android:text="17 Seats Grid (Standard)"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -143,16 +143,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="1 Host Seat + 15 Audience Voice Seats"
+                    android:text="1 Host Seat + 16 Audience Voice Seats"
                     android:textColor="#B0FFFFFF"
                     android:textSize="11.5sp" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Option 3: 24 Seats -->
+    <!-- Option 3: 21 Seats -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardOption24Seats"
+        android:id="@+id/cardOption21Seats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
@@ -176,7 +176,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/bg_glass_icon_pill"
                 android:gravity="center"
-                android:text="24"
+                android:text="21"
                 android:textColor="#FFB703"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -191,7 +191,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="24 Seats Grid (Mega Party)"
+                    android:text="21 Seats Grid (Mega Party)"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -200,7 +200,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="1 Host Seat + 23 Audience Voice Seats"
+                    android:text="1 Host Seat + 20 Audience Voice Seats"
                     android:textColor="#B0FFFFFF"
                     android:textSize="11.5sp" />
             </LinearLayout>

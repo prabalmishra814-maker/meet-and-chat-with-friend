@@ -735,7 +735,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:layout_gravity="center"
-                            android:src="@drawable/whatsapp_image_2026_10_03_at_2_48_01_am" />
+                            android:src="@drawable/logo_placeholder" />
                     </FrameLayout>
 
                     <TextView

@@ -112,11 +112,12 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
 
+            // SEAT LAYOUT FIX
             if (holder.tvSeatName != null) {
                 if (position == 0) {
                     holder.tvSeatName.setText("Host Seat");
                 } else {
-                    holder.tvSeatName.setText(String.valueOf(model.index));
+                    holder.tvSeatName.setText(String.valueOf(model.index + 1));
                 }
             }
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);

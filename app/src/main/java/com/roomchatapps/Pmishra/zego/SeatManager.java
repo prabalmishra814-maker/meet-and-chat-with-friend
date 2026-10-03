@@ -18,7 +18,8 @@ import java.util.Set;
 
 public class SeatManager {
     private static final String TAG = "SeatManager";
-    public static final int TOTAL_SEATS = 16;
+    // SEAT SYSTEM FIX
+    public static final int TOTAL_SEATS = 17;
     private static SeatManager instance;
 
     private final List<SeatModel> seatList = new ArrayList<>();
@@ -44,22 +45,33 @@ public class SeatManager {
         this.currentRoomID = roomID != null ? roomID : "";
     }
 
-    private int totalSeats = 16;
+    // SEAT SYSTEM FIX
+    private int totalSeats = 17;
 
     public int getTotalSeats() {
         return totalSeats;
     }
 
+    // SEAT SYSTEM FIX
     public synchronized void setTotalSeats(int count) {
-        if (count != 8 && count != 16 && count != 24) return;
-        this.totalSeats = count;
+        int validCount = count;
+        if (validCount != 9 && validCount != 17 && validCount != 21) {
+            if (validCount <= 12) {
+                validCount = 9;
+            } else if (validCount <= 19) {
+                validCount = 17;
+            } else {
+                validCount = 21;
+            }
+        }
+        this.totalSeats = validCount;
 
-        if (seatList.size() < count) {
-            while (seatList.size() < count) {
+        if (seatList.size() < validCount) {
+            while (seatList.size() < validCount) {
                 seatList.add(new SeatModel(seatList.size()));
             }
-        } else if (seatList.size() > count) {
-            while (seatList.size() > count) {
+        } else if (seatList.size() > validCount) {
+            while (seatList.size() > validCount) {
                 seatList.remove(seatList.size() - 1);
             }
         }
@@ -342,9 +354,25 @@ public class SeatManager {
         }
     }
 
+    // SEAT LIMIT SYNC FIX
     public void setSeatsFromExternal(List<SeatModel> externalSeats) {
         if (externalSeats == null || externalSeats.isEmpty()) return;
         synchronized (this) {
+            int externalCount = externalSeats.size();
+            if (externalCount == 9 || externalCount == 17 || externalCount == 21) {
+                if (this.totalSeats != externalCount) {
+                    this.totalSeats = externalCount;
+                    if (seatList.size() < externalCount) {
+                        while (seatList.size() < externalCount) {
+                            seatList.add(new SeatModel(seatList.size()));
+                        }
+                    } else if (seatList.size() > externalCount) {
+                        while (seatList.size() > externalCount) {
+                            seatList.remove(seatList.size() - 1);
+                        }
+                    }
+                }
+            }
             for (SeatModel external : externalSeats) {
                 if (external != null && external.index >= 0 && external.index < totalSeats) {
                     // Security enforcement: Seat 0 is strictly reserved for Room Host ONLY
@@ -444,11 +472,27 @@ public class SeatManager {
         }
     }
 
+    // SEAT LIMIT SYNC FIX
     private void parseSeatsJson(String jsonStr) {
         if (jsonStr == null || jsonStr.trim().isEmpty()) return;
         try {
             JSONArray array = new JSONArray(jsonStr);
             synchronized (this) {
+                int incomingCount = array.length();
+                if (incomingCount == 9 || incomingCount == 17 || incomingCount == 21) {
+                    if (this.totalSeats != incomingCount) {
+                        this.totalSeats = incomingCount;
+                        if (seatList.size() < incomingCount) {
+                            while (seatList.size() < incomingCount) {
+                                seatList.add(new SeatModel(seatList.size()));
+                            }
+                        } else if (seatList.size() > incomingCount) {
+                            while (seatList.size() > incomingCount) {
+                                seatList.remove(seatList.size() - 1);
+                            }
+                        }
+                    }
+                }
                 for (int i = 0; i < array.length() && i < totalSeats; i++) {
                     JSONObject obj = array.getJSONObject(i);
                     int index = obj.optInt("index", i);

@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
+import com.roomchatapps.Pmishra.utils.CoinUtils;
 import com.roomchatapps.Pmishra.utils.RoomFloatingManager; // ROOM MINIMIZE FIX
 
 import android.Manifest;
@@ -220,6 +221,8 @@ public class RoomChatActivity extends AppCompatActivity {
     private String currentRoomWelcomeMessage = "";
     private String currentNewUserWelcomeMessage = "";
     private long lastClearedTimestamp = 0L;
+    // SEAT SYSTEM FIX
+    private long lastSeatLimitClickTime = 0L;
 
     // ADMIN PERMISSION FIX
     private boolean isAdminOrHost() {
@@ -1035,7 +1038,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
                     if (tvLevelBadge != null) tvLevelBadge.setText("Lv." + level);
                     if (pbLevelXp != null) pbLevelXp.setProgress(xpProgressPct);
-                    if (tvLevelXpText != null) tvLevelXpText.setText(xpInLevel + " / " + maxXpInLevel + " XP (" + com.roomchatapps.Pmishra.utils.CoinUtils.formatCoins(coinsSpent) + " Coins)");
+                    if (tvLevelXpText != null) tvLevelXpText.setText(xpInLevel + " / " + maxXpInLevel + " XP (" + CoinUtils.formatCoins(coinsSpent) + " Coins)");
                 }
             }
 
@@ -1726,6 +1729,17 @@ public class RoomChatActivity extends AppCompatActivity {
                     String newWMsg = snapshot.child("newUserWelcomeMessage").getValue(String.class);
                     if (wMsg != null) currentRoomWelcomeMessage = wMsg;
                     if (newWMsg != null) currentNewUserWelcomeMessage = newWMsg;
+
+                    // SEAT LIMIT SYNC FIX
+                    DataSnapshot seatCountSnap = snapshot.child("seatCount");
+                    if (seatCountSnap.exists()) {
+                        Integer seatCountVal = seatCountSnap.getValue(Integer.class);
+                        if (seatCountVal != null && (seatCountVal == 9 || seatCountVal == 17 || seatCountVal == 21)) {
+                            if (SeatManager.getInstance().getTotalSeats() != seatCountVal) {
+                                SeatManager.getInstance().setTotalSeats(seatCountVal);
+                            }
+                        }
+                    }
 
                     // Real-Time Clear Room Chat Screen Sync
                     Long clearTs = snapshot.child("clearScreenTimestamp").getValue(Long.class);
@@ -2573,8 +2587,8 @@ public class RoomChatActivity extends AppCompatActivity {
         EditText etSearchAdminMembers = dialogView.findViewById(R.id.etSearchAdminMembers);
         RecyclerView rvAdminMembers = dialogView.findViewById(R.id.rvAdminMembers);
 
-        List<AdminMemberAdapter.AdminMemberItem> adminMemberList = new ArrayList<>();
-        Map<String, AdminMemberAdapter.AdminMemberItem> itemMap = new HashMap<>();
+        List<AdminMemberItem> adminMemberList = new ArrayList<>();
+        Map<String, AdminMemberItem> itemMap = new HashMap<>();
 
         final String effectiveHostUid = (SeatManager.getInstance().getHostUserID() != null && !SeatManager.getInstance().getHostUserID().trim().isEmpty())
                 ? SeatManager.getInstance().getHostUserID() : userID;
@@ -2594,7 +2608,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     role = userRoomRolesMap.get(uid);
                 }
 
-                AdminMemberAdapter.AdminMemberItem item = new AdminMemberAdapter.AdminMemberItem(uid, name, avatar, role);
+                AdminMemberItem item = new AdminMemberItem(uid, name, avatar, role);
                 itemMap.put(uid, item);
                 adminMemberList.add(item);
             }
@@ -2621,7 +2635,7 @@ public class RoomChatActivity extends AppCompatActivity {
                             role = userRoomRolesMap.get(uid);
                         }
 
-                        AdminMemberAdapter.AdminMemberItem item = new AdminMemberAdapter.AdminMemberItem(uid, name, avatar, role);
+                        AdminMemberItem item = new AdminMemberItem(uid, name, avatar, role);
                         itemMap.put(uid, item);
                         adminMemberList.add(item);
                     }
@@ -2630,13 +2644,13 @@ public class RoomChatActivity extends AppCompatActivity {
                 // 3. Ensure Host is included
                 if (!itemMap.containsKey(effectiveHostUid)) {
                     String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
-                    AdminMemberAdapter.AdminMemberItem hostItem = new AdminMemberAdapter.AdminMemberItem(effectiveHostUid, userName != null ? userName : "Host", myAvatar, "host");
+                    AdminMemberItem hostItem = new AdminMemberItem(effectiveHostUid, userName != null ? userName : "Host", myAvatar, "host");
                     adminMemberList.add(0, hostItem);
                     itemMap.put(effectiveHostUid, hostItem);
                 }
 
                 int adminCount = 0;
-                for (AdminMemberAdapter.AdminMemberItem item : adminMemberList) {
+                for (AdminMemberItem item : adminMemberList) {
                     if (item.isAdmin()) adminCount++;
                 }
 
@@ -2646,14 +2660,14 @@ public class RoomChatActivity extends AppCompatActivity {
 
                 if (rvAdminMembers != null) {
                     rvAdminMembers.setLayoutManager(new LinearLayoutManager(RoomChatActivity.this));
-                    AdminMemberAdapter adapter = new AdminMemberAdapter(adminMemberList, new AdminMemberAdapter.OnRoleActionListener() {
+                    AdminMemberAdapter adapter = new AdminMemberAdapter(adminMemberList, new OnRoleActionListener() {
                         @Override
-                        public void onMakeAdmin(AdminMemberAdapter.AdminMemberItem item) {
+                        public void onMakeAdmin(AdminMemberItem item) {
                             showPromoteAdminConfirmation(item, adminDialog);
                         }
 
                         @Override
-                        public void onRemoveAdmin(AdminMemberAdapter.AdminMemberItem item) {
+                        public void onRemoveAdmin(AdminMemberItem item) {
                             showRemoveAdminConfirmation(item, adminDialog);
                         }
                     });
@@ -2666,8 +2680,8 @@ public class RoomChatActivity extends AppCompatActivity {
                             @Override
                             public void onTextChanged(CharSequence s, int start, int before, int count) {
                                 String query = s.toString().trim().toLowerCase();
-                                List<AdminMemberAdapter.AdminMemberItem> filtered = new ArrayList<>();
-                                for (AdminMemberAdapter.AdminMemberItem item : adminMemberList) {
+                                List<AdminMemberItem> filtered = new ArrayList<>();
+                                for (AdminMemberItem item : adminMemberList) {
                                     String name = item.getUserName() != null ? item.getUserName().toLowerCase() : "";
                                     String uid = item.getUserId() != null ? item.getUserId().toLowerCase() : "";
                                     if (name.contains(query) || uid.contains(query)) {
@@ -2856,7 +2870,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // ROOM ADMIN FIX: Confirmation Dialog to Promote to Admin
-    private void showPromoteAdminConfirmation(AdminMemberAdapter.AdminMemberItem item, BottomSheetDialog parentDialog) {
+    private void showPromoteAdminConfirmation(AdminMemberItem item, BottomSheetDialog parentDialog) {
         if (!isHost) return;
         String name = item.getUserName() != null ? item.getUserName() : "User";
 
@@ -2874,7 +2888,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // ROOM ADMIN FIX: Confirmation Dialog to Remove Admin
-    private void showRemoveAdminConfirmation(AdminMemberAdapter.AdminMemberItem item, BottomSheetDialog parentDialog) {
+    private void showRemoveAdminConfirmation(AdminMemberItem item, BottomSheetDialog parentDialog) {
         if (!isHost) return;
         String name = item.getUserName() != null ? item.getUserName() : "User";
 
@@ -2892,7 +2906,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // ROOM ROLE PERSISTENCE: Save role in Firebase Realtime Database
-    private void promoteToAdmin(AdminMemberAdapter.AdminMemberItem item) {
+    private void promoteToAdmin(AdminMemberItem item) {
         if (roomID == null || item == null || item.getUserId() == null) return;
         String targetUid = item.getUserId();
 
@@ -2914,7 +2928,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // ROOM ROLE PERSISTENCE: Remove admin role in Firebase Realtime Database
-    private void removeAdmin(AdminMemberAdapter.AdminMemberItem item) {
+    private void removeAdmin(AdminMemberItem item) {
         if (roomID == null || item == null || item.getUserId() == null) return;
         String targetUid = item.getUserId();
 
@@ -3200,49 +3214,74 @@ public class RoomChatActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom); // ROOM ANIMATION FIX
     }
 
+    // SEAT LIMIT SYNC FIX
+    private void updateRoomSeatCapacity(int newCount) {
+        if (newCount != 9 && newCount != 17 && newCount != 21) return;
+        SeatManager.getInstance().setTotalSeats(newCount);
+        if (roomID != null && !roomID.trim().isEmpty()) {
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("rooms").child(roomID);
+            Map<String, Object> map = new HashMap<>();
+            map.put("seatCount", newCount);
+            ref.updateChildren(map);
+        }
+    }
+
+    // SEAT SYSTEM FIX
     private void showSeatCapacityDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         applyGlassyStyle(dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_seat_capacity, null, false);
         if (dialogView == null) return;
 
-        View cardOption8 = dialogView.findViewById(R.id.cardOption8Seats);
-        View cardOption16 = dialogView.findViewById(R.id.cardOption16Seats);
-        View cardOption24 = dialogView.findViewById(R.id.cardOption24Seats);
+        View cardOption9 = dialogView.findViewById(R.id.cardOption9Seats);
+        View cardOption17 = dialogView.findViewById(R.id.cardOption17Seats);
+        View cardOption21 = dialogView.findViewById(R.id.cardOption21Seats);
 
-        View.OnClickListener select8 = v -> {
+        View.OnClickListener select9 = v -> {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastSeatLimitClickTime < 1000) return;
+            lastSeatLimitClickTime = now;
+
             if (!isAdminOrHost()) {
                 Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            SeatManager.getInstance().setTotalSeats(8);
-            Toast.makeText(this, "Room Seat Capacity updated to 8 Seats Grid!", Toast.LENGTH_SHORT).show();
+            updateRoomSeatCapacity(9);
+            Toast.makeText(this, "Room Seat Capacity updated to 9 Seats Grid!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
 
-        View.OnClickListener select16 = v -> {
+        View.OnClickListener select17 = v -> {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastSeatLimitClickTime < 1000) return;
+            lastSeatLimitClickTime = now;
+
             if (!isAdminOrHost()) {
                 Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            SeatManager.getInstance().setTotalSeats(16);
-            Toast.makeText(this, "Room Seat Capacity updated to 16 Seats Grid!", Toast.LENGTH_SHORT).show();
+            updateRoomSeatCapacity(17);
+            Toast.makeText(this, "Room Seat Capacity updated to 17 Seats Grid!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
 
-        View.OnClickListener select24 = v -> {
+        View.OnClickListener select21 = v -> {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastSeatLimitClickTime < 1000) return;
+            lastSeatLimitClickTime = now;
+
             if (!isAdminOrHost()) {
                 Toast.makeText(this, "Only Room Host or Administrators can change seat capacity!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            SeatManager.getInstance().setTotalSeats(24);
-            Toast.makeText(this, "Room Seat Capacity updated to 24 Seats Grid!", Toast.LENGTH_SHORT).show();
+            updateRoomSeatCapacity(21);
+            Toast.makeText(this, "Room Seat Capacity updated to 21 Seats Grid!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         };
 
-        if (cardOption8 != null) cardOption8.setOnClickListener(select8);
-        if (cardOption16 != null) cardOption16.setOnClickListener(select16);
-        if (cardOption24 != null) cardOption24.setOnClickListener(select24);
+        if (cardOption9 != null) cardOption9.setOnClickListener(select9);
+        if (cardOption17 != null) cardOption17.setOnClickListener(select17);
+        if (cardOption21 != null) cardOption21.setOnClickListener(select21);
 
         dialog.setContentView(dialogView);
         dialog.show();
