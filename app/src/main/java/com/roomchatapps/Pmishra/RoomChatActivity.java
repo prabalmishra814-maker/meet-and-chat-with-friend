@@ -163,8 +163,8 @@ import kotlin.Unit;
 
 public class RoomChatActivity extends AppCompatActivity {
 
-    private final long appID = 1696254780L;
-    private final String appSign = "bca17fa9d8559318d5e7d1cdf2c427018467d3a44f9d1212f2827e4d35b719d0";
+    private final long appID = 1179755079L;
+    private final String appSign = "4244b91291217b7cb9b2b4bd61ec80d3d892d1327e8ac52e3ba66cad189aa319";
 
     private String roomID;
     private String userID;
