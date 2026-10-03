@@ -318,9 +318,7 @@ public class ProfileFragment extends Fragment {
         if (binding.cardCollection != null) {
             binding.cardCollection.setOnClickListener(openCollection);
         }
-        if (binding.btnCollectionCenter != null) {
-            binding.btnCollectionCenter.setOnClickListener(openCollection);
-        }
+
 
         binding.cardSetting.setOnClickListener(v -> {
             if (getActivity() != null) {

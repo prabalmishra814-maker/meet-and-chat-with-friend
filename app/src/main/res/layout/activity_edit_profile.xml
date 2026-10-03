@@ -205,9 +205,7 @@
                         android:layout_height="56dp"
                         android:padding="2dp"
                         android:src="@drawable/_1000092458_removebg_preview"
-                        app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="#FFFFFF"
-                        app:strokeWidth="2dp" />
+                        app:shapeAppearanceOverlay="@style/CircleImage" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/presetAvatar2"
@@ -216,9 +214,7 @@
                         android:layout_marginStart="12dp"
                         android:padding="2dp"
                         android:src="@drawable/_1000092459_removebg_preview"
-                        app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="#FFD700"
-                        app:strokeWidth="2dp" />
+                        app:shapeAppearanceOverlay="@style/CircleImage" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/presetAvatar3"
@@ -227,9 +223,7 @@
                         android:layout_marginStart="12dp"
                         android:padding="2dp"
                         android:src="@drawable/_1000092460_removebg_preview"
-                        app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="#FF4500"
-                        app:strokeWidth="2dp" />
+                        app:shapeAppearanceOverlay="@style/CircleImage" />
 
                 </LinearLayout>
             </HorizontalScrollView>

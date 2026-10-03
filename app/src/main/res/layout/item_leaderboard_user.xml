@@ -42,9 +42,7 @@
             android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_person"
-            app:shapeAppearanceOverlay="@style/CircleImage"
-            app:strokeColor="#33FFFFFF"
-            app:strokeWidth="1.5dp" />
+            app:shapeAppearanceOverlay="@style/CircleImage" />
 
         <ImageView
             android:id="@+id/ivFrame"

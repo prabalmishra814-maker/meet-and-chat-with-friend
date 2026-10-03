@@ -242,53 +242,156 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Collection Access Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardUserCollection"
+            <!-- Collection & Gifts Inline Section -->
+            <LinearLayout
+                android:id="@+id/llCollectionSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131A28"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#25FFFFFF"
-                app:strokeWidth="1dp">
+                android:layout_marginTop="18dp"
+                android:orientation="vertical">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvCollectionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Collection &amp; Gifts 🏆"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <!-- Category Chips Bar -->
+                <HorizontalScrollView
+                    android:id="@+id/svTabs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="14dp">
+                    android:layout_marginTop="10dp"
+                    android:scrollbars="none">
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/room_gift_history_ic" />
-
-                    <TextView
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:id="@+id/llTabs"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-bold"
-                        android:text="Collection &amp; Gifts 🏆"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp" />
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
 
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@drawable/ic_back_arrow"
-                        android:rotation="180"
-                        app:tint="#80FFFFFF" />
+                        <TextView
+                            android:id="@+id/tabAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_charm_bg"
+                            android:fontFamily="sans-serif-bold"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:text="All Items"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp" />
 
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/tabEntrances"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/chip_room_bg"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:text="Entry Effects"
+                            android:textColor="#88FFFFFF"
+                            android:textSize="13sp" />
 
-            </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:id="@+id/tabFrames"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/chip_room_bg"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:text="Frames"
+                            android:textColor="#88FFFFFF"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tabGifts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/chip_room_bg"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:text="Gift Received"
+                            android:textColor="#88FFFFFF"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </HorizontalScrollView>
+
+                <!-- Collection Items Grid Container -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvCollection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_collection_card" />
+
+                    <!-- Empty State Layout -->
+                    <LinearLayout
+                        android:id="@+id/llEmptyState"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="20dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:alpha="0.6"
+                            android:src="@drawable/room_gift_history_ic" />
+
+                        <TextView
+                            android:id="@+id/tvEmptyTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="User's Collection is Empty"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/tvEmptySubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="This user has no items or gifts in their collection."
+                            android:textColor="#88FFFFFF"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/progressBarCollection"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:indeterminateTint="#40E0D0"
+                        android:visibility="gone" />
+
+                </FrameLayout>
+
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"

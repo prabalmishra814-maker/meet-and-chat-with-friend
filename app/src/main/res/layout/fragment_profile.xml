@@ -97,9 +97,7 @@
                             android:layout_gravity="center"
                             android:scaleType="centerCrop"
                             android:src="@drawable/ic_person"
-                            app:shapeAppearanceOverlay="@style/CircleImage"
-                            app:strokeColor="#1AFFFFFF"
-                            app:strokeWidth="2dp" />
+                            app:shapeAppearanceOverlay="@style/CircleImage" />
 
                         <!-- Frame Overlay -->
                         <ImageView
@@ -710,42 +708,6 @@
                         android:gravity="center"
                         android:lines="2"
                         android:text="@string/become_vip"
-                        android:textColor="@color/white"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <!-- Collection Center Option -->
-                <LinearLayout
-                    android:id="@+id/btnCollectionCenter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="54dp"
-                        android:layout_height="54dp"
-                        android:background="@drawable/bg_profile_option_icon">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/logo_placeholder" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:gravity="center"
-                        android:lines="2"
-                        android:text="My\nCollection"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
                 </LinearLayout>

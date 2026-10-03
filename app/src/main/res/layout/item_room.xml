@@ -90,9 +90,7 @@
             android:src="@drawable/ic_person"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/CircleImage"
-            app:strokeColor="#40FFFFFF"
-            app:strokeWidth="1.5dp" />
+            app:shapeAppearanceOverlay="@style/CircleImage" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -560,7 +560,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true">
 
-        <!-- Circular User Avatar with White Border -->
+        <!-- Circular User Avatar -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivUserProfileAvatar"
             android:layout_width="80dp"
@@ -568,9 +568,7 @@
             android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-            app:strokeColor="#FFFFFF"
-            app:strokeWidth="3dp" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <!-- Profile Frame Overlay -->
         <ImageView

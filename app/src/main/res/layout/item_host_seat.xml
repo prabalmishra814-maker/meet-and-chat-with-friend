@@ -55,9 +55,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
             android:visibility="gone"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-            app:strokeColor="#FFD700"
-            app:strokeWidth="2dp" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <!-- Profile Frame / Horns Overlay -->
         <ImageView
