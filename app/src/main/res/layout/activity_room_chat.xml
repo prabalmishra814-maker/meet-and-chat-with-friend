@@ -199,7 +199,7 @@
     <FrameLayout
         android:id="@+id/bannerGiftContainer"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="102dp"
         android:layout_marginTop="2dp"
         android:elevation="25dp"
         android:visibility="gone"
@@ -212,6 +212,7 @@
             android:id="@+id/svgaBannerPlayer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scaleType="fitCenter"
             app:clearsAfterStop="true"
             app:loopCount="1" />
 
@@ -223,16 +224,18 @@
             android:layout_gravity="center"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.02"
-            android:paddingHorizontal="48dp"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="4dp"
             android:singleLine="true"
             android:textColor="#FFFFFF"
-            android:textSize="14.5sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:shadowColor="#A0000000"
+            android:shadowColor="#E0000000"
             android:shadowDx="0"
             android:shadowDy="2"
-            android:shadowRadius="5"
+            android:shadowRadius="6"
             tools:text="akash sent Walkthrough" />
     </FrameLayout>
 

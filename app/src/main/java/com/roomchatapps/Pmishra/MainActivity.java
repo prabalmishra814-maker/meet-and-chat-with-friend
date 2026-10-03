@@ -6,6 +6,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Html;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -24,6 +27,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +38,9 @@ import com.roomchatapps.Pmishra.models.UserCheckInState;
 import com.roomchatapps.Pmishra.services.AppNotificationService;
 import com.roomchatapps.Pmishra.utils.DailyCheckInManager;
 import com.roomchatapps.Pmishra.utils.SystemNotificationManager;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         setupBottomNavigation();
         setupNotificationListener();
+        setupGlobalGiftListener();
         
         // Handle window insets
         View mainView = findViewById(android.R.id.content);
@@ -313,5 +321,211 @@ public class MainActivity extends AppCompatActivity {
         if (userNotifRef != null && notifEventListener != null) {
             userNotifRef.removeEventListener(notifEventListener);
         }
+        if (globalGiftsRef != null && globalGiftsChildListener != null) {
+            globalGiftsRef.removeEventListener(globalGiftsChildListener);
+        }
+        if (globalBannerTimeoutRunnable != null) {
+            globalBannerHandler.removeCallbacks(globalBannerTimeoutRunnable);
+        }
+    }
+
+    private DatabaseReference globalGiftsRef;
+    private ChildEventListener globalGiftsChildListener;
+    private NotificationAnimator globalNotificationAnimator;
+    private final Queue<GlobalBannerItem> globalBannerQueue = new LinkedList<>();
+    private boolean isGlobalBannerPlaying = false;
+    private final Handler globalBannerHandler = new Handler(Looper.getMainLooper());
+    private Runnable globalBannerTimeoutRunnable = null;
+
+    private static class GlobalBannerItem {
+        final String svgaAsset;
+        final String htmlNotice;
+        final String senderName;
+        final String giftNotice;
+        final int iconRes;
+        final String avatarUrl;
+
+        GlobalBannerItem(String svgaAsset, String htmlNotice, String senderName, String giftNotice, int iconRes, String avatarUrl) {
+            this.svgaAsset = svgaAsset;
+            this.htmlNotice = htmlNotice;
+            this.senderName = senderName;
+            this.giftNotice = giftNotice;
+            this.iconRes = iconRes;
+            this.avatarUrl = avatarUrl;
+        }
+    }
+
+    private void setupGlobalGiftListener() {
+        View overlayContainer = findViewById(R.id.globalGiftOverlayContainer);
+        if (overlayContainer instanceof android.view.ViewGroup) {
+            globalNotificationAnimator = new NotificationAnimator((android.view.ViewGroup) overlayContainer);
+        }
+
+        globalGiftsRef = FirebaseDatabase.getInstance().getReference("global_room_gifts");
+        globalGiftsChildListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!snapshot.exists()) return;
+
+                Long ts = snapshot.child("timestamp").getValue(Long.class);
+                if (ts != null && ts < appStartTime - 3000) return;
+
+                String sName = snapshot.child("senderName").getValue(String.class);
+                String gName = snapshot.child("giftName").getValue(String.class);
+                String rName = snapshot.child("recipientName").getValue(String.class);
+                String roomName = snapshot.child("roomName").getValue(String.class);
+                String sAvatar = snapshot.child("senderAvatar").getValue(String.class);
+                Long iconResLong = snapshot.child("iconRes").getValue(Long.class);
+                int iconRes = iconResLong != null ? iconResLong.intValue() : R.drawable.gift_icon;
+
+                if (sName == null || gName == null) return;
+
+                String sender = sName.trim();
+                String gift = gName.trim();
+                String target = (rName != null && !rName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + rName.trim() + "</b></font>") : "";
+                String room = (roomName != null && !roomName.trim().isEmpty()) ? (" in " + roomName.trim()) : "";
+
+                Long qtyLong = snapshot.child("quantity").getValue(Long.class);
+                int qty = qtyLong != null ? qtyLong.intValue() : 1;
+                if (qty <= 1) {
+                    int xIdx = gift.indexOf(" (x");
+                    if (xIdx != -1) {
+                        try {
+                            String numStr = gift.substring(xIdx + 3, gift.indexOf(")", xIdx));
+                            qty = Integer.parseInt(numStr);
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                String cleanGift = gift;
+                int idx = cleanGift.indexOf(" (x");
+                if (idx != -1) {
+                    cleanGift = cleanGift.substring(0, idx);
+                }
+
+                int playTimes = Math.max(1, Math.min(qty, 10)); // Play up to quantity times in sequence
+
+                String slideNotice = "sent " + gift + (rName != null && !rName.trim().isEmpty() ? " to " + rName.trim() : "") + " 🎁";
+
+                for (int i = 1; i <= playTimes; i++) {
+                    String countSuffix = playTimes > 1 ? (" [" + i + "/" + playTimes + "]") : "";
+                    String htmlNotice = "<font color='#FFD700'><b>" + sender + "</b></font> sent <font color='#FF007A'><b>" + cleanGift + "</b></font>" + countSuffix + target + room + " 🎁";
+                    globalBannerQueue.add(new GlobalBannerItem("Notification/rednotification.svga", htmlNotice, sender, slideNotice, iconRes, sAvatar));
+                }
+
+                if (!isGlobalBannerPlaying) {
+                    processNextGlobalBanner();
+                }
+            }
+
+            @Override public void onChildChanged(@NonNull DataSnapshot s, String p) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot s) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot s, String p) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        };
+        globalGiftsRef.addChildEventListener(globalGiftsChildListener);
+    }
+
+    private synchronized void processNextGlobalBanner() {
+        if (globalBannerQueue.isEmpty()) {
+            isGlobalBannerPlaying = false;
+            return;
+        }
+
+        isGlobalBannerPlaying = true;
+        GlobalBannerItem item = globalBannerQueue.poll();
+        if (item == null) {
+            isGlobalBannerPlaying = false;
+            return;
+        }
+
+        View container = findViewById(R.id.globalBannerGiftContainer);
+        com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+        TextView tvNotice = findViewById(R.id.globalTvBannerNotice);
+
+        if (container == null || player == null || tvNotice == null) {
+            isGlobalBannerPlaying = false;
+            processNextGlobalBanner();
+            return;
+        }
+
+        runOnUiThread(() -> {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    tvNotice.setText(Html.fromHtml(item.htmlNotice, Html.FROM_HTML_MODE_LEGACY));
+                } else {
+                    tvNotice.setText(Html.fromHtml(item.htmlNotice));
+                }
+                container.setVisibility(View.VISIBLE);
+            } catch (Exception ignored) {}
+        });
+
+        com.opensource.svgaplayer.SVGAParser parser = new com.opensource.svgaplayer.SVGAParser(this);
+        parser.decodeFromAssets(item.svgaAsset, new com.opensource.svgaplayer.SVGAParser.ParseCompletion() {
+            @Override
+            public void onComplete(@NonNull com.opensource.svgaplayer.SVGAVideoEntity videoItem) {
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) {
+                        finishCurrentGlobalBanner();
+                        return;
+                    }
+                    try {
+                        int frames = videoItem.getFrames();
+                        int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
+                        long durationMs = (long) (((double) frames / fps) * 1000L);
+                        long bannerDisplayDurationMs = Math.max(3500L, durationMs);
+
+                        if (globalBannerTimeoutRunnable != null) {
+                            globalBannerHandler.removeCallbacks(globalBannerTimeoutRunnable);
+                        }
+                        globalBannerTimeoutRunnable = MainActivity.this::finishCurrentGlobalBanner;
+                        globalBannerHandler.postDelayed(globalBannerTimeoutRunnable, bannerDisplayDurationMs + 300L);
+
+                        player.stopAnimation();
+                        player.clear();
+                        player.setVisibility(View.VISIBLE);
+                        player.setVideoItem(videoItem);
+                        player.setLoops(1);
+                        player.setCallback(new com.opensource.svgaplayer.SVGACallback() {
+                            @Override public void onFinished() { finishCurrentGlobalBanner(); }
+                            @Override public void onPause() {}
+                            @Override public void onRepeat() {}
+                            @Override public void onStep(int frame, double percentage) {}
+                        });
+                        player.startAnimation();
+                    } catch (Exception e) {
+                        finishCurrentGlobalBanner();
+                    }
+                });
+            }
+
+            @Override
+            public void onError() {
+                finishCurrentGlobalBanner();
+            }
+        }, null);
+    }
+
+    private void finishCurrentGlobalBanner() {
+        runOnUiThread(() -> {
+            if (globalBannerTimeoutRunnable != null) {
+                globalBannerHandler.removeCallbacks(globalBannerTimeoutRunnable);
+                globalBannerTimeoutRunnable = null;
+            }
+            View container = findViewById(R.id.globalBannerGiftContainer);
+            com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+
+            if (container != null) container.setVisibility(View.GONE);
+            if (player != null) {
+                try {
+                    player.setCallback(null);
+                    player.stopAnimation();
+                    player.clear();
+                } catch (Exception ignored) {}
+            }
+            isGlobalBannerPlaying = false;
+            globalBannerHandler.postDelayed(this::processNextGlobalBanner, 150L);
+        });
     }
 }

@@ -8,6 +8,51 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:686945289016:android:d1e17a1431e8e2e21ef7cd",
+        "android_client_info": {
+          "package_name": "com.roomchatapps.Pmishra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "686945289016-1d4kcgs3t9k3brskltgij7r74g4eckfj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.roomchatapps.Pmishra",
+            "certificate_hash": "5df5b5dcf93ade9e98e50cc07c3e921c2f168fc7"
+          }
+        },
+        {
+          "client_id": "686945289016-ags00p3ve2pfseasnei6bs5l8q1bgukm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.roomchatapps.Pmishra",
+            "certificate_hash": "8c2a16884c17ef3e2f5ab8ee8c9a8b7606a49013"
+          }
+        },
+        {
+          "client_id": "686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO8H1cGyL757e2I8bwyOjrwFN2YSfqq40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "686945289016-ph2skvdjnt4blu7i228tfb7haptctg6m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:686945289016:android:604d09ab3ef828451ef7cd",
         "android_client_info": {
           "package_name": "com.roomchatapps.amstudio"
@@ -15,11 +60,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "686945289016-5kujr0jbn6t9iv69b9hv5u3o7j4lv7o4.apps.googleusercontent.com",
+          "client_id": "686945289016-crljfmscr337eklti91vasdb2b8jm6g1.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.roomchatapps.amstudio",
-            "certificate_hash": "fadb718baa27abbf950aea4c960862bea6c699eb"
+            "certificate_hash": "8c2a16884c17ef3e2f5ab8ee8c9a8b7606a49013"
           }
         },
         {

@@ -13,6 +13,54 @@
         app:layout_constraintTop_toTopOf="parent"
         android:paddingTop="40dp"/>
 
+    <!-- Global Gift Banner Container for Main Screen (Outside Room) -->
+    <FrameLayout
+        android:id="@+id/globalGiftOverlayContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <FrameLayout
+            android:id="@+id/globalBannerGiftContainer"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:layout_gravity="top"
+            android:layout_marginTop="32dp"
+            android:visibility="gone">
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/globalSvgaBannerPlayer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                app:clearsAfterStop="true"
+                app:loopCount="1" />
+
+            <TextView
+                android:id="@+id/globalTvBannerNotice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:letterSpacing="0.01"
+                android:paddingHorizontal="40dp"
+                android:paddingVertical="4dp"
+                android:singleLine="true"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:shadowColor="#E0000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6" />
+        </FrameLayout>
+
+    </FrameLayout>
+
     <LinearLayout
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

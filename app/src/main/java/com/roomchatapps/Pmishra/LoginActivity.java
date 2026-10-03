@@ -184,8 +184,8 @@ public class LoginActivity extends AppCompatActivity {
     private void signIn() {
         if (isAuthenticating) return;
         setLoadingState(true, "Signing in with Google...");
-        
-        // Sign out previous Google session to ensure clean account picker
+
+        // Ensure clean account selection
         if (mGoogleSignInClient != null) {
             mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> launchGoogleSignInIntent());
         } else {
@@ -209,13 +209,12 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
-            if (resultCode == RESULT_CANCELED) {
+            if (data == null) {
                 setLoadingState(false, null);
                 showFeedback("Google sign-in was cancelled");
                 return;
             }
 
-            // Ensure loading dialog is showing while processing result
             loadingDialog.show("Processing Google sign-in...");
 
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -226,46 +225,44 @@ public class LoginActivity extends AppCompatActivity {
                     firebaseAuthWithGoogle(account.getIdToken());
                 } else {
                     setLoadingState(false, null);
-                    if (account != null && (account.getIdToken() == null || account.getIdToken().isEmpty())) {
-                        Log.e(TAG, "Google Account ID token is null. Verify default_web_client_id & SHA-1 in Firebase Console.");
-                        showFeedback("Sign in failed: ID Token missing. Verify SHA-1 in Firebase.");
-                    } else {
-                        showFeedback("Google sign-in failed. Please try again.");
-                    }
+                    showFeedback("Google sign-in failed. Missing ID Token.");
                 }
             } catch (ApiException e) {
                 setLoadingState(false, null);
                 int statusCode = e.getStatusCode();
                 Log.e(TAG, "Google sign in failed code=" + statusCode, e);
 
-                String userMessage;
-                switch (statusCode) {
-                    case GoogleSignInStatusCodes.SIGN_IN_CANCELLED:
-                        userMessage = "Google sign-in was cancelled";
-                        break;
-                    case GoogleSignInStatusCodes.NETWORK_ERROR:
-                        userMessage = "No internet connection. Please check your network.";
-                        break;
-                    case GoogleSignInStatusCodes.DEVELOPER_ERROR:
-                        userMessage = "Sign in failed (Code 10: SHA-1 fingerprint mismatch in Firebase Console).";
-                        break;
-                    case GoogleSignInStatusCodes.INTERNAL_ERROR:
-                        userMessage = "Google Play Services internal error. Please try again.";
-                        break;
-                    case 12500:
-                        userMessage = "Sign in failed (Code 12500). Please check Google Play Services.";
-                        break;
-                    default:
-                        userMessage = "Sign in failed (Code " + statusCode + "). Please try again.";
-                        break;
+                if (statusCode == GoogleSignInStatusCodes.DEVELOPER_ERROR || statusCode == 10 || statusCode == 12500) {
+                    showSha1MismatchDialog();
+                } else if (statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED || statusCode == 12501) {
+                    showFeedback("Google sign-in was cancelled");
+                } else if (statusCode == GoogleSignInStatusCodes.NETWORK_ERROR) {
+                    showFeedback("No internet connection. Please check your network.");
+                } else {
+                    showFeedback("Google sign-in failed (Code " + statusCode + "). Verify SHA-1 in Firebase Console.");
                 }
-                showFeedback(userMessage);
             } catch (Exception e) {
                 setLoadingState(false, null);
                 Log.e(TAG, "Unexpected error in Google Sign In result", e);
                 showFeedback("Sign in failed: " + e.getLocalizedMessage());
             }
         }
+    }
+
+    private void showSha1MismatchDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Google Sign-In Setup Required")
+                .setMessage("Google Sign-In failed (Developer Error Code 10 / SHA-1 Mismatch).\n\n" +
+                        "To fix this, add your app's SHA-1 fingerprint in Firebase Console:\n\n" +
+                        "1. Open Firebase Console -> Project Settings\n" +
+                        "2. Select your Android app (com.roomchatapps.amstudio)\n" +
+                        "3. Click 'Add Fingerprint' and paste:\n\n" +
+                        "5D:F5:B5:DC:F9:3A:DE:9E:98:E5:0C:C0:7C:3E:92:1C:2F:16:8F:C7\n\n" +
+                        "4. Download updated google-services.json")
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void firebaseAuthWithGoogle(String idToken) {

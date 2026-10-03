@@ -8,8 +8,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.roomchatapps.amstudio" />
-                  <option name="mobileSdkAppId" value="1:686945289016:android:604d09ab3ef828451ef7cd" />
+                  <option name="appId" value="com.roomchatapps.Pmishra" />
+                  <option name="mobileSdkAppId" value="1:686945289016:android:d1e17a1431e8e2e21ef7cd" />
                   <option name="projectId" value="meet-and-chat-3abdb" />
                   <option name="projectNumber" value="686945289016" />
                 </ConnectionSetting>

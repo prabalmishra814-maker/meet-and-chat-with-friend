@@ -704,35 +704,26 @@ public class RoomChatActivity extends AppCompatActivity {
                             String gSvga = json.optString("giftSvga", "");
                             int iconRes = json.optInt("iconRes", R.drawable.gift_icon);
 
-                            // 1. Play SVGA gift animation across room
+                            int qty = json.optInt("quantity", 1);
+                            if (qty <= 1) {
+                                int xIdx = gName.indexOf(" (x");
+                                if (xIdx != -1) {
+                                    try {
+                                        String numStr = gName.substring(xIdx + 3, gName.indexOf(")", xIdx));
+                                        qty = Integer.parseInt(numStr);
+                                    } catch (Exception ignored) {}
+                                }
+                            }
+
+                            // 1. Play main SVGA gift animation across room
                             if (gSvga != null && !gSvga.trim().isEmpty()) {
                                 playSvgaAnimation(gSvga);
                             } else if (gName.contains("Heart")) {
                                 playSvgaAnimation("gift/aladdin.svga");
                             }
 
-                            // 2. Show slide-in notification
-                            if (notificationAnimator != null) {
-                                String notice = "sent " + gName + (!rName.isEmpty() ? " to " + rName : "");
-                                notificationAnimator.showNotification(sName, notice, iconRes, sAvatar);
-                            }
-
-                            // 3. Show top banner notice
-                            showGoldenGiftBanner(sName, gName);
-
-                            // 4. Add auto-expiring gift chat notice
-                            ChatMessage giftNoticeMsg = new ChatMessage();
-                            giftNoticeMsg.setSenderId(info.fromUser != null ? info.fromUser.userID : "");
-                            giftNoticeMsg.setSenderAvatar(sAvatar);
-                            giftNoticeMsg.setMessage(sName + " sent " + gName + (!rName.isEmpty() ? " to " + rName : "") + " 🎁");
-                            giftNoticeMsg.setTimestamp(System.currentTimeMillis());
-
-                            if (chatAdapter != null) {
-                                chatAdapter.addAutoExpiringMessage(giftNoticeMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
-                            }
-                            if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
-                                rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
-                            }
+                            // 2. Play rednotification.svga banner sequentially one by one quantity times
+                            showGoldenGiftBanner(sName, gName, rName, qty);
                         } catch (Exception ignored) {}
                     } else {
                         textMessages.add(info);
@@ -1394,13 +1385,27 @@ public class RoomChatActivity extends AppCompatActivity {
             }
         }
 
-        // 5. More Options (...) -> Full Profile or Host Management
-        if (btnMoreOptions != null) {
-            btnMoreOptions.setOnClickListener(v -> {
-                Intent intent = new Intent(this, UserDetailActivity.class);
-                intent.putExtra("uid", targetUid);
-                startActivity(intent);
+        // Open Full User Profile Detail Activity (Avatar, Name, ID, More Options ...)
+        View.OnClickListener openFullProfile = v -> {
+            profileDialog.dismiss();
+            Intent intent = new Intent(RoomChatActivity.this, UserDetailActivity.class);
+            intent.putExtra("uid", targetUid);
+            startActivity(intent);
+        };
+
+        if (btnMoreOptions != null) btnMoreOptions.setOnClickListener(openFullProfile);
+        if (ivProfileAvatar != null) ivProfileAvatar.setOnClickListener(openFullProfile);
+        if (tvName != null) tvName.setOnClickListener(openFullProfile);
+        if (tvProfileId != null) tvProfileId.setOnClickListener(openFullProfile);
+
+        // Open Followers List
+        if (tvFollowersCount != null) {
+            tvFollowersCount.setOnClickListener(v -> {
                 profileDialog.dismiss();
+                Intent intent = new Intent(RoomChatActivity.this, FollowListActivity.class);
+                intent.putExtra("uid", targetUid);
+                intent.putExtra("type", "followers");
+                startActivity(intent);
             });
         }
 
@@ -3815,12 +3820,13 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         boolean isTargeted = (targetUid != null && !targetUid.isEmpty());
+        boolean autoSelectAll = !isTargeted;
 
-        // "ALL" option
-        GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, !isTargeted);
+        // "ALL" option (Auto-selected by default)
+        GiftRecipientModel allItem = new GiftRecipientModel("", "All", "", "ALL", true, true);
         recipientList.add(allItem);
 
-        // 1. Host Info (Exclude self if current user is host)
+        // 1. Host Info (Room Host / Admin - Default Selected)
         String roomHostUid = SeatManager.getInstance().getHostUserID();
         if (roomHostUid == null || roomHostUid.isEmpty()) {
             roomHostUid = getIntent().getStringExtra("uid");
@@ -3844,18 +3850,19 @@ public class RoomChatActivity extends AppCompatActivity {
                 }
             }
 
-            boolean selectHost = isTargeted && roomHostUid.equals(targetUid);
+            // Room Host / Admin is default SELECTED until manually unselected by user
+            boolean selectHost = true;
             recipientList.add(new GiftRecipientModel(roomHostUid, hName, hAvatar, hFrame, "Host", false, selectHost));
             addedUids.add(roomHostUid);
         }
 
-        // 2. Seated Members (Exclude self)
+        // 2. Seated Members (Exclude self - Default Selected)
         if (seats != null) {
             for (SeatModel seat : seats) {
                 if (seat != null && !seat.isEmpty() && !seat.userID.equals(userID) && !addedUids.contains(seat.userID)) {
                     String seatBadge = seat.isHost() ? "Host" : String.valueOf(seat.index + 1);
                     String uName = (seat.userName != null && !seat.userName.isEmpty()) ? seat.userName : "Member";
-                    boolean selectSeat = isTargeted && seat.userID.equals(targetUid);
+                    boolean selectSeat = true;
                     recipientList.add(new GiftRecipientModel(seat.userID, uName, seat.userAvatar, seat.equippedFrame, seatBadge, false, selectSeat));
                     addedUids.add(seat.userID);
                 }
@@ -4138,27 +4145,40 @@ public class RoomChatActivity extends AppCompatActivity {
                                         giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
                                         giftJson.put("recipientName", recipientNames.toString());
                                         giftJson.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                        giftJson.put("quantity", quantity);
                                         giftJson.put("giftSvga", selectedGiftSvga != null ? selectedGiftSvga : "");
                                         giftJson.put("iconRes", selectedItem.iconRes);
                                         ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
                                     } catch (Exception ignored) {}
 
-                                    // Animation Threshold Evaluation (Low vs High Value Gifts)
-                                    if (totalCost >= EconomyConfig.HIGH_ANIMATION_THRESHOLD) {
-                                        if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                            markGiftProcessed(uniqueGiftId);
-                                            playSvgaAnimation(selectedGiftSvga);
-                                        }
-                                        showGoldenGiftBanner(senderDisplayName, giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
-                                    } else {
-                                        if (notificationAnimator != null) {
-                                            notificationAnimator.showNotification(senderDisplayName, "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : ""), selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                        }
-                                        if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                            markGiftProcessed(uniqueGiftId);
-                                            playSvgaAnimation(selectedGiftSvga);
-                                        }
+                                    String rNotice = recipientNames.length() > 0 ? " to " + recipientNames.toString() : "";
+                                    String giftNoticeMsg = "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : "") + rNotice + " 🎁";
+
+                                    if (notificationAnimator != null) {
+                                        notificationAnimator.showNotification(senderDisplayName, giftNoticeMsg, selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
                                     }
+                                    showGoldenGiftBanner(senderDisplayName, giftName, recipientNames.toString(), quantity);
+                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
+                                        markGiftProcessed(uniqueGiftId);
+                                        playSvgaAnimation(selectedGiftSvga);
+                                    }
+
+                                    // Push Global Cross-Room Gift Event (for rednotification.svga banner outside room in MainActivity)
+                                    try {
+                                        DatabaseReference globalGiftsRef = FirebaseDatabase.getInstance().getReference("global_room_gifts");
+                                        Map<String, Object> globalGiftMap = new HashMap<>();
+                                        globalGiftMap.put("giftId", uniqueGiftId);
+                                        globalGiftMap.put("senderName", senderDisplayName);
+                                        globalGiftMap.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                        globalGiftMap.put("giftName", giftName + (quantity > 1 ? " (x" + quantity + ")" : ""));
+                                        globalGiftMap.put("quantity", quantity);
+                                        globalGiftMap.put("recipientName", recipientNames.toString());
+                                        globalGiftMap.put("roomName", roomNameLabel != null ? roomNameLabel : "Audio Room");
+                                        globalGiftMap.put("roomId", roomID != null ? roomID : "");
+                                        globalGiftMap.put("iconRes", selectedItem.iconRes);
+                                        globalGiftMap.put("timestamp", System.currentTimeMillis());
+                                        globalGiftsRef.push().setValue(globalGiftMap);
+                                    } catch (Exception ignored) {}
 
                                     Toast.makeText(RoomChatActivity.this, "🎁 Sent " + giftName + (quantity > 1 ? " x" + quantity : "") + "!", Toast.LENGTH_SHORT).show();
                                 }
@@ -4539,7 +4559,32 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName) {
-        // Disabled full banner overlay permanently
+        showGoldenGiftBanner(senderName, giftName, "", 1);
+    }
+
+    public void showGoldenGiftBanner(String senderName, String giftName, String recipientName) {
+        showGoldenGiftBanner(senderName, giftName, recipientName, 1);
+    }
+
+    public void showGoldenGiftBanner(String senderName, String giftName, String recipientName, int quantity) {
+        String sName = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
+        String gName = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
+        String rName = (recipientName != null && !recipientName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + recipientName + "</b></font>") : "";
+
+        String cleanGiftName = gName;
+        int idx = cleanGiftName.indexOf(" (x");
+        if (idx != -1) {
+            cleanGiftName = cleanGiftName.substring(0, idx);
+        }
+
+        int playTimes = Math.max(1, Math.min(quantity, 10)); // Play up to quantity times in sequence
+
+        for (int i = 1; i <= playTimes; i++) {
+            String countSuffix = playTimes > 1 ? (" [" + i + "/" + playTimes + "]") : "";
+            String htmlNotice = "<font color='#FFD700'><b>" + sName + "</b></font> sent <font color='#FF007A'><b>" + cleanGiftName + "</b></font>" + countSuffix + rName + " 🎁";
+            bannerQueue.offer(new BannerQueueItem("Notification/rednotification.svga", htmlNotice, false));
+        }
+        processNextBanner();
     }
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
@@ -4564,18 +4609,20 @@ public class RoomChatActivity extends AppCompatActivity {
             if (bannerGiftContainer != null) bannerGiftContainer.setVisibility(View.GONE);
             if (svgaEntryBannerPlayer != null) {
                 try {
+                    svgaEntryBannerPlayer.setCallback(null);
                     svgaEntryBannerPlayer.stopAnimation();
                     svgaEntryBannerPlayer.clear();
                 } catch (Exception ignored) {}
             }
             if (svgaBannerPlayer != null) {
                 try {
+                    svgaBannerPlayer.setCallback(null);
                     svgaBannerPlayer.stopAnimation();
                     svgaBannerPlayer.clear();
                 } catch (Exception ignored) {}
             }
             isBannerPlaying = false;
-            processNextBanner();
+            bannerHandler.postDelayed(this::processNextBanner, 150L);
         });
     }
 
@@ -4608,19 +4655,11 @@ public class RoomChatActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         });
 
-        if (svgaEntityCache.containsKey(item.svgaAsset)) {
-            SVGAVideoEntity cachedEntity = svgaEntityCache.get(item.svgaAsset);
-            if (cachedEntity != null) {
-                playBannerVideoEntity(player, cachedEntity);
-                return;
-            }
-        }
-
+        // Always decode fresh SVGAVideoEntity from assets to prevent bitmap recycling/disposal issues across multiple plays
         SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
         parser.decodeFromAssets(item.svgaAsset, new SVGAParser.ParseCompletion() {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                svgaEntityCache.put(item.svgaAsset, videoItem);
                 playBannerVideoEntity(player, videoItem);
             }
 
@@ -4642,13 +4681,13 @@ public class RoomChatActivity extends AppCompatActivity {
                 int frames = videoItem.getFrames();
                 int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
                 long durationMs = (long) (((double) frames / fps) * 1000L);
-                long safetyTimeoutMs = Math.max(5000L, durationMs + 2000L);
+                long bannerDisplayDurationMs = Math.max(3500L, durationMs); // Sequential banner play duration
 
                 if (bannerTimeoutRunnable != null) {
                     bannerHandler.removeCallbacks(bannerTimeoutRunnable);
                 }
                 bannerTimeoutRunnable = this::finishCurrentBanner;
-                bannerHandler.postDelayed(bannerTimeoutRunnable, safetyTimeoutMs);
+                bannerHandler.postDelayed(bannerTimeoutRunnable, bannerDisplayDurationMs + 300L);
 
                 player.stopAnimation();
                 player.clear();
