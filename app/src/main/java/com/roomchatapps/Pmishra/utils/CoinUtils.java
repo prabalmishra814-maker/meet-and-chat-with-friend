@@ -11,10 +11,56 @@ import androidx.core.content.ContextCompat;
 
 import com.roomchatapps.Pmishra.R;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 public class CoinUtils {
+
+    // ROOM COIN FORMAT
+    /**
+     * Formats room spending into compact Indian notation (K, L, Cr).
+     * Rules:
+     * 0         -> 0
+     * 1000      -> 1K
+     * 1500      -> 1.5K
+     * 2500      -> 2.5K
+     * 10000     -> 10K
+     * 99999     -> 99.99K
+     * 100000    -> 1L
+     * 150000    -> 1.5L
+     * 500000    -> 5L
+     * 999999    -> 9.99L
+     * 1000000   -> 10L
+     * 10000000  -> 1Cr
+     * 100000000 -> 10Cr
+     */
+    public static String formatCompactCoins(long amount) {
+        if (amount <= 0) {
+            return "0";
+        }
+        if (amount < 1000) {
+            return String.valueOf(amount);
+        } else if (amount < 100000) { // 1K to <100K (1L)
+            double val = amount / 1000.0;
+            return formatDecimal(val) + "K";
+        } else if (amount < 10000000) { // 1L to <100L (1Cr)
+            double val = amount / 100000.0;
+            return formatDecimal(val) + "L";
+        } else { // 1Cr+
+            double val = amount / 10000000.0;
+            return formatDecimal(val) + "Cr";
+        }
+    }
+
+    // ROOM COIN FORMAT
+    private static String formatDecimal(double val) {
+        DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
+        df.setRoundingMode(RoundingMode.DOWN);
+        return df.format(val);
+    }
 
     /**
      * Formats coin/energy values into full formatted numbers.

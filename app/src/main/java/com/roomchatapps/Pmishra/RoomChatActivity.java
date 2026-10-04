@@ -104,6 +104,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.opensource.svgaplayer.SVGACallback;
 import com.opensource.svgaplayer.SVGAImageView;
@@ -116,10 +117,12 @@ import com.roomchatapps.Pmishra.adapters.ChatAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter.GiftStoreItem;
+import com.roomchatapps.Pmishra.adapters.RoomContributionAdapter;
 import com.roomchatapps.Pmishra.adapters.SeatAdapter;
 import com.roomchatapps.Pmishra.models.ChatMessage;
 import com.roomchatapps.Pmishra.models.FriendRequestModel;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
+import com.roomchatapps.Pmishra.models.RoomContributionModel;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 import com.roomchatapps.Pmishra.models.User;
 import com.roomchatapps.Pmishra.utils.EconomyConfig;
@@ -176,6 +179,9 @@ public class RoomChatActivity extends AppCompatActivity {
     private NotificationAnimator notificationAnimator;
     private SVGAImageView svgaPlayer;
     private SVGAParser svgaParser;
+
+    private TextView tvTrophyCount;
+    private TextView tvMemberCount;
 
     private View bannerGiftContainer;
     private SVGAImageView svgaBannerPlayer;
@@ -346,6 +352,22 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String newRoomId = intent.getStringExtra("roomID");
+        if (newRoomId != null && roomID != null && !newRoomId.equals(roomID)) {
+            leaveRoom();
+            startActivity(intent);
+        } else {
+            if (isMinimized) { // ROOM MINIMIZE FIX
+                isMinimized = false; // ROOM MINIMIZE FIX
+                RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
+            }
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (isMinimized) { // ROOM MINIMIZE FIX
@@ -397,6 +419,51 @@ public class RoomChatActivity extends AppCompatActivity {
         TextView tvRoomName = findViewById(R.id.tvRoomName);
         TextView tvRoomId = findViewById(R.id.tvRoomId);
         ImageView ivRoomAvatar = findViewById(R.id.ivRoomAvatar);
+        tvTrophyCount = findViewById(R.id.tvTrophyCount);
+        tvMemberCount = findViewById(R.id.tvMemberCount);
+
+        ImageView ivMemberIcon = findViewById(R.id.ivMemberIcon);
+        View layoutMemberCount = findViewById(R.id.layoutMemberCount);
+        View.OnClickListener openMembersListener = v -> {
+            if (!isFastClick(v)) {
+                showRoomMembersDialog();
+            }
+        };
+        if (layoutMemberCount != null) {
+            layoutMemberCount.setOnClickListener(openMembersListener);
+        }
+        if (tvMemberCount != null) {
+            tvMemberCount.setOnClickListener(openMembersListener);
+        }
+        if (ivMemberIcon != null) {
+            ivMemberIcon.setOnClickListener(openMembersListener);
+        }
+
+
+        // CONTRIBUTION ARROW: Click listener on trophy arrow & room trophy container
+        View ivTrophyArrow = findViewById(R.id.ivTrophyArrow);
+        View layoutRoomTrophy = findViewById(R.id.layoutRoomTrophy);
+        View.OnClickListener openContributionsListener = v -> {
+            if (!isFastClick(v)) {
+                showRoomContributionsDialog();
+            }
+        };
+        if (ivTrophyArrow != null) {
+            ivTrophyArrow.setOnClickListener(openContributionsListener);
+        }
+        if (layoutRoomTrophy != null) {
+            layoutRoomTrophy.setOnClickListener(openContributionsListener);
+        }
+
+        View layoutRoomMusic = findViewById(R.id.layoutRoomMusic);
+        if (layoutRoomMusic != null) {
+            layoutRoomMusic.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            layoutRoomMusic.setOnClickListener(v -> {
+                if (!isFastClick(v)) {
+                    showMusicControlSheet();
+                }
+            });
+        }
 
         if (tvRoomName != null && roomNameLabel != null && !roomNameLabel.isEmpty()) {
             tvRoomName.setText(roomNameLabel);
@@ -488,7 +555,12 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         rvSeats = findViewById(R.id.rvSeats);
-        GridLayoutManager seatLayoutManager = new GridLayoutManager(this, 4);
+        GridLayoutManager seatLayoutManager = new GridLayoutManager(this, 4) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
         seatLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
@@ -499,6 +571,24 @@ public class RoomChatActivity extends AppCompatActivity {
         seatAdapter = new SeatAdapter(this::onSeatClicked);
         rvSeats.setAdapter(seatAdapter);
         seatAdapter.setSeats(SeatManager.getInstance().getSeats());
+
+        rvSeats.post(() -> {
+            if (rvSeats != null && seatAdapter != null) {
+                int height = rvSeats.getHeight() - rvSeats.getPaddingTop() - rvSeats.getPaddingBottom();
+                if (height > 0) {
+                    seatAdapter.setAvailableHeight(height);
+                }
+            }
+        });
+
+        rvSeats.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (rvSeats != null && seatAdapter != null) {
+                int height = (bottom - top) - rvSeats.getPaddingTop() - rvSeats.getPaddingBottom();
+                if (height > 0 && seatAdapter.getAvailableHeight() != height) {
+                    seatAdapter.setAvailableHeight(height);
+                }
+            }
+        });
 
         rvChat = findViewById(R.id.rvChatMessages);
         rvChat.setLayoutManager(new LinearLayoutManager(this));
@@ -779,8 +869,12 @@ public class RoomChatActivity extends AppCompatActivity {
     private void updateGlobalUserCount() {
         runOnUiThread(() -> {
             int count = ZegoManager.getInstance().getRoomUserCount();
+            int displayCount = Math.max(count, 1);
             if (backgroundView != null) {
-                backgroundView.setUserCount(count);
+                backgroundView.setUserCount(displayCount);
+            }
+            if (tvMemberCount != null) {
+                tvMemberCount.setText(String.valueOf(displayCount));
             }
         });
     }
@@ -1604,8 +1698,12 @@ public class RoomChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
                 long count = snapshot.getChildrenCount();
+                int displayCount = (int) Math.max(count, 1);
                 if (backgroundView != null) {
-                    backgroundView.setUserCount((int) count);
+                    backgroundView.setUserCount(displayCount);
+                }
+                if (tvMemberCount != null) {
+                    tvMemberCount.setText(String.valueOf(displayCount));
                 }
                 if (roomInfoRef != null) {
                     roomInfoRef.child("onlineCount").setValue(count);
@@ -1689,6 +1787,10 @@ public class RoomChatActivity extends AppCompatActivity {
         if (moreView != null) {
             moreView.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
         }
+        View layoutRoomMusic = findViewById(R.id.layoutRoomMusic);
+        if (layoutRoomMusic != null) {
+            layoutRoomMusic.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setupRoomInfoListener() {
@@ -1748,6 +1850,25 @@ public class RoomChatActivity extends AppCompatActivity {
                         if (chatAdapter != null) {
                             chatAdapter.clearAllMessages();
                         }
+                    }
+
+                    // ROOM MEMBER COUNT SYNC
+                    Long onlineCount = snapshot.child("onlineCount").getValue(Long.class);
+                    if (onlineCount == null) {
+                        onlineCount = snapshot.child("memberCount").getValue(Long.class);
+                    }
+                    if (onlineCount != null && tvMemberCount != null) {
+                        tvMemberCount.setText(String.valueOf(Math.max(onlineCount, 1)));
+                    }
+
+                    // ROOM COIN SYNC: Update tvTrophyCount with current room's cumulative spending
+                    Long totalSpend = snapshot.child("totalCoinSpend").getValue(Long.class);
+                    if (totalSpend == null) {
+                        totalSpend = 0L;
+                    }
+                    totalSpend = Math.max(0L, totalSpend);
+                    if (tvTrophyCount != null) {
+                        tvTrophyCount.setText(CoinUtils.formatCompactCoins(totalSpend));
                     }
                 }
             }
@@ -3485,6 +3606,10 @@ public class RoomChatActivity extends AppCompatActivity {
         Toast.makeText(this, "Invitation declined", Toast.LENGTH_SHORT).show();
     }
 
+    public String getUserID() {
+        return userID;
+    }
+
     private void showRoomMembersDialog() {
         showRoomMembersDialog(-1);
     }
@@ -3506,11 +3631,12 @@ public class RoomChatActivity extends AppCompatActivity {
         List<SeatModel> seats = SeatManager.getInstance().getSeats();
         for (SeatModel seat : seats) {
             if (seat != null && !seat.isEmpty()) {
-                if (userID != null && userID.equals(seat.userID)) continue; // Do not invite self
+                if (targetSeatIndex >= 0 && userID != null && userID.equals(seat.userID)) continue; // Do not invite self when targeting seat
                 User u = new User();
                 u.setUserId(seat.userID);
                 u.setUserName(seat.userName != null && !seat.userName.isEmpty() ? seat.userName : "Member");
                 u.setUserIcon(seat.userAvatar);
+                if (seat.index == 0) u.setHost(true);
                 userMap.put(seat.userID, u);
                 activeUsers.add(u);
             }
@@ -3524,7 +3650,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uid = child.child("userId").getValue(String.class);
                     if (uid == null) uid = child.getKey();
-                    if (uid != null && uid.equals(userID)) continue; // Do not invite self
+                    if (targetSeatIndex >= 0 && uid != null && uid.equals(userID)) continue; // Do not invite self when targeting seat
                     if (uid != null && !userMap.containsKey(uid)) {
                         String name = child.child("userName").getValue(String.class);
                         String avatar = child.child("userAvatar").getValue(String.class);
@@ -3540,10 +3666,36 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                 }
 
-                if (activeUsers.isEmpty()) {
+                // If viewing connected members (targetSeatIndex < 0), ensure current user is added if missing
+                String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                if (targetSeatIndex < 0 && userID != null && !userMap.containsKey(userID)) {
+                    User u = new User();
+                    u.setUserId(userID);
+                    u.setUserName(userName != null && !userName.isEmpty() ? userName : "Member");
+                    u.setUserIcon(myAvatar);
+                    u.setHost(isAdminOrHost());
+                    userMap.put(userID, u);
+                    activeUsers.add(0, u);
+                }
+
+                // Ensure Host is included if missing
+                String effectiveHostUid = (SeatManager.getInstance().getHostUserID() != null && !SeatManager.getInstance().getHostUserID().isEmpty())
+                        ? SeatManager.getInstance().getHostUserID() : (isHost ? userID : null);
+                if (targetSeatIndex < 0 && effectiveHostUid != null && !userMap.containsKey(effectiveHostUid)) {
+                    User u = new User();
+                    u.setUserId(effectiveHostUid);
+                    u.setUserName("Host");
+                    u.setHost(true);
+                    userMap.put(effectiveHostUid, u);
+                    activeUsers.add(0, u);
+                }
+
+                if (activeUsers.isEmpty() && userID != null) {
                     User u = new User();
                     u.setUserId(userID);
                     u.setUserName(userName != null ? userName : "Host");
+                    u.setUserIcon(myAvatar);
+                    u.setHost(isAdminOrHost());
                     activeUsers.add(u);
                 }
 
@@ -3630,6 +3782,10 @@ public class RoomChatActivity extends AppCompatActivity {
             WalletManager.spendCoinsForGift(userID, null, 50, "Theme: Galaxy", new WalletManager.WalletCallback() {
                 @Override
                 public void onSuccess(String message, long newCoinBalance) {
+                    // ROOM CONTRIBUTION TRACKING: Atomically increment total & user contribution
+                    if (roomID != null && !roomID.trim().isEmpty()) {
+                        WalletManager.trackRoomContribution(roomID, userID, userName, SessionManager.getInstance(RoomChatActivity.this).getAvatar(), 50);
+                    }
                     if (backgroundView != null) {
                         backgroundView.setThemeVideo("theme/theme2.mp4");
                     }
@@ -3655,6 +3811,10 @@ public class RoomChatActivity extends AppCompatActivity {
             WalletManager.spendCoinsForGift(userID, null, 100, "Theme: Sunset", new WalletManager.WalletCallback() {
                 @Override
                 public void onSuccess(String message, long newCoinBalance) {
+                    // ROOM CONTRIBUTION TRACKING: Atomically increment total & user contribution
+                    if (roomID != null && !roomID.trim().isEmpty()) {
+                        WalletManager.trackRoomContribution(roomID, userID, userName, SessionManager.getInstance(RoomChatActivity.this).getAvatar(), 100);
+                    }
                     if (backgroundView != null) {
                         backgroundView.setThemeVideo("theme/theme3.mp4");
                     }
@@ -3679,6 +3839,10 @@ public class RoomChatActivity extends AppCompatActivity {
             WalletManager.spendCoinsForGift(userID, null, 150, "Theme: Aurora", new WalletManager.WalletCallback() {
                 @Override
                 public void onSuccess(String message, long newCoinBalance) {
+                    // ROOM CONTRIBUTION TRACKING: Atomically increment total & user contribution
+                    if (roomID != null && !roomID.trim().isEmpty()) {
+                        WalletManager.trackRoomContribution(roomID, userID, userName, SessionManager.getInstance(RoomChatActivity.this).getAvatar(), 150);
+                    }
                     if (backgroundView != null) {
                         backgroundView.setThemeImage(R.drawable.bg_main_gradient);
                     }
@@ -4356,6 +4520,10 @@ public class RoomChatActivity extends AppCompatActivity {
             WalletManager.spendCoinsForGift(userID, null, spinCost, "Lucky Wheel Spin", new WalletManager.WalletCallback() {
                 @Override
                 public void onSuccess(String message, long newCoinBalance) {
+                    // ROOM CONTRIBUTION TRACKING: Atomically increment total & user contribution
+                    if (roomID != null && !roomID.trim().isEmpty()) {
+                        WalletManager.trackRoomContribution(roomID, userID, userName, SessionManager.getInstance(RoomChatActivity.this).getAvatar(), spinCost);
+                    }
                     runOnUiThread(() -> {
                         cachedCoins[0] = newCoinBalance;
                         if (tvWheelCoins != null) tvWheelCoins.setText("🪙 " + newCoinBalance);
@@ -4373,6 +4541,105 @@ public class RoomChatActivity extends AppCompatActivity {
             spinWheelView.setOnSpinButtonClickListener(() -> spinAction.onClick(spinWheelView));
         }
         if (btnSpin != null) btnSpin.setOnClickListener(spinAction);
+
+        dialog.show();
+    }
+
+    // CONTRIBUTION DIALOG
+    private BottomSheetDialog contributionsDialog;
+
+    private void showRoomContributionsDialog() {
+        if (roomID == null || roomID.trim().isEmpty()) return;
+        if (contributionsDialog != null && contributionsDialog.isShowing()) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        contributionsDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (contributionsDialog == d) contributionsDialog = null;
+        });
+        applyGlassyStyle(dialog);
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_room_contributions, null, false);
+        if (dialogView == null) return;
+        dialog.setContentView(dialogView);
+
+        ImageView btnClose = dialogView.findViewById(R.id.btnCloseContributions);
+        ProgressBar pbLoading = dialogView.findViewById(R.id.pbLoadingContributions);
+        View llEmpty = dialogView.findViewById(R.id.llEmptyContributions);
+        RecyclerView rvContributions = dialogView.findViewById(R.id.rvContributions);
+        TextView tvTotal = dialogView.findViewById(R.id.tvTotalContribution);
+
+        if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        List<RoomContributionModel> contributionList = new ArrayList<>();
+        RoomContributionAdapter adapter = new RoomContributionAdapter(contributionList);
+
+        if (rvContributions != null) {
+            rvContributions.setLayoutManager(new LinearLayoutManager(this));
+            rvContributions.setAdapter(adapter);
+        }
+
+        if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
+        if (llEmpty != null) llEmpty.setVisibility(View.GONE);
+
+        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID.trim());
+
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+
+                // 1. Total room spend sync
+                Long totalSpend = snapshot.child("totalCoinSpend").getValue(Long.class);
+                if (totalSpend == null) totalSpend = 0L;
+                totalSpend = Math.max(0L, totalSpend);
+                if (tvTotal != null) {
+                    tvTotal.setText(CoinUtils.formatCompactCoins(totalSpend));
+                }
+
+                // 2. Contributions list sync
+                DataSnapshot contribSnap = snapshot.child("room_contributions");
+                List<RoomContributionModel> newList = new ArrayList<>();
+                if (contribSnap.exists()) {
+                    for (DataSnapshot child : contribSnap.getChildren()) {
+                        String uid = child.child("userId").getValue(String.class);
+                        if (uid == null || uid.isEmpty()) uid = child.getKey();
+                        String name = child.child("userName").getValue(String.class);
+                        String avatar = child.child("userAvatar").getValue(String.class);
+                        Long amt = child.child("amount").getValue(Long.class);
+                        if (amt != null && amt > 0) {
+                            newList.add(new RoomContributionModel(uid, name, avatar, amt));
+                        }
+                    }
+                }
+
+                // Sort descending by amount (highest contributor first)
+                Collections.sort(newList, (a, b) -> Long.compare(b.getAmount(), a.getAmount()));
+
+                adapter.updateList(newList);
+
+                if (newList.isEmpty()) {
+                    if (llEmpty != null) llEmpty.setVisibility(View.VISIBLE);
+                    if (rvContributions != null) rvContributions.setVisibility(View.GONE);
+                } else {
+                    if (llEmpty != null) llEmpty.setVisibility(View.GONE);
+                    if (rvContributions != null) rvContributions.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                Toast.makeText(RoomChatActivity.this, "Unable to load contributions. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        roomRef.addValueEventListener(listener);
+        dialog.setOnDismissListener(d -> {
+            if (contributionsDialog == d) contributionsDialog = null;
+            roomRef.removeEventListener(listener);
+        });
 
         dialog.show();
     }

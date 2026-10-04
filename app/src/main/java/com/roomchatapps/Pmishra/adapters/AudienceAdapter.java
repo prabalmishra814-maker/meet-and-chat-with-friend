@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
+import com.roomchatapps.Pmishra.RoomChatActivity;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.models.User;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
@@ -65,13 +66,30 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
 
         boolean isSeated = user.getUserId() != null && SeatManager.getInstance().findUserSeatIndex(user.getUserId()) != -1;
         if (isSeated) {
-            holder.tvAudienceStatus.setText("On Seat");
+            int seatIdx = SeatManager.getInstance().findUserSeatIndex(user.getUserId());
+            if (seatIdx == 0 || user.isHost()) {
+                holder.tvAudienceStatus.setText("🔴 Live (Host)");
+            } else {
+                holder.tvAudienceStatus.setText("🎙️ Live on Seat " + (seatIdx + 1));
+            }
             if (holder.btnInviteUser != null) {
                 holder.btnInviteUser.setVisibility(View.GONE);
             }
         } else {
-            holder.tvAudienceStatus.setText("Listening...");
-            if (isHostViewer && inviteClickListener != null) {
+            if (user.isHost()) {
+                holder.tvAudienceStatus.setText("👑 Room Host");
+            } else {
+                holder.tvAudienceStatus.setText("🎧 Joined Room");
+            }
+
+            String currentUserId = null;
+            if (holder.itemView.getContext() instanceof RoomChatActivity) {
+                currentUserId = ((RoomChatActivity) holder.itemView.getContext()).getUserID();
+            }
+
+            boolean isSelf = (currentUserId != null && user.getUserId() != null && currentUserId.equals(user.getUserId()));
+
+            if (isHostViewer && inviteClickListener != null && !isSelf) {
                 if (holder.btnInviteUser != null) {
                     holder.btnInviteUser.setVisibility(View.VISIBLE);
                     holder.btnInviteUser.setOnClickListener(v -> {

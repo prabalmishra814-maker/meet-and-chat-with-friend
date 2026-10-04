@@ -1,6 +1,7 @@
 package com.roomchatapps.Pmishra.adapters;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,9 +35,21 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
     private final List<SeatModel> seats = new ArrayList<>();
     private final OnSeatClickListener listener;
+    private int availableHeight = 0;
 
     public SeatAdapter(OnSeatClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setAvailableHeight(int heightPx) {
+        if (this.availableHeight != heightPx) {
+            this.availableHeight = heightPx;
+            notifyDataSetChanged();
+        }
+    }
+
+    public int getAvailableHeight() {
+        return availableHeight;
     }
 
     public void setSeats(List<SeatModel> newSeats) {
@@ -78,6 +91,13 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SeatModel model = seats.get(position);
         Context context = holder.itemView.getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+        boolean isHost = (position == 0);
+        int totalSeats = getItemCount();
+
+        // Apply dynamic sizing spec
+        SeatLayoutSpec spec = SeatLayoutSpec.create(isHost, totalSeats, availableHeight, density);
+        holder.applySpec(spec);
 
         // Host badge
         if (holder.hostBadge != null) {
@@ -215,17 +235,23 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                 SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
                 if (holder.ivSeatAvatar != null) {
                     holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, position == 0 ? android.R.color.holo_orange_light : R.color.glass_white));
-                    holder.ivSeatAvatar.setStrokeWidth(position == 0 ? 2.5f : 1.5f);
+                    holder.ivSeatAvatar.setStrokeWidth(position == 0 ? 2f : 1.2f);
                 }
             }
         }
 
-        // On Click Listener
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSeatClick(model);
-            }
-        });
+        // Clear click listener on broad parent item view
+        holder.itemView.setOnClickListener(null);
+        holder.itemView.setClickable(false);
+
+        // Attach click listener ONLY to the actual seat view container (avatarContainer)
+        if (holder.avatarContainer != null) {
+            holder.avatarContainer.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onSeatClick(model);
+                }
+            });
+        }
     }
 
     @Override
@@ -233,7 +259,102 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         return seats.size();
     }
 
+    public static class SeatLayoutSpec {
+        public int containerSizePx;
+        public int circleSizePx;
+        public int addIconSizePx;
+        public int lockIconSizePx;
+        public int micIconSizePx;
+        public float textSizeSp;
+        public int topPaddingPx;
+        public int bottomPaddingPx;
+        public int textMarginTopPx;
+
+        public static SeatLayoutSpec create(boolean isHost, int totalSeats, int availableHeightPx, float density) {
+            SeatLayoutSpec spec = new SeatLayoutSpec();
+            int rows = (totalSeats <= 9) ? 3 : (totalSeats <= 17 ? 5 : 6);
+
+            float rowHeightDp = (availableHeightPx > 0) ? (availableHeightPx / density) / rows : (rows == 3 ? 110f : (rows == 5 ? 76f : 64f));
+
+            if (totalSeats <= 9) {
+                if (isHost) {
+                    float targetCircleDp = Math.min(54f, Math.max(42f, rowHeightDp * 0.44f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 11.5f;
+                    spec.topPaddingPx = Math.round(4 * density);
+                    spec.bottomPaddingPx = Math.round(6 * density);
+                    spec.textMarginTopPx = Math.round(3 * density);
+                } else {
+                    float targetCircleDp = Math.min(46f, Math.max(36f, rowHeightDp * 0.40f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 10.5f;
+                    spec.topPaddingPx = Math.round(2 * density);
+                    spec.bottomPaddingPx = Math.round(2 * density);
+                    spec.textMarginTopPx = Math.round(2 * density);
+                }
+            } else if (totalSeats <= 17) {
+                if (isHost) {
+                    float targetCircleDp = Math.min(44f, Math.max(34f, rowHeightDp * 0.42f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 10.5f;
+                    spec.topPaddingPx = Math.round(2 * density);
+                    spec.bottomPaddingPx = Math.round(4 * density);
+                    spec.textMarginTopPx = Math.round(2 * density);
+                } else {
+                    float targetCircleDp = Math.min(38f, Math.max(30f, rowHeightDp * 0.38f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 9.5f;
+                    spec.topPaddingPx = Math.round(1 * density);
+                    spec.bottomPaddingPx = Math.round(1 * density);
+                    spec.textMarginTopPx = Math.round(1.5f * density);
+                }
+            } else {
+                if (isHost) {
+                    float targetCircleDp = Math.min(38f, Math.max(28f, rowHeightDp * 0.38f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 10.0f;
+                    spec.topPaddingPx = Math.round(1 * density);
+                    spec.bottomPaddingPx = Math.round(2 * density);
+                    spec.textMarginTopPx = Math.round(1.5f * density);
+                } else {
+                    float targetCircleDp = Math.min(32f, Math.max(24f, rowHeightDp * 0.35f));
+                    spec.circleSizePx = Math.round(targetCircleDp * density);
+                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
+                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
+                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
+                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
+                    spec.textSizeSp = 8.5f;
+                    spec.topPaddingPx = Math.round(1 * density);
+                    spec.bottomPaddingPx = Math.round(1 * density);
+                    spec.textMarginTopPx = Math.round(1 * density);
+                }
+            }
+            return spec;
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        View avatarContainer;
         View vEmptySeatBg;
         ImageView ivAddIcon;
         ShapeableImageView ivSeatAvatar;
@@ -247,6 +368,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            avatarContainer = itemView.findViewById(R.id.avatarContainer);
             vEmptySeatBg = itemView.findViewById(R.id.vEmptySeatBg);
             ivAddIcon = itemView.findViewById(R.id.ivAddIcon);
             ivSeatAvatar = itemView.findViewById(R.id.ivSeatAvatar);
@@ -257,6 +379,51 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             tvSeatName = itemView.findViewById(R.id.tvSeatName);
             speakingIndicator = itemView.findViewById(R.id.speakingIndicator);
             hostBadge = itemView.findViewById(R.id.hostBadge);
+        }
+
+        public void applySpec(SeatLayoutSpec spec) {
+            if (spec == null || itemView == null) return;
+
+            itemView.setPadding(0, spec.topPaddingPx, 0, spec.bottomPaddingPx);
+
+            if (avatarContainer != null) {
+                ViewGroup.LayoutParams params = avatarContainer.getLayoutParams();
+                if (params != null) {
+                    params.width = spec.containerSizePx;
+                    params.height = spec.containerSizePx;
+                    avatarContainer.setLayoutParams(params);
+                }
+            }
+
+            updateViewSize(vEmptySeatBg, spec.circleSizePx, spec.circleSizePx);
+            updateViewSize(ivSeatAvatar, spec.circleSizePx, spec.circleSizePx);
+            updateViewSize(speakingIndicator, spec.circleSizePx, spec.circleSizePx);
+
+            updateViewSize(ivAddIcon, spec.addIconSizePx, spec.addIconSizePx);
+            updateViewSize(ivSeatLocked, spec.lockIconSizePx, spec.lockIconSizePx);
+            updateViewSize(ivMicStatus, spec.micIconSizePx, spec.micIconSizePx);
+
+            if (tvSeatName != null) {
+                tvSeatName.setTextSize(TypedValue.COMPLEX_UNIT_SP, spec.textSizeSp);
+                ViewGroup.LayoutParams nameParams = tvSeatName.getLayoutParams();
+                if (nameParams instanceof ViewGroup.MarginLayoutParams) {
+                    ((ViewGroup.MarginLayoutParams) nameParams).topMargin = spec.textMarginTopPx;
+                    tvSeatName.setLayoutParams(nameParams);
+                }
+            }
+        }
+
+        private void updateViewSize(View view, int width, int height) {
+            if (view != null) {
+                ViewGroup.LayoutParams params = view.getLayoutParams();
+                if (params != null) {
+                    if (params.width != width || params.height != height) {
+                        params.width = width;
+                        params.height = height;
+                        view.setLayoutParams(params);
+                    }
+                }
+            }
         }
     }
 }

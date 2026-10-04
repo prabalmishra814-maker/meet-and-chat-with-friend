@@ -6,6 +6,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 
@@ -288,6 +289,31 @@ public class WalletManager {
         });
     }
 
+    // ROOM CONTRIBUTION TRACKING
+    public static void trackRoomContribution(String roomId, String userId, String userName, String userAvatar, long coinAmount) {
+        if (roomId == null || roomId.trim().isEmpty() || userId == null || userId.trim().isEmpty() || coinAmount <= 0) {
+            return;
+        }
+        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomId.trim());
+
+        // 1. Atomically increment total room coin spend
+        roomRef.child("totalCoinSpend").setValue(ServerValue.increment(coinAmount));
+
+        // 2. Atomically increment user's contribution in room_contributions
+        DatabaseReference contribRef = roomRef.child("room_contributions").child(userId.trim());
+        Map<String, Object> contribData = new HashMap<>();
+        contribData.put("userId", userId.trim());
+        if (userName != null && !userName.trim().isEmpty()) {
+            contribData.put("userName", userName.trim());
+        }
+        if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+            contribData.put("userAvatar", userAvatar.trim());
+        }
+        contribData.put("amount", ServerValue.increment(coinAmount));
+
+        contribRef.updateChildren(contribData);
+    }
+
     // GIFT COIN/ENERGY FIX
     private static final Set<String> processedTransactionIds = Collections.synchronizedSet(new HashSet<>());
 
@@ -408,6 +434,18 @@ public class WalletManager {
                         senderRef.updateChildren(updates).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 UserProfileCache.invalidate(senderUid);
+
+                                String senderName = snapshot.child("name").getValue(String.class);
+                                if (senderName == null || senderName.trim().isEmpty()) {
+                                    senderName = snapshot.child("username").getValue(String.class);
+                                }
+                                String senderAvatar = snapshot.child("avatar").getValue(String.class);
+                                if (senderAvatar == null || senderAvatar.trim().isEmpty()) {
+                                    senderAvatar = snapshot.child("profilePic").getValue(String.class);
+                                }
+
+                                // ROOM CONTRIBUTION TRACKING: Atomically increment room total and user contribution
+                                trackRoomContribution(roomId, senderUid, senderName, senderAvatar, giftValue);
 
                                 if (newLevel > oldLevel) {
                                     NotificationHelper.sendLevelUpNotification(senderUid, newLevel);

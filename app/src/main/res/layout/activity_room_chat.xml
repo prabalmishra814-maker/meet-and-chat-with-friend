@@ -37,77 +37,215 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- User / Room Info Container (Left Pill) -->
+        <!-- User / Room Info & Trophy Container (Left Column) -->
         <LinearLayout
-            android:id="@+id/layoutUserInfo"
+            android:id="@+id/layoutLeftHeader"
             android:layout_width="0dp"
-            android:layout_height="45dp"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_room_top_user_info"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="4dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="4dp">
+            android:orientation="vertical">
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/ivRoomAvatar"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/logo_placeholder"
-                app:civ_border_width="0dp" />
-
+            <!-- User / Room Info Container (Left Pill) -->
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:id="@+id/layoutUserInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:background="@drawable/bg_room_top_user_info"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp">
 
-                <TextView
-                    android:id="@+id/tvRoomName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="AmStudio"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/ivRoomAvatar"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/logo_placeholder"
+                    app:civ_border_width="0dp" />
 
                 <LinearLayout
-                    android:id="@+id/layoutRoomId"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tvRoomId"
+                        android:id="@+id/tvRoomName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:text="ID:13672983"
-                        android:textColor="#B0FFFFFF"
-                        android:textSize="10.5sp" />
+                        android:text="AmStudio"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutRoomDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/layoutRoomId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvRoomId"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:text="ID:13672983"
+                                android:textColor="#B0FFFFFF"
+                                android:textSize="10.5sp" />
+
+                            <ImageView
+                                android:id="@+id/btnCopyRoomId"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:layout_marginStart="3dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:clickable="true"
+                                android:contentDescription="Copy Room ID"
+                                android:focusable="true"
+                                android:src="@drawable/ic_copy"
+                                app:tint="#B0FFFFFF" />
+                        </LinearLayout>
+
+                        <!-- Live Members Count Section -->
+                        <LinearLayout
+                            android:id="@+id/layoutMemberCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="7dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:id="@+id/ivMemberIcon"
+                                android:layout_width="13dp"
+                                android:layout_height="13dp"
+                                android:src="@drawable/ic_members"
+                                android:contentDescription="Members"
+                                app:tint="#B0FFFFFF" />
+
+                            <TextView
+                                android:id="@+id/tvMemberCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="3dp"
+                                android:text="1"
+                                android:textColor="#B0FFFFFF"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Header Plus / Add Button -->
+
+            </LinearLayout>
+
+            <!-- Row below layoutUserInfo: Trophy + Music option -->
+            <LinearLayout
+                android:id="@+id/layoutHeaderSubRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="5dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Trophy / Rank Badge -->
+                <LinearLayout
+                    android:id="@+id/layoutRoomTrophy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
-                        android:id="@+id/btnCopyRoomId"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
+                        android:id="@+id/ivTrophyIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_trophy"
+                        android:contentDescription="Trophy Icon" />
+
+                    <TextView
+                        android:id="@+id/tvTrophyCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="Copy Room ID"
-                        android:focusable="true"
-                        android:src="@drawable/ic_copy"
-                        app:tint="#B0FFFFFF" />
+                        android:text="0.0B"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivTrophyArrow"
+                        android:layout_width="18dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="2dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="#B0FFFFFF"
+                        android:contentDescription="Arrow" />
                 </LinearLayout>
+
+                <!-- Music Option (Host Only) -->
+                <LinearLayout
+                    android:id="@+id/layoutRoomMusic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:layout_marginStart="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:id="@+id/ivMusicOptionIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_music"
+                        android:contentDescription="Music Icon" />
+
+                    <TextView
+                        android:id="@+id/tvMusicOptionText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Music"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivMusicOptionArrow"
+                        android:layout_width="18dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="2dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="#B0FFFFFF"
+                        android:contentDescription="Arrow" />
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
@@ -296,10 +434,10 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChatMessages"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
+        android:layout_height="130dp"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="115dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomMenuBar" />
 
     <!-- Bottom Menu Bar -->
     <LinearLayout
