@@ -15,7 +15,7 @@ public class GiftCatalog {
         // 1. Gift Category
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000, "Gift"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, 100000, "Gift"));
+        giftList.add(new GiftStoreAdapter.GiftStoreItem("Flowers", "gift/rose.svga", R.drawable.gift4, 100000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 250000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000, "Gift"));
