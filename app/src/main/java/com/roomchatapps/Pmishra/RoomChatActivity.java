@@ -4116,9 +4116,9 @@ public class RoomChatActivity extends AppCompatActivity {
         // 1. Gift Category (गिफ्ट)
         giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000, "Gift"));
-        giftList.add(new GiftStoreItem("Flag Gift", "gift/rose.svga", R.drawable.room_gift_ic, 100000, "Gift"));
-        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_baklava, 250000, "Gift"));
-        giftList.add(new GiftStoreItem("Gold Ring", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Rose gift", "gift/rose.svga", R.drawable.gift4, 100000, "Gift"));
+        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.birthday_cake, 250000, "Gift"));
+        giftList.add(new GiftStoreItem("Blue ring love", "gift/blue_ring_love.svga", R.drawable.giftblue_ring_love, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000, "Gift"));
         giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 500000, "Gift"));
         giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, 300000, "Gift"));
@@ -4150,18 +4150,18 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 700000, "Gift"));
 
         // 2. Relationship Category (रिलेशनशिप)
-        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 1000000, "Relationship"));
+        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.giftblue_ring_love, 1000000, "Relationship"));
         giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000, "Relationship"));
         giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000, "Relationship"));
         giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000, "Relationship"));
-        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 1500000, "Relationship"));
+        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_blue_ring, 1500000, "Relationship"));
         giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 500000, "Relationship"));
         giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 1200000, "Relationship"));
         giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 3500000, "Relationship"));
         giftList.add(new GiftStoreItem("Royal Banquet", "gift/royal_banquet.svga", R.drawable.gift_royal_banquet, 4500000, "Relationship"));
 
         // 3. Nation Flag Category (नेशन फ्लैग)
-        giftList.add(new GiftStoreItem("Coming Soon", "gift/rose.svga", R.drawable.room_gift_ic, 30000, "Nation Flag"));
+        giftList.add(new GiftStoreItem("Rose gift", "gift/rose.svga", R.drawable.gift4, 30000, "Nation Flag"));
 
         // 4. Luxury Category (लक्ज़री)
         giftList.add(new GiftStoreItem("Luxury Bag", "gift/luxury_bag.svga", R.drawable.gift_luxury_bag, 5500000, "Luxury"));
@@ -4170,7 +4170,7 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 8000000, "Luxury"));
 
         // 5. Customization Category (कस्टमाइजेशन)
-        giftList.add(new GiftStoreItem("Coming Soon", "gift/aladdin.svga", R.drawable.king_icon, 500000, "Customization"));
+        giftList.add(new GiftStoreItem("Aladdin gift", "gift/aladdin.svga", R.drawable.king_icon, 500000, "Customization"));
 
         String[] categories = new String[]{"Gift", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
