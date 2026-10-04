@@ -362,19 +362,23 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             spec.circleSizePx = Math.round(finalCircleDp * density);
             spec.containerSizePx = Math.round(finalCircleDp * frameMultiplier * density);
 
-            // Derive icons sizes relative to circle size
-            spec.addIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.48f));
-            spec.lockIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.42f));
-            spec.micIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.38f));
+            // Derive icons sizes relative to circle size (increased icon size inside circle)
+            spec.addIconSizePx = Math.max(14, Math.round(spec.circleSizePx * 0.62f));
+            spec.lockIconSizePx = Math.max(14, Math.round(spec.circleSizePx * 0.52f));
+            spec.micIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.40f));
 
             // Total internal content height in pixels
             int estimatedTextHeightPx = Math.round(estimatedTextHeightDp * density);
             int contentHeightPx = spec.containerSizePx + spec.textMarginTopPx + estimatedTextHeightPx;
 
-            // Calculate remaining vertical space to absorb in item padding
+            // Calculate remaining vertical space and cap row padding to keep row gaps tight & compact
             int remainingSpacePx = Math.max(0, rowHeightPx - contentHeightPx);
-            spec.topPaddingPx = remainingSpacePx / 2;
-            spec.bottomPaddingPx = remainingSpacePx - spec.topPaddingPx;
+            float maxPaddingDp = (totalSeats <= 9) ? 8.0f : ((totalSeats <= 17) ? 4.0f : 2.5f);
+            int maxPaddingPx = Math.round(maxPaddingDp * density);
+            int actualPaddingPx = Math.min(maxPaddingPx, remainingSpacePx);
+
+            spec.topPaddingPx = actualPaddingPx / 2;
+            spec.bottomPaddingPx = actualPaddingPx - spec.topPaddingPx;
 
             return spec;
         }
