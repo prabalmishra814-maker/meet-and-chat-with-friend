@@ -14,7 +14,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SeatManager {
     private static final String TAG = "SeatManager";
@@ -109,6 +111,7 @@ public class SeatManager {
     }
 
     private String hostUserID = "";
+    private final Map<String, String> userRolesMap = new ConcurrentHashMap<>();
 
     public void setHostUserID(String hostUid) {
         this.hostUserID = hostUid != null ? hostUid.trim() : "";
@@ -116,6 +119,25 @@ public class SeatManager {
 
     public String getHostUserID() {
         return hostUserID;
+    }
+
+    public void updateUserRole(String userID, String role) {
+        if (userID != null && !userID.trim().isEmpty()) {
+            if (role != null) {
+                userRolesMap.put(userID.trim(), role.toLowerCase());
+            } else {
+                userRolesMap.remove(userID.trim());
+            }
+            notifySeatsUpdated();
+        }
+    }
+
+    public String getUserRole(String userID) {
+        if (userID == null || userID.trim().isEmpty()) return "member";
+        String uid = userID.trim();
+        if (hostUserID != null && !hostUserID.isEmpty() && hostUserID.equals(uid)) return "host";
+        String role = userRolesMap.get(uid);
+        return role != null ? role : "member";
     }
 
     /**

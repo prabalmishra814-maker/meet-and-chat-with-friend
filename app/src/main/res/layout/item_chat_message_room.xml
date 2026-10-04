@@ -6,7 +6,7 @@
     android:gravity="center_vertical|start"
     android:orientation="horizontal"
     android:paddingHorizontal="4dp"
-    android:paddingVertical="2dp">
+    android:paddingVertical="3dp">
 
     <!-- Compact Glassmorphism Capsule Bubble for Audio Room Chat -->
     <LinearLayout
@@ -17,7 +17,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="10dp"
-        android:paddingVertical="4dp">
+        android:paddingVertical="5dp">
 
         <!-- System Announcement Icon -->
         <ImageView
@@ -89,6 +89,16 @@
             android:text="User : Hello!"
             android:textColor="#FFFFFF"
             android:textSize="12.5sp" />
+
+        <!-- Gift Icon Image -->
+        <ImageView
+            android:id="@+id/ivGiftIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="6dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/gift_icon"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tvTime"

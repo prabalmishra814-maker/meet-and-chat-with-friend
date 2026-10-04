@@ -159,7 +159,8 @@ public class EnergyConvertActivity extends AppCompatActivity {
         if (amount <= 0) {
             tvCoinsToReceive.setText("0 Coins");
         } else {
-            tvCoinsToReceive.setText(NumberFormat.getInstance().format(amount) + " Coins");
+            long coinsToReceive = Math.round(amount * 0.70);
+            tvCoinsToReceive.setText(NumberFormat.getInstance().format(coinsToReceive) + " Coins");
         }
     }
 
@@ -244,6 +245,8 @@ public class EnergyConvertActivity extends AppCompatActivity {
 
         if (btnConvert != null) btnConvert.setEnabled(false);
 
+        final long coinsGained = Math.round(amountToConvert * 0.70);
+
         WalletManager.convertEnergyToCoins(currentUid, amountToConvert, new WalletManager.WalletCallback() {
             @Override
             public void onSuccess(String message, long newCoinBalance) {
@@ -251,7 +254,7 @@ public class EnergyConvertActivity extends AppCompatActivity {
                 if (btnConvert != null) btnConvert.setEnabled(true);
 
                 if (etEnergyInput != null) etEnergyInput.setText("");
-                Toast.makeText(EnergyConvertActivity.this, "🎉 Converted " + amountToConvert + " Energy to " + amountToConvert + " Coins!", Toast.LENGTH_LONG).show();
+                Toast.makeText(EnergyConvertActivity.this, "🎉 Converted " + amountToConvert + " Energy to " + coinsGained + " Coins! (30% Charge Deducted)", Toast.LENGTH_LONG).show();
 
                 if (tvCoinsBalance != null) {
                     AnimationHelper.bounceAnimation(tvCoinsBalance);

@@ -139,8 +139,9 @@ public class WalletManager {
                     return;
                 }
 
+                long coinsGained = Math.round(energyAmount * 0.70);
                 long updatedEnergy = currentEnergy - energyAmount;
-                long updatedCoins = currentCoins + energyAmount;
+                long updatedCoins = currentCoins + coinsGained;
 
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("energy", updatedEnergy);
@@ -149,9 +150,9 @@ public class WalletManager {
                 userRef.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         UserProfileCache.invalidate(uid);
-                        logTransaction(uid, "ENERGY_CONVERT", energyAmount, 0, "Energy Conversion", "Converted " + energyAmount + " Energy to " + energyAmount + " Coins");
+                        logTransaction(uid, "ENERGY_CONVERT", energyAmount, 0, "Energy Conversion", "Converted " + energyAmount + " Energy to " + coinsGained + " Coins (30% Charge)");
                         if (callback != null) {
-                            callback.onSuccess("Successfully converted " + energyAmount + " Energy to Coins!", updatedCoins);
+                            callback.onSuccess("Successfully converted " + energyAmount + " Energy to " + coinsGained + " Coins!", updatedCoins);
                         }
                     } else {
                         if (callback != null) {

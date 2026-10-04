@@ -19,6 +19,7 @@ import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
+import com.roomchatapps.Pmishra.zego.SeatManager;
 import com.roomchatapps.Pmishra.zego.SeatModel;
 
 import java.util.ArrayList;
@@ -180,6 +181,14 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
             // User Name
             String displayName = model.userName != null && !model.userName.isEmpty() ? model.userName : "User";
+            String userRole = SeatManager.getInstance().getUserRole(model.userID);
+
+            if ("host".equalsIgnoreCase(userRole) || model.isHost()) {
+                displayName = displayName + "\n(Host)";
+            } else if ("admin".equalsIgnoreCase(userRole)) {
+                displayName = displayName + "\n(Admin)";
+            }
+
             if (holder.tvSeatName != null) {
                 holder.tvSeatName.setText(displayName);
             }

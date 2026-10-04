@@ -7,6 +7,7 @@ public class ChatMessage {
     private String receiverId;
     private String message;
     private String senderAvatar;
+    private int giftIconRes;
     private long timestamp;
     private boolean read;
 
@@ -74,5 +75,13 @@ public class ChatMessage {
     @PropertyName("read")
     public void setRead(boolean read) {
         this.read = read;
+    }
+
+    public int getGiftIconRes() {
+        return giftIconRes;
+    }
+
+    public void setGiftIconRes(int giftIconRes) {
+        this.giftIconRes = giftIconRes;
     }
 }

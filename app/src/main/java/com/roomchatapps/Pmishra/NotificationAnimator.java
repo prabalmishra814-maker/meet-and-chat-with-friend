@@ -76,11 +76,7 @@ public class NotificationAnimator {
     }
 
     public void showNotification(String title, String message, int iconRes, String avatarUrl) {
-        if (containerView == null) return;
-        notificationQueue.add(new NotificationItem(title, message, iconRes, avatarUrl));
-        if (!isShowing) {
-            processNextNotification();
-        }
+        // Left-side notification disabled per user request
     }
 
     private void processNextNotification() {

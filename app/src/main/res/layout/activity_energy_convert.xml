@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="1 Energy = 1 Coin\nConvert your earned energy directly into spending coins anytime!"
+                    android:text="1 Energy = 0.70 Coins (30% Conversion Charge)\nConvert 70% of your earned energy directly into spending coins anytime!"
                     android:textColor="#D0FFFFFF"
                     android:textSize="12.5sp"
                     app:layout_constraintEnd_toEndOf="parent"

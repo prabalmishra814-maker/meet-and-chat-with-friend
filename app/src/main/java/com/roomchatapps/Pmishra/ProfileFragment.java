@@ -307,17 +307,7 @@ public class ProfileFragment extends Fragment {
             }
         });
         
-        View.OnClickListener openCollection = v -> {
-            if (getActivity() != null) {
-                AnimationHelper.bounceAnimation(v);
-                Intent intent = new Intent(getActivity(), CollectionActivity.class);
-                startActivity(intent);
-            }
-        };
 
-        if (binding.cardCollection != null) {
-            binding.cardCollection.setOnClickListener(openCollection);
-        }
 
 
         binding.cardSetting.setOnClickListener(v -> {

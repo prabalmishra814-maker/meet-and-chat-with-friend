@@ -53,7 +53,6 @@ public class GiftCatalog {
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000, "Relationship"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_golden_rings, 1500000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 500000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 1200000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 3500000, "Relationship"));

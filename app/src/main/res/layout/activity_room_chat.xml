@@ -422,21 +422,25 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSeats"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:clipToPadding="false"
         android:paddingHorizontal="12dp"
         android:overScrollMode="never"
-        app:layout_constraintBottom_toTopOf="@id/rvChatMessages"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@id/topBar" />
 
     <!-- Chat Area -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChatMessages"
         android:layout_width="match_parent"
-        android:layout_height="130dp"
+        android:layout_height="0dp"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp"
+        android:overScrollMode="never"
+        app:stackFromEnd="true"
+        app:layout_constraintTop_toBottomOf="@id/rvSeats"
         app:layout_constraintBottom_toTopOf="@id/bottomMenuBar" />
 
     <!-- Bottom Menu Bar -->
@@ -531,17 +535,11 @@
                 android:src="@drawable/gift_icon" />
         </LinearLayout>
 
-        <!-- 5. More Icon Button -->
+        <!-- Retained hidden view for Activity reference -->
         <ImageView
             android:id="@+id/btnMore"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:background="@drawable/bg_control_button"
-            android:clickable="true"
-            android:contentDescription="More"
-            android:focusable="true"
-            android:padding="10dp"
-            android:src="@drawable/room_more_ic"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone" />
 
         <!-- Retained hidden views for Activity references -->

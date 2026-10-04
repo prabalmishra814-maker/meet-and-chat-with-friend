@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference userNotifRef;
     private ValueEventListener notifEventListener;
     private final long appStartTime = System.currentTimeMillis();
+    private final java.util.Set<String> processedGlobalGiftIds = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -373,13 +374,20 @@ public class MainActivity extends AppCompatActivity {
 
                 String sName = snapshot.child("senderName").getValue(String.class);
                 String gName = snapshot.child("giftName").getValue(String.class);
+                if (sName == null || gName == null) return;
+
+                String giftId = snapshot.child("giftId").getValue(String.class);
+                if (giftId == null || giftId.isEmpty()) {
+                    giftId = sName + "_" + gName + "_" + (ts != null ? ts : 0);
+                }
+                if (processedGlobalGiftIds.contains(giftId)) return;
+                processedGlobalGiftIds.add(giftId);
+
                 String rName = snapshot.child("recipientName").getValue(String.class);
                 String roomName = snapshot.child("roomName").getValue(String.class);
                 String sAvatar = snapshot.child("senderAvatar").getValue(String.class);
                 Long iconResLong = snapshot.child("iconRes").getValue(Long.class);
                 int iconRes = iconResLong != null ? iconResLong.intValue() : R.drawable.gift_icon;
-
-                if (sName == null || gName == null) return;
 
                 String sender = sName.trim();
                 String gift = gName.trim();
@@ -404,15 +412,11 @@ public class MainActivity extends AppCompatActivity {
                     cleanGift = cleanGift.substring(0, idx);
                 }
 
-                int playTimes = Math.max(1, Math.min(qty, 10)); // Play up to quantity times in sequence
+                String qtyText = (qty > 1) ? (qty + "x ") : "";
+                String slideNotice = "sent " + qtyText + gift + (rName != null && !rName.trim().isEmpty() ? " to " + rName.trim() : "") + " 🎁";
 
-                String slideNotice = "sent " + gift + (rName != null && !rName.trim().isEmpty() ? " to " + rName.trim() : "") + " 🎁";
-
-                for (int i = 1; i <= playTimes; i++) {
-                    String countSuffix = playTimes > 1 ? (" [" + i + "/" + playTimes + "]") : "";
-                    String htmlNotice = "<font color='#FFD700'><b>" + sender + "</b></font> sent <font color='#FF007A'><b>" + cleanGift + "</b></font>" + countSuffix + target + room + " 🎁";
-                    globalBannerQueue.add(new GlobalBannerItem("Notification/rednotification.svga", htmlNotice, sender, slideNotice, iconRes, sAvatar));
-                }
+                String htmlNotice = "<font color='#FFD700'><b>" + sender + "</b></font> sent <font color='#FF007A'><b>" + qtyText + cleanGift + "</b></font>" + target + room + " 🎁";
+                globalBannerQueue.add(new GlobalBannerItem("Notification/rednotification (1).svga", htmlNotice, sender, slideNotice, iconRes, sAvatar));
 
                 if (!isGlobalBannerPlaying) {
                     processNextGlobalBanner();
@@ -452,12 +456,9 @@ public class MainActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    tvNotice.setText(Html.fromHtml(item.htmlNotice, Html.FROM_HTML_MODE_LEGACY));
-                } else {
-                    tvNotice.setText(Html.fromHtml(item.htmlNotice));
-                }
-                container.setVisibility(View.VISIBLE);
+                container.setVisibility(View.GONE);
+                player.stopAnimation();
+                player.clear();
             } catch (Exception ignored) {}
         });
 
@@ -471,6 +472,12 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            tvNotice.setText(Html.fromHtml(item.htmlNotice, Html.FROM_HTML_MODE_LEGACY));
+                        } else {
+                            tvNotice.setText(Html.fromHtml(item.htmlNotice));
+                        }
+
                         int frames = videoItem.getFrames();
                         int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
                         long durationMs = (long) (((double) frames / fps) * 1000L);
@@ -484,7 +491,6 @@ public class MainActivity extends AppCompatActivity {
 
                         player.stopAnimation();
                         player.clear();
-                        player.setVisibility(View.VISIBLE);
                         player.setVideoItem(videoItem);
                         player.setLoops(1);
                         player.setCallback(new com.opensource.svgaplayer.SVGACallback() {
@@ -493,6 +499,9 @@ public class MainActivity extends AppCompatActivity {
                             @Override public void onRepeat() {}
                             @Override public void onStep(int frame, double percentage) {}
                         });
+
+                        player.setVisibility(View.VISIBLE);
+                        container.setVisibility(View.VISIBLE);
                         player.startAnimation();
                     } catch (Exception e) {
                         finishCurrentGlobalBanner();

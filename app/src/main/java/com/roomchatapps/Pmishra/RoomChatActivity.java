@@ -1,7 +1,13 @@
 package com.roomchatapps.Pmishra;
 
 import com.google.firebase.auth.FirebaseUser;
+import com.roomchatapps.Pmishra.adapters.CollectionAdapter;
+import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
+import com.roomchatapps.Pmishra.models.CollectionItemModel;
+import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
+import com.roomchatapps.Pmishra.utils.GiftCatalog;
+import com.roomchatapps.Pmishra.utils.StoreManager;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
@@ -193,6 +199,8 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private DatabaseReference roomGiftsRef;
     private ChildEventListener giftsChildEventListener;
+    private DatabaseReference globalRoomGiftsRef;
+    private ChildEventListener globalGiftsChildEventListener;
 
     private DatabaseReference roomInfoRef;
     private ValueEventListener roomInfoValueEventListener;
@@ -347,6 +355,13 @@ public class RoomChatActivity extends AppCompatActivity {
         }
         SeatManager.getInstance().setHostUserID(hostUid);
         SeatManager.getInstance().setCurrentRoomID(roomID);
+
+        if (isHost) {
+            String myAvatar = SessionManager.getInstance(this).getAvatar();
+            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+            String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
+            SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
+        }
 
         UserProfileCache.getUserProfile(userID, profile -> {});
         TwentyFourHourRuleManager.record24HourEvent(userID, roomID);
@@ -594,7 +609,9 @@ public class RoomChatActivity extends AppCompatActivity {
         });
 
         rvChat = findViewById(R.id.rvChatMessages);
-        rvChat.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager chatLayoutManager = new LinearLayoutManager(this);
+        chatLayoutManager.setStackFromEnd(true);
+        rvChat.setLayoutManager(chatLayoutManager);
         chatAdapter = new ChatAdapter();
         rvChat.setAdapter(chatAdapter);
 
@@ -656,11 +673,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnMore = findViewById(R.id.btnMore);
         if (btnMore != null) {
-            btnMore.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
-            btnMore.setOnClickListener(v -> {
-                if (isFastClick(v)) return;
-                showMorePanelDialog();
-            });
+            btnMore.setVisibility(View.GONE);
         }
 
         findViewById(R.id.btnGame).setOnClickListener(v -> {
@@ -708,10 +721,15 @@ public class RoomChatActivity extends AppCompatActivity {
                 broadcastUserEntry();
                 if (isHost) {
                     String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                    UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+                    String initialFrame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
+                    SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, initialFrame);
+                    ZegoManager.getInstance().setMicEnabled(true);
+                    ZegoManager.getInstance().startPublishing();
+
                     UserProfileCache.getUserProfile(userID, profile -> {
                         String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
                         SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
-                        ZegoManager.getInstance().startPublishing();
                     });
                 } else {
                     // Non-host users must NOT be on a seat when entering the room.
@@ -811,15 +829,15 @@ public class RoomChatActivity extends AppCompatActivity {
                                 }
                             }
 
-                            // 1. Play main SVGA gift animation across room
+                            // 1. Play main SVGA gift animation across room (1 time per gift action)
                             if (gSvga != null && !gSvga.trim().isEmpty()) {
                                 playSvgaAnimation(gSvga);
                             } else if (gName.contains("Heart")) {
                                 playSvgaAnimation("gift/aladdin.svga");
                             }
 
-                            // 2. Play rednotification.svga banner sequentially one by one quantity times
-                            showGoldenGiftBanner(sName, gName, rName, qty);
+                            // 2. Play rednotification.svga banner
+                            showGoldenGiftBanner(giftId, sName, gName, rName, qty);
                         } catch (Exception ignored) {}
                     } else {
                         textMessages.add(info);
@@ -1085,8 +1103,11 @@ public class RoomChatActivity extends AppCompatActivity {
         View btnActionSend = profileView.findViewById(R.id.btnActionSend);
 
         String targetUid = model.userID != null ? model.userID : "";
+        String targetRole = SeatManager.getInstance().getUserRole(targetUid);
+        String roleTag = "host".equalsIgnoreCase(targetRole) || model.isHost() ? " (Host)" : ("admin".equalsIgnoreCase(targetRole) ? " (Admin)" : "");
+
         String initialName = (model.userName != null && !model.userName.isEmpty()) ? model.userName : "User";
-        if (tvName != null) tvName.setText(initialName);
+        if (tvName != null) tvName.setText(initialName + roleTag);
 
         if (ivProfileAvatar != null) {
             if (model.userAvatar != null && !model.userAvatar.isEmpty()) {
@@ -1104,7 +1125,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     String dbName = snapshot.child("name").getValue(String.class);
                     if (dbName != null && !dbName.isEmpty() && tvName != null) {
-                        tvName.setText(dbName);
+                        tvName.setText(dbName + roleTag);
                     }
 
                     String dbAvatar = snapshot.child("avtar").getValue(String.class);
@@ -1226,11 +1247,11 @@ public class RoomChatActivity extends AppCompatActivity {
             llOtherUserActionsRow.setVisibility(isSelf ? View.GONE : View.VISIBLE);
         }
 
-        // Medal Card Row
+        // Medal Card Row / Collection Header
         View llMedalCard = profileView.findViewById(R.id.llMedalCard);
         TextView tvMedalWear = profileView.findViewById(R.id.tvMedalWear);
         if (tvMedalWear != null) {
-            tvMedalWear.setText(isSelf ? "Wear ›" : "View ›");
+            tvMedalWear.setText(isSelf ? "Wear ›" : "open ›");
         }
         if (llMedalCard != null) {
             llMedalCard.setOnClickListener(v -> {
@@ -1245,6 +1266,14 @@ public class RoomChatActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             });
+        }
+
+        // Profile Collection Grid Below
+        RecyclerView rvProfileCollection = profileView.findViewById(R.id.rvProfileCollection);
+        TextView tvEmptyProfileCollection = profileView.findViewById(R.id.tvEmptyProfileCollection);
+        if (rvProfileCollection != null) {
+            rvProfileCollection.setLayoutManager(new GridLayoutManager(this, 2));
+            loadProfileCardCollection(targetUid, rvProfileCollection, tvEmptyProfileCollection);
         }
 
         // Own Profile Action Buttons (Leave the Mic, Send Gift)
@@ -1535,6 +1564,107 @@ public class RoomChatActivity extends AppCompatActivity {
         profileDialog.show();
     }
 
+    private void loadProfileCardCollection(String targetUid, RecyclerView rvCollection, TextView tvEmpty) {
+        if (targetUid == null || targetUid.isEmpty() || rvCollection == null) return;
+
+        StoreManager.getStoreCatalog(targetUid, "ALL", new StoreManager.CatalogCallback() {
+            @Override
+            public void onCatalogLoaded(List<StoreItemModel> catalog) {
+                if (isFinishing() || isDestroyed()) return;
+                List<CollectionItemModel> storeOwnedItems = new ArrayList<>();
+
+                for (StoreItemModel item : catalog) {
+                    if (item.isOwned()) {
+                        if ("ENTRANCE".equalsIgnoreCase(item.getCategory())) {
+                            storeOwnedItems.add(new CollectionItemModel(CollectionItemModel.ItemType.ENTRY_EFFECT, item));
+                        } else if ("FRAME".equalsIgnoreCase(item.getCategory())) {
+                            storeOwnedItems.add(new CollectionItemModel(CollectionItemModel.ItemType.FRAME, item));
+                        }
+                    }
+                }
+
+                loadProfileCardReceivedGifts(targetUid, storeOwnedItems, rvCollection, tvEmpty);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (isFinishing() || isDestroyed()) return;
+                loadProfileCardReceivedGifts(targetUid, new ArrayList<>(), rvCollection, tvEmpty);
+            }
+        });
+    }
+
+    private void loadProfileCardReceivedGifts(String targetUid, List<CollectionItemModel> storeOwnedItems, RecyclerView rvCollection, TextView tvEmpty) {
+        DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(targetUid);
+        txRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                Map<String, Integer> giftCountMap = new HashMap<>();
+
+                if (snapshot.exists()) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String type = ds.child("type").getValue(String.class);
+                        if ("GIFT_RECEIVED".equalsIgnoreCase(type)) {
+                            String giftName = ds.child("giftName").getValue(String.class);
+                            if (giftName == null || giftName.trim().isEmpty()) {
+                                String title = ds.child("title").getValue(String.class);
+                                if (title != null && title.startsWith("Received Gift: ")) {
+                                    giftName = title.substring("Received Gift: ".length()).trim();
+                                }
+                            }
+                            if (giftName != null && !giftName.trim().isEmpty()) {
+                                String cleanName = giftName.replaceAll("\\s*\\(.*?\\)", "").trim();
+                                giftCountMap.put(cleanName, giftCountMap.getOrDefault(cleanName, 0) + 1);
+                            }
+                        }
+                    }
+                }
+
+                List<CollectionItemModel> finalCollection = new ArrayList<>(storeOwnedItems);
+                for (Map.Entry<String, Integer> entry : giftCountMap.entrySet()) {
+                    String giftName = entry.getKey();
+                    int count = entry.getValue();
+                    GiftStoreAdapter.GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
+                    if (catalogGift != null) {
+                        finalCollection.add(new CollectionItemModel(catalogGift, count));
+                    } else {
+                        finalCollection.add(new CollectionItemModel(giftName, R.drawable.gift_icon, 100000L, count));
+                    }
+                }
+
+                if (finalCollection.isEmpty()) {
+                    if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
+                    if (rvCollection != null) rvCollection.setVisibility(View.GONE);
+                } else {
+                    if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
+                    if (rvCollection != null) {
+                        rvCollection.setVisibility(View.VISIBLE);
+                        CollectionAdapter adapter = new CollectionAdapter(finalCollection, item -> {
+                            Toast.makeText(RoomChatActivity.this, "Collection Item: " + (item.getGiftStoreItem() != null ? item.getGiftStoreItem().name : (item.getStoreItem() != null ? item.getStoreItem().getName() : "Item")), Toast.LENGTH_SHORT).show();
+                        });
+                        rvCollection.setAdapter(adapter);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (storeOwnedItems.isEmpty()) {
+                    if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
+                    if (rvCollection != null) rvCollection.setVisibility(View.GONE);
+                } else {
+                    if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
+                    if (rvCollection != null) {
+                        rvCollection.setVisibility(View.VISIBLE);
+                        CollectionAdapter adapter = new CollectionAdapter(storeOwnedItems, item -> {});
+                        rvCollection.setAdapter(adapter);
+                    }
+                }
+            }
+        });
+    }
+
     // Prompt Admin/Host to select kick/blacklist duration
     private void showKickDurationDialog(String targetUid, String targetName, int seatIndex) {
         if (!isAdminOrHost()) return;
@@ -1629,6 +1759,9 @@ public class RoomChatActivity extends AppCompatActivity {
             if (roomGiftsRef != null && giftsChildEventListener != null) { // GIFT SVGA FIX: remove orphaned Firebase gift listener
                 roomGiftsRef.removeEventListener(giftsChildEventListener); // GIFT SVGA FIX
             } // GIFT SVGA FIX
+            if (globalRoomGiftsRef != null && globalGiftsChildEventListener != null) {
+                globalRoomGiftsRef.removeEventListener(globalGiftsChildEventListener);
+            }
             if (roomMusicRef != null && roomMusicValueEventListener != null) {
                 roomMusicRef.removeEventListener(roomMusicValueEventListener);
             }
@@ -1747,6 +1880,7 @@ public class RoomChatActivity extends AppCompatActivity {
     private void setupFirebaseListeners() {
         setupRoomInfoListener();
         setupRoomGiftListener();
+        setupGlobalRoomGiftListener();
         setupRoomSeatsListener();
         setupRoomRolesListener(); // ROOM ROLE PERSISTENCE
         setupRoomMessagesListener();
@@ -1779,6 +1913,7 @@ public class RoomChatActivity extends AppCompatActivity {
                         String roleVal = child.child("role").getValue(String.class);
                         if (targetUid != null && roleVal != null) {
                             userRoomRolesMap.put(targetUid, roleVal.toLowerCase());
+                            SeatManager.getInstance().updateUserRole(targetUid, roleVal.toLowerCase());
                         }
                     }
                 }
@@ -1809,7 +1944,7 @@ public class RoomChatActivity extends AppCompatActivity {
         boolean hasAdminAccess = isAdminOrHost();
 
         if (btnMore != null) {
-            btnMore.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
+            btnMore.setVisibility(View.GONE);
         }
         if (moreView != null) {
             moreView.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
@@ -1921,6 +2056,10 @@ public class RoomChatActivity extends AppCompatActivity {
                     if (ts != null && ts < roomJoinTime - 3000) return;
 
                     if (senderName != null && giftName != null) {
+                        String recipientName = snapshot.child("recipientName").getValue(String.class);
+                        Long quantityLong = snapshot.child("quantity").getValue(Long.class);
+                        int quantity = (quantityLong != null) ? quantityLong.intValue() : 1;
+
                         String giftId = snapshot.child("giftId").getValue(String.class);
                         if (giftId == null || giftId.isEmpty()) {
                             giftId = senderName + "_" + giftName + "_" + (ts != null ? ts : 0);
@@ -1929,12 +2068,9 @@ public class RoomChatActivity extends AppCompatActivity {
 
                         String senderAvatar = snapshot.child("senderAvatar").getValue(String.class);
                         int iconRes = (iconResLong != null) ? iconResLong.intValue() : R.drawable.gift_icon;
-                        if (notificationAnimator != null) {
-                            notificationAnimator.showNotification(senderName, "sent " + giftName, iconRes, senderAvatar);
-                        }
 
                         // Broadcast Golden Banner SVGA at top between seats/profile for all users in the room!
-                        showGoldenGiftBanner(senderName, giftName);
+                        showGoldenGiftBanner(giftId, senderName, giftName, recipientName, quantity);
 
                         String giftSvga = snapshot.child("giftSvga").getValue(String.class);
                         if (giftSvga != null) {
@@ -1951,6 +2087,40 @@ public class RoomChatActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         };
         roomGiftsRef.addChildEventListener(giftsChildEventListener);
+    }
+
+    private void setupGlobalRoomGiftListener() {
+        globalRoomGiftsRef = FirebaseDatabase.getInstance().getReference("global_room_gifts");
+        globalGiftsChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if (isFinishing() || isDestroyed() || !snapshot.exists()) return;
+
+                Long ts = snapshot.child("timestamp").getValue(Long.class);
+                if (ts != null && ts < roomJoinTime - 3000) return;
+
+                String giftId = snapshot.child("giftId").getValue(String.class);
+                String senderName = snapshot.child("senderName").getValue(String.class);
+                String giftName = snapshot.child("giftName").getValue(String.class);
+                String recipientName = snapshot.child("recipientName").getValue(String.class);
+                Long quantityLong = snapshot.child("quantity").getValue(Long.class);
+                int quantity = (quantityLong != null) ? quantityLong.intValue() : 1;
+
+                if (senderName == null || giftName == null) return;
+
+                if (giftId == null || giftId.isEmpty()) {
+                    giftId = senderName + "_" + giftName + "_" + (ts != null ? ts : 0);
+                }
+
+                showGoldenGiftBanner(giftId, senderName, giftName, recipientName, quantity);
+            }
+
+            @Override public void onChildChanged(@NonNull DataSnapshot s, @Nullable String p) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot s) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot s, @Nullable String p) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        };
+        globalRoomGiftsRef.addChildEventListener(globalGiftsChildEventListener);
     }
 
     private void setupRoomSeatsListener() {
@@ -1973,6 +2143,12 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                     if (!updatedSeats.isEmpty()) {
                         SeatManager.getInstance().setSeatsFromExternal(updatedSeats);
+                        if (isHost && SeatManager.getInstance().findUserSeatIndex(userID) == -1) {
+                            String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+                            String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
+                            SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
+                        }
                     }
                 }
             }
@@ -1997,6 +2173,8 @@ public class RoomChatActivity extends AppCompatActivity {
                         senderAvatar = snapshot.child("avtar").getValue(String.class);
                     }
                     String text = snapshot.child("text").getValue(String.class);
+                    Long giftIconLong = snapshot.child("giftIconRes").getValue(Long.class);
+                    int giftIconRes = (giftIconLong != null) ? giftIconLong.intValue() : 0;
                     Long ts = snapshot.child("timestamp").getValue(Long.class);
 
                     if (ts != null && ts < roomJoinTime - 5000) return;
@@ -2005,12 +2183,20 @@ public class RoomChatActivity extends AppCompatActivity {
                         ChatMessage msg = new ChatMessage();
                         msg.setSenderId(senderId != null ? senderId : "");
                         msg.setSenderAvatar(senderAvatar);
+                        msg.setGiftIconRes(giftIconRes);
                         String name = senderName != null ? senderName : "User";
-                        msg.setMessage(name + " : " + text);
+                        boolean isGiftMsg = (text.startsWith("sent ") && text.contains(" 🎁")) || giftIconRes != 0;
+                        long expireMs = isGiftMsg ? ChatAdapter.GIFT_MESSAGE_EXPIRE_MS : ChatAdapter.USER_MESSAGE_EXPIRE_MS;
+
+                        if (text.startsWith("sent ") && text.contains(" 🎁")) {
+                            msg.setMessage(name + " " + text);
+                        } else {
+                            msg.setMessage(name + " : " + text);
+                        }
                         msg.setTimestamp(ts != null ? ts : System.currentTimeMillis());
 
                         if (chatAdapter != null) {
-                            chatAdapter.addAutoExpiringMessage(msg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
+                            chatAdapter.addAutoExpiringMessage(msg, expireMs);
                         }
                         if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                             rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
@@ -2183,12 +2369,6 @@ public class RoomChatActivity extends AppCompatActivity {
 
                     if (rvChat != null && chatAdapter != null && chatAdapter.getItemCount() > 0) {
                         rvChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
-                    }
-
-                    // Show Slide-in notification banner
-                    if (notificationAnimator != null) {
-                        String userAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
-                        notificationAnimator.showNotification(displayName, "entered the room", 0, userAvatar);
                     }
 
                     // Show User Entry Banner Overlay
@@ -2716,6 +2896,95 @@ public class RoomChatActivity extends AppCompatActivity {
                 dialog.dismiss();
                 Toast.makeText(RoomChatActivity.this, "Room running in background 🎙️", Toast.LENGTH_SHORT).show();
                 minimizeRoom();
+            });
+        }
+
+        // Option: Private Your Room
+        View btnOptionPrivateRoom = dialogView.findViewById(R.id.btnOptionPrivateRoom);
+        if (btnOptionPrivateRoom != null) {
+            btnOptionPrivateRoom.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
+            btnOptionPrivateRoom.setOnClickListener(v -> {
+                dialog.dismiss();
+                showPrivateRoomSettingsDialog();
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private void showPrivateRoomSettingsDialog() {
+        if (!isAdminOrHost()) {
+            Toast.makeText(this, "Only Room Host or Admin can manage private room settings", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        applyGlassyStyle(dialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_private_room_settings, null, false);
+        if (dialogView == null) return;
+
+        com.google.android.material.materialswitch.MaterialSwitch swPrivateRoom = dialogView.findViewById(R.id.swPrivateRoom);
+        EditText etRoomPin = dialogView.findViewById(R.id.etRoomPin);
+        EditText etPrivateImage = dialogView.findViewById(R.id.etPrivateImage);
+        com.google.android.material.imageview.ShapeableImageView ivLockPreview = dialogView.findViewById(R.id.ivLockPreview);
+        View btnSavePrivateSettings = dialogView.findViewById(R.id.btnSavePrivateSettings);
+
+        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID);
+        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (snapshot.exists()) {
+                    Boolean isPrivateVal = snapshot.child("isPrivate").getValue(Boolean.class);
+                    String pinVal = snapshot.child("roomPin").getValue(String.class);
+                    if (pinVal == null) pinVal = snapshot.child("pin").getValue(String.class);
+                    String imgVal = snapshot.child("privateImage").getValue(String.class);
+
+                    if (swPrivateRoom != null && isPrivateVal != null) {
+                        swPrivateRoom.setChecked(isPrivateVal);
+                    }
+                    if (etRoomPin != null && pinVal != null) {
+                        etRoomPin.setText(pinVal);
+                    }
+                    if (etPrivateImage != null && imgVal != null) {
+                        etPrivateImage.setText(imgVal);
+                    }
+                    if (ivLockPreview != null && imgVal != null && !imgVal.trim().isEmpty()) {
+                        ivLockPreview.setVisibility(View.VISIBLE);
+                        Glide.with(RoomChatActivity.this).load(imgVal).into(ivLockPreview);
+                    }
+                }
+            }
+
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        if (btnSavePrivateSettings != null) {
+            btnSavePrivateSettings.setOnClickListener(v -> {
+                boolean isPrivateChecked = swPrivateRoom != null && swPrivateRoom.isChecked();
+                String enteredPin = etRoomPin != null ? etRoomPin.getText().toString().trim() : "";
+                String enteredImg = etPrivateImage != null ? etPrivateImage.getText().toString().trim() : "";
+
+                if (isPrivateChecked && (enteredPin.isEmpty() || enteredPin.length() < 4)) {
+                    Toast.makeText(this, "Please enter a valid 4-digit PIN for Private Room!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("isPrivate", isPrivateChecked);
+                updates.put("roomPin", enteredPin);
+                updates.put("pin", enteredPin);
+                updates.put("privateImage", enteredImg);
+
+                roomRef.updateChildren(updates).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(RoomChatActivity.this, isPrivateChecked ? "🔒 Room set to Private with PIN!" : "🔓 Room is now Public!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(RoomChatActivity.this, "Failed to update room privacy", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         }
 
@@ -3361,10 +3630,17 @@ public class RoomChatActivity extends AppCompatActivity {
 
     // ROOM MINIMIZE FIX
     public void minimizeRoom() {
-        isMinimized = true; // ROOM MINIMIZE FIX
-        RoomFloatingManager.getInstance().showFloatingBubble(this, roomID, roomNameLabel, roomImg); // ROOM MINIMIZE FIX
-        moveTaskToBack(true); // ROOM MINIMIZE FIX
-        overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom); // ROOM ANIMATION FIX
+        isMinimized = true;
+        RoomFloatingManager.getInstance().showFloatingBubble(this, roomID, roomNameLabel, roomImg);
+        
+        try {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        } catch (Exception e) {
+            moveTaskToBack(true);
+        }
+        overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom);
     }
 
     // SEAT LIMIT SYNC FIX
@@ -4154,7 +4430,6 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000, "Relationship"));
         giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000, "Relationship"));
         giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000, "Relationship"));
-        giftList.add(new GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.gift_blue_ring, 1500000, "Relationship"));
         giftList.add(new GiftStoreItem("Forever Love", "gift/forever_love.svga", R.drawable.gift_forever_love, 500000, "Relationship"));
         giftList.add(new GiftStoreItem("Wedding Proposal", "gift/wedding_proposal.svga", R.drawable.gift_wedding_proposal, 1200000, "Relationship"));
         giftList.add(new GiftStoreItem("Love City", "gift/love_city.svga", R.drawable.gift_love_city, 3500000, "Relationship"));
@@ -4372,9 +4647,32 @@ public class RoomChatActivity extends AppCompatActivity {
                                     }
 
                                     String senderDisplayName = userName != null ? userName : "User";
+
+                                    // Automatically push gift message to room chat list
+                                    if (roomMessagesRef != null) {
+                                        try {
+                                            String rNotice = recipientNames.length() > 0 ? " to " + recipientNames.toString() : "";
+                                            String qtyText = (quantity > 1) ? (quantity + "x ") : "";
+                                            String giftChatMsg = "sent " + qtyText + giftName + rNotice + " 🎁";
+
+                                            Map<String, Object> giftMsgMap = new HashMap<>();
+                                            giftMsgMap.put("senderId", userID);
+                                            giftMsgMap.put("senderName", senderDisplayName);
+                                            giftMsgMap.put("text", giftChatMsg);
+                                            giftMsgMap.put("giftIconRes", (long) selectedItem.iconRes);
+                                            giftMsgMap.put("timestamp", System.currentTimeMillis());
+                                            giftMsgMap.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
+                                            UserProfileCache.UserProfile cachedProf = UserProfileCache.getDirectCachedProfile(userID);
+                                            String userFrame = (cachedProf != null && cachedProf.equippedFrame != null) ? cachedProf.equippedFrame : "";
+                                            giftMsgMap.put("equippedFrame", userFrame);
+                                            roomMessagesRef.push().setValue(giftMsgMap);
+                                        } catch (Exception ignored) {}
+                                    }
+
                                     try {
                                         JSONObject giftJson = new JSONObject();
                                         giftJson.put("type", "GIFT");
+                                        giftJson.put("giftId", uniqueGiftId);
                                         giftJson.put("giftId", uniqueGiftId);
                                         giftJson.put("senderName", senderDisplayName);
                                         giftJson.put("senderAvatar", SessionManager.getInstance(RoomChatActivity.this).getAvatar());
@@ -4386,13 +4684,7 @@ public class RoomChatActivity extends AppCompatActivity {
                                         ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
                                     } catch (Exception ignored) {}
 
-                                    String rNotice = recipientNames.length() > 0 ? " to " + recipientNames.toString() : "";
-                                    String giftNoticeMsg = "sent " + giftName + (quantity > 1 ? " (x" + quantity + ")" : "") + rNotice + " 🎁";
-
-                                    if (notificationAnimator != null) {
-                                        notificationAnimator.showNotification(senderDisplayName, giftNoticeMsg, selectedItem.iconRes, SessionManager.getInstance(RoomChatActivity.this).getAvatar());
-                                    }
-                                    showGoldenGiftBanner(senderDisplayName, giftName, recipientNames.toString(), quantity);
+                                    showGoldenGiftBanner(uniqueGiftId, senderDisplayName, giftName, recipientNames.toString(), quantity);
                                     if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
                                         markGiftProcessed(uniqueGiftId);
                                         playSvgaAnimation(selectedGiftSvga);
@@ -4740,10 +5032,17 @@ public class RoomChatActivity extends AppCompatActivity {
     private boolean isBannerPlaying = false;
 
     public void playSvgaAnimation(String fileName) {
-        if (isFinishing() || isDestroyed()) return; // GIFT SVGA FIX
+        playSvgaAnimation(fileName, 1);
+    }
+
+    public void playSvgaAnimation(String fileName, int count) {
+        if (isFinishing() || isDestroyed()) return;
         if (fileName == null || fileName.trim().isEmpty()) return;
-        giftAnimationQueue.offer(new GiftAnimationItem(fileName)); // GIFT SVGA FIX
-        giftHandler.post(this::processNextGiftAnimation); // GIFT SVGA FIX
+        int times = Math.max(1, count);
+        for (int i = 0; i < times; i++) {
+            giftAnimationQueue.offer(new GiftAnimationItem(fileName));
+        }
+        giftHandler.post(this::processNextGiftAnimation);
     }
 
     private void processNextGiftAnimation() { // GIFT SVGA FIX
@@ -4892,22 +5191,29 @@ public class RoomChatActivity extends AppCompatActivity {
     public void showUserEntryBanner(String displayUserName) {
         String name = (displayUserName != null && !displayUserName.trim().isEmpty()) ? displayUserName : "User";
         String htmlNotice = "<font color='#FFD700'><b>" + name + "</b></font> entered the room 🎉";
-        bannerQueue.offer(new BannerQueueItem("Notification/full_banner_game.svga", htmlNotice, true));
+        bannerQueue.offer(new BannerQueueItem("Notification/rednotification (1).svga", htmlNotice, true));
         processNextBanner();
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName) {
-        showGoldenGiftBanner(senderName, giftName, "", 1);
+        showGoldenGiftBanner(null, senderName, giftName, "", 1);
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName, String recipientName) {
-        showGoldenGiftBanner(senderName, giftName, recipientName, 1);
+        showGoldenGiftBanner(null, senderName, giftName, recipientName, 1);
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName, String recipientName, int quantity) {
+        showGoldenGiftBanner(null, senderName, giftName, recipientName, quantity);
+    }
+
+    public void showGoldenGiftBanner(String giftId, String senderName, String giftName, String recipientName, int quantity) {
+        if (giftId != null && !giftId.trim().isEmpty()) {
+            if (markGiftProcessed("banner_" + giftId)) return;
+        }
         String sName = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
         String gName = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
-        String rName = (recipientName != null && !recipientName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + recipientName + "</b></font>") : "";
+        String rName = (recipientName != null && !recipientName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + recipientName.trim() + "</b></font>") : "";
 
         String cleanGiftName = gName;
         int idx = cleanGiftName.indexOf(" (x");
@@ -4915,13 +5221,11 @@ public class RoomChatActivity extends AppCompatActivity {
             cleanGiftName = cleanGiftName.substring(0, idx);
         }
 
-        int playTimes = Math.max(1, Math.min(quantity, 10)); // Play up to quantity times in sequence
+        int qty = Math.max(1, quantity);
+        String qtyText = (qty > 1) ? (qty + "x ") : "";
 
-        for (int i = 1; i <= playTimes; i++) {
-            String countSuffix = playTimes > 1 ? (" [" + i + "/" + playTimes + "]") : "";
-            String htmlNotice = "<font color='#FFD700'><b>" + sName + "</b></font> sent <font color='#FF007A'><b>" + cleanGiftName + "</b></font>" + countSuffix + rName + " 🎁";
-            bannerQueue.offer(new BannerQueueItem("Notification/rednotification.svga", htmlNotice, false));
-        }
+        String htmlNotice = "<font color='#FFD700'><b>" + sName + "</b></font> sent <font color='#FF007A'><b>" + qtyText + cleanGiftName + "</b></font>" + rName + " 🎁";
+        bannerQueue.offer(new BannerQueueItem("Notification/rednotification (1).svga", htmlNotice, false));
         processNextBanner();
     }
 
@@ -4981,13 +5285,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    tvNotice.setText(Html.fromHtml(item.htmlNotice, Html.FROM_HTML_MODE_LEGACY));
-                } else {
-                    tvNotice.setText(Html.fromHtml(item.htmlNotice));
-                }
-                container.setVisibility(View.VISIBLE);
-
+                container.setVisibility(View.GONE);
                 player.stopAnimation();
                 player.clear();
             } catch (Exception ignored) {}
@@ -4998,7 +5296,7 @@ public class RoomChatActivity extends AppCompatActivity {
         parser.decodeFromAssets(item.svgaAsset, new SVGAParser.ParseCompletion() {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                playBannerVideoEntity(player, videoItem);
+                playBannerVideoEntity(container, player, tvNotice, item.htmlNotice, videoItem);
             }
 
             @Override
@@ -5008,14 +5306,20 @@ public class RoomChatActivity extends AppCompatActivity {
         }, null);
     }
 
-    private void playBannerVideoEntity(SVGAImageView player, SVGAVideoEntity videoItem) {
+    private void playBannerVideoEntity(View container, SVGAImageView player, TextView tvNotice, String htmlNotice, SVGAVideoEntity videoItem) {
         runOnUiThread(() -> {
-            if (isFinishing() || isDestroyed() || player == null) {
+            if (isFinishing() || isDestroyed() || player == null || container == null || tvNotice == null) {
                 finishCurrentBanner();
                 return;
             }
 
             try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    tvNotice.setText(Html.fromHtml(htmlNotice, Html.FROM_HTML_MODE_LEGACY));
+                } else {
+                    tvNotice.setText(Html.fromHtml(htmlNotice));
+                }
+
                 int frames = videoItem.getFrames();
                 int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
                 long durationMs = (long) (((double) frames / fps) * 1000L);
@@ -5029,7 +5333,6 @@ public class RoomChatActivity extends AppCompatActivity {
 
                 player.stopAnimation();
                 player.clear();
-                player.setVisibility(View.VISIBLE);
                 player.setVideoItem(videoItem);
                 player.setLoops(1);
                 player.setCallback(new SVGACallback() {
@@ -5042,6 +5345,9 @@ public class RoomChatActivity extends AppCompatActivity {
                     @Override public void onRepeat() {}
                     @Override public void onStep(int frame, double percentage) {}
                 });
+
+                player.setVisibility(View.VISIBLE);
+                container.setVisibility(View.VISIBLE);
                 player.startAnimation();
             } catch (Exception e) {
                 Log.e("RoomChatActivity", "Error playing banner SVGA", e);
@@ -5073,9 +5379,11 @@ public class RoomChatActivity extends AppCompatActivity {
             } catch (Exception ignored) {} // GIFT SVGA FIX
         } // GIFT SVGA FIX
         isBannerPlaying = false;
-        RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
-        if (!isRoomLeft) { // ROOM MINIMIZE FIX
-            leaveRoom(); // ROOM MINIMIZE FIX
-        } // ROOM MINIMIZE FIX
+        if (!isMinimized) {
+            RoomFloatingManager.getInstance().removeFloatingBubble();
+            if (!isRoomLeft) {
+                leaveRoom();
+            }
+        }
     }
 }

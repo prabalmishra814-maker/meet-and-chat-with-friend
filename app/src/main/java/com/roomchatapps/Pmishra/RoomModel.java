@@ -12,15 +12,26 @@ public class RoomModel {
     private String img;
     private String uid;
 
+    private boolean isPrivate;
+    private String roomPin;
+    private String privateImage;
+
     // Required empty constructor for Firebase
     public RoomModel() {
     }
 
     public RoomModel(String roomId, String room_name, String img, String uid) {
+        this(roomId, room_name, img, uid, false, "", "");
+    }
+
+    public RoomModel(String roomId, String room_name, String img, String uid, boolean isPrivate, String roomPin, String privateImage) {
         this.roomId = roomId;
         this.room_name = room_name;
         this.img = img;
         this.uid = uid;
+        this.isPrivate = isPrivate;
+        this.roomPin = roomPin;
+        this.privateImage = privateImage;
     }
 
     public String getRoomId() {
@@ -53,5 +64,29 @@ public class RoomModel {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    public void setPrivate(boolean aPrivate) {
+        isPrivate = aPrivate;
+    }
+
+    public String getRoomPin() {
+        return roomPin;
+    }
+
+    public void setRoomPin(String roomPin) {
+        this.roomPin = roomPin;
+    }
+
+    public String getPrivateImage() {
+        return privateImage;
+    }
+
+    public void setPrivateImage(String privateImage) {
+        this.privateImage = privateImage;
     }
 }

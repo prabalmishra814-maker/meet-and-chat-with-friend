@@ -18,6 +18,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import android.widget.EditText;
+import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -160,11 +163,115 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             intent.putExtra("userID", currentUserId);
             intent.putExtra("host", isHost);
 
+            if (room.isPrivate() && !isHost) {
+                checkRoomInviteAndEnter(context, room, intent, currentUserId);
+            } else {
+                context.startActivity(intent);
+                if (context instanceof Activity) {
+                    ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
+                }
+            }
+        });
+    }
+
+    private void checkRoomInviteAndEnter(Context context, RoomModel room, Intent intent, String uid) {
+        if (context == null || uid == null || uid.isEmpty()) {
+            showEnterRoomPinDialog(context, room, intent);
+            return;
+        }
+
+        boolean isInvitedFlag = intent.getBooleanExtra("isInvited", false);
+        if (isInvitedFlag) {
+            Toast.makeText(context, "📩 Invited by Host - Entering Room...", Toast.LENGTH_SHORT).show();
             context.startActivity(intent);
             if (context instanceof Activity) {
                 ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
             }
+            return;
+        }
+
+        DatabaseReference inviteRef = FirebaseDatabase.getInstance().getReference("seat_invites").child(uid);
+        inviteRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean hasActiveInvite = false;
+                if (snapshot.exists()) {
+                    String targetRoom = snapshot.child("roomId").getValue(String.class);
+                    String status = snapshot.child("status").getValue(String.class);
+                    if (room.getRoomId() != null && room.getRoomId().equals(targetRoom) && !"DECLINED".equalsIgnoreCase(status)) {
+                        hasActiveInvite = true;
+                    }
+                }
+
+                if (hasActiveInvite) {
+                    Toast.makeText(context, "📩 Host Invited You - Joining Room...", Toast.LENGTH_SHORT).show();
+                    intent.putExtra("isInvited", true);
+                    context.startActivity(intent);
+                    if (context instanceof Activity) {
+                        ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
+                    }
+                } else {
+                    showEnterRoomPinDialog(context, room, intent);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showEnterRoomPinDialog(context, room, intent);
+            }
         });
+    }
+
+    private void showEnterRoomPinDialog(Context context, RoomModel room, Intent intent) {
+        if (context == null) return;
+        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_enter_room_pin, null, false);
+        if (dialogView == null) return;
+
+        ImageView ivPrivateRoomBanner = dialogView.findViewById(R.id.ivPrivateRoomBanner);
+        TextView tvPrivateRoomTitle = dialogView.findViewById(R.id.tvPrivateRoomTitle);
+        EditText etEnterPin = dialogView.findViewById(R.id.etEnterPin);
+        View btnUnlockRoom = dialogView.findViewById(R.id.btnUnlockRoom);
+
+        if (tvPrivateRoomTitle != null && room.getRoom_name() != null) {
+            tvPrivateRoomTitle.setText("🔒 " + room.getRoom_name() + " (Private)");
+        }
+
+        if (ivPrivateRoomBanner != null) {
+            String lockBanner = room.getPrivateImage();
+            if (lockBanner == null || lockBanner.trim().isEmpty()) {
+                lockBanner = room.getImg();
+            }
+            if (lockBanner != null && !lockBanner.trim().isEmpty()) {
+                Glide.with(context).load(lockBanner).placeholder(R.drawable.bg_room_gradient).into(ivPrivateRoomBanner);
+            }
+        }
+
+        if (btnUnlockRoom != null) {
+            btnUnlockRoom.setOnClickListener(v -> {
+                String inputPin = etEnterPin != null ? etEnterPin.getText().toString().trim() : "";
+                String expectedPin = room.getRoomPin();
+
+                if (inputPin.isEmpty()) {
+                    Toast.makeText(context, "Please enter 4-digit PIN!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (expectedPin != null && inputPin.equals(expectedPin.trim())) {
+                    Toast.makeText(context, "🔓 Room Unlocked!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    context.startActivity(intent);
+                    if (context instanceof Activity) {
+                        ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);
+                    }
+                } else {
+                    Toast.makeText(context, "❌ Incorrect Room PIN!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
     }
 
     @Override

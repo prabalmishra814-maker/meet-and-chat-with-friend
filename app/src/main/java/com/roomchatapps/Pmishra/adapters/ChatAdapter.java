@@ -63,7 +63,23 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private final Handler expireHandler = new Handler(Looper.getMainLooper());
-    public static final long ROOM_MESSAGE_EXPIRE_MS = 15 * 60 * 1000L; // 15 minutes
+    public static final long GIFT_MESSAGE_EXPIRE_MS = 10 * 1000L;       // 10 seconds for Gift messages
+    public static final long USER_MESSAGE_EXPIRE_MS = 15 * 60 * 1000L; // 15 minutes for User messages
+    public static final long ROOM_MESSAGE_EXPIRE_MS = USER_MESSAGE_EXPIRE_MS;
+
+    private RecyclerView attachedRecyclerView;
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.attachedRecyclerView = recyclerView;
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        this.attachedRecyclerView = null;
+    }
 
     public void addAutoExpiringMessage(ChatMessage chatMsg, long expireMs) {
         if (chatMsg == null) return;
@@ -76,6 +92,29 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         expireHandler.postDelayed(() -> {
             int index = chatMessages.indexOf(chatMsg);
             if (index != -1) {
+                if (attachedRecyclerView != null) {
+                    RecyclerView.ViewHolder holder = attachedRecyclerView.findViewHolderForAdapterPosition(index);
+                    if (holder != null && holder.itemView != null) {
+                        View v = holder.itemView;
+                        v.animate()
+                                .alpha(0f)
+                                .translationX(-120f)
+                                .scaleY(0.7f)
+                                .setDuration(380L)
+                                .withEndAction(() -> {
+                                    v.setAlpha(1.0f);
+                                    v.setTranslationX(0f);
+                                    v.setScaleY(1.0f);
+                                    int currentIndex = chatMessages.indexOf(chatMsg);
+                                    if (currentIndex != -1) {
+                                        chatMessages.remove(currentIndex);
+                                        notifyItemRemoved(currentIndex);
+                                    }
+                                })
+                                .start();
+                        return;
+                    }
+                }
                 chatMessages.remove(index);
                 notifyItemRemoved(index);
             }
@@ -375,6 +414,20 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
 
             binding.tvMessage.setText(builder);
+
+            // Configure Gift Icon if gift message
+            if (binding.ivGiftIcon != null) {
+                int giftIcon = message.getGiftIconRes();
+                if (giftIcon != 0) {
+                    binding.ivGiftIcon.setVisibility(View.VISIBLE);
+                    binding.ivGiftIcon.setImageResource(giftIcon);
+                } else if (isGiftMsg) {
+                    binding.ivGiftIcon.setVisibility(View.VISIBLE);
+                    binding.ivGiftIcon.setImageResource(R.drawable.gift_icon);
+                } else {
+                    binding.ivGiftIcon.setVisibility(View.GONE);
+                }
+            }
 
             // 3. Configure Avatar and System Icon
             if ("SYSTEM".equalsIgnoreCase(senderId)) {

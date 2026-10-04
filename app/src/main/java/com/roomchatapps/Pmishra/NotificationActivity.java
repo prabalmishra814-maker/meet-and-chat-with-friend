@@ -120,6 +120,7 @@ public class NotificationActivity extends AppCompatActivity {
                     Intent intent = new Intent(NotificationActivity.this, RoomChatActivity.class);
                     intent.putExtra("roomID", notification.getTargetId());
                     intent.putExtra("host", false);
+                    intent.putExtra("isInvited", true);
                     startActivity(intent);
                 } else {
                     Toast.makeText(NotificationActivity.this, notification.getTitle() + ": " + notification.getMessage(), Toast.LENGTH_SHORT).show();

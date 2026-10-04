@@ -245,7 +245,6 @@ public class StoreManager {
         items.add(new StoreItemModel("frame_champion", "Champion Frame 🏆", "FRAME", 200000L, "Glorious Champion Frame", "ic_crown_gold_frame", "CHAMPION 👑", "frame/champion_frame.svga"));
         items.add(new StoreItemModel("frame_crown_circle", "Crown Circle 👑", "FRAME", 400000L, "Royal Crown Ring Frame", "ic_crown_gold_frame", "ROYAL ✨", "frame/crown_circle.svga"));
         items.add(new StoreItemModel("frame_diamond_glow", "Diamond Glow ✨", "FRAME", 700000L, "Glowing Diamond Energy Frame", "_1000092462_removebg_preview", "HOT 🔥", "frame/diamond_glow.svga"));
-        items.add(new StoreItemModel("frame_diamond_ring", "Diamond Ring 💎", "FRAME", 800000L, "Dazzling Diamond Ring Frame", "_1000092469_removebg_preview", "LUXURY", "frame/diamond_ring.svga"));
         items.add(new StoreItemModel("frame_star_ring", "Star Ring ✨", "FRAME", 1000000L, "Shining Star Ring Frame", "_1000092462_removebg_preview", "POPULAR", "frame/star_ring.svga"));
         items.add(new StoreItemModel("frame_crystal", "Crystal Frame 💎", "FRAME", 1500000L, "Sparkling Crystal Border", "_1000092469_removebg_preview", "CRYSTAL 💎", "frame/crystal_frame.svga"));
         items.add(new StoreItemModel("frame_crystal_ring", "Crystal Ring 💍", "FRAME", 1500000L, "Radiant Crystal Ring Frame", "_1000092466_removebg_preview", "NEW 🔥", "frame/crystal_ring.svga"));
