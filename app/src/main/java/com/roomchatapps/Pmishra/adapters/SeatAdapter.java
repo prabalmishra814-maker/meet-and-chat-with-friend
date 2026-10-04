@@ -36,13 +36,19 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
     private final List<SeatModel> seats = new ArrayList<>();
     private final OnSeatClickListener listener;
     private int availableHeight = 0;
+    private int availableWidth = 0;
 
     public SeatAdapter(OnSeatClickListener listener) {
         this.listener = listener;
     }
 
     public void setAvailableHeight(int heightPx) {
-        if (this.availableHeight != heightPx) {
+        setAvailableDimensions(this.availableWidth, heightPx);
+    }
+
+    public void setAvailableDimensions(int widthPx, int heightPx) {
+        if (this.availableWidth != widthPx || this.availableHeight != heightPx) {
+            this.availableWidth = widthPx;
             this.availableHeight = heightPx;
             notifyDataSetChanged();
         }
@@ -50,6 +56,10 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
     public int getAvailableHeight() {
         return availableHeight;
+    }
+
+    public int getAvailableWidth() {
+        return availableWidth;
     }
 
     public void setSeats(List<SeatModel> newSeats) {
@@ -94,9 +104,18 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         float density = context.getResources().getDisplayMetrics().density;
         boolean isHost = (position == 0);
         int totalSeats = getItemCount();
+        int totalRows = (totalSeats <= 9) ? 3 : (totalSeats <= 17 ? 5 : 6);
+        int rowIndex = (position == 0) ? 0 : 1 + (position - 1) / 4;
 
-        // Apply dynamic sizing spec
-        SeatLayoutSpec spec = SeatLayoutSpec.create(isHost, totalSeats, availableHeight, density);
+        int parentWidth = 0;
+        if (holder.itemView.getParent() instanceof View) {
+            View parentView = (View) holder.itemView.getParent();
+            parentWidth = parentView.getWidth() - parentView.getPaddingLeft() - parentView.getPaddingRight();
+        }
+        int widthToUse = (parentWidth > 0) ? parentWidth : availableWidth;
+
+        // Apply dynamic responsive sizing spec
+        SeatLayoutSpec spec = SeatLayoutSpec.create(isHost, totalSeats, rowIndex, totalRows, widthToUse, availableHeight, density);
         holder.applySpec(spec);
 
         // Host badge
@@ -270,85 +289,93 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         public int bottomPaddingPx;
         public int textMarginTopPx;
 
-        public static SeatLayoutSpec create(boolean isHost, int totalSeats, int availableHeightPx, float density) {
+        public static SeatLayoutSpec create(
+                boolean isHost,
+                int totalSeats,
+                int rowIndex,
+                int totalRows,
+                int availableWidthPx,
+                int availableHeightPx,
+                float density
+        ) {
             SeatLayoutSpec spec = new SeatLayoutSpec();
-            int rows = (totalSeats <= 9) ? 3 : (totalSeats <= 17 ? 5 : 6);
 
-            float rowHeightDp = (availableHeightPx > 0) ? (availableHeightPx / density) / rows : (rows == 3 ? 110f : (rows == 5 ? 76f : 64f));
-
-            if (totalSeats <= 9) {
-                if (isHost) {
-                    float targetCircleDp = Math.min(54f, Math.max(42f, rowHeightDp * 0.44f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 11.5f;
-                    spec.topPaddingPx = Math.round(4 * density);
-                    spec.bottomPaddingPx = Math.round(6 * density);
-                    spec.textMarginTopPx = Math.round(3 * density);
-                } else {
-                    float targetCircleDp = Math.min(46f, Math.max(36f, rowHeightDp * 0.40f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 10.5f;
-                    spec.topPaddingPx = Math.round(2 * density);
-                    spec.bottomPaddingPx = Math.round(2 * density);
-                    spec.textMarginTopPx = Math.round(2 * density);
-                }
-            } else if (totalSeats <= 17) {
-                if (isHost) {
-                    float targetCircleDp = Math.min(44f, Math.max(34f, rowHeightDp * 0.42f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 10.5f;
-                    spec.topPaddingPx = Math.round(2 * density);
-                    spec.bottomPaddingPx = Math.round(4 * density);
-                    spec.textMarginTopPx = Math.round(2 * density);
-                } else {
-                    float targetCircleDp = Math.min(38f, Math.max(30f, rowHeightDp * 0.38f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 9.5f;
-                    spec.topPaddingPx = Math.round(1 * density);
-                    spec.bottomPaddingPx = Math.round(1 * density);
-                    spec.textMarginTopPx = Math.round(1.5f * density);
-                }
+            // 1. Calculate exact row height allocated in pixels
+            int rowHeightPx;
+            if (availableHeightPx > 0) {
+                rowHeightPx = (availableHeightPx * (rowIndex + 1) / totalRows) - (availableHeightPx * rowIndex / totalRows);
             } else {
-                if (isHost) {
-                    float targetCircleDp = Math.min(38f, Math.max(28f, rowHeightDp * 0.38f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 10.0f;
-                    spec.topPaddingPx = Math.round(1 * density);
-                    spec.bottomPaddingPx = Math.round(2 * density);
-                    spec.textMarginTopPx = Math.round(1.5f * density);
-                } else {
-                    float targetCircleDp = Math.min(32f, Math.max(24f, rowHeightDp * 0.35f));
-                    spec.circleSizePx = Math.round(targetCircleDp * density);
-                    spec.containerSizePx = Math.round(targetCircleDp * 1.32f * density);
-                    spec.addIconSizePx = Math.round(targetCircleDp * 0.50f * density);
-                    spec.lockIconSizePx = Math.round(targetCircleDp * 0.42f * density);
-                    spec.micIconSizePx = Math.round(targetCircleDp * 0.38f * density);
-                    spec.textSizeSp = 8.5f;
-                    spec.topPaddingPx = Math.round(1 * density);
-                    spec.bottomPaddingPx = Math.round(1 * density);
-                    spec.textMarginTopPx = Math.round(1 * density);
-                }
+                rowHeightPx = Math.round((totalRows <= 3 ? 120f : (totalRows <= 5 ? 76f : 62f)) * density);
             }
+            float rowHeightDp = rowHeightPx / density;
+
+            // 2. Calculate column width in dp
+            float availableWidthDp;
+            if (availableWidthPx > 0) {
+                availableWidthDp = availableWidthPx / density;
+            } else {
+                availableWidthDp = 336f; // Fallback default (360dp screen - 24dp padding)
+            }
+            float colWidthDp = availableWidthDp / 4f;
+
+            // 3. Determine text size and text margin
+            if (totalSeats <= 9) {
+                spec.textSizeSp = isHost ? 12.5f : 11.0f;
+                spec.textMarginTopPx = Math.round((isHost ? 3.0f : 2.5f) * density);
+            } else if (totalSeats <= 17) {
+                spec.textSizeSp = isHost ? 11.0f : 10.0f;
+                spec.textMarginTopPx = Math.round((isHost ? 2.5f : 2.0f) * density);
+            } else {
+                spec.textSizeSp = isHost ? 10.0f : 9.0f;
+                spec.textMarginTopPx = Math.round((isHost ? 2.0f : 1.5f) * density);
+            }
+
+            float estimatedTextHeightDp = spec.textSizeSp * 1.25f;
+            float textMarginTopDp = spec.textMarginTopPx / density;
+
+            // 4. Calculate max container size allowed by height and width
+            float minVerticalPaddingDp = 2.0f;
+            float maxContainerHeightDp = Math.max(20f, rowHeightDp - (estimatedTextHeightDp + textMarginTopDp + minVerticalPaddingDp));
+            float maxCircleFromHeightDp = maxContainerHeightDp / 1.25f;
+
+            float maxContainerWidthDp = isHost ? (colWidthDp * 1.4f) : Math.max(20f, colWidthDp - 4f);
+            float maxCircleFromWidthDp = maxContainerWidthDp / 1.25f;
+
+            float targetCircleDp = Math.min(maxCircleFromWidthDp, maxCircleFromHeightDp);
+
+            // 5. Apply mode-specific min/max bounds
+            float minCircleDp, maxCircleDp;
+            if (totalSeats <= 9) {
+                minCircleDp = isHost ? 48f : 42f;
+                maxCircleDp = isHost ? 68f : 58f;
+            } else if (totalSeats <= 17) {
+                minCircleDp = isHost ? 36f : 32f;
+                maxCircleDp = isHost ? 56f : 48f;
+            } else {
+                minCircleDp = isHost ? 30f : 26f;
+                maxCircleDp = isHost ? 48f : 42f;
+            }
+
+            float finalCircleDp = Math.max(minCircleDp, Math.min(targetCircleDp, maxCircleDp));
+            float frameMultiplier = isHost ? 1.28f : 1.25f;
+
+            spec.circleSizePx = Math.round(finalCircleDp * density);
+            spec.containerSizePx = Math.round(finalCircleDp * frameMultiplier * density);
+
+            // Derive icons sizes relative to circle size
+            spec.addIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.48f));
+            spec.lockIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.42f));
+            spec.micIconSizePx = Math.max(12, Math.round(spec.circleSizePx * 0.38f));
+
+            // Total internal content height in pixels
+            int estimatedTextHeightPx = Math.round(estimatedTextHeightDp * density);
+            int contentHeightPx = spec.containerSizePx + spec.textMarginTopPx + estimatedTextHeightPx;
+
+            // Calculate remaining vertical space to absorb in item padding
+            int remainingSpacePx = Math.max(0, rowHeightPx - contentHeightPx);
+            spec.topPaddingPx = remainingSpacePx / 2;
+            spec.bottomPaddingPx = remainingSpacePx - spec.topPaddingPx;
+
             return spec;
         }
     }

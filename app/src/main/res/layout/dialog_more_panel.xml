@@ -279,9 +279,19 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="16 Total Seats • Tap to manage or take seat"
+                            android:text="21 Total Seats · 0 Occupied, 21 Free"
                             android:textColor="#B0FFFFFF"
                             android:textSize="11.5sp" />
+
+                        <TextView
+                            android:id="@+id/tvSeatsSelected"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="✓ Selected: 21 Seats"
+                            android:textColor="#00FFC6"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <ImageView

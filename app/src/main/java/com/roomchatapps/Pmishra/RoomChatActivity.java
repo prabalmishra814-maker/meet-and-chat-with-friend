@@ -271,6 +271,7 @@ public class RoomChatActivity extends AppCompatActivity {
     private SeatAdapter seatAdapter;
     private ChatAdapter chatAdapter;
     private RecyclerView rvSeats, rvChat;
+    private BottomSheetDialog morePanelDialog;
 
     private ImageView btnMic, btnSpeaker;
 
@@ -574,18 +575,20 @@ public class RoomChatActivity extends AppCompatActivity {
 
         rvSeats.post(() -> {
             if (rvSeats != null && seatAdapter != null) {
+                int width = rvSeats.getWidth() - rvSeats.getPaddingLeft() - rvSeats.getPaddingRight();
                 int height = rvSeats.getHeight() - rvSeats.getPaddingTop() - rvSeats.getPaddingBottom();
                 if (height > 0) {
-                    seatAdapter.setAvailableHeight(height);
+                    seatAdapter.setAvailableDimensions(width, height);
                 }
             }
         });
 
         rvSeats.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
             if (rvSeats != null && seatAdapter != null) {
+                int width = (right - left) - rvSeats.getPaddingLeft() - rvSeats.getPaddingRight();
                 int height = (bottom - top) - rvSeats.getPaddingTop() - rvSeats.getPaddingBottom();
-                if (height > 0 && seatAdapter.getAvailableHeight() != height) {
-                    seatAdapter.setAvailableHeight(height);
+                if (height > 0 && (seatAdapter.getAvailableHeight() != height || seatAdapter.getAvailableWidth() != width)) {
+                    seatAdapter.setAvailableDimensions(width, height);
                 }
             }
         });
@@ -834,6 +837,24 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private final SeatManager.SeatListener seatListener = seats -> runOnUiThread(() -> {
         seatAdapter.setSeats(seats);
+
+        if (morePanelDialog != null && morePanelDialog.isShowing()) {
+            TextView tvSub = morePanelDialog.findViewById(R.id.tvSeatsSubtitle);
+            TextView tvSel = morePanelDialog.findViewById(R.id.tvSeatsSelected);
+            int total = SeatManager.getInstance().getTotalSeats();
+            int occupied = 0;
+            for (SeatModel s : seats) {
+                if (s != null && !s.isEmpty()) occupied++;
+            }
+            int free = Math.max(0, total - occupied);
+            if (tvSub != null) {
+                tvSub.setText(total + " Total Seats · " + occupied + " Occupied, " + free + " Free");
+            }
+            if (tvSel != null) {
+                tvSel.setText("✓ Selected: " + total + " Seats");
+            }
+        }
+
         // Sync local mic icon if self seat changed
         int myIndex = SeatManager.getInstance().findUserSeatIndex(userID);
 
@@ -2492,8 +2513,6 @@ public class RoomChatActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private BottomSheetDialog morePanelDialog;
-
     private void showMorePanelDialog() {
         if (morePanelDialog != null && morePanelDialog.isShowing()) return;
         BottomSheetDialog dialog = new BottomSheetDialog(this);
@@ -2528,8 +2547,14 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         int totalSeatsCount = SeatManager.getInstance().getTotalSeats();
+        TextView tvSeatsSelected = dialogView.findViewById(R.id.tvSeatsSelected);
+        int freeSeatsCount = Math.max(0, totalSeatsCount - occupiedCount);
+
         if (tvSeatsSubtitle != null) {
-            tvSeatsSubtitle.setText(totalSeatsCount + " Total Seats • " + occupiedCount + " Occupied, " + Math.max(0, totalSeatsCount - occupiedCount) + " Free");
+            tvSeatsSubtitle.setText(totalSeatsCount + " Total Seats · " + occupiedCount + " Occupied, " + freeSeatsCount + " Free");
+        }
+        if (tvSeatsSelected != null) {
+            tvSeatsSelected.setText("✓ Selected: " + totalSeatsCount + " Seats");
         }
 
 
