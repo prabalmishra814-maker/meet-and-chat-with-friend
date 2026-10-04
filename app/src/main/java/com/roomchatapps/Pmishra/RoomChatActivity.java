@@ -4109,7 +4109,7 @@ public class RoomChatActivity extends AppCompatActivity {
         // 1. Gift Category (गिफ्ट)
         giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000, "Gift"));
-        giftList.add(new GiftStoreItem("Rose love gift", "gift/rose.svga", R.drawable.gift4, 100000, "Gift"));
+        giftList.add(new GiftStoreItem("Rose gift", "gift/rose.svga", R.drawable.gift4, 100000, "Gift"));
         giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.birthday_cake, 250000, "Gift"));
         giftList.add(new GiftStoreItem("Blue ring love", "gift/blue_ring_love.svga", R.drawable.giftblue_ring_love, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000, "Gift"));
