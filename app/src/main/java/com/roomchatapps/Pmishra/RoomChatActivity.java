@@ -879,8 +879,13 @@ public class RoomChatActivity extends AppCompatActivity {
                 btnMic.setImageResource(isMicOn ? R.drawable.ic_mic_on : R.drawable.ic_mic_off);
             }
         } else {
-            // Not on seat, ensure mic publishing is stopped
-            ZegoManager.getInstance().stopPublishing();
+            // Not on seat, ensure mic publishing is stopped unless music is playing
+            if (!ZegoManager.getInstance().isMusicPlaying()) {
+                ZegoManager.getInstance().stopPublishing();
+            } else {
+                ZegoManager.getInstance().setMicEnabled(false);
+                ZegoManager.getInstance().startPublishing();
+            }
             if (btnMic != null) {
                 btnMic.setImageResource(R.drawable.ic_mic_off);
             }
@@ -1599,8 +1604,9 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private void leaveRoom() {
         try {
+            isRoomLeft = true;
             isMinimized = false; // ROOM MINIMIZE FIX
-            RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
+            RoomFloatingManager.getInstance().clearRoomState(); // ROOM MINIMIZE FIX
             int mySeatIndex = SeatManager.getInstance().findUserSeatIndex(userID);
             if (mySeatIndex != -1) {
                 SeatManager.getInstance().leaveSeat(mySeatIndex);
@@ -2709,7 +2715,7 @@ public class RoomChatActivity extends AppCompatActivity {
             btnOptionMinimize.setOnClickListener(v -> {
                 dialog.dismiss();
                 Toast.makeText(RoomChatActivity.this, "Room running in background 🎙️", Toast.LENGTH_SHORT).show();
-                moveTaskToBack(true);
+                minimizeRoom();
             });
         }
 
@@ -3351,11 +3357,12 @@ public class RoomChatActivity extends AppCompatActivity {
 
     // ROOM MINIMIZE FIX
     private boolean isMinimized = false;
+    private boolean isRoomLeft = false;
 
     // ROOM MINIMIZE FIX
     public void minimizeRoom() {
         isMinimized = true; // ROOM MINIMIZE FIX
-        RoomFloatingManager.getInstance().showFloatingBubble(this, roomID, roomNameLabel); // ROOM MINIMIZE FIX
+        RoomFloatingManager.getInstance().showFloatingBubble(this, roomID, roomNameLabel, roomImg); // ROOM MINIMIZE FIX
         moveTaskToBack(true); // ROOM MINIMIZE FIX
         overridePendingTransition(R.anim.fade_in, R.anim.slide_out_bottom); // ROOM ANIMATION FIX
     }
@@ -5067,7 +5074,7 @@ public class RoomChatActivity extends AppCompatActivity {
         } // GIFT SVGA FIX
         isBannerPlaying = false;
         RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
-        if (!isMinimized) { // ROOM MINIMIZE FIX
+        if (!isRoomLeft) { // ROOM MINIMIZE FIX
             leaveRoom(); // ROOM MINIMIZE FIX
         } // ROOM MINIMIZE FIX
     }

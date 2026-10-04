@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.RoomChatActivity;
 
@@ -37,6 +38,7 @@ public class RoomFloatingManager {
     private boolean isBubbleShowing = false;
     private String currentRoomId;
     private String currentRoomName;
+    private String currentRoomImg;
 
     private WeakReference<Activity> currentActivityRef;
     private Application.ActivityLifecycleCallbacks lifecycleCallbacks;
@@ -99,6 +101,10 @@ public class RoomFloatingManager {
     }
 
     public void showFloatingBubble(Context context, String roomId, String roomName) {
+        showFloatingBubble(context, roomId, roomName, null);
+    }
+
+    public synchronized void showFloatingBubble(Context context, String roomId, String roomName, String roomImg) {
         if (context == null) return;
         Context appContext = context.getApplicationContext();
 
@@ -108,6 +114,7 @@ public class RoomFloatingManager {
 
         this.currentRoomId = roomId;
         this.currentRoomName = roomName;
+        this.currentRoomImg = roomImg;
 
         removeFloatingBubble();
 
@@ -132,7 +139,19 @@ public class RoomFloatingManager {
 
         ImageView imgLogo = view.findViewById(R.id.imgFloatingLogo);
         if (imgLogo != null) {
-            imgLogo.setImageResource(R.drawable.img_20260904_135725);
+            if (currentRoomImg != null && !currentRoomImg.trim().isEmpty()) {
+                try {
+                    Glide.with(context.getApplicationContext())
+                            .load(currentRoomImg)
+                            .placeholder(R.drawable.img_20260904_135725)
+                            .error(R.drawable.img_20260904_135725)
+                            .into(imgLogo);
+                } catch (Exception e) {
+                    imgLogo.setImageResource(R.drawable.img_20260904_135725);
+                }
+            } else {
+                imgLogo.setImageResource(R.drawable.img_20260904_135725);
+            }
         }
 
         setupDragAndClick(view, context);
@@ -152,6 +171,10 @@ public class RoomFloatingManager {
                         if (windowParams != null) {
                             initialX = windowParams.x;
                             initialY = windowParams.y;
+                        } else if (v.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) v.getLayoutParams();
+                            initialX = params.leftMargin;
+                            initialY = params.topMargin;
                         }
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
@@ -169,8 +192,8 @@ public class RoomFloatingManager {
                             } catch (Exception ignored) {}
                         } else if (v.getLayoutParams() instanceof FrameLayout.LayoutParams) {
                             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) v.getLayoutParams();
-                            params.leftMargin = Math.max(0, (int) (event.getRawX() - v.getWidth() / 2f));
-                            params.topMargin = Math.max(0, (int) (event.getRawY() - v.getHeight() / 2f));
+                            params.leftMargin = Math.max(0, initialX + (int) deltaX);
+                            params.topMargin = Math.max(0, initialY + (int) deltaY);
                             v.setLayoutParams(params);
                         }
                         return true;
@@ -249,7 +272,8 @@ public class RoomFloatingManager {
         }
     }
 
-    public void restoreRoom(Context context) {
+    public synchronized void restoreRoom(Context context) {
+        if (!isBubbleShowing) return;
         removeFloatingBubble();
         if (context == null) return;
         try {
@@ -257,6 +281,7 @@ public class RoomFloatingManager {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             if (currentRoomId != null) intent.putExtra("roomID", currentRoomId);
             if (currentRoomName != null) intent.putExtra("room_name", currentRoomName);
+            if (currentRoomImg != null) intent.putExtra("img", currentRoomImg);
             context.startActivity(intent);
             if (context instanceof Activity) {
                 ((Activity) context).overridePendingTransition(R.anim.zoom_in, R.anim.fade_out);
@@ -268,7 +293,14 @@ public class RoomFloatingManager {
         }
     }
 
-    public void removeFloatingBubble() {
+    public synchronized void clearRoomState() {
+        currentRoomId = null;
+        currentRoomName = null;
+        currentRoomImg = null;
+        removeFloatingBubble();
+    }
+
+    public synchronized void removeFloatingBubble() {
         isBubbleShowing = false;
         try {
             if (floatingView != null) {

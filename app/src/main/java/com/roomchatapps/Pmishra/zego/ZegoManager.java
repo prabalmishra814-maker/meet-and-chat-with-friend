@@ -135,7 +135,7 @@ public class ZegoManager {
         if (engine != null) {
             Log.d(TAG, "Setting mic enabled: " + enabled);
             engine.muteMicrophone(!enabled);
-            engine.mutePublishStreamAudio(!enabled);
+            engine.mutePublishStreamAudio(false); // Keep stream publishing active for background music/Aux stream
             engine.setCaptureVolume(enabled ? 100 : 0);
         }
     }
@@ -149,7 +149,7 @@ public class ZegoManager {
             String streamID = currentUser.userID;
             Log.d(TAG, "Starting to publish stream: " + streamID + " (micEnabled=" + isMicEnabled + ")");
             engine.muteMicrophone(!isMicEnabled);
-            engine.mutePublishStreamAudio(!isMicEnabled);
+            engine.mutePublishStreamAudio(false); // Keep stream publishing active for background music/Aux stream
             engine.setCaptureVolume(isMicEnabled ? 100 : 0);
             engine.startPublishingStream(streamID);
         }
@@ -267,6 +267,7 @@ public class ZegoManager {
                 mediaPlayer.setPlayVolume(currentMusicVolume);
                 mediaPlayer.setPublishVolume(currentMusicVolume);
                 mediaPlayer.start();
+                startPublishing(); // Ensure stream publishing is active for Aux music
                 Log.d(TAG, "Playing music resource: " + fileName);
             } else {
                 Log.e(TAG, "Failed to load music resource: " + errorCode);
