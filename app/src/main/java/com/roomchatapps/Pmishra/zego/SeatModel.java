@@ -9,6 +9,7 @@ public class SeatModel {
     public boolean isMicOn = true;
     public boolean isMuted = false;
     public boolean isClosed = false;
+    public boolean wasOriginallyClosed = false;
     public boolean isSpeaking = false;
     public float soundLevel = 0f;
 
@@ -29,6 +30,7 @@ public class SeatModel {
             this.isMicOn = other.isMicOn;
             this.isMuted = other.isMuted;
             this.isClosed = other.isClosed;
+            this.wasOriginallyClosed = other.wasOriginallyClosed;
             this.isSpeaking = other.isSpeaking;
             this.soundLevel = other.soundLevel;
         }
@@ -53,5 +55,9 @@ public class SeatModel {
         this.isMuted = false;
         this.isSpeaking = false;
         this.soundLevel = 0f;
+        if (this.wasOriginallyClosed) {
+            this.isClosed = true;
+            this.wasOriginallyClosed = false;
+        }
     }
 }

@@ -205,7 +205,6 @@ public class FrameUtils {
                 return R.drawable._1000092467_removebg_preview;
 
             case "frame_diamond_glint":
-            case "frame_diamond_ring":
             case "frame_crystal":
                 return R.drawable._1000092469_removebg_preview;
 
@@ -243,7 +242,6 @@ public class FrameUtils {
             case "frame_golden_wings": return "frame/golden_wings.svga";
             case "frame_crystal": return "frame/crystal_frame.svga";
             case "frame_crystal_ring": return "frame/crystal_ring.svga";
-            case "frame_diamond_ring": return "frame/diamond_ring.svga";
             case "frame_diamond_glow": return "frame/diamond_glow.svga";
             case "frame_fire_ring": return "frame/fire_ring_frame.svga";
             case "frame_flame_lion": return "frame/flame_lion.svga";

@@ -124,59 +124,11 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             holder.hostBadge.setVisibility(model.isHost() ? View.VISIBLE : View.GONE);
         }
 
-        if (model.isClosed) {
-            // Locked / Closed Seat
-            if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
-            if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.GONE);
-            if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
-            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
-            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.VISIBLE);
-            if (holder.tvSeatName != null) holder.tvSeatName.setText("Locked");
-            SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
-
-            if (holder.ivMicStatus != null) {
-                if (model.isMuted) {
-                    holder.ivMicStatus.setVisibility(View.VISIBLE);
-                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
-                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
-                } else {
-                    holder.ivMicStatus.setVisibility(View.GONE);
-                }
-            }
-
-        } else if (model.isEmpty()) {
-            // Empty Open Seat
-            if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
-            if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.VISIBLE);
-            if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
-            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
-            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
-
-            // SEAT LAYOUT FIX
-            if (holder.tvSeatName != null) {
-                if (position == 0) {
-                    holder.tvSeatName.setText("Host Seat");
-                } else {
-                    holder.tvSeatName.setText(String.valueOf(model.index + 1));
-                }
-            }
-            SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
-
-            if (holder.ivMicStatus != null) {
-                if (model.isMuted) {
-                    holder.ivMicStatus.setVisibility(View.VISIBLE);
-                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
-                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
-                } else {
-                    holder.ivMicStatus.setVisibility(View.GONE);
-                }
-            }
-
-        } else {
-            // Occupied Seat
+        if (!model.isEmpty()) {
+            // Occupied Seat (User sitting on seat, whether locked or open)
             if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.GONE);
             if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.GONE);
-            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
+            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(model.isClosed ? View.VISIBLE : View.GONE);
             if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.VISIBLE);
 
             // User Name
@@ -233,38 +185,76 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             }
 
             // 2. Frame
-            if (model.isEmpty()) {
-                FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
-            } else if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
+            if (model.equippedFrame != null && !model.equippedFrame.trim().isEmpty()) {
                 FrameUtils.displayFrame(context, model.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
             } else {
                 UserProfileCache.getUserProfile(model.userID, profile -> {
-                    if (model.isEmpty()) {
-                        FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
-                        return;
-                    }
-                    if (profile != null && profile.equippedFrame != null && !profile.equippedFrame.trim().isEmpty()) {
-                        model.equippedFrame = profile.equippedFrame;
-                        FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivSeatFrame, holder.svgaSeatFrame);
-                    } else {
-                        FrameUtils.displayFrame(context, null, holder.ivSeatFrame, holder.svgaSeatFrame);
-                    }
+                    if (model.isEmpty()) return;
+                    String equipped = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
+                    FrameUtils.displayFrame(context, equipped, holder.ivSeatFrame, holder.svgaSeatFrame);
                 });
             }
 
-            // Speaking Pulsing Ring Animation
-            if (model.isSpeaking && model.isMicOn && !model.isMuted) {
-                SeatAnimationManager.startPulsingRing(holder.speakingIndicator);
-                if (holder.ivSeatAvatar != null) {
-                    holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, R.color.accent_primary));
-                    holder.ivSeatAvatar.setStrokeWidth(3f);
+        } else if (model.isClosed) {
+            // Locked Empty Seat
+            if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
+            if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.GONE);
+            if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
+            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
+            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.VISIBLE);
+            if (holder.tvSeatName != null) holder.tvSeatName.setText("Locked");
+            SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
+
+            if (holder.ivMicStatus != null) {
+                if (model.isMuted) {
+                    holder.ivMicStatus.setVisibility(View.VISIBLE);
+                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
+                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
+                } else {
+                    holder.ivMicStatus.setVisibility(View.GONE);
                 }
-            } else {
-                SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
-                if (holder.ivSeatAvatar != null) {
-                    holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, position == 0 ? android.R.color.holo_orange_light : R.color.glass_white));
-                    holder.ivSeatAvatar.setStrokeWidth(position == 0 ? 2f : 1.2f);
+            }
+
+        } else {
+            // Open Empty Seat
+            if (holder.vEmptySeatBg != null) holder.vEmptySeatBg.setVisibility(View.VISIBLE);
+            if (holder.ivAddIcon != null) holder.ivAddIcon.setVisibility(View.VISIBLE);
+            if (holder.ivSeatAvatar != null) holder.ivSeatAvatar.setVisibility(View.GONE);
+            FrameUtils.clearFrame(holder.ivSeatFrame, holder.svgaSeatFrame);
+            if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
+
+            if (holder.tvSeatName != null) {
+                if (position == 0) {
+                    holder.tvSeatName.setText("Host Seat");
+                } else {
+                    holder.tvSeatName.setText(String.valueOf(model.index + 1));
                 }
+            }
+            SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
+
+            if (holder.ivMicStatus != null) {
+                if (model.isMuted) {
+                    holder.ivMicStatus.setVisibility(View.VISIBLE);
+                    holder.ivMicStatus.setImageResource(R.drawable.ic_mic_off);
+                    holder.ivMicStatus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_light));
+                } else {
+                    holder.ivMicStatus.setVisibility(View.GONE);
+                }
+            }
+        }
+
+        // Speaking Pulsing Ring Animation
+        if (model.isSpeaking && model.isMicOn && !model.isMuted) {
+            SeatAnimationManager.startPulsingRing(holder.speakingIndicator);
+            if (holder.ivSeatAvatar != null) {
+                holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, R.color.accent_primary));
+                holder.ivSeatAvatar.setStrokeWidth(3f);
+            }
+        } else {
+            SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
+            if (holder.ivSeatAvatar != null) {
+                holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, position == 0 ? android.R.color.holo_orange_light : R.color.glass_white));
+                holder.ivSeatAvatar.setStrokeWidth(position == 0 ? 2f : 1.2f);
             }
         }
 

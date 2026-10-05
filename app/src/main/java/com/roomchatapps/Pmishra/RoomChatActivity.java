@@ -1071,8 +1071,31 @@ public class RoomChatActivity extends AppCompatActivity {
         boolean isEmpty = model.userID == null || model.userID.trim().isEmpty();
 
         if (isEmpty) {
+            // Seat 0 Security: Seat 1 is strictly reserved for the Host
+            if (model.index == 0 && !isHost) {
+                Toast.makeText(this, "Seat 1 is reserved for the Host!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Locked Seat Security: If seat is locked, normal members cannot sit directly
             if (model.isClosed && !isAdminOrHost()) {
-                Toast.makeText(this, "This seat is locked 🔒", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "This seat is locked 🔒 Ask Host or Admin to unlock or invite you!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Normal members clicking an OPEN seat: take seat directly in 1 tap!
+            if (!isAdminOrHost()) {
+                String myAvatar = SessionManager.getInstance(this).getAvatar();
+                UserProfileCache.getUserProfile(userID, profile -> {
+                    String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
+                    boolean success = SeatManager.getInstance().takeSeat(model.index, userID, userName, myAvatar, frame, false);
+                    if (!success) {
+                        Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        ZegoManager.getInstance().startPublishing();
+                        Toast.makeText(this, "You took Seat " + (model.index + 1) + "!", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 return;
             }
 
@@ -1116,7 +1139,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     String myAvatar = SessionManager.getInstance(this).getAvatar();
                     UserProfileCache.getUserProfile(userID, profile -> {
                         String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
-                        boolean success = SeatManager.getInstance().takeSeat(model.index, userID, userName, myAvatar, frame);
+                        boolean success = SeatManager.getInstance().takeSeat(model.index, userID, userName, myAvatar, frame, isAdminOrHost());
                         if (!success) {
                             Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
                         } else {

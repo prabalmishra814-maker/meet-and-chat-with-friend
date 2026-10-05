@@ -140,6 +140,11 @@ public class SeatManager {
         return role != null ? role : "member";
     }
 
+    public boolean isUserAdmin(String userID) {
+        String role = getUserRole(userID);
+        return "admin".equalsIgnoreCase(role) || "host".equalsIgnoreCase(role);
+    }
+
     /**
      * Sanitizes seatList so no user ID appears on more than one seat simultaneously.
      */
@@ -177,7 +182,8 @@ public class SeatManager {
 
         synchronized (this) {
             SeatModel model = seatList.get(index);
-            if (model.isClosed && !allowLockedSeat) return false;
+            boolean isHostOrAdmin = allowLockedSeat || (hostUserID != null && hostUserID.equals(uid)) || isUserAdmin(uid);
+            if (model.isClosed && !isHostOrAdmin) return false;
 
             // Seat 0 Security: Strictly reserved for Room Host ONLY
             if (index == 0 && hostUserID != null && !hostUserID.isEmpty() && !hostUserID.equals(uid)) {
@@ -189,8 +195,9 @@ public class SeatManager {
                 return false;
             }
 
-            if (model.isClosed && allowLockedSeat) {
-                model.isClosed = false; // Unlock seat for invited user
+            if (model.isClosed && isHostOrAdmin) {
+                model.wasOriginallyClosed = true;
+                model.isClosed = false;
             }
 
             // Leave any existing seat first & preserve equipped frame/avatar/mic state if seat switching
@@ -309,6 +316,7 @@ public class SeatManager {
 
         SeatModel model = seatList.get(index);
         model.isClosed = isClosed;
+        model.wasOriginallyClosed = false;
         if (isClosed) {
             model.clear();
             model.isClosed = true;
@@ -425,6 +433,7 @@ public class SeatManager {
                     local.isMicOn = external.isMicOn;
                     local.isMuted = external.isMuted;
                     local.isClosed = external.isClosed;
+                    local.wasOriginallyClosed = external.wasOriginallyClosed;
 
                     if (!local.isEmpty() && (local.equippedFrame == null || local.equippedFrame.trim().isEmpty())) {
                         UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(local.userID);
@@ -476,6 +485,7 @@ public class SeatManager {
                 obj.put("isMicOn", seat.isMicOn);
                 obj.put("isMuted", seat.isMuted);
                 obj.put("isClosed", seat.isClosed);
+                obj.put("wasOriginallyClosed", seat.wasOriginallyClosed);
                 array.put(obj);
             }
             ZegoManager.getInstance().setRoomExtraInfo("seats", array.toString());
@@ -548,6 +558,7 @@ public class SeatManager {
                         model.isMicOn = obj.optBoolean("isMicOn", true);
                         model.isMuted = obj.optBoolean("isMuted", false);
                         model.isClosed = obj.optBoolean("isClosed", false);
+                        model.wasOriginallyClosed = obj.optBoolean("wasOriginallyClosed", false);
 
                         if (!model.isEmpty() && (model.equippedFrame == null || model.equippedFrame.trim().isEmpty())) {
                             UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(model.userID);
