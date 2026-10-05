@@ -209,9 +209,6 @@ public class NotificationActivity extends AppCompatActivity {
                             allNotifications.add(model);
                         }
                     }
-                } else {
-                    // Seed initial sample notifications if database is empty for demo experience
-                    seedSampleNotifications();
                 }
 
                 binding.progressBar.setVisibility(View.GONE);

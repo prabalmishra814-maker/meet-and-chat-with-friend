@@ -55,6 +55,16 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this(chatMessages, false);
     }
 
+    public interface OnMessageLongClickListener {
+        void onMessageLongClick(ChatMessage message, int position);
+    }
+
+    private OnMessageLongClickListener longClickListener;
+
+    public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
+        this.longClickListener = listener;
+    }
+
     public ChatAdapter(List<ChatMessage> chatMessages, boolean isRoomChat) {
         this.chatMessages = chatMessages != null ? chatMessages : new ArrayList<>();
         this.isRoomChat = isRoomChat;
@@ -200,6 +210,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .start();
             lastAnimatedPosition = targetPos;
         }
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(message, targetPos);
+                return true;
+            }
+            return false;
+        });
 
         if (holder instanceof SentMessageViewHolder) {
             ((SentMessageViewHolder) holder).setData(message);

@@ -3,6 +3,7 @@ package com.roomchatapps.Pmishra.models;
 import com.google.firebase.database.PropertyName;
 
 public class ChatMessage {
+    private String messageId;
     private String senderId;
     private String receiverId;
     private String message;
@@ -83,5 +84,13 @@ public class ChatMessage {
 
     public void setGiftIconRes(int giftIconRes) {
         this.giftIconRes = giftIconRes;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 }

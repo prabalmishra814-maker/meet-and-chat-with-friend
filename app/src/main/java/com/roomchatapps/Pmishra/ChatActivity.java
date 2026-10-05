@@ -1,8 +1,14 @@
 package com.roomchatapps.Pmishra;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -114,6 +120,7 @@ public class ChatActivity extends AppCompatActivity {
 
         chatMessages = new ArrayList<>();
         chatAdapter = new ChatAdapter(chatMessages);
+        chatAdapter.setOnMessageLongClickListener(this::handleMessageLongClick);
         layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         binding.rvChatMessages.setLayoutManager(layoutManager);
@@ -212,6 +219,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private final Map<String, ChatMessage> messageMap = new HashMap<>();
+    private ValueEventListener directChatListener;
 
     private void loadMessages() {
         if (senderId.isEmpty() || receiverId == null || receiverId.trim().isEmpty()) return;
@@ -221,11 +229,17 @@ public class ChatActivity extends AppCompatActivity {
                 .child(senderId).child(receiverId);
         userRecentRef.child("read").setValue(true);
 
+        if (directChatRef != null && directChatListener != null) {
+            directChatRef.removeEventListener(directChatListener);
+        }
+
         // Listen to permanent DirectChats/{chatRoomId}
-        directChatRef.addValueEventListener(new ValueEventListener() {
+        directChatListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
                 boolean wasAtBottom = isAtBottom();
+                messageMap.clear();
 
                 if (snapshot.exists()) {
                     for (DataSnapshot ds : snapshot.getChildren()) {
@@ -234,10 +248,13 @@ public class ChatActivity extends AppCompatActivity {
 
                         ChatMessage chat = ds.getValue(ChatMessage.class);
                         if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
+                            if (chat.getMessageId() == null || chat.getMessageId().isEmpty()) {
+                                chat.setMessageId(key);
+                            }
                             messageMap.put(key, chat);
 
                             // Mark received messages as read
-                            if (chat.getSenderId().equals(receiverId) && !chat.isRead()) {
+                            if (receiverId.equals(chat.getSenderId()) && !chat.isRead()) {
                                 ds.getRef().child("read").setValue(true);
                             }
                         }
@@ -253,7 +270,8 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(ChatActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
-        });
+        };
+        directChatRef.addValueEventListener(directChatListener);
 
         // Load legacy flat Chats for backwards compatibility and migrate to DirectChats
         legacyChatRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -323,17 +341,20 @@ public class ChatActivity extends AppCompatActivity {
             ChatMessage chatMessage = new ChatMessage(senderId, receiverId, msg, time, false);
 
             if (msgId != null) {
+                chatMessage.setMessageId(msgId);
                 // Save permanently in DirectChats/{chatRoomId}/{msgId}
                 directChatRef.child(msgId).setValue(chatMessage);
 
                 // Update RecentChats for sender
                 ChatMessage senderChatMessage = new ChatMessage(senderId, receiverId, msg, time, true);
+                senderChatMessage.setMessageId(msgId);
                 DatabaseReference senderRecentRef = FirebaseDatabase.getInstance().getReference("RecentChats")
                         .child(senderId).child(receiverId);
                 senderRecentRef.setValue(senderChatMessage);
 
                 // Update RecentChats for receiver
                 ChatMessage receiverChatMessage = new ChatMessage(senderId, receiverId, msg, time, false);
+                receiverChatMessage.setMessageId(msgId);
                 DatabaseReference receiverRecentRef = FirebaseDatabase.getInstance().getReference("RecentChats")
                         .child(receiverId).child(senderId);
                 receiverRecentRef.setValue(receiverChatMessage);
@@ -344,6 +365,106 @@ public class ChatActivity extends AppCompatActivity {
                 binding.etMessage.setText("");
                 scrollToBottom(true);
             }
+        }
+    }
+
+    private void handleMessageLongClick(ChatMessage message, int position) {
+        if (message == null || isFinishing() || isDestroyed()) return;
+        boolean isSentByMe = senderId != null && senderId.equals(message.getSenderId());
+
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_message_options, null, false);
+        if (dialogView == null) return;
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setGravity(Gravity.CENTER);
+        }
+
+        View btnOptionUnsend = dialogView.findViewById(R.id.btnOptionUnsend);
+        View dividerUnsend = dialogView.findViewById(R.id.dividerUnsend);
+        View btnOptionCopy = dialogView.findViewById(R.id.btnOptionCopy);
+
+        if (btnOptionUnsend != null) {
+            btnOptionUnsend.setVisibility(isSentByMe ? View.VISIBLE : View.GONE);
+            if (dividerUnsend != null) dividerUnsend.setVisibility(isSentByMe ? View.VISIBLE : View.GONE);
+            btnOptionUnsend.setOnClickListener(v -> {
+                dialog.dismiss();
+                unsendMessage(message);
+            });
+        }
+
+        if (btnOptionCopy != null) {
+            btnOptionCopy.setOnClickListener(v -> {
+                dialog.dismiss();
+                copyMessageToClipboard(message);
+            });
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private void copyMessageToClipboard(ChatMessage message) {
+        if (message != null && message.getMessage() != null) {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            android.content.ClipData clip = android.content.ClipData.newPlainText("Message", message.getMessage());
+            if (clipboard != null) {
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "Message copied to clipboard 📋", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void unsendMessage(ChatMessage message) {
+        if (message == null || isFinishing() || isDestroyed()) return;
+        String msgId = message.getMessageId();
+
+        if (msgId == null || msgId.isEmpty()) {
+            for (Map.Entry<String, ChatMessage> entry : messageMap.entrySet()) {
+                ChatMessage val = entry.getValue();
+                if (val != null && val.getTimestamp() == message.getTimestamp() && senderId.equals(val.getSenderId())) {
+                    msgId = entry.getKey();
+                    break;
+                }
+            }
+        }
+
+        if (msgId != null && !msgId.isEmpty()) {
+            // 1. Instant local removal for 0ms fast & smooth UI update
+            messageMap.remove(msgId);
+            updateMessageList(isAtBottom());
+
+            // 2. Remove node from Firebase DirectChats & legacy Chats asynchronously
+            directChatRef.child(msgId).removeValue();
+            legacyChatRef.child(msgId).removeValue();
+
+            // 3. Update RecentChats for sender & receiver
+            DatabaseReference senderRecent = FirebaseDatabase.getInstance().getReference("RecentChats").child(senderId).child(receiverId);
+            DatabaseReference receiverRecent = FirebaseDatabase.getInstance().getReference("RecentChats").child(receiverId).child(senderId);
+
+            if (!chatMessages.isEmpty()) {
+                ChatMessage lastMsg = chatMessages.get(chatMessages.size() - 1);
+                senderRecent.setValue(lastMsg);
+                receiverRecent.setValue(lastMsg);
+            } else {
+                senderRecent.removeValue();
+                receiverRecent.removeValue();
+            }
+
+            Toast.makeText(this, "Message un-sent 🗑️", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Unable to unsend message", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (directChatRef != null && directChatListener != null) {
+            directChatRef.removeEventListener(directChatListener);
         }
     }
 }
