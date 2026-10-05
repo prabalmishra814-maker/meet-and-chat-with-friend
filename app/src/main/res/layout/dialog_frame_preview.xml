@@ -49,7 +49,7 @@
             android:layout_height="96dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
-            android:src="@drawable/king_icon"
+            android:src="@drawable/logo_placeholder"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <!-- Static Image Frame Overlay -->

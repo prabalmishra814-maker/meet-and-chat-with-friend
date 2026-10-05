@@ -11,7 +11,11 @@ import com.roomchatapps.Pmishra.utils.StoreManager;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
-import com.roomchatapps.Pmishra.utils.RoomFloatingManager; // ROOM MINIMIZE FIX
+import com.roomchatapps.Pmishra.utils.RoomFloatingManager;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -365,6 +369,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         UserProfileCache.getUserProfile(userID, profile -> {});
         TwentyFourHourRuleManager.record24HourEvent(userID, roomID);
+        verifyPrivateRoomAccess();
     }
 
     @Override
@@ -380,7 +385,130 @@ public class RoomChatActivity extends AppCompatActivity {
                 isMinimized = false; // ROOM MINIMIZE FIX
                 RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
             }
+            verifyPrivateRoomAccess();
         }
+    }
+
+    private void verifyPrivateRoomAccess() {
+        if (roomID == null || roomID.trim().isEmpty()) return;
+        boolean isPinVerified = getIntent().getBooleanExtra("pinVerified", false);
+        boolean isInvitedFlag = getIntent().getBooleanExtra("isInvited", false);
+
+        if (isHost || isPinVerified || isInvitedFlag) return;
+
+        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID);
+        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (snapshot.exists()) {
+                    Boolean isPrivateVal = snapshot.child("isPrivate").getValue(Boolean.class);
+                    String roomPinVal = snapshot.child("roomPin").getValue(String.class);
+                    if (roomPinVal == null) roomPinVal = snapshot.child("pin").getValue(String.class);
+                    String lockImgVal = snapshot.child("privateImage").getValue(String.class);
+
+                    if (isPrivateVal != null && isPrivateVal) {
+                        DatabaseReference inviteRef = FirebaseDatabase.getInstance().getReference("seat_invites").child(userID);
+                        final String expectedPin = roomPinVal;
+                        final String lockImg = lockImgVal;
+
+                        inviteRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot inviteSnap) {
+                                if (isFinishing() || isDestroyed()) return;
+                                boolean hasInvite = false;
+                                if (inviteSnap.exists()) {
+                                    String targetRoom = inviteSnap.child("roomId").getValue(String.class);
+                                    String status = inviteSnap.child("status").getValue(String.class);
+                                    if (roomID.equals(targetRoom) && !"DECLINED".equalsIgnoreCase(status)) {
+                                        hasInvite = true;
+                                    }
+                                }
+
+                                if (!hasInvite) {
+                                    showInRoomPinDialog(expectedPin, lockImg);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                showInRoomPinDialog(expectedPin, lockImg);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showInRoomPinDialog(String expectedPin, String lockImg) {
+        if (isFinishing() || isDestroyed()) return;
+
+        // Mute all room audio playback until correct PIN is entered!
+        ZegoManager.getInstance().setSpeakerOn(false);
+        if (btnSpeaker != null) {
+            btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        applyGlassyStyle(dialog);
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_enter_room_pin, null, false);
+        if (dialogView == null) return;
+
+        ImageView btnClosePinDialog = dialogView.findViewById(R.id.btnClosePinDialog);
+        ImageView ivPrivateRoomBanner = dialogView.findViewById(R.id.ivPrivateRoomBanner);
+        TextView tvPrivateRoomTitle = dialogView.findViewById(R.id.tvPrivateRoomTitle);
+        EditText etEnterPin = dialogView.findViewById(R.id.etEnterPin);
+        View btnUnlockRoom = dialogView.findViewById(R.id.btnUnlockRoom);
+
+        if (btnClosePinDialog != null) {
+            btnClosePinDialog.setOnClickListener(v -> {
+                dialog.dismiss();
+                finish();
+            });
+        }
+
+        if (tvPrivateRoomTitle != null && roomNameLabel != null) {
+            tvPrivateRoomTitle.setText("🔒 " + roomNameLabel + " (Private)");
+        }
+
+        if (ivPrivateRoomBanner != null) {
+            String banner = (lockImg != null && !lockImg.trim().isEmpty()) ? lockImg : roomImg;
+            if (banner != null && !banner.trim().isEmpty()) {
+                Glide.with(this).load(banner).placeholder(R.drawable.bg_room_gradient).into(ivPrivateRoomBanner);
+            }
+        }
+
+        if (btnUnlockRoom != null) {
+            btnUnlockRoom.setOnClickListener(v -> {
+                String inputPin = etEnterPin != null ? etEnterPin.getText().toString().trim() : "";
+                if (inputPin.isEmpty()) {
+                    Toast.makeText(this, "Please enter 4-digit PIN!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (expectedPin != null && inputPin.equals(expectedPin.trim())) {
+                    Toast.makeText(this, "🔓 Room Unlocked!", Toast.LENGTH_SHORT).show();
+                    // Unmute room audio playback once PIN is verified!
+                    ZegoManager.getInstance().setSpeakerOn(true);
+                    if (btnSpeaker != null) {
+                        btnSpeaker.setImageResource(R.drawable.ic_speaker_on);
+                    }
+                    dialog.dismiss();
+                } else {
+                    Toast.makeText(this, "❌ Incorrect Room PIN!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        dialog.setOnCancelListener(d -> finish());
+        dialog.setContentView(dialogView);
+        dialog.show();
     }
 
     @Override
@@ -934,42 +1062,11 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private void onSeatClicked(SeatModel model) {
+        if (model == null) return;
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 101);
             return;
         }
-
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_seat_options, null, false);
-        dialog.setContentView(dialogView);
-
-        dialog.setOnShowListener(d -> {
-            BottomSheetDialog bsd = (BottomSheetDialog) d;
-            FrameLayout bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (bottomSheet != null) {
-                bottomSheet.setBackgroundResource(android.R.color.transparent);
-            }
-        });
-
-        View vSeatHeaderBg = dialogView.findViewById(R.id.vSeatHeaderBg);
-        ImageView ivSeatHeaderIcon = dialogView.findViewById(R.id.ivSeatHeaderIcon);
-        ImageView ivSeatHeaderAvatar = dialogView.findViewById(R.id.ivSeatHeaderAvatar);
-        TextView tvSeatTitle = dialogView.findViewById(R.id.tvSeatTitle);
-        TextView tvSeatSubtitle = dialogView.findViewById(R.id.tvSeatSubtitle);
-
-        View btnPrimaryAction = dialogView.findViewById(R.id.btnPrimaryAction);
-        ImageView ivPrimaryActionIcon = dialogView.findViewById(R.id.ivPrimaryActionIcon);
-        TextView tvPrimaryActionText = dialogView.findViewById(R.id.tvPrimaryActionText);
-
-        View btnOptionProfile = dialogView.findViewById(R.id.btnOptionProfile);
-        View btnOptionGift = dialogView.findViewById(R.id.btnOptionGift);
-        View btnOptionLock = dialogView.findViewById(R.id.btnOptionLock);
-        ImageView ivOptionLockIcon = dialogView.findViewById(R.id.ivOptionLockIcon);
-        TextView tvOptionLockText = dialogView.findViewById(R.id.tvOptionLockText);
-        View btnOptionMute = dialogView.findViewById(R.id.btnOptionMute);
-        ImageView ivOptionMuteIcon = dialogView.findViewById(R.id.ivOptionMuteIcon);
-        TextView tvOptionMuteText = dialogView.findViewById(R.id.tvOptionMuteText);
-        View btnOptionKick = dialogView.findViewById(R.id.btnOptionKick);
 
         boolean isEmpty = model.userID == null || model.userID.trim().isEmpty();
 
@@ -1077,6 +1174,7 @@ public class RoomChatActivity extends AppCompatActivity {
         applyGlassyStyle(profileDialog);
         View profileView = getLayoutInflater().inflate(R.layout.dialog_user_profile_card, null, false);
         profileDialog.setContentView(profileView);
+        profileDialog.show();
 
         ImageView ivProfileAvatar = profileView.findViewById(R.id.ivUserProfileAvatar);
         ImageView ivProfileFrame = profileView.findViewById(R.id.ivUserProfileFrame);
@@ -1247,14 +1345,10 @@ public class RoomChatActivity extends AppCompatActivity {
             llOtherUserActionsRow.setVisibility(isSelf ? View.GONE : View.VISIBLE);
         }
 
-        // Medal Card Row / Collection Header
-        View llMedalCard = profileView.findViewById(R.id.llMedalCard);
-        TextView tvMedalWear = profileView.findViewById(R.id.tvMedalWear);
-        if (tvMedalWear != null) {
-            tvMedalWear.setText(isSelf ? "Wear ›" : "open ›");
-        }
-        if (llMedalCard != null) {
-            llMedalCard.setOnClickListener(v -> {
+        // Collection Header Click
+        View layoutCollectionHeader = profileView.findViewById(R.id.layoutCollectionHeader);
+        if (layoutCollectionHeader != null) {
+            layoutCollectionHeader.setOnClickListener(v -> {
                 profileDialog.dismiss();
                 if (isSelf) {
                     Intent intent = new Intent(RoomChatActivity.this, CollectionActivity.class);
@@ -1271,9 +1365,11 @@ public class RoomChatActivity extends AppCompatActivity {
         // Profile Collection Grid Below
         RecyclerView rvProfileCollection = profileView.findViewById(R.id.rvProfileCollection);
         TextView tvEmptyProfileCollection = profileView.findViewById(R.id.tvEmptyProfileCollection);
+        TextView tvCollectionCountBadge = profileView.findViewById(R.id.tvCollectionCountBadge);
         if (rvProfileCollection != null) {
-            rvProfileCollection.setLayoutManager(new GridLayoutManager(this, 2));
-            loadProfileCardCollection(targetUid, rvProfileCollection, tvEmptyProfileCollection);
+            rvProfileCollection.setLayoutManager(new GridLayoutManager(this, 3));
+            rvProfileCollection.setNestedScrollingEnabled(false);
+            loadProfileCardCollection(targetUid, rvProfileCollection, tvEmptyProfileCollection, tvCollectionCountBadge);
         }
 
         // Own Profile Action Buttons (Leave the Mic, Send Gift)
@@ -1564,7 +1660,7 @@ public class RoomChatActivity extends AppCompatActivity {
         profileDialog.show();
     }
 
-    private void loadProfileCardCollection(String targetUid, RecyclerView rvCollection, TextView tvEmpty) {
+    private void loadProfileCardCollection(String targetUid, RecyclerView rvCollection, TextView tvEmpty, TextView tvCountBadge) {
         if (targetUid == null || targetUid.isEmpty() || rvCollection == null) return;
 
         StoreManager.getStoreCatalog(targetUid, "ALL", new StoreManager.CatalogCallback() {
@@ -1583,20 +1679,22 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                 }
 
-                loadProfileCardReceivedGifts(targetUid, storeOwnedItems, rvCollection, tvEmpty);
+                loadProfileCardReceivedGifts(targetUid, storeOwnedItems, rvCollection, tvEmpty, tvCountBadge);
             }
 
             @Override
             public void onError(String error) {
                 if (isFinishing() || isDestroyed()) return;
-                loadProfileCardReceivedGifts(targetUid, new ArrayList<>(), rvCollection, tvEmpty);
+                loadProfileCardReceivedGifts(targetUid, new ArrayList<>(), rvCollection, tvEmpty, tvCountBadge);
             }
         });
     }
 
-    private void loadProfileCardReceivedGifts(String targetUid, List<CollectionItemModel> storeOwnedItems, RecyclerView rvCollection, TextView tvEmpty) {
+    private void loadProfileCardReceivedGifts(String targetUid, List<CollectionItemModel> storeOwnedItems, RecyclerView rvCollection, TextView tvEmpty, TextView tvCountBadge) {
         DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(targetUid);
-        txRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference userGiftsRef = FirebaseDatabase.getInstance().getReference("users").child(targetUid).child("received_gifts");
+
+        txRef.limitToLast(200).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
@@ -1611,58 +1709,98 @@ public class RoomChatActivity extends AppCompatActivity {
                                 String title = ds.child("title").getValue(String.class);
                                 if (title != null && title.startsWith("Received Gift: ")) {
                                     giftName = title.substring("Received Gift: ".length()).trim();
+                                } else if (title != null && title.startsWith("Earned Energy: ")) {
+                                    giftName = title.substring("Earned Energy: ".length()).trim();
+                                }
+                            }
+                            if (giftName == null || giftName.trim().isEmpty()) {
+                                String desc = ds.child("description").getValue(String.class);
+                                if (desc != null && desc.contains("Received ") && desc.contains(" from ")) {
+                                    int start = desc.indexOf("Received ") + "Received ".length();
+                                    int end = desc.indexOf(" from ");
+                                    if (start < end) {
+                                        giftName = desc.substring(start, end).trim();
+                                    }
                                 }
                             }
                             if (giftName != null && !giftName.trim().isEmpty()) {
                                 String cleanName = giftName.replaceAll("\\s*\\(.*?\\)", "").trim();
-                                giftCountMap.put(cleanName, giftCountMap.getOrDefault(cleanName, 0) + 1);
+                                int qty = 1;
+                                Long qObj = ds.child("quantity").getValue(Long.class);
+                                if (qObj != null && qObj > 0) qty = qObj.intValue();
+
+                                int currentCount = giftCountMap.containsKey(cleanName) ? giftCountMap.get(cleanName) : 0;
+                                giftCountMap.put(cleanName, currentCount + qty);
                             }
                         }
                     }
                 }
 
-                List<CollectionItemModel> finalCollection = new ArrayList<>(storeOwnedItems);
-                for (Map.Entry<String, Integer> entry : giftCountMap.entrySet()) {
-                    String giftName = entry.getKey();
-                    int count = entry.getValue();
-                    GiftStoreAdapter.GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
-                    if (catalogGift != null) {
-                        finalCollection.add(new CollectionItemModel(catalogGift, count));
-                    } else {
-                        finalCollection.add(new CollectionItemModel(giftName, R.drawable.gift_icon, 100000L, count));
-                    }
-                }
+                userGiftsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot giftsSnapshot) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (giftsSnapshot.exists()) {
+                            for (DataSnapshot ds : giftsSnapshot.getChildren()) {
+                                String gKey = ds.getKey();
+                                Long countVal = ds.getValue(Long.class);
+                                if (gKey != null && countVal != null && countVal > 0) {
+                                    String cleanKey = gKey.replaceAll("\\s*\\(.*?\\)", "").trim();
+                                    int existing = giftCountMap.containsKey(cleanKey) ? giftCountMap.get(cleanKey) : 0;
+                                    giftCountMap.put(cleanKey, Math.max(existing, countVal.intValue()));
+                                }
+                            }
+                        }
 
-                if (finalCollection.isEmpty()) {
-                    if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
-                    if (rvCollection != null) rvCollection.setVisibility(View.GONE);
-                } else {
-                    if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
-                    if (rvCollection != null) {
-                        rvCollection.setVisibility(View.VISIBLE);
-                        CollectionAdapter adapter = new CollectionAdapter(finalCollection, item -> {
-                            Toast.makeText(RoomChatActivity.this, "Collection Item: " + (item.getGiftStoreItem() != null ? item.getGiftStoreItem().name : (item.getStoreItem() != null ? item.getStoreItem().getName() : "Item")), Toast.LENGTH_SHORT).show();
-                        });
-                        rvCollection.setAdapter(adapter);
+                        buildAndBindProfileCollection(storeOwnedItems, giftCountMap, rvCollection, tvEmpty, tvCountBadge);
                     }
-                }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        buildAndBindProfileCollection(storeOwnedItems, giftCountMap, rvCollection, tvEmpty, tvCountBadge);
+                    }
+                });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                if (storeOwnedItems.isEmpty()) {
-                    if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
-                    if (rvCollection != null) rvCollection.setVisibility(View.GONE);
-                } else {
-                    if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
-                    if (rvCollection != null) {
-                        rvCollection.setVisibility(View.VISIBLE);
-                        CollectionAdapter adapter = new CollectionAdapter(storeOwnedItems, item -> {});
-                        rvCollection.setAdapter(adapter);
-                    }
-                }
+                buildAndBindProfileCollection(storeOwnedItems, new HashMap<>(), rvCollection, tvEmpty, tvCountBadge);
             }
         });
+    }
+
+    private void buildAndBindProfileCollection(List<CollectionItemModel> storeOwnedItems, Map<String, Integer> giftCountMap, RecyclerView rvCollection, TextView tvEmpty, TextView tvCountBadge) {
+        if (isFinishing() || isDestroyed()) return;
+        List<CollectionItemModel> finalCollection = new ArrayList<>(storeOwnedItems);
+
+        for (Map.Entry<String, Integer> entry : giftCountMap.entrySet()) {
+            String giftName = entry.getKey();
+            int count = entry.getValue();
+            GiftStoreAdapter.GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
+            if (catalogGift != null) {
+                finalCollection.add(new CollectionItemModel(catalogGift, count));
+            } else {
+                finalCollection.add(new CollectionItemModel(giftName, R.drawable.gift_icon, 100000L, count));
+            }
+        }
+
+        if (tvCountBadge != null) {
+            tvCountBadge.setText(finalCollection.size() + " Items");
+        }
+
+        if (finalCollection.isEmpty()) {
+            if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
+            if (rvCollection != null) rvCollection.setVisibility(View.GONE);
+        } else {
+            if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
+            if (rvCollection != null) {
+                rvCollection.setVisibility(View.VISIBLE);
+                CollectionAdapter adapter = new CollectionAdapter(finalCollection, item -> {
+                    Toast.makeText(RoomChatActivity.this, "Collection Item: " + (item.getGiftStoreItem() != null ? item.getGiftStoreItem().name : (item.getStoreItem() != null ? item.getStoreItem().getName() : "Item")), Toast.LENGTH_SHORT).show();
+                });
+                rvCollection.setAdapter(adapter);
+            }
+        }
     }
 
     // Prompt Admin/Host to select kick/blacklist duration
@@ -2926,8 +3064,6 @@ public class RoomChatActivity extends AppCompatActivity {
 
         com.google.android.material.materialswitch.MaterialSwitch swPrivateRoom = dialogView.findViewById(R.id.swPrivateRoom);
         EditText etRoomPin = dialogView.findViewById(R.id.etRoomPin);
-        EditText etPrivateImage = dialogView.findViewById(R.id.etPrivateImage);
-        com.google.android.material.imageview.ShapeableImageView ivLockPreview = dialogView.findViewById(R.id.ivLockPreview);
         View btnSavePrivateSettings = dialogView.findViewById(R.id.btnSavePrivateSettings);
 
         DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID);
@@ -2939,20 +3075,12 @@ public class RoomChatActivity extends AppCompatActivity {
                     Boolean isPrivateVal = snapshot.child("isPrivate").getValue(Boolean.class);
                     String pinVal = snapshot.child("roomPin").getValue(String.class);
                     if (pinVal == null) pinVal = snapshot.child("pin").getValue(String.class);
-                    String imgVal = snapshot.child("privateImage").getValue(String.class);
 
                     if (swPrivateRoom != null && isPrivateVal != null) {
                         swPrivateRoom.setChecked(isPrivateVal);
                     }
                     if (etRoomPin != null && pinVal != null) {
                         etRoomPin.setText(pinVal);
-                    }
-                    if (etPrivateImage != null && imgVal != null) {
-                        etPrivateImage.setText(imgVal);
-                    }
-                    if (ivLockPreview != null && imgVal != null && !imgVal.trim().isEmpty()) {
-                        ivLockPreview.setVisibility(View.VISIBLE);
-                        Glide.with(RoomChatActivity.this).load(imgVal).into(ivLockPreview);
                     }
                 }
             }
@@ -2964,7 +3092,6 @@ public class RoomChatActivity extends AppCompatActivity {
             btnSavePrivateSettings.setOnClickListener(v -> {
                 boolean isPrivateChecked = swPrivateRoom != null && swPrivateRoom.isChecked();
                 String enteredPin = etRoomPin != null ? etRoomPin.getText().toString().trim() : "";
-                String enteredImg = etPrivateImage != null ? etPrivateImage.getText().toString().trim() : "";
 
                 if (isPrivateChecked && (enteredPin.isEmpty() || enteredPin.length() < 4)) {
                     Toast.makeText(this, "Please enter a valid 4-digit PIN for Private Room!", Toast.LENGTH_SHORT).show();
@@ -2975,7 +3102,6 @@ public class RoomChatActivity extends AppCompatActivity {
                 updates.put("isPrivate", isPrivateChecked);
                 updates.put("roomPin", enteredPin);
                 updates.put("pin", enteredPin);
-                updates.put("privateImage", enteredImg);
 
                 roomRef.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -4893,6 +5019,11 @@ public class RoomChatActivity extends AppCompatActivity {
         RecyclerView rvContributions = dialogView.findViewById(R.id.rvContributions);
         TextView tvTotal = dialogView.findViewById(R.id.tvTotalContribution);
 
+        TextView tabDaily = dialogView.findViewById(R.id.tabDaily);
+        TextView tabWeekly = dialogView.findViewById(R.id.tabWeekly);
+        TextView tabMonthly = dialogView.findViewById(R.id.tabMonthly);
+        TextView tabTotal = dialogView.findViewById(R.id.tabTotal);
+
         if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
 
         List<RoomContributionModel> contributionList = new ArrayList<>();
@@ -4903,28 +5034,120 @@ public class RoomChatActivity extends AppCompatActivity {
             rvContributions.setAdapter(adapter);
         }
 
+        View.OnClickListener tabClickListener = v -> {
+            if (tabDaily != null) {
+                tabDaily.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                tabDaily.setTextColor(Color.parseColor("#D0FFFFFF"));
+            }
+            if (tabWeekly != null) {
+                tabWeekly.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                tabWeekly.setTextColor(Color.parseColor("#D0FFFFFF"));
+            }
+            if (tabMonthly != null) {
+                tabMonthly.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                tabMonthly.setTextColor(Color.parseColor("#D0FFFFFF"));
+            }
+            if (tabTotal != null) {
+                tabTotal.setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                tabTotal.setTextColor(Color.parseColor("#D0FFFFFF"));
+            }
+
+            if (v == tabDaily) {
+                currentContributionTab = "DAILY";
+                if (tabDaily != null) {
+                    tabDaily.setBackgroundResource(R.drawable.bg_wallet_chip_selected);
+                    tabDaily.setTextColor(Color.WHITE);
+                }
+            } else if (v == tabWeekly) {
+                currentContributionTab = "WEEKLY";
+                if (tabWeekly != null) {
+                    tabWeekly.setBackgroundResource(R.drawable.bg_wallet_chip_selected);
+                    tabWeekly.setTextColor(Color.WHITE);
+                }
+            } else if (v == tabMonthly) {
+                currentContributionTab = "MONTHLY";
+                if (tabMonthly != null) {
+                    tabMonthly.setBackgroundResource(R.drawable.bg_wallet_chip_selected);
+                    tabMonthly.setTextColor(Color.WHITE);
+                }
+            } else if (v == tabTotal) {
+                currentContributionTab = "TOTAL";
+                if (tabTotal != null) {
+                    tabTotal.setBackgroundResource(R.drawable.bg_wallet_chip_selected);
+                    tabTotal.setTextColor(Color.WHITE);
+                }
+            }
+
+            loadContributionsForTab(roomID, currentContributionTab, adapter, pbLoading, llEmpty, rvContributions, tvTotal);
+        };
+
+        if (tabDaily != null) tabDaily.setOnClickListener(tabClickListener);
+        if (tabWeekly != null) tabWeekly.setOnClickListener(tabClickListener);
+        if (tabMonthly != null) tabMonthly.setOnClickListener(tabClickListener);
+        if (tabTotal != null) tabTotal.setOnClickListener(tabClickListener);
+
+        currentContributionTab = "DAILY";
+        loadContributionsForTab(roomID, currentContributionTab, adapter, pbLoading, llEmpty, rvContributions, tvTotal);
+
+        dialog.show();
+    }
+
+    private String currentContributionTab = "DAILY";
+
+    private void loadContributionsForTab(String roomId, String tab, RoomContributionAdapter adapter, ProgressBar pbLoading, View llEmpty, RecyclerView rvContributions, TextView tvTotal) {
+        if (isFinishing() || isDestroyed()) return;
         if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
         if (llEmpty != null) llEmpty.setVisibility(View.GONE);
 
-        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomID.trim());
+        Date now = new Date();
+        String dailyKey = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(now);
+        String weeklyKey = new SimpleDateFormat("yyyy-'W'ww", Locale.US).format(now);
+        String monthlyKey = new SimpleDateFormat("yyyy-MM", Locale.US).format(now);
 
-        ValueEventListener listener = new ValueEventListener() {
+        Calendar todayCal = Calendar.getInstance();
+        todayCal.set(Calendar.HOUR_OF_DAY, 0);
+        todayCal.set(Calendar.MINUTE, 0);
+        todayCal.set(Calendar.SECOND, 0);
+        todayCal.set(Calendar.MILLISECOND, 0);
+        long todayStart = todayCal.getTimeInMillis();
+
+        Calendar weekCal = Calendar.getInstance();
+        weekCal.set(Calendar.DAY_OF_WEEK, weekCal.getFirstDayOfWeek());
+        weekCal.set(Calendar.HOUR_OF_DAY, 0);
+        weekCal.set(Calendar.MINUTE, 0);
+        weekCal.set(Calendar.SECOND, 0);
+        weekCal.set(Calendar.MILLISECOND, 0);
+        long weekStart = weekCal.getTimeInMillis();
+
+        Calendar monthCal = Calendar.getInstance();
+        monthCal.set(Calendar.DAY_OF_MONTH, 1);
+        monthCal.set(Calendar.HOUR_OF_DAY, 0);
+        monthCal.set(Calendar.MINUTE, 0);
+        monthCal.set(Calendar.SECOND, 0);
+        monthCal.set(Calendar.MILLISECOND, 0);
+        long monthStart = monthCal.getTimeInMillis();
+
+        DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomId.trim());
+        DatabaseReference targetContribRef;
+
+        if ("DAILY".equals(tab)) {
+            targetContribRef = roomRef.child("room_contributions_daily").child(dailyKey);
+        } else if ("WEEKLY".equals(tab)) {
+            targetContribRef = roomRef.child("room_contributions_weekly").child(weeklyKey);
+        } else if ("MONTHLY".equals(tab)) {
+            targetContribRef = roomRef.child("room_contributions_monthly").child(monthlyKey);
+        } else {
+            targetContribRef = roomRef.child("room_contributions");
+        }
+
+        targetContribRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot contribSnap) {
                 if (isFinishing() || isDestroyed()) return;
-                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
 
-                // 1. Total room spend sync
-                Long totalSpend = snapshot.child("totalCoinSpend").getValue(Long.class);
-                if (totalSpend == null) totalSpend = 0L;
-                totalSpend = Math.max(0L, totalSpend);
-                if (tvTotal != null) {
-                    tvTotal.setText(CoinUtils.formatCompactCoins(totalSpend));
-                }
-
-                // 2. Contributions list sync
-                DataSnapshot contribSnap = snapshot.child("room_contributions");
                 List<RoomContributionModel> newList = new ArrayList<>();
+                long periodTotal = 0L;
+
                 if (contribSnap.exists()) {
                     for (DataSnapshot child : contribSnap.getChildren()) {
                         String uid = child.child("userId").getValue(String.class);
@@ -4934,13 +5157,83 @@ public class RoomChatActivity extends AppCompatActivity {
                         Long amt = child.child("amount").getValue(Long.class);
                         if (amt != null && amt > 0) {
                             newList.add(new RoomContributionModel(uid, name, avatar, amt));
+                            periodTotal += amt;
                         }
                     }
                 }
 
-                // Sort descending by amount (highest contributor first)
-                Collections.sort(newList, (a, b) -> Long.compare(b.getAmount(), a.getAmount()));
+                // Fallback: If timeline bucket node has no data yet, filter room_contributions by timestamp
+                if (newList.isEmpty() && !"TOTAL".equals(tab)) {
+                    roomRef.child("room_contributions").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot allSnap) {
+                            if (isFinishing() || isDestroyed()) return;
+                            if (pbLoading != null) pbLoading.setVisibility(View.GONE);
 
+                            List<RoomContributionModel> fbList = new ArrayList<>();
+                            long fbTotal = 0L;
+                            long cutoff = "DAILY".equals(tab) ? todayStart : ("WEEKLY".equals(tab) ? weekStart : monthStart);
+
+                            if (allSnap.exists()) {
+                                for (DataSnapshot child : allSnap.getChildren()) {
+                                    Long ts = child.child("timestamp").getValue(Long.class);
+                                    if (ts == null || ts >= cutoff) {
+                                        String uid = child.child("userId").getValue(String.class);
+                                        if (uid == null || uid.isEmpty()) uid = child.getKey();
+                                        String name = child.child("userName").getValue(String.class);
+                                        String avatar = child.child("userAvatar").getValue(String.class);
+                                        Long amt = child.child("amount").getValue(Long.class);
+                                        if (amt != null && amt > 0) {
+                                            fbList.add(new RoomContributionModel(uid, name, avatar, amt));
+                                            fbTotal += amt;
+                                        }
+                                    }
+                                }
+                            }
+
+                            Collections.sort(fbList, (a, b) -> Long.compare(b.getAmount(), a.getAmount()));
+                            adapter.updateList(fbList);
+                            if (tvTotal != null) tvTotal.setText(CoinUtils.formatCompactCoins(fbTotal));
+
+                            if (fbList.isEmpty()) {
+                                if (llEmpty != null) llEmpty.setVisibility(View.VISIBLE);
+                                if (rvContributions != null) rvContributions.setVisibility(View.GONE);
+                            } else {
+                                if (llEmpty != null) llEmpty.setVisibility(View.GONE);
+                                if (rvContributions != null) rvContributions.setVisibility(View.VISIBLE);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                            if (llEmpty != null) llEmpty.setVisibility(View.VISIBLE);
+                        }
+                    });
+                    return;
+                }
+
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+
+                if ("TOTAL".equals(tab)) {
+                    roomRef.child("totalCoinSpend").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            Long totalSpend = snapshot.getValue(Long.class);
+                            if (totalSpend == null) totalSpend = 0L;
+                            if (tvTotal != null) {
+                                tvTotal.setText(CoinUtils.formatCompactCoins(Math.max(0L, totalSpend)));
+                            }
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+                } else {
+                    if (tvTotal != null) {
+                        tvTotal.setText(CoinUtils.formatCompactCoins(periodTotal));
+                    }
+                }
+
+                Collections.sort(newList, (a, b) -> Long.compare(b.getAmount(), a.getAmount()));
                 adapter.updateList(newList);
 
                 if (newList.isEmpty()) {
@@ -4954,18 +5247,12 @@ public class RoomChatActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                if (isFinishing() || isDestroyed()) return;
                 if (pbLoading != null) pbLoading.setVisibility(View.GONE);
-                Toast.makeText(RoomChatActivity.this, "Unable to load contributions. Please try again.", Toast.LENGTH_SHORT).show();
+                if (llEmpty != null) llEmpty.setVisibility(View.VISIBLE);
+                if (rvContributions != null) rvContributions.setVisibility(View.GONE);
             }
-        };
-
-        roomRef.addValueEventListener(listener);
-        dialog.setOnDismissListener(d -> {
-            if (contributionsDialog == d) contributionsDialog = null;
-            roomRef.removeEventListener(listener);
         });
-
-        dialog.show();
     }
 
     // --- ANIMATION & BANNER QUEUE MANAGER ---

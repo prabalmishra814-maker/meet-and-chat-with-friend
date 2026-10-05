@@ -228,10 +228,15 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_enter_room_pin, null, false);
         if (dialogView == null) return;
 
+        ImageView btnClosePinDialog = dialogView.findViewById(R.id.btnClosePinDialog);
         ImageView ivPrivateRoomBanner = dialogView.findViewById(R.id.ivPrivateRoomBanner);
         TextView tvPrivateRoomTitle = dialogView.findViewById(R.id.tvPrivateRoomTitle);
         EditText etEnterPin = dialogView.findViewById(R.id.etEnterPin);
         View btnUnlockRoom = dialogView.findViewById(R.id.btnUnlockRoom);
+
+        if (btnClosePinDialog != null) {
+            btnClosePinDialog.setOnClickListener(v -> dialog.dismiss());
+        }
 
         if (tvPrivateRoomTitle != null && room.getRoom_name() != null) {
             tvPrivateRoomTitle.setText("🔒 " + room.getRoom_name() + " (Private)");
@@ -260,6 +265,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
                 if (expectedPin != null && inputPin.equals(expectedPin.trim())) {
                     Toast.makeText(context, "🔓 Room Unlocked!", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
+                    intent.putExtra("pinVerified", true);
                     context.startActivity(intent);
                     if (context instanceof Activity) {
                         ((Activity) context).overridePendingTransition(R.anim.slide_in_bottom, R.anim.fade_out);

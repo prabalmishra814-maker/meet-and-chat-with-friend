@@ -14,11 +14,22 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="42dp"
         android:background="@drawable/bg_glass_more_panel"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="48dp"
-        android:paddingBottom="20dp">
+        android:orientation="vertical">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="48dp"
+                android:paddingBottom="20dp">
 
         <!-- Top Bar with More Options (...) -->
         <RelativeLayout
@@ -193,49 +204,61 @@
                 android:textSize="10.5sp" />
         </LinearLayout>
 
-        <!-- Medal Card Row (Hayi style) -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/llMedalCard"
+        <!-- User Collection Section Header -->
+        <LinearLayout
+            android:id="@+id/layoutCollectionHeader"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="14dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#1AFFFFFF"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:rippleColor="#30FFFFFF"
-            app:strokeColor="#25FFFFFF"
-            app:strokeWidth="1dp">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingHorizontal="16dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-black"
+                android:text="User Collection"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
 
-                <TextView
-                    android:id="@+id/tvMedalTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:text="Collection"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvCollectionCountBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_glass_icon_pill"
+                android:fontFamily="sans-serif-bold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:text="0 Items"
+                android:textColor="#00FFC6"
+                android:textSize="11sp" />
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvMedalWear"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:text="open ›"
-                    android:textColor="#C0FFFFFF"
-                    android:textSize="13.5sp" />
+        <!-- Full User Collection Items Grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvProfileCollection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:paddingHorizontal="2dp" />
 
-            </RelativeLayout>
-        </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/tvEmptyProfileCollection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="No items in collection yet"
+            android:textColor="#70FFFFFF"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <!-- Own User Bottom Action Buttons (Leave the Mic, Send Gift) -->
         <LinearLayout
@@ -550,6 +573,9 @@
             </FrameLayout>
 
         </LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
     </LinearLayout>
 

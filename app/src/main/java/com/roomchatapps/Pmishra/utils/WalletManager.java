@@ -10,11 +10,14 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.models.TransactionModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -290,7 +293,7 @@ public class WalletManager {
         });
     }
 
-    // ROOM CONTRIBUTION TRACKING
+    // ROOM CONTRIBUTION TRACKING WITH TIME BUCKETS (Daily, Weekly, Monthly, Total)
     public static void trackRoomContribution(String roomId, String userId, String userName, String userAvatar, long coinAmount) {
         if (roomId == null || roomId.trim().isEmpty() || userId == null || userId.trim().isEmpty() || coinAmount <= 0) {
             return;
@@ -300,8 +303,12 @@ public class WalletManager {
         // 1. Atomically increment total room coin spend
         roomRef.child("totalCoinSpend").setValue(ServerValue.increment(coinAmount));
 
-        // 2. Atomically increment user's contribution in room_contributions
-        DatabaseReference contribRef = roomRef.child("room_contributions").child(userId.trim());
+        // Dates formatting for Daily, Weekly, Monthly buckets
+        Date now = new Date();
+        String dailyKey = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(now);
+        String weeklyKey = new SimpleDateFormat("yyyy-'W'ww", Locale.US).format(now);
+        String monthlyKey = new SimpleDateFormat("yyyy-MM", Locale.US).format(now);
+
         Map<String, Object> contribData = new HashMap<>();
         contribData.put("userId", userId.trim());
         if (userName != null && !userName.trim().isEmpty()) {
@@ -311,8 +318,19 @@ public class WalletManager {
             contribData.put("userAvatar", userAvatar.trim());
         }
         contribData.put("amount", ServerValue.increment(coinAmount));
+        contribData.put("timestamp", System.currentTimeMillis());
 
-        contribRef.updateChildren(contribData);
+        // 2. All-Time Total
+        roomRef.child("room_contributions").child(userId.trim()).updateChildren(contribData);
+
+        // 3. Daily Bucket
+        roomRef.child("room_contributions_daily").child(dailyKey).child(userId.trim()).updateChildren(contribData);
+
+        // 4. Weekly Bucket
+        roomRef.child("room_contributions_weekly").child(weeklyKey).child(userId.trim()).updateChildren(contribData);
+
+        // 5. Monthly Bucket
+        roomRef.child("room_contributions_monthly").child(monthlyKey).child(userId.trim()).updateChildren(contribData);
     }
 
     // GIFT COIN/ENERGY FIX

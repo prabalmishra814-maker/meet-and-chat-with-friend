@@ -19,8 +19,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -223,7 +225,7 @@ public class StoreActivity extends AppCompatActivity {
         boolean isEntrance = "ENTRANCE".equalsIgnoreCase(item.getCategory());
 
         TextView tvDialogTitle = view.findViewById(R.id.tvTitle);
-        View ivPreviewAvatar = view.findViewById(R.id.ivPreviewAvatar);
+        ImageView ivPreviewAvatar = view.findViewById(R.id.ivPreviewAvatar);
         TextView tvFrameName = view.findViewById(R.id.tvPreviewFrameName);
         TextView tvBadge = view.findViewById(R.id.tvPreviewBadge);
         TextView tvDescription = view.findViewById(R.id.tvPreviewDescription);
@@ -236,9 +238,24 @@ public class StoreActivity extends AppCompatActivity {
             tvDialogTitle.setText(isEntrance ? "Entrance Live Preview" : "Frame Live Preview");
         }
 
-        // Hide profile avatar when previewing Entrance effects!
+        // Load current user's profile picture into frame preview!
         if (ivPreviewAvatar != null) {
             ivPreviewAvatar.setVisibility(isEntrance ? View.GONE : View.VISIBLE);
+            if (!isEntrance && currentUid != null && !currentUid.isEmpty()) {
+                UserProfileCache.getUserProfile(currentUid, profile -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (profile != null && profile.avatarUrl != null && !profile.avatarUrl.trim().isEmpty()) {
+                        Glide.with(StoreActivity.this)
+                                .load(profile.avatarUrl)
+                                .placeholder(R.drawable.logo_placeholder)
+                                .into(ivPreviewAvatar);
+                    } else {
+                        Glide.with(StoreActivity.this)
+                                .load(R.drawable.logo_placeholder)
+                                .into(ivPreviewAvatar);
+                    }
+                });
+            }
         }
 
         if (tvFrameName != null) tvFrameName.setText(item.getName());
