@@ -23,6 +23,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityEditProfileBinding;
+import com.roomchatapps.Pmishra.dialogs.ImageCropDialog;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.SessionManager;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
@@ -58,8 +59,15 @@ public class EditProfileActivity extends AppCompatActivity {
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    imageUri = uri;
-                    binding.profileImage.setImageURI(uri);
+                    ImageCropDialog cropDialog = new ImageCropDialog(EditProfileActivity.this, uri, (croppedBitmap, croppedUri) -> {
+                        if (croppedUri != null) {
+                            imageUri = croppedUri;
+                            binding.profileImage.setImageURI(croppedUri);
+                        } else if (croppedBitmap != null) {
+                            binding.profileImage.setImageBitmap(croppedBitmap);
+                        }
+                    });
+                    cropDialog.show();
                 }
             }
     );

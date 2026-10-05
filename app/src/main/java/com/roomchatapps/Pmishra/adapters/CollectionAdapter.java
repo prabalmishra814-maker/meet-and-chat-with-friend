@@ -13,14 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
 import com.opensource.svgaplayer.SVGAImageView;
-import com.opensource.svgaplayer.SVGAParser;
-import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +74,12 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Co
                 holder.tvQuantityBadge.setText("x" + item.getReceivedCount());
             }
 
+            // Display GIFTED badge on received gift cards
+            holder.tvStatusBadge.setVisibility(View.VISIBLE);
+            holder.tvStatusBadge.setText("GIFTED 🎁");
+            holder.tvStatusBadge.setTextColor(Color.parseColor("#FF69B4"));
+            holder.cardCollectionItem.setStrokeColor(Color.parseColor("#40FF69B4"));
+
             if (item.getGiftStoreItem() != null) {
                 holder.ivStaticPreview.setImageResource(item.getGiftStoreItem().iconRes);
             } else {
@@ -86,13 +88,16 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Co
                 holder.ivStaticPreview.setImageResource(res);
             }
 
-            holder.cardCollectionItem.setStrokeColor(Color.parseColor("#40FFD700"));
-
         } else {
             // ENTRY EFFECT & FRAME COLLECTION
             StoreItemModel storeItem = item.getStoreItem();
             if (storeItem != null) {
-                if (storeItem.getBadgeText() != null && !storeItem.getBadgeText().isEmpty()) {
+                long exp = storeItem.getExpiryTimestamp();
+                if (exp > System.currentTimeMillis()) {
+                    long diffMs = exp - System.currentTimeMillis();
+                    long daysLeft = Math.max(1, diffMs / (86400000L));
+                    holder.tvItemSubtitle.setText("⏳ " + daysLeft + " Days Valid");
+                } else if (storeItem.getBadgeText() != null && !storeItem.getBadgeText().isEmpty()) {
                     holder.tvItemSubtitle.setText(storeItem.getBadgeText());
                 } else {
                     holder.tvItemSubtitle.setText(item.getItemType() == CollectionItemModel.ItemType.ENTRY_EFFECT ? "Entry Effect" : "Avatar Frame");
@@ -103,6 +108,11 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Co
                     holder.tvStatusBadge.setText("EQUIPPED ✨");
                     holder.tvStatusBadge.setTextColor(Color.parseColor("#40E0D0"));
                     holder.cardCollectionItem.setStrokeColor(Color.parseColor("#40E0D0"));
+                } else if (storeItem.isGifted()) {
+                    holder.tvStatusBadge.setVisibility(View.VISIBLE);
+                    holder.tvStatusBadge.setText("GIFTED 🎁");
+                    holder.tvStatusBadge.setTextColor(Color.parseColor("#FF69B4"));
+                    holder.cardCollectionItem.setStrokeColor(Color.parseColor("#40FF69B4"));
                 } else {
                     holder.tvStatusBadge.setVisibility(View.VISIBLE);
                     holder.tvStatusBadge.setText("OWNED 🏆");
@@ -110,42 +120,19 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Co
                     holder.cardCollectionItem.setStrokeColor(Color.parseColor("#25FFFFFF"));
                 }
 
-                // Check for SVGA
-                if (storeItem.getSvgaPath() != null && !storeItem.getSvgaPath().trim().isEmpty()) {
-                    holder.ivStaticPreview.setVisibility(View.GONE);
-                    holder.svgaPreview.setVisibility(View.VISIBLE);
-                    holder.svgaPreview.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+                // Show static frame picture thumbnail in collection list to avoid lag & memory crashes
+                holder.svgaPreview.setVisibility(View.GONE);
+                holder.ivStaticPreview.setVisibility(View.VISIBLE);
 
-                    SVGAParser parser = new SVGAParser(holder.itemView.getContext());
-                    parser.decodeFromAssets(storeItem.getSvgaPath(), new SVGAParser.ParseCompletion() {
-                        @Override
-                        public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                            if (holder.itemView.getContext() != null) {
-                                holder.svgaPreview.setVideoItem(videoItem);
-                                holder.svgaPreview.stepToFrame(0, true);
-                            }
-                        }
-
-                        @Override
-                        public void onError() {
-                            holder.svgaPreview.setVisibility(View.GONE);
-                            holder.ivStaticPreview.setVisibility(View.VISIBLE);
-                            int resId = 0;
-                            if (storeItem.getIconResName() != null) {
-                                resId = holder.itemView.getResources().getIdentifier(storeItem.getIconResName(), "drawable", holder.itemView.getContext().getPackageName());
-                            }
-                            if (resId == 0) resId = R.drawable.family_owner_frame;
-                            holder.ivStaticPreview.setImageResource(resId);
-                        }
-                    }, null);
-                } else {
-                    int resId = 0;
-                    if (storeItem.getIconResName() != null) {
-                        resId = holder.itemView.getResources().getIdentifier(storeItem.getIconResName(), "drawable", holder.itemView.getContext().getPackageName());
-                    }
-                    if (resId == 0) resId = R.drawable.family_owner_frame;
-                    holder.ivStaticPreview.setImageResource(resId);
+                int resId = 0;
+                if (storeItem.getIconResName() != null && !storeItem.getIconResName().isEmpty()) {
+                    resId = holder.itemView.getResources().getIdentifier(storeItem.getIconResName(), "drawable", holder.itemView.getContext().getPackageName());
                 }
+                if (resId == 0) {
+                    resId = com.roomchatapps.Pmishra.utils.FrameUtils.getFrameDrawableRes(holder.itemView.getContext(), storeItem.getId());
+                }
+                if (resId == 0) resId = R.drawable.ic_crown_gold_frame;
+                holder.ivStaticPreview.setImageResource(resId);
             }
         }
 

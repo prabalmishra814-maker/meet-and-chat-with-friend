@@ -663,6 +663,28 @@ public class WalletManager {
                             NotificationHelper.sendLevelUpNotification(senderUid, newLevel);
                         }
 
+                        // Broadcast Global Realtime SVGA Banner for Coin Gifts / Direct Transfers
+                        if (recipientUid != null && !recipientUid.trim().isEmpty()) {
+                            final String targetUid = recipientUid.trim();
+                            UserProfileCache.getUserProfile(senderUid, sProfile -> {
+                                String sName = (sProfile != null && sProfile.name != null) ? sProfile.name : "A User";
+                                String sAvatar = (sProfile != null && sProfile.avatarUrl != null) ? sProfile.avatarUrl : "";
+                                UserProfileCache.getUserProfile(targetUid, rProfile -> {
+                                    String rName = (rProfile != null && rProfile.name != null) ? rProfile.name : targetUid;
+                                    GlobalBroadcastHelper.broadcastGift(
+                                            senderUid,
+                                            sName,
+                                            sAvatar,
+                                            targetUid,
+                                            rName,
+                                            giftName != null ? giftName : "Coin Gift 🪙",
+                                            1,
+                                            "Coin Transfer"
+                                    );
+                                });
+                            });
+                        }
+
                         // Log sender transaction with smart category determination
                         String txType = "GIFT_SENT";
                         if (giftName != null) {

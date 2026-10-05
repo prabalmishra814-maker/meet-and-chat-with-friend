@@ -3,6 +3,7 @@ package com.roomchatapps.Pmishra;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
@@ -22,6 +23,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.roomchatapps.Pmishra.utils.CoinUtils;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -152,6 +155,11 @@ public class StoreActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(StoreItemModel item, int position) {
                     showFramePreviewDialog(item);
+                }
+
+                @Override
+                public void onItemSend(StoreItemModel item, int position) {
+                    showSendStoreItemDialog(item);
                 }
             });
             rvStoreItems.setAdapter(adapter);
@@ -310,7 +318,8 @@ public class StoreActivity extends AppCompatActivity {
                             if (ivStaticFrame != null) {
                                 ivStaticFrame.setVisibility(View.VISIBLE);
                                 int resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
-                                if (resId == 0) resId = R.drawable.family_owner_frame;
+                                if (resId == 0) resId = FrameUtils.getFrameDrawableRes(StoreActivity.this, item.getId());
+                                if (resId == 0) resId = isEntrance ? R.drawable.store : R.drawable.ic_crown_gold_frame;
                                 ivStaticFrame.setImageResource(resId);
                             }
                         });
@@ -325,7 +334,8 @@ public class StoreActivity extends AppCompatActivity {
                 if (item.getIconResName() != null) {
                     resId = getResources().getIdentifier(item.getIconResName(), "drawable", getPackageName());
                 }
-                if (resId == 0) resId = R.drawable.family_owner_frame;
+                if (resId == 0) resId = FrameUtils.getFrameDrawableRes(StoreActivity.this, item.getId());
+                if (resId == 0) resId = isEntrance ? R.drawable.store : R.drawable.ic_crown_gold_frame;
                 ivStaticFrame.setImageResource(resId);
             }
         }
@@ -415,6 +425,204 @@ public class StoreActivity extends AppCompatActivity {
         } else {
             if (llEmptyStore != null) llEmptyStore.setVisibility(View.GONE);
             if (rvStoreItems != null) rvStoreItems.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showSendStoreItemDialog(StoreItemModel item) {
+        if (item == null) return;
+        if (currentUid == null) {
+            Toast.makeText(this, "Please login to send gifts", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog sendDialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_send_store_item, null, false);
+        sendDialog.setContentView(view);
+
+        TextView tvSendTitle = view.findViewById(R.id.tvSendDialogTitle);
+        TextView tvSendSubtitle = view.findViewById(R.id.tvSendDialogSubtitle);
+        android.widget.EditText etSearchUser = view.findViewById(R.id.etSearchUser);
+        RecyclerView rvUserSelection = view.findViewById(R.id.rvUserSelection);
+        ProgressBar pbSendLoading = view.findViewById(R.id.pbSendLoading);
+        MaterialButton btnConfirmSend = view.findViewById(R.id.btnConfirmSend);
+        ImageView btnClose = view.findViewById(R.id.btnCloseSendDialog);
+
+        if (tvSendTitle != null) {
+            tvSendTitle.setText("Send " + item.getName());
+        }
+        if (tvSendSubtitle != null) {
+            int validity = item.getValidityDays() > 0 ? item.getValidityDays() : 7;
+            tvSendSubtitle.setText("Select a friend to gift 🪙 " + CoinUtils.formatCoins(item.getPriceCoins()) + " /" + validity + " days");
+        }
+
+        if (btnClose != null) btnClose.setOnClickListener(v -> sendDialog.dismiss());
+
+        List<UserProfileCache.UserProfile> allUsers = new ArrayList<>();
+        List<UserProfileCache.UserProfile> filteredUsers = new ArrayList<>();
+        final UserProfileCache.UserProfile[] selectedUser = {null};
+
+        UserSendAdapter userAdapter = new UserSendAdapter(filteredUsers, user -> {
+            selectedUser[0] = user;
+        });
+
+        if (rvUserSelection != null) {
+            rvUserSelection.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+            rvUserSelection.setAdapter(userAdapter);
+        }
+
+        if (pbSendLoading != null) pbSendLoading.setVisibility(View.VISIBLE);
+
+        // Load users from Firebase
+        FirebaseDatabase.getInstance().getReference("users").limitToFirst(50).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (pbSendLoading != null) pbSendLoading.setVisibility(View.GONE);
+                allUsers.clear();
+                filteredUsers.clear();
+
+                if (snapshot.exists()) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String uKey = ds.getKey();
+                        if (uKey == null || uKey.equals(currentUid)) continue;
+
+                        UserProfileCache.UserProfile uProf = new UserProfileCache.UserProfile();
+                        uProf.uid = uKey;
+                        uProf.name = ds.child("name").getValue(String.class);
+                        if (uProf.name == null || uProf.name.trim().isEmpty()) {
+                            uProf.name = "User " + uKey.substring(0, Math.min(5, uKey.length()));
+                        }
+
+                        String av = ds.child("avtar").getValue(String.class);
+                        if (av == null || av.trim().isEmpty()) av = ds.child("avatar").getValue(String.class);
+                        if (av == null || av.trim().isEmpty()) av = ds.child("photoUrl").getValue(String.class);
+                        uProf.avatarUrl = av;
+
+                        allUsers.add(uProf);
+                    }
+                }
+
+                filteredUsers.addAll(allUsers);
+                userAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (pbSendLoading != null) pbSendLoading.setVisibility(View.GONE);
+            }
+        });
+
+        // Search text watcher
+        if (etSearchUser != null) {
+            etSearchUser.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String query = s != null ? s.toString().trim().toLowerCase() : "";
+                    filteredUsers.clear();
+                    for (UserProfileCache.UserProfile u : allUsers) {
+                        if (query.isEmpty() || (u.name != null && u.name.toLowerCase().contains(query)) || (u.uid != null && u.uid.toLowerCase().contains(query))) {
+                            filteredUsers.add(u);
+                        }
+                    }
+                    userAdapter.notifyDataSetChanged();
+                }
+                @Override public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+
+        // Confirm Send Action
+        if (btnConfirmSend != null) {
+            btnConfirmSend.setOnClickListener(v -> {
+                if (selectedUser[0] == null) {
+                    Toast.makeText(StoreActivity.this, "Please select a user to send gift to", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                btnConfirmSend.setEnabled(false);
+                if (pbSendLoading != null) pbSendLoading.setVisibility(View.VISIBLE);
+
+                UserProfileCache.getUserProfile(currentUid, myProfile -> {
+                    String myName = (myProfile != null && myProfile.name != null) ? myProfile.name : "Friend";
+
+                    StoreManager.sendItemAsGift(currentUid, myName, selectedUser[0].uid, selectedUser[0].name, item, new StoreManager.ActionCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            runOnUiThread(() -> {
+                                if (pbSendLoading != null) pbSendLoading.setVisibility(View.GONE);
+                                sendDialog.dismiss();
+                                Toast.makeText(StoreActivity.this, message, Toast.LENGTH_LONG).show();
+                                loadWalletBalance();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            runOnUiThread(() -> {
+                                if (pbSendLoading != null) pbSendLoading.setVisibility(View.GONE);
+                                btnConfirmSend.setEnabled(true);
+                                Toast.makeText(StoreActivity.this, "Send Failed: " + error, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    });
+                });
+            });
+        }
+
+        sendDialog.show();
+    }
+
+    private static class UserSendAdapter extends RecyclerView.Adapter<UserSendAdapter.VH> {
+        interface OnSelect { void onSelect(UserProfileCache.UserProfile user); }
+        private final List<UserProfileCache.UserProfile> users;
+        private final OnSelect onSelect;
+        private int selectedPos = -1;
+
+        UserSendAdapter(List<UserProfileCache.UserProfile> users, OnSelect onSelect) {
+            this.users = users;
+            this.onSelect = onSelect;
+        }
+
+        @NonNull @Override
+        public VH onCreateViewHolder(@NonNull android.view.ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user_gift_select, parent, false);
+            return new VH(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull VH holder, int position) {
+            UserProfileCache.UserProfile u = users.get(position);
+            holder.tvName.setText(u.name);
+            holder.tvId.setText("ID: " + u.uid);
+            holder.rbSelect.setChecked(position == selectedPos);
+
+            if (u.avatarUrl != null && !u.avatarUrl.trim().isEmpty()) {
+                Glide.with(holder.itemView.getContext()).load(u.avatarUrl).placeholder(R.drawable.logo_placeholder).into(holder.ivAvatar);
+            } else {
+                Glide.with(holder.itemView.getContext()).load(R.drawable.logo_placeholder).into(holder.ivAvatar);
+            }
+
+            holder.itemView.setOnClickListener(v -> {
+                int pos = holder.getBindingAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    selectedPos = pos;
+                    notifyDataSetChanged();
+                    if (onSelect != null) onSelect.onSelect(users.get(pos));
+                }
+            });
+        }
+
+        @Override public int getItemCount() { return users.size(); }
+
+        static class VH extends RecyclerView.ViewHolder {
+            ImageView ivAvatar;
+            TextView tvName, tvId;
+            android.widget.RadioButton rbSelect;
+            VH(View itemView) {
+                super(itemView);
+                ivAvatar = itemView.findViewById(R.id.ivUserAvatar);
+                tvName = itemView.findViewById(R.id.tvUserName);
+                tvId = itemView.findViewById(R.id.tvUserId);
+                rbSelect = itemView.findViewById(R.id.rbSelectUser);
+            }
         }
     }
 }

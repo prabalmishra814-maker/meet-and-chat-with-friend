@@ -384,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
                 processedGlobalGiftIds.add(giftId);
 
                 String rName = snapshot.child("recipientName").getValue(String.class);
+                String rUid = snapshot.child("recipientId").getValue(String.class);
                 String roomName = snapshot.child("roomName").getValue(String.class);
                 String sAvatar = snapshot.child("senderAvatar").getValue(String.class);
                 Long iconResLong = snapshot.child("iconRes").getValue(Long.class);
@@ -391,7 +392,10 @@ public class MainActivity extends AppCompatActivity {
 
                 String sender = sName.trim();
                 String gift = gName.trim();
-                String target = (rName != null && !rName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + rName.trim() + "</b></font>") : "";
+                String target = "";
+                if (rName != null && !rName.trim().isEmpty()) {
+                    target = " to <font color='#00FFC6'><b>" + rName.trim() + (rUid != null && !rUid.isEmpty() ? " (ID: " + rUid + ")" : "") + "</b></font>";
+                }
                 String room = (roomName != null && !roomName.trim().isEmpty()) ? (" in " + roomName.trim()) : "";
 
                 Long qtyLong = snapshot.child("quantity").getValue(Long.class);

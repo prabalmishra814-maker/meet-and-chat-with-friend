@@ -1,99 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cvStoreContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
+    android:layout_margin="5dp"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="#141E33"
-    app:cardCornerRadius="20dp"
+    app:cardBackgroundColor="#0F1829"
+    app:cardCornerRadius="18dp"
     app:cardElevation="3dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:paddingHorizontal="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp">
 
-        <!-- Top Badge -->
-        <TextView
-            android:id="@+id/tvBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:background="@drawable/chip_charm_bg"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:text="HOT"
-            android:textColor="#FFFFFF"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+        <!-- Top Header Bar: Left Badge & Right Play Icon -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Top Left Badge (SS, S, A, HOT) -->
+            <TextView
+                android:id="@+id/tvBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/chip_charm_bg"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                tools:text="HOT" />
+
+            <!-- Top Right Play Live Preview Icon -->
+            <ImageView
+                android:id="@+id/ivPlayPreview"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Play Preview"
+                android:padding="3dp"
+                android:src="@drawable/ic_play"
+                app:tint="#B0FFFFFF" />
+        </RelativeLayout>
 
         <!-- Preview Icon Container -->
         <FrameLayout
-            android:layout_width="68dp"
-            android:layout_height="68dp"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
             android:layout_marginTop="4dp">
 
             <ImageView
                 android:id="@+id/ivItemIcon"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:src="@drawable/family_owner_frame" />
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_crown_gold_frame" />
 
             <com.opensource.svgaplayer.SVGAImageView
                 android:id="@+id/svgaItemIcon"
-                android:layout_width="68dp"
-                android:layout_height="68dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:visibility="gone"
                 app:autoPlay="true"
                 app:loopCount="0" />
         </FrameLayout>
 
-        <!-- Title -->
+        <!-- Item Name -->
         <TextView
             android:id="@+id/tvItemName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:fontFamily="sans-serif-black"
             android:gravity="center"
             android:maxLines="1"
-            android:text="Golden Crown"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="13sp"
+            tools:text="Golden Crown" />
 
-        <!-- Description -->
+        <!-- Price & Duration e.g. 🪙 20000000 /7 days -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginEnd="3dp"
+                android:src="@drawable/coin" />
+
+            <TextView
+                android:id="@+id/tvItemPriceDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                tools:text="20000000 /7 days" />
+        </LinearLayout>
+
+        <!-- Hidden Description text for backward compatibility -->
         <TextView
             android:id="@+id/tvItemDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="sans-serif"
-            android:gravity="center"
-            android:maxLines="1"
-            android:text="Exclusive profile frame"
-            android:textColor="#88FFFFFF"
-            android:textSize="11sp" />
+            android:visibility="gone" />
 
-        <!-- Action / Buy Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAction"
+        <!-- Dual Action Buttons: Send (Grey) and Buy (Green/Gold) -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#FFD700"
-            android:fontFamily="sans-serif-bold"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="300"
-            android:textColor="#050E1E"
-            android:textSize="12sp"
-            app:cornerRadius="19dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSend"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#1F2C40"
+                android:fontFamily="sans-serif-bold"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="0dp"
+                android:text="Send"
+                android:textColor="#D0E0FF"
+                android:textSize="12sp"
+                app:cornerRadius="18dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAction"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#26E699"
+                android:fontFamily="sans-serif-bold"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="0dp"
+                android:text="Buy"
+                android:textColor="#050E1E"
+                android:textSize="12sp"
+                app:cornerRadius="18dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

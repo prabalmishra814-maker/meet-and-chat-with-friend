@@ -36,8 +36,8 @@
 
     <!-- Center Preview Container -->
     <FrameLayout
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp">
@@ -45,8 +45,8 @@
         <!-- User Avatar Placeholder -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivPreviewAvatar"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
@@ -55,8 +55,8 @@
         <!-- Static Image Frame Overlay -->
         <ImageView
             android:id="@+id/ivStaticFramePreview"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="270dp"
+            android:layout_height="270dp"
             android:layout_gravity="center"
             android:scaleType="fitCenter"
             android:visibility="gone" />
@@ -64,8 +64,8 @@
         <!-- SVGA Animated Frame Overlay -->
         <com.opensource.svgaplayer.SVGAImageView
             android:id="@+id/svgaFramePreview"
-            android:layout_width="160dp"
-            android:layout_height="160dp"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
             android:layout_gravity="center"
             app:autoPlay="true"
             app:loopCount="0" />

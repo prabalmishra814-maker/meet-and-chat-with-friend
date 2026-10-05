@@ -2,8 +2,6 @@ package com.roomchatapps.Pmishra;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.opensource.svgaplayer.SVGAImageView;
-import com.opensource.svgaplayer.SVGAParser;
-import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
-
-import org.jetbrains.annotations.NotNull;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 
 import java.util.List;
 
@@ -30,6 +25,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
     public interface OnStoreItemClickListener {
         void onItemAction(StoreItemModel item, int position);
         void onItemClick(StoreItemModel item, int position);
+        void onItemSend(StoreItemModel item, int position);
     }
 
     private final List<StoreItemModel> itemList;
@@ -54,80 +50,77 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
         Context context = holder.itemView.getContext();
 
         holder.tvItemName.setText(item.getName() != null ? item.getName() : "Item");
-        holder.tvItemDescription.setText(item.getDescription() != null ? item.getDescription() : "");
-        holder.tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FEATURED");
+        if (holder.tvItemDescription != null) {
+            holder.tvItemDescription.setText(item.getDescription() != null ? item.getDescription() : "");
+        }
+        if (holder.tvBadge != null) {
+            holder.tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FEATURED");
+        }
+
+        // Format Price & Duration e.g. 20000000 /7 days
+        if (holder.tvItemPriceDuration != null) {
+            int validity = item.getValidityDays() > 0 ? item.getValidityDays() : 7;
+            holder.tvItemPriceDuration.setText(CoinUtils.formatCoins(item.getPriceCoins()) + " /" + validity + " days");
+        }
 
         boolean isEntrance = "ENTRANCE".equalsIgnoreCase(item.getCategory());
 
-        // For ENTRANCE items: Show static icon in Store grid; play SVGA on click preview!
-        if (isEntrance) {
-            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
+        // Display static matching picture thumbnail in Store grid
+        if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
+        if (holder.ivItemIcon != null) {
             holder.ivItemIcon.setVisibility(View.VISIBLE);
             int resId = resolveDrawableRes(context, item.getIconResName());
-            if (resId == 0) resId = R.drawable.store;
-            holder.ivItemIcon.setImageResource(resId);
-        } else if (item.getSvgaPath() != null && !item.getSvgaPath().isEmpty()) {
-            holder.ivItemIcon.setVisibility(View.GONE);
-            if (holder.svgaItemIcon != null) {
-                holder.svgaItemIcon.setVisibility(View.VISIBLE);
-                holder.svgaItemIcon.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-                SVGAParser parser = new SVGAParser(context);
-                parser.decodeFromAssets(item.getSvgaPath(), new SVGAParser.ParseCompletion() {
-                    @Override
-                    public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            if (holder.svgaItemIcon != null) {
-                                holder.svgaItemIcon.setVideoItem(videoItem);
-                                holder.svgaItemIcon.setLoops(0);
-                                holder.svgaItemIcon.stepToFrame(0, true);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError() {
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
-                            holder.ivItemIcon.setVisibility(View.VISIBLE);
-                            int resId = resolveDrawableRes(context, item.getIconResName());
-                            if (resId == 0) resId = R.drawable.family_owner_frame;
-                            holder.ivItemIcon.setImageResource(resId);
-                        });
-                    }
-                }, null);
+            if (resId == 0) {
+                resId = FrameUtils.getFrameDrawableRes(context, item.getId());
             }
-        } else {
-            if (holder.svgaItemIcon != null) holder.svgaItemIcon.setVisibility(View.GONE);
-            holder.ivItemIcon.setVisibility(View.VISIBLE);
-            int resId = resolveDrawableRes(context, item.getIconResName());
-            if (resId == 0) resId = R.drawable.family_owner_frame;
+            if (resId == 0) {
+                resId = isEntrance ? R.drawable.store : R.drawable.ic_crown_gold_frame;
+            }
             holder.ivItemIcon.setImageResource(resId);
-            AnimationHelper.pulseGlowAnimation(holder.ivItemIcon);
         }
 
-        // Configure button state & appearance
-        if (item.isEquipped()) {
-            holder.btnAction.setIcon(null);
-            holder.btnAction.setText("Unequip");
-            holder.btnAction.setBackgroundColor(Color.parseColor("#FF6B6B")); // Coral Red
-            holder.btnAction.setTextColor(Color.parseColor("#FFFFFF"));
-        } else if (item.isOwned()) {
-            holder.btnAction.setIcon(null);
-            holder.btnAction.setText("Equip");
-            holder.btnAction.setBackgroundColor(Color.parseColor("#40E0D0")); // Cyan
-            holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
-        } else {
-            holder.btnAction.setIconResource(R.drawable.coin);
-            holder.btnAction.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
-            holder.btnAction.setIconSize((int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics()));
-            holder.btnAction.setIconPadding((int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 4, context.getResources().getDisplayMetrics()));
-            holder.btnAction.setIconTint(null); // Preserve original coin drawable colors
-            holder.btnAction.setText(CoinUtils.formatCoins(item.getPriceCoins()));
-            holder.btnAction.setBackgroundColor(Color.parseColor("#FFD700")); // Gold
-            holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
+        // Configure main action button state (Buy / Equip / Unequip)
+        if (holder.btnAction != null) {
+            if (item.isEquipped()) {
+                holder.btnAction.setText("Unequip");
+                holder.btnAction.setBackgroundColor(Color.parseColor("#FF6B6B")); // Coral Red
+                holder.btnAction.setTextColor(Color.parseColor("#FFFFFF"));
+            } else if (item.isOwned()) {
+                holder.btnAction.setText("Equip");
+                holder.btnAction.setBackgroundColor(Color.parseColor("#40E0D0")); // Cyan
+                holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
+            } else {
+                holder.btnAction.setText("Buy");
+                holder.btnAction.setBackgroundColor(Color.parseColor("#26E699")); // Emerald Green Gradient style
+                holder.btnAction.setTextColor(Color.parseColor("#050E1E"));
+            }
+
+            holder.btnAction.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(v);
+                if (listener != null) {
+                    int pos = holder.getBindingAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        listener.onItemAction(item, pos);
+                    }
+                }
+            });
         }
 
-        holder.itemView.setOnClickListener(v -> {
+        // Configure Send button
+        if (holder.btnSend != null) {
+            holder.btnSend.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(v);
+                if (listener != null) {
+                    int pos = holder.getBindingAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        listener.onItemSend(item, pos);
+                    }
+                }
+            });
+        }
+
+        // Configure Play Preview button & Item View click
+        View.OnClickListener previewClickListener = v -> {
             AnimationHelper.bounceAnimation(v);
             if (listener != null) {
                 int pos = holder.getBindingAdapterPosition();
@@ -135,17 +128,12 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
                     listener.onItemClick(item, pos);
                 }
             }
-        });
+        };
 
-        holder.btnAction.setOnClickListener(v -> {
-            AnimationHelper.bounceAnimation(v);
-            if (listener != null) {
-                int pos = holder.getBindingAdapterPosition();
-                if (pos != RecyclerView.NO_POSITION) {
-                    listener.onItemAction(item, pos);
-                }
-            }
-        });
+        if (holder.ivPlayPreview != null) {
+            holder.ivPlayPreview.setOnClickListener(previewClickListener);
+        }
+        holder.itemView.setOnClickListener(previewClickListener);
 
         setEntranceAnimation(holder.itemView, position);
     }
@@ -188,19 +176,25 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final ImageView ivItemIcon;
         final SVGAImageView svgaItemIcon;
+        final ImageView ivPlayPreview;
         final TextView tvItemName;
         final TextView tvItemDescription;
+        final TextView tvItemPriceDuration;
         final TextView tvBadge;
         final MaterialButton btnAction;
+        final MaterialButton btnSend;
 
         ViewHolder(View itemView) {
             super(itemView);
             ivItemIcon = itemView.findViewById(R.id.ivItemIcon);
             svgaItemIcon = itemView.findViewById(R.id.svgaItemIcon);
+            ivPlayPreview = itemView.findViewById(R.id.ivPlayPreview);
             tvItemName = itemView.findViewById(R.id.tvItemName);
             tvItemDescription = itemView.findViewById(R.id.tvItemDescription);
+            tvItemPriceDuration = itemView.findViewById(R.id.tvItemPriceDuration);
             tvBadge = itemView.findViewById(R.id.tvBadge);
             btnAction = itemView.findViewById(R.id.btnAction);
+            btnSend = itemView.findViewById(R.id.btnSend);
         }
     }
 }

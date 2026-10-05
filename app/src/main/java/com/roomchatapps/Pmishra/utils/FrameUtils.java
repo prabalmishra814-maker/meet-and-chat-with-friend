@@ -68,31 +68,21 @@ public class FrameUtils {
         }
 
         final String activeFrameId = frameId;
-
-        // 1. Immediate Static Frame Placeholder (Guarantees banner/frame is ALWAYS 100% visible immediately)
-        int staticResId = getFrameDrawableRes(context, activeFrameId);
-        if (staticResId == 0) {
-            staticResId = R.drawable.ic_crown_gold_frame;
-        }
-
-        if (staticFrameView != null) {
-            staticFrameView.setImageResource(staticResId);
-            staticFrameView.setVisibility(View.VISIBLE);
-        }
-
-        // 2. Animated SVGA Frame Upgrade
         String svgaPath = getFrameSvgaPath(activeFrameId);
-        if (TextUtils.isEmpty(svgaPath)) {
-            svgaPath = "frame/champion_frame.svga"; // Default fallback animated SVGA frame
-        }
 
-        if (svgaFrameView != null) {
+        // Crucial fix: Display ONLY ONE frame view at a time (SVGA OR static) to eliminate double frame overlap!
+        if (svgaFrameView != null && !TextUtils.isEmpty(svgaPath)) {
+            // Hide static frame view so two frames are never drawn over each other
+            if (staticFrameView != null) {
+                staticFrameView.setImageDrawable(null);
+                staticFrameView.setVisibility(View.GONE);
+            }
+
             svgaFrameView.setVisibility(View.VISIBLE);
             svgaFrameView.setLayerType(View.LAYER_TYPE_SOFTWARE, null); // Software layer prevents clipping
-
             svgaFrameView.setTag(svgaPath);
 
-            // 1. Instant Memory Cache Hit (0ms latency, zero lag)
+            // 1. Instant Memory Cache Hit
             if (svgaMemoryCache.containsKey(svgaPath)) {
                 SVGAVideoEntity cachedEntity = svgaMemoryCache.get(svgaPath);
                 if (cachedEntity != null) {
@@ -125,12 +115,40 @@ public class FrameUtils {
 
                 @Override
                 public void onError() {
-                    // Fallback to static frame if decoding fails
+                    // Fallback to static frame ONLY if SVGA decoding fails
                     if (finalSvgaPath.equals(svgaFrameView.getTag())) {
                         svgaFrameView.setVisibility(View.GONE);
+                        if (staticFrameView != null) {
+                            int resId = getFrameDrawableRes(context, activeFrameId);
+                            if (resId != 0) {
+                                staticFrameView.setImageResource(resId);
+                                staticFrameView.setVisibility(View.VISIBLE);
+                            }
+                        }
                     }
                 }
             }, null);
+            return;
+        }
+
+        // Fallback: If no SVGA view or no SVGA path exists, display ONLY static frame
+        if (svgaFrameView != null) {
+            try {
+                svgaFrameView.stopAnimation();
+                svgaFrameView.setImageDrawable(null);
+            } catch (Exception ignored) {}
+            svgaFrameView.setVisibility(View.GONE);
+        }
+
+        int staticResId = getFrameDrawableRes(context, activeFrameId);
+        if (staticFrameView != null) {
+            if (staticResId != 0) {
+                staticFrameView.setImageResource(staticResId);
+                staticFrameView.setVisibility(View.VISIBLE);
+            } else {
+                staticFrameView.setImageDrawable(null);
+                staticFrameView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -145,75 +163,114 @@ public class FrameUtils {
 
         switch (frameId.trim()) {
             case "frame_champion":
+            case "test_frame":
+                return R.drawable.test_frame;
             case "frame_crown_circle":
+            case "crown_circle":
+                return R.drawable.crown_circle;
+            case "frame_diamond_glow":
+            case "dimond_glow_":
+                return R.drawable.dimond_glow_;
+            case "frame_star_ring":
+            case "star_ring":
+                return R.drawable.star_ring;
+            case "frame_crystal":
+            case "cristal_frame":
+                return R.drawable.cristal_frame;
+            case "frame_crystal_ring":
+            case "cristal_ring":
+                return R.drawable.cristal_ring;
+            case "frame_fire_ring":
+            case "fire_ring_frame":
+                return R.drawable.fire_ring_frame;
+            case "frame_lion_glory":
+            case "lion_glory":
+                return R.drawable.lion_glory;
+            case "frame_music_ring":
+            case "music_ring":
+                return R.drawable.music_ring;
+            case "frame_purple_star":
+                return R.drawable.purple_thunder_;
+            case "frame_golden_beast":
+            case "golden_beast":
+                return R.drawable.golden_beast;
+            case "frame_flame_lion":
+            case "flame_lion":
+                return R.drawable.flame_lion;
+            case "frame_imperial_glory":
+            case "imperial_glory":
+                return R.drawable.imperial_glory;
             case "frame_golden_emperor":
-            case "frame_star_crown":
-            case "frame_rank_1":
+            case "golden_emperor":
+                return R.drawable.golden_emperor;
+            case "frame_golden_wings":
+            case "golden_wings":
+                return R.drawable.golden_wings;
+            case "frame_majestic_aura":
+            case "majestic_aura_frame":
+                return R.drawable.majestic_aura_frame;
+            case "frame_inferno_crown":
+            case "inferno_crown":
+                return R.drawable.inferno_crown;
+            case "frame_nature_ring":
+            case "nature_ring":
+                return R.drawable.nature_ring;
+            case "frame_vip_1":
+            case "vip_1_":
+                return R.drawable.vip_1_;
+            case "frame_purple_thunder":
+            case "purple_thunder":
+                return R.drawable.purple_thunder;
+            case "frame_ice_crystal":
+            case "ice_cristal":
+                return R.drawable.ice_cristal;
+            case "frame_dragon":
+            case "dragon_frame":
+                return R.drawable.dragon_frame;
+            case "frame_vip_2":
+            case "vip_2":
+                return R.drawable.vip_2;
             case "frame_vip_3":
+            case "vip3":
+                return R.drawable.vip3;
             case "frame_vip_4":
             case "frame_vip_5":
+            case "vip_4":
+                return R.drawable.vip_4;
+            case "frame_star_crown":
+            case "star_crown":
+                return R.drawable.star_crown;
             case "frame_vip_6":
+            case "vip_6":
+                return R.drawable.vip_6;
             case "frame_vip_7":
-                return R.drawable.ic_crown_gold_frame;
-
-            case "frame_rank_2":
-            case "frame_vip_2":
-            case "frame_golden_wings":
-                return R.drawable.ic_crown_silver_frame;
-
+            case "vip_7":
+                return R.drawable.vip_7;
             case "frame_rank_3":
-            case "frame_vip_1":
-            case "frame_crystal_ring":
-                return R.drawable.ic_crown_bronze_frame;
+                return R.drawable.frame_rank_3;
+            case "frame_rank_2":
+            case "fram_rank_2":
+                return R.drawable.fram_rank_2;
+            case "frame_rank_1":
+                return R.drawable.frame_rank_1;
 
             case "frame_royal_gold_banner":
-                return R.drawable._1000092517_removebg_preview;
+                return R.drawable._1000092461_removebg_preview;
             case "frame_mystic_aura_banner":
-                return R.drawable._1000092518_removebg_preview;
+                return R.drawable._1000092460_removebg_preview;
             case "frame_vibrant_banner":
             case "frame_default_neon":
-                return R.drawable._1000092519_removebg_preview;
-
+                return R.drawable._1000092459_removebg_preview;
             case "frame_cyber_yellow":
-            case "frame_star_ring":
-            case "frame_diamond_glow":
-                return R.drawable._1000092462_removebg_preview;
-
+                return R.drawable._1000092458_removebg_preview;
             case "frame_neon_green":
-            case "frame_music_ring":
-            case "frame_nature_ring":
-                return R.drawable._1000092463_removebg_preview;
-
+                return R.drawable._1000092377_removebg_preview;
             case "frame_mystic_purple":
-            case "frame_purple_mask":
-            case "frame_purple_star":
-            case "frame_purple_thunder":
-            case "frame_majestic_aura":
-                return R.drawable._1000092464_removebg_preview;
-
+                return R.drawable._1000092343_removebg_preview;
             case "frame_hot_pink":
-                return R.drawable._1000092465_removebg_preview;
-
+                return R.drawable._1000092342_removebg_preview;
             case "frame_aqua_blue":
-            case "frame_ice_crystal":
-                return R.drawable._1000092466_removebg_preview;
-
-            case "frame_golden_royal":
-            case "frame_golden_beast":
-            case "frame_imperial_glory":
-            case "frame_lion_glory":
-                return R.drawable._1000092467_removebg_preview;
-
-            case "frame_diamond_glint":
-            case "frame_crystal":
-                return R.drawable._1000092469_removebg_preview;
-
-            case "frame_ultimate_fire":
-            case "frame_fire_ring":
-            case "frame_dragon":
-            case "frame_flame_lion":
-            case "frame_inferno_crown":
-                return R.drawable._1000092470_removebg_preview;
+                return R.drawable._1000092341_removebg_preview;
         }
 
         if (context != null) {
@@ -233,39 +290,120 @@ public class FrameUtils {
         if (frameId == null || frameId.trim().isEmpty()) return null;
 
         switch (frameId.trim()) {
-            case "frame_champion": return "frame/champion_frame.svga";
-            case "frame_crown_circle": return "frame/crown_circle.svga";
-            case "frame_golden_emperor": return "frame/golden_emperor.svga";
-            case "frame_dragon": return "frame/dragon_frame.svga";
-            case "frame_golden_beast": return "frame/golden_beast.svga";
-            case "frame_imperial_glory": return "frame/imperial_glory.svga";
-            case "frame_golden_wings": return "frame/golden_wings.svga";
-            case "frame_crystal": return "frame/crystal_frame.svga";
-            case "frame_crystal_ring": return "frame/crystal_ring.svga";
-            case "frame_diamond_glow": return "frame/diamond_glow.svga";
-            case "frame_fire_ring": return "frame/fire_ring_frame.svga";
-            case "frame_flame_lion": return "frame/flame_lion.svga";
-            case "frame_ice_crystal": return "frame/ice_crystal.svga";
-            case "frame_inferno_crown": return "frame/inferno_crown.svga";
-            case "frame_lion_glory": return "frame/lion_glory.svga";
-            case "frame_majestic_aura": return "frame/majestic_aura.svga";
-            case "frame_music_ring": return "frame/music_ring.svga";
-            case "frame_nature_ring": return "frame/nature_ring.svga";
-            case "frame_purple_mask": return "frame/purple_mask.svga";
-            case "frame_purple_star": return "frame/purple_star.svga";
-            case "frame_purple_thunder": return "frame/purple_thunder.svga";
-            case "frame_star_crown": return "frame/star_crown.svga";
-            case "frame_star_ring": return "frame/star_ring.svga";
-            case "frame_rank_1": return "frame/frame_rank_1.svga";
-            case "frame_rank_2": return "frame/frame_rank_2.svga";
-            case "frame_rank_3": return "frame/frame_rank_3.svga";
-            case "frame_vip_1": return "frame/vip_1.svga";
-            case "frame_vip_2": return "frame/vip_2.svga";
-            case "frame_vip_3": return "frame/vip_3.svga";
-            case "frame_vip_4": return "frame/vip_4.svga";
-            case "frame_vip_5": return "frame/vip_5.svga";
-            case "frame_vip_6": return "frame/vip_6.svga";
-            case "frame_vip_7": return "frame/vip_7.svga";
+            case "frame_champion":
+            case "champion":
+            case "champion_frame":
+            case "test_frame":
+                return "frame/champion_frame.svga";
+            case "frame_crown_circle":
+            case "crown_circle":
+                return "frame/crown_circle.svga";
+            case "frame_golden_emperor":
+            case "golden_emperor":
+                return "frame/golden_emperor.svga";
+            case "frame_dragon":
+            case "dragon":
+            case "dragon_frame":
+                return "frame/dragon_frame.svga";
+            case "frame_golden_beast":
+            case "golden_beast":
+                return "frame/golden_beast.svga";
+            case "frame_imperial_glory":
+            case "imperial_glory":
+                return "frame/imperial_glory.svga";
+            case "frame_golden_wings":
+            case "golden_wings":
+                return "frame/golden_wings.svga";
+            case "frame_crystal":
+            case "crystal":
+            case "crystal_frame":
+            case "cristal_frame":
+                return "frame/crystal_frame.svga";
+            case "frame_crystal_ring":
+            case "crystal_ring":
+            case "cristal_ring":
+                return "frame/crystal_ring.svga";
+            case "frame_diamond_glow":
+            case "diamond_glow":
+            case "dimond_glow_":
+                return "frame/diamond_glow.svga";
+            case "frame_fire_ring":
+            case "fire_ring":
+            case "fire_ring_frame":
+                return "frame/fire_ring_frame.svga";
+            case "frame_flame_lion":
+            case "flame_lion":
+                return "frame/flame_lion.svga";
+            case "frame_ice_crystal":
+            case "ice_crystal":
+            case "ice_cristal":
+                return "frame/ice_crystal.svga";
+            case "frame_inferno_crown":
+            case "inferno_crown":
+                return "frame/inferno_crown.svga";
+            case "frame_lion_glory":
+            case "lion_glory":
+                return "frame/lion_glory.svga";
+            case "frame_majestic_aura":
+            case "majestic_aura":
+            case "majestic_aura_frame":
+                return "frame/majestic_aura.svga";
+            case "frame_music_ring":
+            case "music_ring":
+                return "frame/music_ring.svga";
+            case "frame_nature_ring":
+            case "nature_ring":
+                return "frame/nature_ring.svga";
+            case "frame_purple_mask":
+            case "purple_mask":
+            case "purple_mask_frame":
+                return "frame/purple_mask.svga";
+            case "frame_purple_star":
+            case "purple_star":
+            case "purple_thunder_":
+                return "frame/purple_star.svga";
+            case "frame_purple_thunder":
+            case "purple_thunder":
+                return "frame/purple_thunder.svga";
+            case "frame_star_crown":
+            case "star_crown":
+                return "frame/star_crown.svga";
+            case "frame_star_ring":
+            case "star_ring":
+                return "frame/star_ring.svga";
+            case "frame_rank_1":
+            case "rank_1":
+                return "frame/frame_rank_1.svga";
+            case "frame_rank_2":
+            case "rank_2":
+            case "fram_rank_2":
+                return "frame/frame_rank_2.svga";
+            case "frame_rank_3":
+            case "rank_3":
+                return "frame/frame_rank_3.svga";
+            case "frame_vip_1":
+            case "vip_1":
+            case "vip_1_":
+                return "frame/vip_1.svga";
+            case "frame_vip_2":
+            case "vip_2":
+                return "frame/vip_2.svga";
+            case "frame_vip_3":
+            case "vip_3":
+            case "vip3":
+                return "frame/vip_3.svga";
+            case "frame_vip_4":
+            case "vip_4":
+                return "frame/vip_4.svga";
+            case "frame_vip_5":
+            case "vip_5":
+                return "frame/vip_5.svga";
+            case "frame_vip_6":
+            case "vip_6":
+                return "frame/vip_6.svga";
+            case "frame_vip_7":
+            case "vip_7":
+                return "frame/vip_7.svga";
         }
         return null;
     }

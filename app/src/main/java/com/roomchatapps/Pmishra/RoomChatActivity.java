@@ -4542,8 +4542,8 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Golden Tea", "gift/golden_tea.svga", R.drawable.gift_golden_tea, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Doraemon Gift", "gift/doraemon_gift.svga", R.drawable.gift_doraemon, 100000, "Gift"));
         giftList.add(new GiftStoreItem("Rose gift", "gift/rose.svga", R.drawable.gift4, 100000, "Gift"));
-        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.birthday_cake, 250000, "Gift"));
-        giftList.add(new GiftStoreItem("Blue ring love", "gift/blue_ring_love.svga", R.drawable.giftblue_ring_love, 200000, "Gift"));
+        giftList.add(new GiftStoreItem("Birthday Cake", "gift/birthday_cake.svga", R.drawable.gift_magic_gift, 250000, "Gift"));
+        giftList.add(new GiftStoreItem("Blue ring love", "gift/blue_ring_love.svga", R.drawable.gift_blue_ring, 200000, "Gift"));
         giftList.add(new GiftStoreItem("Umbrella", "gift/umbrella.svga", R.drawable.gift_umbrella, 1300000, "Gift"));
         giftList.add(new GiftStoreItem("Love Pure", "gift/love_pure.svga", R.drawable.gift_love, 500000, "Gift"));
         giftList.add(new GiftStoreItem("Smoke Effect", "gift/smoke.svga", R.drawable.gift_smoke, 300000, "Gift"));
@@ -4575,7 +4575,7 @@ public class RoomChatActivity extends AppCompatActivity {
         giftList.add(new GiftStoreItem("Magic Sword", "gift/magic_sword.svga", R.drawable.gift_magic_sword, 700000, "Gift"));
 
         // 2. Relationship Category (रिलेशनशिप)
-        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.giftblue_ring_love, 1000000, "Relationship"));
+        giftList.add(new GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 1000000, "Relationship"));
         giftList.add(new GiftStoreItem("Perfume", "gift/parfume.svga", R.drawable.gift_parfume, 1700000, "Relationship"));
         giftList.add(new GiftStoreItem("Love Confession", "gift/love_confession.svga", R.drawable.gift_love_confession, 2000000, "Relationship"));
         giftList.add(new GiftStoreItem("CP Celebration", "gift/cp_celebration.svga", R.drawable.gift_cp_celebration, 6000000, "Relationship"));
