@@ -37,6 +37,12 @@ public class HomeFragment extends Fragment {
     private List<RoomModel> roomList;
     private DatabaseReference databaseReference;
 
+    private View tabPopular, tabFollowing;
+    private TextView tvPopular, tvFollowing;
+    private View indicatorPopular, indicatorFollowing;
+
+    private TextView[] categoryChips;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -130,6 +136,15 @@ public class HomeFragment extends Fragment {
 
     private void setupClickListeners(View view) {
         try {
+            View ivTrophy = view.findViewById(R.id.ivTrophy);
+            if (ivTrophy != null) {
+                ivTrophy.setOnClickListener(v -> {
+                    if (getActivity() != null) {
+                        startActivity(new Intent(getActivity(), LeaderboardActivity.class));
+                    }
+                });
+            }
+
             View ivAdd = view.findViewById(R.id.ivAdd);
             if (ivAdd != null) {
                 ivAdd.setOnClickListener(v -> {
@@ -156,8 +171,75 @@ public class HomeFragment extends Fragment {
                     }
                 });
             }
+
+            setupTabNavigation(view);
+            setupCategoryChips(view);
+
         } catch (Exception e) {
             Log.e(TAG, "Error in setupClickListeners", e);
+        }
+    }
+
+    private void setupTabNavigation(View view) {
+        tabPopular = view.findViewById(R.id.tabPopular);
+        tabFollowing = view.findViewById(R.id.tabFollowing);
+
+        tvPopular = view.findViewById(R.id.tvPopular);
+        tvFollowing = view.findViewById(R.id.tvFollowing);
+
+        indicatorPopular = view.findViewById(R.id.indicatorPopular);
+        indicatorFollowing = view.findViewById(R.id.indicatorFollowing);
+
+        if (tabPopular != null) {
+            tabPopular.setOnClickListener(v -> selectTab(0));
+        }
+        if (tabFollowing != null) {
+            tabFollowing.setOnClickListener(v -> selectTab(1));
+        }
+    }
+
+    private void selectTab(int index) {
+        if (tvPopular != null) {
+            tvPopular.setTextColor(index == 0 ? 0xFFFFFFFF : 0x80FFFFFF);
+            tvPopular.setTextSize(index == 0 ? 20 : 16);
+            if (indicatorPopular != null) indicatorPopular.setVisibility(index == 0 ? View.VISIBLE : View.INVISIBLE);
+        }
+        if (tvFollowing != null) {
+            tvFollowing.setTextColor(index == 1 ? 0xFFFFFFFF : 0x80FFFFFF);
+            tvFollowing.setTextSize(index == 1 ? 20 : 16);
+            if (indicatorFollowing != null) indicatorFollowing.setVisibility(index == 1 ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
+    private void setupCategoryChips(View view) {
+        TextView chipHot = view.findViewById(R.id.chipHot);
+        TextView chipIndia = view.findViewById(R.id.chipIndia);
+        TextView chipSaudi = view.findViewById(R.id.chipSaudi);
+        TextView chipNepal = view.findViewById(R.id.chipNepal);
+        TextView chipKuwait = view.findViewById(R.id.chipKuwait);
+
+        categoryChips = new TextView[]{chipHot, chipIndia, chipSaudi, chipNepal, chipKuwait};
+
+        for (int i = 0; i < categoryChips.length; i++) {
+            int index = i;
+            if (categoryChips[i] != null) {
+                categoryChips[i].setOnClickListener(v -> selectChip(index));
+            }
+        }
+    }
+
+    private void selectChip(int selectedIndex) {
+        if (categoryChips == null) return;
+        for (int i = 0; i < categoryChips.length; i++) {
+            if (categoryChips[i] != null) {
+                if (i == selectedIndex) {
+                    categoryChips[i].setBackgroundResource(R.drawable.bg_wallet_chip_selected);
+                    categoryChips[i].setTextColor(0xFFFFFFFF);
+                } else {
+                    categoryChips[i].setBackgroundResource(R.drawable.bg_wallet_chip_unselected);
+                    categoryChips[i].setTextColor(0xD0FFFFFF);
+                }
+            }
         }
     }
 
