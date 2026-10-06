@@ -223,6 +223,9 @@ public class EditProfileActivity extends AppCompatActivity {
             byte[] bytes = getBytes(inputStream);
             inputStream.close();
 
+            // Base64 data URI fallback ensures new cropped image is NEVER lost even if ImgBB fails
+            String base64Fallback = "data:image/jpeg;base64," + android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
@@ -240,24 +243,21 @@ public class EditProfileActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     runOnUiThread(() -> {
-                        Toast.makeText(EditProfileActivity.this, "Image upload failed, saving text details", Toast.LENGTH_SHORT).show();
-                        updateDatabase(name, bio, gender, currentAvatarUrl);
+                        updateDatabase(name, bio, gender, base64Fallback);
                     });
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    String uploadedUrl = currentAvatarUrl;
+                    String uploadedUrl = null;
                     if (response.isSuccessful() && response.body() != null) {
                         try {
                             String responseData = response.body().string();
                             JSONObject jsonObject = new JSONObject(responseData);
                             uploadedUrl = jsonObject.getJSONObject("data").getString("url");
-                        } catch (Exception e) {
-                            // fallback to current avatar
-                        }
+                        } catch (Exception ignored) {}
                     }
-                    final String finalAvatarUrl = uploadedUrl;
+                    final String finalAvatarUrl = (uploadedUrl != null && !uploadedUrl.trim().isEmpty()) ? uploadedUrl : base64Fallback;
                     runOnUiThread(() -> updateDatabase(name, bio, gender, finalAvatarUrl));
                 }
             });

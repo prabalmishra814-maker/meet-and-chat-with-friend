@@ -120,6 +120,10 @@ public class ProfileFragment extends Fragment {
                     String uid = snapshot.child("uid").getValue(String.class);
                     String profileId = snapshot.child("profileId").getValue(String.class);
                     String avatar = snapshot.child("avtar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("avatar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("photoUrl").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("image").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("userIcon").getValue(String.class);
                     String bio = snapshot.child("bio").getValue(String.class);
 
                     if (bio != null && !bio.isEmpty()) {
