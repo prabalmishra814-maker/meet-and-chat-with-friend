@@ -78,20 +78,34 @@ public class UserDetailActivity extends AppCompatActivity {
         });
 
         targetUid = getIntent().getStringExtra("uid");
-        currentUid = FirebaseAuth.getInstance().getUid();
-
-        if (targetUid == null) {
-            finish();
-            return;
+        if (targetUid == null || targetUid.trim().isEmpty()) {
+            targetUid = getIntent().getStringExtra("selectedUserId");
+        }
+        if (targetUid == null || targetUid.trim().isEmpty()) {
+            targetUid = getIntent().getStringExtra("userId");
         }
 
-        userRef = FirebaseDatabase.getInstance().getReference("users").child(targetUid);
-        
-        setupClickListeners();
-        loadUserData();
-        loadFollowStats();
-        checkFollowStatus();
-        setupCollection();
+        currentUid = FirebaseAuth.getInstance().getUid();
+
+        // Redirect to new Collection / Profile Activity
+        if (targetUid != null && !targetUid.trim().isEmpty()) {
+            if (currentUid != null && currentUid.equals(targetUid)) {
+                Intent intent = new Intent(this, CollectionActivity.class);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(this, OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", targetUid);
+                intent.putExtra("uid", targetUid);
+                if (getIntent().hasExtra("userName")) {
+                    intent.putExtra("selectedUserName", getIntent().getStringExtra("userName"));
+                } else if (getIntent().hasExtra("name")) {
+                    intent.putExtra("selectedUserName", getIntent().getStringExtra("name"));
+                }
+                startActivity(intent);
+            }
+        }
+        finish();
+        return;
     }
 
     private void setupClickListeners() {

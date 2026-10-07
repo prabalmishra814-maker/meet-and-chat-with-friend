@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    app:cardBackgroundColor="#131A28"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#20FFFFFF"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <ImageView
+            android:id="@+id/ivGiftImage"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:contentDescription="Gift Image"
+            android:scaleType="fitCenter"
+            android:src="@drawable/gift_icon" />
+
+        <!-- Price Row (Coin Icon + Coin Amount) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="3dp"
+                android:text="🟡"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvGiftPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:textColor="#FFB703"
+                android:textSize="12sp"
+                tools:text="100" />
+        </LinearLayout>
+
+        <!-- Quantity Text (e.g. x18) -->
+        <TextView
+            android:id="@+id/tvGiftQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            tools:text="x18" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

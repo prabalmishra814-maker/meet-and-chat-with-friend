@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="104dp"
+    android:layout_height="104dp"
+    android:layout_marginEnd="8dp"
+    app:cardBackgroundColor="#131A28"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#20FFFFFF"
+    app:strokeWidth="1dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="3dp">
+
+        <ImageView
+            android:id="@+id/ivHorizontalImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:contentDescription="Collection Item"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/logo_placeholder" />
+
+        <TextView
+            android:id="@+id/tvHorizontalBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_level_badge_pill"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textColor="#FFFFFF"
+            android:textSize="9.5sp"
+            android:visibility="gone"
+            tools:text="Equipped" />
+
+    </FrameLayout>
+
+</com.google.android.material.card.MaterialCardView>

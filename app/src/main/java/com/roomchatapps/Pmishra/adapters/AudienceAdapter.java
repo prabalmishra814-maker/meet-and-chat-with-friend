@@ -114,9 +114,17 @@ public class AudienceAdapter extends RecyclerView.Adapter<AudienceAdapter.ViewHo
         String userId = user.getUserId();
         if (userId != null && !userId.trim().isEmpty()) {
             View.OnClickListener openProfile = v -> {
-                android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.UserDetailActivity.class);
-                intent.putExtra("uid", userId);
-                v.getContext().startActivity(intent);
+                String myUid = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+                if (myUid != null && myUid.equals(userId)) {
+                    android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.CollectionActivity.class);
+                    v.getContext().startActivity(intent);
+                } else {
+                    android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.OtherCollectionActivity.class);
+                    intent.putExtra("selectedUserId", userId);
+                    intent.putExtra("uid", userId);
+                    intent.putExtra("selectedUserName", user.getUserName());
+                    v.getContext().startActivity(intent);
+                }
             };
             if (holder.ivAudienceProfile != null) holder.ivAudienceProfile.setOnClickListener(openProfile);
             if (holder.tvAudienceName != null) holder.tvAudienceName.setOnClickListener(openProfile);

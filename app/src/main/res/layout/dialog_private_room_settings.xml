@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_comment_sheet"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Private Room Settings"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Enable Private Room Lock"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swPrivateRoom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etRoomPin"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginVertical="16dp"
+        android:autofillHints="password"
+        android:background="@drawable/search_bar_bg"
+        android:hint="Set 4-Digit Room PIN..."
+        android:inputType="numberPassword"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#60FFFFFF"
+        android:textSize="15sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSavePrivateSettings"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Save Room PIN Settings"
+        android:textColor="#050E1E"
+        android:textStyle="bold"
+        app:backgroundTint="#40E0D0"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

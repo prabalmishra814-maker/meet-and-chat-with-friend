@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginHorizontal="16dp"
+    android:background="@drawable/bg_glass_card"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header Row -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="Crop Profile Picture"
+            android:textColor="@color/white"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_secondary" />
+    </RelativeLayout>
+
+    <!-- Subtitle -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Pinch to zoom and drag to adjust your avatar"
+        android:textColor="#A0FFFFFF"
+        android:textSize="12.5sp" />
+
+    <!-- Interactive Image View Crop Container -->
+    <FrameLayout
+        android:id="@+id/flCropContainer"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#0A0F1D">
+
+        <!-- Image Matrix Preview -->
+        <ImageView
+            android:id="@+id/ivCropPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="matrix" />
+
+        <!-- Circular Mask Guide Ring Overlay -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivCircularMaskGuide"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
+            android:focusable="false"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            app:strokeColor="#FFD700"
+            app:strokeWidth="2.5dp" />
+
+    </FrameLayout>
+
+    <!-- Action Buttons Row 1: Rotate & Reset -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRotate"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="Rotate"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:strokeColor="@color/accent_primary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUseOriginal"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="Reset"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:strokeColor="@color/text_secondary" />
+    </LinearLayout>
+
+    <!-- Action Button Row 2: Crop & Apply -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCropAndApply"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#00FFC6"
+        android:text="CROP &amp; SAVE AVATAR"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

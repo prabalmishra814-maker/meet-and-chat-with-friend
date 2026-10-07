@@ -78,6 +78,7 @@ public class FrameUtils {
                 staticFrameView.setVisibility(View.GONE);
             }
 
+            svgaFrameView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             svgaFrameView.setVisibility(View.VISIBLE);
             svgaFrameView.setLayerType(View.LAYER_TYPE_SOFTWARE, null); // Software layer prevents clipping
             svgaFrameView.setTag(svgaPath);
@@ -163,23 +164,27 @@ public class FrameUtils {
 
         switch (frameId.trim()) {
             case "frame_champion":
+            case "champion":
             case "test_frame":
                 return R.drawable.test_frame;
             case "frame_crown_circle":
             case "crown_circle":
                 return R.drawable.crown_circle;
             case "frame_diamond_glow":
+            case "dimond_glow":
             case "dimond_glow_":
-                return R.drawable.dimond_glow_;
+                return R.drawable.dimond_glow;
             case "frame_star_ring":
             case "star_ring":
                 return R.drawable.star_ring;
             case "frame_crystal":
+            case "crystal_frame":
             case "cristal_frame":
-                return R.drawable.cristal_frame;
+                return R.drawable.crystal_frame;
             case "frame_crystal_ring":
+            case "crystal_ring":
             case "cristal_ring":
-                return R.drawable.cristal_ring;
+                return R.drawable.crystal_ring;
             case "frame_fire_ring":
             case "fire_ring_frame":
                 return R.drawable.fire_ring_frame;
@@ -190,7 +195,7 @@ public class FrameUtils {
             case "music_ring":
                 return R.drawable.music_ring;
             case "frame_purple_star":
-                return R.drawable.purple_thunder_;
+                return R.drawable.purple_thundar;
             case "frame_golden_beast":
             case "golden_beast":
                 return R.drawable.golden_beast;
@@ -207,8 +212,9 @@ public class FrameUtils {
             case "golden_wings":
                 return R.drawable.golden_wings;
             case "frame_majestic_aura":
+            case "majestic_aura":
             case "majestic_aura_frame":
-                return R.drawable.majestic_aura_frame;
+                return R.drawable.majestic_aura;
             case "frame_inferno_crown":
             case "inferno_crown":
                 return R.drawable.inferno_crown;
@@ -220,10 +226,13 @@ public class FrameUtils {
                 return R.drawable.vip_1_;
             case "frame_purple_thunder":
             case "purple_thunder":
-                return R.drawable.purple_thunder;
+            case "purple_thundar":
+                return R.drawable.purple_thundar;
             case "frame_ice_crystal":
+            case "ice_crystal":
+            case "ice_crystals":
             case "ice_cristal":
-                return R.drawable.ice_cristal;
+                return R.drawable.ice_crystals;
             case "frame_dragon":
             case "dragon_frame":
                 return R.drawable.dragon_frame;
@@ -232,11 +241,16 @@ public class FrameUtils {
                 return R.drawable.vip_2;
             case "frame_vip_3":
             case "vip3":
-                return R.drawable.vip3;
+            case "vip3_":
+                return R.drawable.vip3_;
             case "frame_vip_4":
-            case "frame_vip_5":
             case "vip_4":
                 return R.drawable.vip_4;
+            case "frame_vip_5":
+                return R.drawable.vip_6;
+            case "frame_purple_mask":
+            case "purple_mask_frame":
+                return R.drawable.purple_mask_frame;
             case "frame_star_crown":
             case "star_crown":
                 return R.drawable.star_crown;
@@ -245,14 +259,29 @@ public class FrameUtils {
                 return R.drawable.vip_6;
             case "frame_vip_7":
             case "vip_7":
+            case "vip_7_":
                 return R.drawable.vip_7;
             case "frame_rank_3":
                 return R.drawable.frame_rank_3;
             case "frame_rank_2":
             case "fram_rank_2":
-                return R.drawable.fram_rank_2;
+                return R.drawable.frame_rank_2;
             case "frame_rank_1":
-                return R.drawable.frame_rank_1;
+                return R.drawable.fram_rank_1;
+
+            case "entrance_toyota_car":
+            case "ic_entrance_toyota_car":
+                return R.drawable.ic_entrance_toyota_car;
+            case "entrance_red_car":
+            case "ic_entrance_red_car":
+                return R.drawable.ic_entrance_red_car;
+            case "entrance_anime_man":
+            case "ic_entrance_anime_man":
+                return R.drawable.ic_entrance_anime_man;
+            case "entrance_golden_super_car":
+            case "entrance_golden_car":
+            case "ic_entrance_golden_car":
+                return R.drawable.ic_entrance_golden_car;
 
             case "frame_royal_gold_banner":
                 return R.drawable._1000092461_removebg_preview;

@@ -68,15 +68,16 @@
 
             <!-- Avatar Section -->
             <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:layout_gravity="center"
                 android:layout_marginBottom="32dp">
 
+                <!-- Circular Avatar (Drawn First - Inside Frame Hole) -->
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/profileImage"
-                    android:layout_width="82dp"
-                    android:layout_height="82dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:layout_gravity="center"
                     android:scaleType="centerCrop"
                     android:src="@drawable/app_create_room_ic"
@@ -84,19 +85,21 @@
                     app:strokeColor="#00000000"
                     app:strokeWidth="0dp" />
 
+                <!-- Profile Frame Overlay (Drawn On Top) -->
                 <ImageView
                     android:id="@+id/ivProfileFrame"
-                    android:layout_width="144dp"
-                    android:layout_height="144dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:layout_gravity="center"
                     android:clickable="false"
                     android:focusable="false"
                     android:scaleType="fitCenter" />
 
+                <!-- Animated SVGA Frame Overlay (Drawn On Top) -->
                 <com.opensource.svgaplayer.SVGAImageView
                     android:id="@+id/svgaProfileFrame"
-                    android:layout_width="144dp"
-                    android:layout_height="144dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:layout_gravity="center"
                     app:autoPlay="true"
                     app:loopCount="0" />

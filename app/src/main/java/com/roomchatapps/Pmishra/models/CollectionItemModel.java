@@ -8,7 +8,8 @@ public class CollectionItemModel {
     public enum ItemType {
         ENTRY_EFFECT,
         FRAME,
-        GIFT_RECEIVED
+        GIFT_RECEIVED,
+        PHOTO
     }
 
     private ItemType itemType;
@@ -18,6 +19,12 @@ public class CollectionItemModel {
     private int giftIconRes;                            // Fallback icon
     private long giftCost;                              // Fallback price
     private int receivedCount;                          // RECEIVED GIFT COUNT
+
+    // PHOTO FIELDS
+    private String photoUrl;
+    private String photoKey;
+    private boolean isAddButton;
+    private boolean isCurrentAvatar;
 
     // Constructor for Entry Effects & Frames
     public CollectionItemModel(ItemType itemType, StoreItemModel storeItem) {
@@ -41,14 +48,36 @@ public class CollectionItemModel {
         this.receivedCount = receivedCount;
     }
 
+    // Constructor for Photo Item
+    public CollectionItemModel(String photoKey, String photoUrl, boolean isCurrentAvatar) {
+        this.itemType = ItemType.PHOTO;
+        this.photoKey = photoKey;
+        this.photoUrl = photoUrl;
+        this.isCurrentAvatar = isCurrentAvatar;
+        this.isAddButton = false;
+    }
+
+    // Constructor for Add Photo Button Tile
+    public static CollectionItemModel createAddPhotoButton() {
+        CollectionItemModel model = new CollectionItemModel((String) null, (String) null, false);
+        model.isAddButton = true;
+        return model;
+    }
+
     public ItemType getItemType() { return itemType; }
     public StoreItemModel getStoreItem() { return storeItem; }
     public GiftStoreAdapter.GiftStoreItem getGiftStoreItem() { return giftStoreItem; }
     public int getReceivedCount() { return receivedCount; }
     public int getGiftIconRes() { return giftIconRes; }
+    public String getPhotoUrl() { return photoUrl; }
+    public String getPhotoKey() { return photoKey; }
+    public boolean isAddButton() { return isAddButton; }
+    public boolean isCurrentAvatar() { return isCurrentAvatar; }
 
     public String getItemName() {
-        if (itemType == ItemType.GIFT_RECEIVED) {
+        if (itemType == ItemType.PHOTO) {
+            return isAddButton ? "Add Photo" : "Profile Photo";
+        } else if (itemType == ItemType.GIFT_RECEIVED) {
             if (giftStoreItem != null) return giftStoreItem.name;
             return customGiftName != null ? customGiftName : "Gift";
         } else if (storeItem != null) {
@@ -68,6 +97,7 @@ public class CollectionItemModel {
     }
 
     public boolean isEquipped() {
+        if (itemType == ItemType.PHOTO) return isCurrentAvatar;
         return storeItem != null && storeItem.isEquipped();
     }
 }

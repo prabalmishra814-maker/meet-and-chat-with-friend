@@ -19,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
+import com.roomchatapps.Pmishra.CollectionActivity;
+import com.roomchatapps.Pmishra.OtherCollectionActivity;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.databinding.ItemChatMessageReceivedBinding;
@@ -290,9 +292,16 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (senderId != null && !senderId.trim().isEmpty()) {
                 View.OnClickListener openProfile = v -> {
                     if (ctx != null) {
-                        Intent intent = new Intent(ctx, UserDetailActivity.class);
-                        intent.putExtra("uid", senderId);
-                        ctx.startActivity(intent);
+                        String myUid = FirebaseAuth.getInstance().getUid();
+                        if (myUid != null && myUid.equals(senderId)) {
+                            Intent intent = new Intent(ctx, CollectionActivity.class);
+                            ctx.startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(ctx, OtherCollectionActivity.class);
+                            intent.putExtra("selectedUserId", senderId);
+                            intent.putExtra("uid", senderId);
+                            ctx.startActivity(intent);
+                        }
                     }
                 };
                 if (binding.avatarContainer != null) binding.avatarContainer.setOnClickListener(openProfile);
@@ -478,9 +487,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (senderId != null && !senderId.trim().isEmpty()) {
                     View.OnClickListener openProfile = v -> {
                         if (ctx != null) {
-                            Intent intent = new Intent(ctx, UserDetailActivity.class);
-                            intent.putExtra("uid", senderId);
-                            ctx.startActivity(intent);
+                            String myUid = FirebaseAuth.getInstance().getUid();
+                            if (myUid != null && myUid.equals(senderId)) {
+                                Intent intent = new Intent(ctx, CollectionActivity.class);
+                                ctx.startActivity(intent);
+                            } else {
+                                Intent intent = new Intent(ctx, OtherCollectionActivity.class);
+                                intent.putExtra("selectedUserId", senderId);
+                                intent.putExtra("uid", senderId);
+                                ctx.startActivity(intent);
+                                ctx.startActivity(intent);
+                            }
                         }
                     };
                     if (binding.avatarContainer != null) binding.avatarContainer.setOnClickListener(openProfile);

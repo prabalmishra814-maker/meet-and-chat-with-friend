@@ -84,9 +84,17 @@ public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder
 
         View.OnClickListener openUserProfile = v -> {
             if (user.getUserId() != null) {
-                android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.UserDetailActivity.class);
-                intent.putExtra("uid", user.getUserId());
-                v.getContext().startActivity(intent);
+                String myUid = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+                if (myUid != null && myUid.equals(user.getUserId())) {
+                    android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.CollectionActivity.class);
+                    v.getContext().startActivity(intent);
+                } else {
+                    android.content.Intent intent = new android.content.Intent(v.getContext(), com.roomchatapps.Pmishra.OtherCollectionActivity.class);
+                    intent.putExtra("selectedUserId", user.getUserId());
+                    intent.putExtra("uid", user.getUserId());
+                    intent.putExtra("selectedUserName", user.getUserName());
+                    v.getContext().startActivity(intent);
+                }
             }
         };
 

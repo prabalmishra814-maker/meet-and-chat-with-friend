@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.opensource.svgaplayer.SVGAImageView;
+import com.roomchatapps.Pmishra.CollectionActivity;
+import com.roomchatapps.Pmishra.OtherCollectionActivity;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.UserDetailActivity;
 import com.roomchatapps.Pmishra.models.LeaderboardModel;
@@ -80,9 +82,17 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
 
         holder.itemView.setOnClickListener(v -> {
             if (item.getUid() != null) {
-                Intent intent = new Intent(holder.itemView.getContext(), UserDetailActivity.class);
-                intent.putExtra("uid", item.getUid());
-                holder.itemView.getContext().startActivity(intent);
+                String myUid = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+                if (myUid != null && myUid.equals(item.getUid())) {
+                    Intent intent = new Intent(holder.itemView.getContext(), CollectionActivity.class);
+                    holder.itemView.getContext().startActivity(intent);
+                } else {
+                    Intent intent = new Intent(holder.itemView.getContext(), OtherCollectionActivity.class);
+                    intent.putExtra("selectedUserId", item.getUid());
+                    intent.putExtra("uid", item.getUid());
+                    intent.putExtra("selectedUserName", item.getName());
+                    holder.itemView.getContext().startActivity(intent);
+                }
             }
         });
     }

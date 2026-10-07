@@ -29,17 +29,18 @@
 
         <FrameLayout
             android:id="@+id/profileImageContainer"
-            android:layout_width="128dp"
-            android:layout_height="128dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnBack">
 
+            <!-- Circular User Avatar (Drawn First - Inside Frame Hole) -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/profileImage"
-                android:layout_width="88dp"
-                android:layout_height="88dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@drawable/app_create_room_ic"
@@ -47,16 +48,19 @@
                 app:strokeColor="#00000000"
                 app:strokeWidth="0dp" />
 
+            <!-- Profile Frame Overlay (Drawn On Top) -->
             <ImageView
                 android:id="@+id/ivProfileFrame"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
                 android:scaleType="fitCenter" />
 
+            <!-- Animated SVGA Frame Overlay (Drawn On Top) -->
             <com.opensource.svgaplayer.SVGAImageView
                 android:id="@+id/svgaProfileFrame"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:layout_gravity="center"
                 app:autoPlay="true"
                 app:loopCount="0" />

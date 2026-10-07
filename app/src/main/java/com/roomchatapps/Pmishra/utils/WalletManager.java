@@ -542,7 +542,39 @@ public class WalletManager {
                 long newEnergy = currentEnergy + energyAmount;
                 userRef.child("energy").setValue(newEnergy);
                 UserProfileCache.invalidate(uid);
-                logTransaction(uid, "GIFT_RECEIVED", 0, 0, "Earned Energy: " + giftName, description + " (+" + energyAmount + " Energy)");
+
+                if (giftName != null && !giftName.trim().isEmpty()) {
+                    String cleanName = giftName.replaceAll("\\s*\\(.*?\\)", "").trim();
+                    DatabaseReference gRef = userRef.child("received_gifts").child(cleanName);
+                    gRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot gSnap) {
+                            long curr = 0;
+                            if (gSnap.exists() && gSnap.getValue() != null) {
+                                try { curr = Long.parseLong(String.valueOf(gSnap.getValue())); } catch (Exception ignored) {}
+                            }
+                            gRef.setValue(curr + 1);
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+                }
+
+                // Log transaction with explicit giftName field
+                DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(uid);
+                String txId = txRef.push().getKey();
+                if (txId != null) {
+                    Map<String, Object> txData = new HashMap<>();
+                    txData.put("id", txId);
+                    txData.put("type", "GIFT_RECEIVED");
+                    txData.put("coinAmount", 0L);
+                    txData.put("diamondAmount", 0L);
+                    txData.put("title", "Earned Energy: " + giftName);
+                    txData.put("description", description + " (+" + energyAmount + " Energy)");
+                    txData.put("giftName", giftName);
+                    txData.put("quantity", 1);
+                    txData.put("timestamp", System.currentTimeMillis());
+                    txRef.child(txId).setValue(txData);
+                }
             }
 
             @Override
@@ -671,16 +703,7 @@ public class WalletManager {
                                 String sAvatar = (sProfile != null && sProfile.avatarUrl != null) ? sProfile.avatarUrl : "";
                                 UserProfileCache.getUserProfile(targetUid, rProfile -> {
                                     String rName = (rProfile != null && rProfile.name != null) ? rProfile.name : targetUid;
-                                    GlobalBroadcastHelper.broadcastGift(
-                                            senderUid,
-                                            sName,
-                                            sAvatar,
-                                            targetUid,
-                                            rName,
-                                            giftName != null ? giftName : "Coin Gift 🪙",
-                                            1,
-                                            "Coin Transfer"
-                                    );
+                                    // Global broadcast notification
                                 });
                             });
                         }

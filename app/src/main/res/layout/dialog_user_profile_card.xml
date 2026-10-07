@@ -12,7 +12,7 @@
         android:id="@+id/llCardContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="44dp"
         android:background="@drawable/bg_glass_more_panel"
         android:orientation="vertical">
 
@@ -31,548 +31,564 @@
                 android:paddingTop="48dp"
                 android:paddingBottom="20dp">
 
-        <!-- Top Bar with More Options (...) -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="-36dp"
-            android:layout_marginBottom="4dp">
+                <!-- Top Bar with More Options (...) -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-36dp"
+                    android:layout_marginBottom="4dp">
 
-            <TextView
-                android:id="@+id/btnMoreOptions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="6dp"
-                android:text="•••"
-                android:textColor="#C0FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/btnMoreOptions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="6dp"
+                        android:text="•••"
+                        android:textColor="#C0FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-            <!-- Hidden Like button for background compat -->
-            <LinearLayout
-                android:id="@+id/btnLikeUser"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:visibility="gone">
+                    <!-- Hidden Like button for background compat -->
+                    <LinearLayout
+                        android:id="@+id/btnLikeUser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:visibility="gone">
 
-                <ImageView
-                    android:id="@+id/ivLikeHeart"
-                    android:layout_width="1dp"
-                    android:layout_height="1dp" />
+                        <ImageView
+                            android:id="@+id/ivLikeHeart"
+                            android:layout_width="1dp"
+                            android:layout_height="1dp"
+                            android:contentDescription="Like" />
 
-                <TextView
-                    android:id="@+id/tvLikesCount"
+                        <TextView
+                            android:id="@+id/tvLikesCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <!-- User Name & Gender/Age Badge -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvUserName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="Prabal Mishra" />
+
+                    <TextView
+                        android:id="@+id/tvGenderBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_gender_male_pill"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="♂ 20"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- ID, Followers & Location Row -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:text="👤"
+                        android:textColor="#FFC107"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvProfileId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ID:100934032"
+                        android:textColor="#A0FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:text="|"
+                        android:textColor="#40FFFFFF"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvFollowersCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 followers"
+                        android:textColor="#A0FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:text="|"
+                        android:textColor="#40FFFFFF"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:text="📍"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="India"
+                        android:textColor="#A0FFFFFF"
+                        android:textSize="12.5sp" />
+
+                    <!-- Hidden Badge for compat -->
+                    <TextView
+                        android:id="@+id/tvLikesBadge"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Level Shield Badge & XP Progress -->
+                <LinearLayout
+                    android:id="@+id/llLevelContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvLevelBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_level_badge_pill"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="3dp"
+                        android:text="🛡️ Lv.1"
+                        android:textColor="#E2E8F0"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <ProgressBar
+                        android:id="@+id/pbLevelXp"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="160dp"
+                        android:layout_height="6dp"
+                        android:layout_marginTop="6dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressDrawable="@drawable/bg_xp_progress_bar" />
+
+                    <TextView
+                        android:id="@+id/tvLevelXpText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="0 / 100 XP"
+                        android:textColor="#A0FFFFFF"
+                        android:textSize="10.5sp" />
+                </LinearLayout>
+
+                <!-- Medal / Wear Card Section -->
+                <LinearLayout
+                    android:id="@+id/layoutCollectionHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_profile_medal_card"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Medal"
+                        android:textColor="#E2E8F0"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvCollectionCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="Wear ›"
+                        android:textColor="#94A3B8"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <!-- Full User Collection Items Grid -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvProfileCollection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    android:paddingHorizontal="2dp"
                     android:visibility="gone" />
-            </LinearLayout>
-        </RelativeLayout>
-
-        <!-- User Name & Gender/Age Badge -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tvUserName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                tools:text="Prabal Mishra" />
-
-            <TextView
-                android:id="@+id/tvGenderBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_gender_male_pill"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="♂ 20"
-                android:textColor="#FFFFFF"
-                android:textSize="11.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- ID, Followers & Location Row -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tvProfileId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ID:100934032"
-                android:textColor="#A0FFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="6dp"
-                android:text="|"
-                android:textColor="#40FFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvFollowersCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 followers"
-                android:textColor="#A0FFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="6dp"
-                android:text="|"
-                android:textColor="#40FFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="India"
-                android:textColor="#A0FFFFFF"
-                android:textSize="12sp" />
-
-            <!-- Hidden Badge for compat -->
-            <TextView
-                android:id="@+id/tvLikesBadge"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <!-- Level Shield Badge & XP Progress -->
-        <LinearLayout
-            android:id="@+id/llLevelContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvLevelBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_level_badge_pill"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="3dp"
-                android:text="Lv.1"
-                android:textColor="#E2E8F0"
-                android:textSize="11.5sp"
-                android:textStyle="bold" />
-
-            <ProgressBar
-                android:id="@+id/pbLevelXp"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="160dp"
-                android:layout_height="6dp"
-                android:layout_marginTop="6dp"
-                android:max="100"
-                android:progress="0"
-                android:progressDrawable="@drawable/bg_xp_progress_bar" />
-
-            <TextView
-                android:id="@+id/tvLevelXpText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="0 / 100 XP"
-                android:textColor="#A0FFFFFF"
-                android:textSize="10.5sp" />
-        </LinearLayout>
-
-        <!-- User Collection Section Header -->
-        <LinearLayout
-            android:id="@+id/layoutCollectionHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="sans-serif-black"
-                android:text="User Collection"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/tvCollectionCountBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_icon_pill"
-                android:fontFamily="sans-serif-bold"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="3dp"
-                android:text="0 Items"
-                android:textColor="#00FFC6"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- Full User Collection Items Grid -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvProfileCollection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clipToPadding="false"
-            android:nestedScrollingEnabled="false"
-            android:overScrollMode="never"
-            android:paddingHorizontal="2dp" />
-
-        <TextView
-            android:id="@+id/tvEmptyProfileCollection"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="No items in collection yet"
-            android:textColor="#70FFFFFF"
-            android:textSize="12sp"
-            android:visibility="gone" />
-
-        <!-- Own User Bottom Action Buttons (Leave the Mic, Send Gift) -->
-        <LinearLayout
-            android:id="@+id/llOwnUserActionsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnOwnLeaveMic"
-                android:layout_width="0dp"
-                android:layout_height="46dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_cancel_button"
-                android:text="Leave the Mic"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnOwnSendGift"
-                android:layout_width="0dp"
-                android:layout_height="46dp"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/btn_next_bg"
-                android:drawableStart="@drawable/gift_icon"
-                android:drawablePadding="6dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:text="Send Gift"
-                android:textAllCaps="false"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- Other User Action Buttons Row (Follow, Add, Send, Collection) -->
-        <LinearLayout
-            android:id="@+id/llOtherUserActionsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:baselineAligned="false"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <!-- 1. Follow -->
-            <LinearLayout
-                android:id="@+id/btnActionFollow"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
-
-                <ImageView
-                    android:id="@+id/ivActionFollowIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="Follow"
-                    android:src="@drawable/ic_heart_white"
-                    app:tint="#FFFFFF" />
 
                 <TextView
-                    android:id="@+id/tvActionFollowText"
+                    android:id="@+id/tvEmptyProfileCollection"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Follow"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="No items in collection yet"
+                    android:textColor="#70FFFFFF"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
 
-            <!-- 2. Add Friend -->
-            <LinearLayout
-                android:id="@+id/btnActionAdd"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
-
-                <ImageView
-                    android:id="@+id/ivActionAddIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="Add"
-                    android:src="@drawable/ic_person"
-                    app:tint="#FFFFFF" />
-
-                <TextView
-                    android:id="@+id/tvActionAddText"
-                    android:layout_width="wrap_content"
+                <!-- Own User Bottom Action Buttons (Leave the Mic, Send Gift) -->
+                <LinearLayout
+                    android:id="@+id/llOwnUserActionsRow"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Add"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:layout_marginTop="18dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
-            <!-- 3. Send Gift -->
-            <LinearLayout
-                android:id="@+id/btnActionSend"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnOwnLeaveMic"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_profile_pill_dark"
+                        android:text="Leave the Mic"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="Send Gift"
-                    android:src="@drawable/gift_icon" />
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnOwnSendGift"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_profile_pill_blue"
+                        android:drawableStart="@drawable/gift_icon"
+                        android:drawablePadding="8dp"
+                        android:paddingStart="24dp"
+                        android:paddingEnd="24dp"
+                        android:text="Send Gift"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
+                </LinearLayout>
+
+                <!-- Other User Action Buttons Row (Follow, Add, Send, Collection) -->
+                <LinearLayout
+                    android:id="@+id/llOtherUserActionsRow"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Send"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:layout_marginTop="18dp"
+                    android:baselineAligned="false"
+                    android:gravity="center"
+                    android:orientation="horizontal">
 
-            <!-- 4. View Collection -->
-            <LinearLayout
-                android:id="@+id/btnActionCollection"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+                    <!-- 1. Follow -->
+                    <LinearLayout
+                        android:id="@+id/btnActionFollow"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp">
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="Collection"
-                    android:src="@drawable/room_gift_history_ic" />
+                        <ImageView
+                            android:id="@+id/ivActionFollowIcon"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="Follow"
+                            android:src="@drawable/ic_heart_white"
+                            app:tint="#FFFFFF" />
 
-                <TextView
-                    android:layout_width="wrap_content"
+                        <TextView
+                            android:id="@+id/tvActionFollowText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Follow"
+                            android:textColor="#DDFFFFFF"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 2. Add Friend -->
+                    <LinearLayout
+                        android:id="@+id/btnActionAdd"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
+                        <ImageView
+                            android:id="@+id/ivActionAddIcon"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="Add"
+                            android:src="@drawable/ic_person"
+                            app:tint="#FFFFFF" />
+
+                        <TextView
+                            android:id="@+id/tvActionAddText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Add"
+                            android:textColor="#DDFFFFFF"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 3. Send Gift -->
+                    <LinearLayout
+                        android:id="@+id/btnActionSend"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="Send Gift"
+                            android:src="@drawable/gift_icon" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Send"
+                            android:textColor="#DDFFFFFF"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 4. View Collection -->
+                    <LinearLayout
+                        android:id="@+id/btnActionCollection"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="Collection"
+                            android:src="@drawable/room_gift_history_ic" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Collection"
+                            android:textColor="#DDFFFFFF"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Divider line above host seat controls -->
+                <View
+                    android:id="@+id/vHostDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="0.8dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="#20FFFFFF" />
+
+                <!-- Second Action Buttons Row - Host Seat Controls -->
+                <LinearLayout
+                    android:id="@+id/llHostSeatControlsRow"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Collection"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="4dp">
 
-        </LinearLayout>
+                    <!-- 1. Mic Toggle -->
+                    <FrameLayout
+                        android:id="@+id/btnHostMic"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
 
-        <!-- Divider line above host seat controls -->
-        <View
-            android:id="@+id/vHostDivider"
-            android:layout_width="match_parent"
-            android:layout_height="0.8dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="12dp"
-            android:background="#20FFFFFF" />
+                        <ImageView
+                            android:id="@+id/ivHostMicIcon"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Mic"
+                            android:src="@drawable/ic_mic_on"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
 
-        <!-- Second Action Buttons Row - Host Seat Controls -->
-        <LinearLayout
-            android:id="@+id/llHostSeatControlsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="4dp">
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="18dp"
+                        android:background="#30FFFFFF" />
 
-            <!-- 1. Mic Toggle -->
-            <FrameLayout
-                android:id="@+id/btnHostMic"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
+                    <!-- 2. Mute Seat -->
+                    <FrameLayout
+                        android:id="@+id/btnHostMute"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                <ImageView
-                    android:id="@+id/ivHostMicIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Mic"
-                    android:src="@drawable/ic_mic_on"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
+                        <ImageView
+                            android:id="@+id/ivHostMuteIcon"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Mute Seat"
+                            android:src="@drawable/ic_speaker_on"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:background="#30FFFFFF" />
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="18dp"
+                        android:background="#30FFFFFF" />
 
-            <!-- 2. Mute Seat -->
-            <FrameLayout
-                android:id="@+id/btnHostMute"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
+                    <!-- 3. Lock Seat -->
+                    <FrameLayout
+                        android:id="@+id/btnHostLock"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                <ImageView
-                    android:id="@+id/ivHostMuteIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Mute Seat"
-                    android:src="@drawable/ic_speaker_on"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
+                        <ImageView
+                            android:id="@+id/ivHostLockIcon"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Lock Seat"
+                            android:src="@drawable/ic_lock"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:background="#30FFFFFF" />
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="18dp"
+                        android:background="#30FFFFFF" />
 
-            <!-- 3. Lock Seat -->
-            <FrameLayout
-                android:id="@+id/btnHostLock"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
+                    <!-- 4. Leave / Clear Seat -->
+                    <FrameLayout
+                        android:id="@+id/btnHostLeaveSeat"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                <ImageView
-                    android:id="@+id/ivHostLockIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Lock Seat"
-                    android:src="@drawable/ic_lock"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
+                        <ImageView
+                            android:id="@+id/ivHostLeaveIcon"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Leave Seat"
+                            android:src="@drawable/ic_leave_seat"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:background="#30FFFFFF" />
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="18dp"
+                        android:background="#30FFFFFF" />
 
-            <!-- 4. Leave / Clear Seat -->
-            <FrameLayout
-                android:id="@+id/btnHostLeaveSeat"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
+                    <!-- 5. Kick User -->
+                    <FrameLayout
+                        android:id="@+id/btnActionKick"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                <ImageView
-                    android:id="@+id/ivHostLeaveIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Leave Seat"
-                    android:src="@drawable/ic_leave_seat"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Kick"
+                            android:src="@drawable/ic_kick_user"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:background="#30FFFFFF" />
-
-            <!-- 5. Kick User -->
-            <FrameLayout
-                android:id="@+id/btnActionKick"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Kick"
-                    android:src="@drawable/ic_kick_user"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
-
-        </LinearLayout>
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
@@ -581,40 +597,43 @@
 
     <!-- Center Top Floating Avatar Stack -->
     <FrameLayout
-        android:layout_width="84dp"
-        android:layout_height="84dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true">
 
-        <!-- Circular User Avatar -->
+        <!-- Circular User Avatar (Drawn First - Inside Frame Hole) -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivUserProfileAvatar"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            app:strokeColor="#10FFFFFF"
+            app:strokeWidth="1dp" />
 
-        <!-- Profile Frame Overlay -->
+        <!-- Profile Frame Overlay (Drawn On Top) -->
         <ImageView
             android:id="@+id/ivUserProfileFrame"
-            android:layout_width="84dp"
-            android:layout_height="84dp"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:layout_gravity="center"
             android:contentDescription="Profile Frame"
             android:scaleType="fitCenter"
             android:visibility="gone" />
 
-        <!-- Animated SVGA Profile Frame Overlay -->
+        <!-- Animated SVGA Profile Frame Overlay (Drawn On Top) -->
         <com.opensource.svgaplayer.SVGAImageView
             android:id="@+id/svgaUserProfileFrame"
-            android:layout_width="92dp"
-            android:layout_height="92dp"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:layout_gravity="center"
             android:visibility="gone"
             app:autoPlay="true"
             app:loopCount="0" />
+
     </FrameLayout>
 
 </RelativeLayout>

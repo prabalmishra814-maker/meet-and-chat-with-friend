@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_comment_sheet"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/btnOptionCopy"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:text="Copy Message"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp" />
+
+    <View
+        android:id="@+id/dividerUnsend"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#20FFFFFF" />
+
+    <TextView
+        android:id="@+id/btnOptionUnsend"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:text="Unsend Message"
+        android:textColor="#FF6B6B"
+        android:textSize="15sp" />
+
+</LinearLayout>

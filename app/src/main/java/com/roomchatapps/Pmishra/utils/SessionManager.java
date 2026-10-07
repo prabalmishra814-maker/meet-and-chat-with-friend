@@ -66,6 +66,10 @@ public class SessionManager {
         return pref.getString(KEY_NAME, "User");
     }
 
+    public String getUserName() {
+        return getName();
+    }
+
     public String getEmail() {
         return pref.getString(KEY_EMAIL, "");
     }

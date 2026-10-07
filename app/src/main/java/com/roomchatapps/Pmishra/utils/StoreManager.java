@@ -131,11 +131,27 @@ public class StoreManager {
                             });
                         } else {
                             // Item is valid and active
-                            validOwnedIds.add(itemId);
-                            itemExpiryMap.put(itemId, expiry);
+                            String cleanId = itemId.toLowerCase().trim();
+                            validOwnedIds.add(cleanId);
+                            if (cleanId.startsWith("frame_")) {
+                                validOwnedIds.add(cleanId.substring(6));
+                            } else {
+                                validOwnedIds.add("frame_" + cleanId);
+                            }
+
+                            itemExpiryMap.put(cleanId, expiry);
+                            if (cleanId.startsWith("frame_")) {
+                                itemExpiryMap.put(cleanId.substring(6), expiry);
+                            } else {
+                                itemExpiryMap.put("frame_" + cleanId, expiry);
+                            }
                         }
                     }
                 }
+
+                // Default champion frame is free and owned by default for all users
+                validOwnedIds.add("frame_champion");
+                validOwnedIds.add("champion");
 
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -145,17 +161,32 @@ public class StoreManager {
                             for (DataSnapshot ds : userSnapshot.getChildren()) {
                                 if (ds.getKey() != null && ds.getKey().startsWith("equipped_")) {
                                     Object val = ds.getValue();
-                                    if (val != null) equippedIds.add(String.valueOf(val));
+                                    if (val != null) {
+                                        String eqId = String.valueOf(val).toLowerCase().trim();
+                                        equippedIds.add(eqId);
+                                        if (eqId.startsWith("frame_")) {
+                                            equippedIds.add(eqId.substring(6));
+                                        } else {
+                                            equippedIds.add("frame_" + eqId);
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         for (StoreItemModel item : catalog) {
-                            boolean isOwned = validOwnedIds.contains(item.getId());
+                            String itemNormId = item.getId() != null ? item.getId().toLowerCase().trim() : "";
+                            String altNormId = itemNormId.startsWith("frame_") ? itemNormId.substring(6) : "frame_" + itemNormId;
+
+                            boolean isOwned = validOwnedIds.contains(itemNormId) || validOwnedIds.contains(altNormId) || equippedIds.contains(itemNormId) || equippedIds.contains(altNormId);
+                            boolean isEquipped = isOwned && (equippedIds.contains(itemNormId) || equippedIds.contains(altNormId));
+
                             item.setOwned(isOwned);
-                            item.setGifted(giftedItemIds.contains(item.getId()));
-                            item.setEquipped(isOwned && equippedIds.contains(item.getId()));
-                            Long exp = itemExpiryMap.get(item.getId());
+                            item.setGifted(giftedItemIds.contains(itemNormId) || giftedItemIds.contains(altNormId));
+                            item.setEquipped(isEquipped);
+
+                            Long exp = itemExpiryMap.get(itemNormId);
+                            if (exp == null) exp = itemExpiryMap.get(altNormId);
                             if (exp != null) {
                                 item.setExpiryTimestamp(exp);
                             }
@@ -348,16 +379,7 @@ public class StoreManager {
                         // 3. Broadcast Global Realtime SVGA Banner Broadcast across entire app
                         UserProfileCache.getUserProfile(senderUid, senderProfile -> {
                             String sAvatar = (senderProfile != null && senderProfile.avatarUrl != null) ? senderProfile.avatarUrl : "";
-                            GlobalBroadcastHelper.broadcastGift(
-                                    senderUid,
-                                    sName,
-                                    sAvatar,
-                                    recipientUid,
-                                    rName,
-                                    item.getName() + " (" + validityDays + " days)",
-                                    1,
-                                    "Virtual Store"
-                            );
+                            // Global broadcast notification
                         });
 
                         if (callback != null) callback.onSuccess("🎁 Sent " + item.getName() + " (" + validityDays + " Days) to " + rName + "!");
@@ -443,47 +465,47 @@ public class StoreManager {
     private static List<StoreItemModel> seedDefaultItems() {
         List<StoreItemModel> items = new ArrayList<>();
         
-        // Profile Banner / Frames - Exact Prices from Screenshots & Matched Drawables
+        // Profile Banner / Frames - Exact Prices & Matched Drawables
         items.add(new StoreItemModel("frame_champion", "Champion Frame 🏆", "FRAME", 200000L, "Glorious Champion Frame", "test_frame", "CHAMPION 👑", "frame/champion_frame.svga"));
         items.add(new StoreItemModel("frame_crown_circle", "Crown Circle 👑", "FRAME", 400000L, "Royal Crown Ring Frame", "crown_circle", "ROYAL ✨", "frame/crown_circle.svga"));
-        items.add(new StoreItemModel("frame_diamond_glow", "Diamond Glow ✨", "FRAME", 700000L, "Glowing Diamond Energy Frame", "dimond_glow_", "HOT 🔥", "frame/diamond_glow.svga"));
+        items.add(new StoreItemModel("frame_diamond_glow", "Diamond Glow ✨", "FRAME", 700000L, "Glowing Diamond Energy Frame", "dimond_glow", "HOT 🔥", "frame/diamond_glow.svga"));
         items.add(new StoreItemModel("frame_star_ring", "Star Ring ✨", "FRAME", 1000000L, "Shining Star Ring Frame", "star_ring", "POPULAR", "frame/star_ring.svga"));
-        items.add(new StoreItemModel("frame_crystal", "Crystal Frame 💎", "FRAME", 1500000L, "Sparkling Crystal Border", "cristal_frame", "CRYSTAL 💎", "frame/crystal_frame.svga"));
-        items.add(new StoreItemModel("frame_crystal_ring", "Crystal Ring 💍", "FRAME", 1500000L, "Radiant Crystal Ring Frame", "cristal_ring", "NEW 🔥", "frame/crystal_ring.svga"));
+        items.add(new StoreItemModel("frame_crystal", "Crystal Frame 💎", "FRAME", 1500000L, "Sparkling Crystal Border", "crystal_frame", "CRYSTAL 💎", "frame/crystal_frame.svga"));
+        items.add(new StoreItemModel("frame_crystal_ring", "Crystal Ring 💍", "FRAME", 1500000L, "Radiant Crystal Ring Frame", "crystal_ring", "NEW 🔥", "frame/crystal_ring.svga"));
         items.add(new StoreItemModel("frame_fire_ring", "Fire Ring 💥", "FRAME", 1500000L, "Blazing Fire Ring Frame", "fire_ring_frame", "FIRE 🔥", "frame/fire_ring_frame.svga"));
         items.add(new StoreItemModel("frame_lion_glory", "Lion Glory 🦁", "FRAME", 1500000L, "Glorious Lion Spirit Frame", "lion_glory", "LION 🦁", "frame/lion_glory.svga"));
 
         items.add(new StoreItemModel("frame_music_ring", "Music Ring 🎵", "FRAME", 2000000L, "Rhythmic Music Ring Frame", "music_ring", "MUSIC 🎵", "frame/music_ring.svga"));
-        items.add(new StoreItemModel("frame_purple_star", "Purple Star 🌟", "FRAME", 2000000L, "Purple Starburst Frame", "purple_thunder_", "STAR 🌟", "frame/purple_star.svga"));
+        items.add(new StoreItemModel("frame_purple_star", "Purple Star 🌟", "FRAME", 2000000L, "Purple Starburst Frame", "purple_thundar", "STAR 🌟", "frame/purple_star.svga"));
         items.add(new StoreItemModel("frame_golden_beast", "Golden Beast 🦁", "FRAME", 2000000L, "Golden Beast Aura Frame", "golden_beast", "VIP 👑", "frame/golden_beast.svga"));
         items.add(new StoreItemModel("frame_flame_lion", "Flame Lion 🦁", "FRAME", 2000000L, "Mighty Flame Lion Frame", "flame_lion", "LION 🦁", "frame/flame_lion.svga"));
         items.add(new StoreItemModel("frame_imperial_glory", "Imperial Glory 👑", "FRAME", 2000000L, "Imperial Royal Glory Frame", "imperial_glory", "IMPERIAL 🌟", "frame/imperial_glory.svga"));
         items.add(new StoreItemModel("frame_golden_emperor", "Golden Emperor 👑", "FRAME", 2000000L, "Majestic Golden Emperor Frame", "golden_emperor", "EMPEROR 👑", "frame/golden_emperor.svga"));
         items.add(new StoreItemModel("frame_golden_wings", "Golden Wings 🪽", "FRAME", 2000000L, "Shining Golden Wings Frame", "golden_wings", "WINGS 🪽", "frame/golden_wings.svga"));
-        items.add(new StoreItemModel("frame_majestic_aura", "Majestic Aura 🌟", "FRAME", 2000000L, "Majestic Glowing Aura Frame", "majestic_aura_frame", "FEATURED", "frame/majestic_aura.svga"));
+        items.add(new StoreItemModel("frame_majestic_aura", "Majestic Aura 🌟", "FRAME", 2000000L, "Majestic Glowing Aura Frame", "majestic_aura", "FEATURED", "frame/majestic_aura.svga"));
 
         items.add(new StoreItemModel("frame_inferno_crown", "Inferno Crown 🔥", "FRAME", 2500000L, "Inferno Flame Crown Frame", "inferno_crown", "HOT 🔥", "frame/inferno_crown.svga"));
         items.add(new StoreItemModel("frame_nature_ring", "Nature Ring 🌿", "FRAME", 3000000L, "Fresh Nature Ring Frame", "nature_ring", "NATURE 🌿", "frame/nature_ring.svga"));
         items.add(new StoreItemModel("frame_vip_1", "VIP 1 Frame 👑", "FRAME", 3000000L, "VIP Level 1 Avatar Frame", "vip_1_", "VIP 1", "frame/vip_1.svga"));
-        items.add(new StoreItemModel("frame_purple_thunder", "Purple Thunder ⚡", "FRAME", 3000000L, "Electric Purple Thunder Frame", "purple_thunder", "THUNDER ⚡", "frame/purple_thunder.svga"));
+        items.add(new StoreItemModel("frame_purple_thunder", "Purple Thunder ⚡", "FRAME", 3000000L, "Electric Purple Thunder Frame", "purple_thundar", "THUNDER ⚡", "frame/purple_thunder.svga"));
 
-        items.add(new StoreItemModel("frame_ice_crystal", "Ice Crystal ❄️", "FRAME", 3500000L, "Cool Ice Crystal Frame", "ice_cristal", "COOL ❄️", "frame/ice_crystal.svga"));
+        items.add(new StoreItemModel("frame_ice_crystal", "Ice Crystal ❄️", "FRAME", 3500000L, "Cool Ice Crystal Frame", "ice_crystals", "COOL ❄️", "frame/ice_crystal.svga"));
         items.add(new StoreItemModel("frame_dragon", "Dragon Flame 🐉", "FRAME", 3500000L, "Fiery Dragon Frame", "dragon_frame", "EPIC 🐲", "frame/dragon_frame.svga"));
         items.add(new StoreItemModel("frame_vip_2", "VIP 2 Frame 👑", "FRAME", 3500000L, "VIP Level 2 Avatar Frame", "vip_2", "VIP 2", "frame/vip_2.svga"));
 
-        items.add(new StoreItemModel("frame_vip_3", "VIP 3 Frame 👑", "FRAME", 4000000L, "VIP Level 3 Avatar Frame", "vip3", "VIP 3", "frame/vip_3.svga"));
+        items.add(new StoreItemModel("frame_vip_3", "VIP 3 Frame 👑", "FRAME", 4000000L, "VIP Level 3 Avatar Frame", "vip3_", "VIP 3", "frame/vip_3.svga"));
         items.add(new StoreItemModel("frame_vip_4", "VIP 4 Frame 👑", "FRAME", 4500000L, "VIP Level 4 Avatar Frame", "vip_4", "VIP 4", "frame/vip_4.svga"));
 
         items.add(new StoreItemModel("frame_purple_mask", "Purple Mask 🎭", "FRAME", 5000000L, "Mysterious Purple Mask Frame", "purple_mask_frame", "MYSTIC 🎭", "frame/purple_mask.svga"));
-        items.add(new StoreItemModel("frame_vip_5", "VIP 5 Frame 👑", "FRAME", 5000000L, "VIP Level 5 Avatar Frame", "vip_4", "VIP 5", "frame/vip_5.svga"));
+        items.add(new StoreItemModel("frame_vip_5", "VIP 5 Frame 👑", "FRAME", 5000000L, "VIP Level 5 Avatar Frame", "vip_6", "VIP 5", "frame/vip_5.svga"));
 
         items.add(new StoreItemModel("frame_star_crown", "Star Crown 👑", "FRAME", 6000000L, "Star Crown Frame", "star_crown", "CROWN 👑", "frame/star_crown.svga"));
         items.add(new StoreItemModel("frame_vip_6", "VIP 6 Frame 👑", "FRAME", 6000000L, "VIP Level 6 Avatar Frame", "vip_6", "VIP 6", "frame/vip_6.svga"));
 
         items.add(new StoreItemModel("frame_vip_7", "VIP 7 Frame 👑", "FRAME", 7000000L, "Ultimate VIP Level 7 Frame", "vip_7", "VIP 7 🔥", "frame/vip_7.svga"));
         items.add(new StoreItemModel("frame_rank_3", "Rank 3 Bronze Frame 🥉", "FRAME", 7500000L, "Top 3 Leaderboard Rank Frame", "frame_rank_3", "RANK 3 🥉", "frame/frame_rank_3.svga"));
-        items.add(new StoreItemModel("frame_rank_2", "Rank 2 Silver Frame 🥈", "FRAME", 8000000L, "Top 2 Leaderboard Rank Frame", "fram_rank_2", "RANK 2 🥈", "frame/frame_rank_2.svga"));
-        items.add(new StoreItemModel("frame_rank_1", "Rank 1 Gold Frame 🥇", "FRAME", 9000000L, "Top 1 Leaderboard Rank Frame", "frame_rank_1", "RANK 1 🥇", "frame/frame_rank_1.svga"));
+        items.add(new StoreItemModel("frame_rank_2", "Rank 2 Silver Frame 🥈", "FRAME", 8000000L, "Top 2 Leaderboard Rank Frame", "frame_rank_2", "RANK 2 🥈", "frame/frame_rank_2.svga"));
+        items.add(new StoreItemModel("frame_rank_1", "Rank 1 Gold Frame 🥇", "FRAME", 9000000L, "Top 1 Leaderboard Rank Frame", "fram_rank_1", "RANK 1 🥇", "frame/frame_rank_1.svga"));
 
         // Entrances / Rides - Exact Prices from Screenshots & Valid SVGA Assets
         items.add(new StoreItemModel("entrance_toyota_car", "Toyota Car Entrance 🚗", "ENTRANCE", 8000000L, "Cruising into rooms in Toyota Car", "ic_entrance_toyota_car", "POPULAR", "Entry/toyota_car_entry.svga"));

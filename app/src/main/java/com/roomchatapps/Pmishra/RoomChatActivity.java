@@ -1256,20 +1256,31 @@ public class RoomChatActivity extends AppCompatActivity {
 
                     String pId = snapshot.child("profileId").getValue(String.class);
                     if (pId == null || pId.isEmpty()) pId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
-                    if (tvProfileId != null) tvProfileId.setText("ID: " + pId);
+                    if (tvProfileId != null) tvProfileId.setText("ID:" + pId);
 
                     String followers = snapshot.child("Followers").getValue(String.class);
-                    if (tvFollowersCount != null) tvFollowersCount.setText((followers != null ? followers : "0") + " followers");
+                    if (tvFollowersCount != null) tvFollowersCount.setText((followers != null ? followers : "1") + " followers");
 
                     String gender = snapshot.child("gender").getValue(String.class);
+                    String ageStr = "20";
+                    if (snapshot.child("age").exists() && snapshot.child("age").getValue() != null) {
+                        ageStr = String.valueOf(snapshot.child("age").getValue());
+                    }
                     if (tvGenderBadge != null) {
                         if ("female".equalsIgnoreCase(gender)) {
-                            tvGenderBadge.setText("♀ 23");
-                            tvGenderBadge.setBackgroundResource(R.drawable.bg_send_button_glow);
+                            tvGenderBadge.setText("♀" + ageStr);
+                            tvGenderBadge.setBackgroundResource(R.drawable.bg_gender_male_pill);
                         } else {
-                            tvGenderBadge.setText("♂ 24");
-                            tvGenderBadge.setBackgroundResource(R.drawable.bg_glass_card);
+                            tvGenderBadge.setText("♂" + ageStr);
+                            tvGenderBadge.setBackgroundResource(R.drawable.bg_gender_male_pill);
                         }
+                    }
+
+                    TextView tvLocation = profileView.findViewById(R.id.tvLocation);
+                    if (tvLocation != null) {
+                        String loc = snapshot.child("location").getValue(String.class);
+                        if (loc == null || loc.trim().isEmpty()) loc = "India";
+                        tvLocation.setText(loc);
                     }
 
                     // Frame Overlay
@@ -1368,23 +1379,6 @@ public class RoomChatActivity extends AppCompatActivity {
             llOtherUserActionsRow.setVisibility(isSelf ? View.GONE : View.VISIBLE);
         }
 
-        // Collection Header Click
-        View layoutCollectionHeader = profileView.findViewById(R.id.layoutCollectionHeader);
-        if (layoutCollectionHeader != null) {
-            layoutCollectionHeader.setOnClickListener(v -> {
-                profileDialog.dismiss();
-                if (isSelf) {
-                    Intent intent = new Intent(RoomChatActivity.this, CollectionActivity.class);
-                    startActivity(intent);
-                } else {
-                    Intent intent = new Intent(RoomChatActivity.this, OtherCollectionActivity.class);
-                    intent.putExtra("selectedUserId", targetUid);
-                    intent.putExtra("selectedUserName", initialName);
-                    startActivity(intent);
-                }
-            });
-        }
-
         // Profile Collection Grid Below
         RecyclerView rvProfileCollection = profileView.findViewById(R.id.rvProfileCollection);
         TextView tvEmptyProfileCollection = profileView.findViewById(R.id.tvEmptyProfileCollection);
@@ -1393,6 +1387,42 @@ public class RoomChatActivity extends AppCompatActivity {
             rvProfileCollection.setLayoutManager(new GridLayoutManager(this, 3));
             rvProfileCollection.setNestedScrollingEnabled(false);
             loadProfileCardCollection(targetUid, rvProfileCollection, tvEmptyProfileCollection, tvCollectionCountBadge);
+        }
+
+        // Collection Card & Wear Button Click Logic
+        // 1st click on card: expands inline collection grid inside the dialog card
+        // 2nd click on card OR clicking "Wear ›": opens full CollectionActivity / OtherCollectionActivity
+        Runnable openFullCollection = () -> {
+            profileDialog.dismiss();
+            if (isSelf) {
+                Intent intent = new Intent(RoomChatActivity.this, CollectionActivity.class);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(RoomChatActivity.this, OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", targetUid);
+                intent.putExtra("selectedUserName", initialName);
+                startActivity(intent);
+            }
+        };
+
+        View layoutCollectionHeader = profileView.findViewById(R.id.layoutCollectionHeader);
+        if (layoutCollectionHeader != null) {
+            layoutCollectionHeader.setOnClickListener(v -> {
+                if (rvProfileCollection != null && rvProfileCollection.getVisibility() == View.VISIBLE) {
+                    openFullCollection.run();
+                } else {
+                    if (rvProfileCollection != null) {
+                        rvProfileCollection.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        }
+
+        if (tvCollectionCountBadge != null) {
+            tvCollectionCountBadge.setOnClickListener(v -> {
+                v.setSelected(true);
+                openFullCollection.run();
+            });
         }
 
         // Own Profile Action Buttons (Leave the Mic, Send Gift)
@@ -1656,12 +1686,19 @@ public class RoomChatActivity extends AppCompatActivity {
             }
         }
 
-        // Open Full User Profile Detail Activity (Avatar, Name, ID, More Options ...)
+        // Open Full User Profile Detail Activity (CollectionActivity / OtherCollectionActivity)
         View.OnClickListener openFullProfile = v -> {
             profileDialog.dismiss();
-            Intent intent = new Intent(RoomChatActivity.this, UserDetailActivity.class);
-            intent.putExtra("uid", targetUid);
-            startActivity(intent);
+            if (userID != null && userID.equals(targetUid)) {
+                Intent intent = new Intent(RoomChatActivity.this, CollectionActivity.class);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(RoomChatActivity.this, OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", targetUid);
+                intent.putExtra("uid", targetUid);
+                intent.putExtra("selectedUserName", initialName);
+                startActivity(intent);
+            }
         };
 
         if (btnMoreOptions != null) btnMoreOptions.setOnClickListener(openFullProfile);
@@ -1808,21 +1845,20 @@ public class RoomChatActivity extends AppCompatActivity {
         }
 
         if (tvCountBadge != null) {
-            tvCountBadge.setText(finalCollection.size() + " Items");
+            tvCountBadge.setText("Wear ›");
         }
 
-        if (finalCollection.isEmpty()) {
-            if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
-            if (rvCollection != null) rvCollection.setVisibility(View.GONE);
-        } else {
-            if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
-            if (rvCollection != null) {
-                rvCollection.setVisibility(View.VISIBLE);
+        if (rvCollection != null) {
+            rvCollection.setVisibility(View.GONE);
+            if (!finalCollection.isEmpty()) {
                 CollectionAdapter adapter = new CollectionAdapter(finalCollection, item -> {
                     Toast.makeText(RoomChatActivity.this, "Collection Item: " + (item.getGiftStoreItem() != null ? item.getGiftStoreItem().name : (item.getStoreItem() != null ? item.getStoreItem().getName() : "Item")), Toast.LENGTH_SHORT).show();
                 });
                 rvCollection.setAdapter(adapter);
             }
+        }
+        if (tvEmpty != null) {
+            tvEmpty.setVisibility(View.GONE);
         }
     }
 
