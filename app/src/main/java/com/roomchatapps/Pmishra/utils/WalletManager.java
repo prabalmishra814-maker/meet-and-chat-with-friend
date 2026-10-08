@@ -484,6 +484,12 @@ public class WalletManager {
                                         if (targetUid != null && !targetUid.isEmpty()) {
                                             addEnergyToUser(targetUid, energyAward, giftName, "Received Gift Energy (Targeted): " + giftName);
                                             NotificationHelper.sendGiftNotification(targetUid, giftName);
+
+                                            final String sName = senderName;
+                                            UserProfileCache.getUserProfile(targetUid, rProfile -> {
+                                                String rName = (rProfile != null && rProfile.name != null) ? rProfile.name : "Friend";
+                                                GlobalGiftBannerManager.broadcastGiftSent(sName, rName, giftName, 1, roomId);
+                                            });
                                         }
                                     }
                                 } else {
@@ -491,6 +497,7 @@ public class WalletManager {
                                     // 70% of gift value is distributed as Energy among ALL eligible room members
                                     long totalRoomEnergy = (long) Math.floor(giftValue * EconomyConfig.ROOM_ENERGY_PERCENTAGE);
                                     distributeRoomEnergy(roomId, roomMemberUids, totalRoomEnergy, giftName);
+                                    GlobalGiftBannerManager.broadcastGiftSent(senderName, "Room Members", giftName, 1, roomId);
                                 }
 
                                 if (callback != null) {

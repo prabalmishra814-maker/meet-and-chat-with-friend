@@ -97,6 +97,8 @@
         <activity android:name=".StoreActivity" />
         <activity android:name=".CollectionActivity" />
         <activity android:name=".OtherCollectionActivity" />
+        <activity android:name=".LoveHouseActivity" />
+        <activity android:name=".GuardRankActivity" />
         <activity android:name=".ReferralActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".LeaderboardActivity" />

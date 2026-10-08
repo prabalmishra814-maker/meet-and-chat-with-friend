@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
+
+    <!-- Header Section with Castle Sky Background -->
+    <RelativeLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="424dp"
+        android:background="@drawable/bg_love_house_header">
+
+        <!-- Top Bar Navigation -->
+        <RelativeLayout
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:paddingHorizontal="8dp">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Love House"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/btnWardrobe"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_wardrobe_dress"
+                    app:tint="#FFFFFF" />
+
+                <ImageView
+                    android:id="@+id/btnMenu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_menu_hamburger"
+                    app:tint="#FFFFFF" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Days Together Counter (Top Left in CP Bound Mode) -->
+        <LinearLayout
+            android:id="@+id/layoutDaysTogether"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/toolbar"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="2dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvDaysCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="96"
+                    android:textColor="#FFFFFF"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:text="Day"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time together"
+                android:textColor="#E0E0E0"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Floating Intimacy & Blessing Stats (Right side) -->
+        <LinearLayout
+            android:id="@+id/layoutFloatingStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/toolbar"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical">
+
+            <!-- Intimacy Pill -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_cp_guard_banner"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:id="@+id/tvIntimacyScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💖 35429 Intimacy"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Blessing Pill -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_cp_guard_banner"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:id="@+id/tvBlessingScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎁 0 Blessing"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cpDisplayLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24dp">
+
+            <!-- Left Avatar (Current User) -->
+            <LinearLayout
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="72dp"
+                    android:layout_height="72dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_avatar_white_ring" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/ivUserAvatar"
+                        android:layout_width="66dp"
+                        android:layout_height="66dp"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_20260904_135725"
+                        app:shapeAppearanceOverlay="@style/CircleImage" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvUserName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Prabal Mishra"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Center Winged CP Level Badge -->
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="64dp"
+                android:layout_gravity="top"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginTop="4dp">
+
+                <ImageView
+                    android:layout_width="88dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_cp_level_badge" />
+
+                <TextView
+                    android:id="@+id/tvCpLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="6dp"
+                    android:text="LV.4"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- Right Avatar (Bound CP Partner Avatar) -->
+            <LinearLayout
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="72dp"
+                    android:layout_height="72dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_partner_blue_ring" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/ivPartnerAvatar"
+                        android:layout_width="66dp"
+                        android:layout_height="66dp"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_20260904_135725"
+                        app:shapeAppearanceOverlay="@style/CircleImage" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvPartnerName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Partner"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Proposal Action Button -->
+
+        <!-- Notice Banner at Header Bottom -->
+
+        <TextView
+            android:id="@+id/btnProposal"
+            android:layout_width="140dp"
+            android:layout_height="38dp"
+            android:layout_below="@id/cpDisplayLayout"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="26dp"
+            android:layout_marginEnd="142dp"
+            android:background="@drawable/bg_btn_proposal"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Proposal"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_cp_guard_banner"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="7dp">
+
+            <TextView
+                android:id="@+id/tvCpGuardNotice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CP level meets to propose"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- Lower Card Content Container -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-14dp"
+        android:layout_weight="1"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="0dp">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="22dp"
+                android:paddingBottom="24dp">
+
+                <!-- Section 1: Ring -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ring"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingVertical="32dp"
+                    android:text="No More Data"
+                    android:textColor="#B0B0B0"
+                    android:textSize="14sp" />
+
+                <!-- Section 2: Recent gifts -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Recent gifts"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Sending gifts can increase the intimacy value"
+                    android:textColor="#888888"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingVertical="32dp"
+                    android:text="No More Data"
+                    android:textColor="#B0B0B0"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Bottom Fixed Bar ("send gifts") -->
+    <LinearLayout
+        android:id="@+id/layoutBottomSendGifts"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:background="@drawable/bg_bottom_send_gifts"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/gift_icon" />
+
+        <TextView
+            android:id="@+id/tvSendGiftsAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="send gifts"
+            android:textColor="#FFA000"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -377,10 +377,7 @@ public class StoreManager {
                         NotificationHelper.sendNotification(senderUid, "Gift Delivered 🎁", senderNotifMsg, "GIFT", recipientUid);
 
                         // 3. Broadcast Global Realtime SVGA Banner Broadcast across entire app
-                        UserProfileCache.getUserProfile(senderUid, senderProfile -> {
-                            String sAvatar = (senderProfile != null && senderProfile.avatarUrl != null) ? senderProfile.avatarUrl : "";
-                            // Global broadcast notification
-                        });
+                        GlobalGiftBannerManager.broadcastGiftSent(sName, rName, item.getName(), 1, null);
 
                         if (callback != null) callback.onSuccess("🎁 Sent " + item.getName() + " (" + validityDays + " Days) to " + rName + "!");
                     } else {

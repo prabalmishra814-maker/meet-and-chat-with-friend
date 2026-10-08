@@ -60,6 +60,24 @@ public class ProfileFragment extends Fragment {
             binding.cardWallet.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(350).start();
         }
 
+        if (binding.cardLoveHouse != null) {
+            binding.cardLoveHouse.setAlpha(0f);
+            binding.cardLoveHouse.setTranslationY(30f);
+            binding.cardLoveHouse.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(370).start();
+        }
+
+        if (binding.cardCpLevel != null) {
+            binding.cardCpLevel.setAlpha(0f);
+            binding.cardCpLevel.setTranslationY(30f);
+            binding.cardCpLevel.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(390).start();
+        }
+
+        if (binding.cardFamily != null) {
+            binding.cardFamily.setAlpha(0f);
+            binding.cardFamily.setTranslationY(30f);
+            binding.cardFamily.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(410).start();
+        }
+
         if (binding.cardCenters != null) {
             binding.cardCenters.setAlpha(0f);
             binding.cardCenters.setTranslationY(30f);
@@ -320,6 +338,33 @@ public class ProfileFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        if (binding.cardLoveHouse != null) {
+            binding.cardLoveHouse.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(binding.cardLoveHouse);
+                if (getActivity() != null) {
+                    Intent intent = new Intent(getActivity(), LoveHouseActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        if (binding.cardCpLevel != null) {
+            binding.cardCpLevel.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(binding.cardCpLevel);
+                if (getActivity() != null) {
+                    Intent intent = new Intent(getActivity(), LoveHouseActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        if (binding.cardFamily != null) {
+            binding.cardFamily.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(binding.cardFamily);
+                showToast("Family");
+            });
+        }
 
         binding.headerLayout.setOnClickListener(v -> {
             AnimationHelper.bounceAnimation(binding.headerLayout);

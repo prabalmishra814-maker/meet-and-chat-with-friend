@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:paddingHorizontal="28dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_cp_invite_sent_card"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="24dp">
+
+        <!-- Sent Notice Message -->
+        <TextView
+            android:id="@+id/tvSentMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="The invitation has been sent\nand is waiting to be received"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Confirm Button -->
+        <TextView
+            android:id="@+id/btnConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_btn_confirm_gradient"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Confirm"
+            android:textColor="#081633"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</FrameLayout>

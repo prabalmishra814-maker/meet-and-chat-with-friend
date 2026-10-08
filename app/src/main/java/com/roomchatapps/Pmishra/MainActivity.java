@@ -92,6 +92,15 @@ public class MainActivity extends AppCompatActivity {
         checkAndShowDailyCheckIn();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        View container = findViewById(R.id.globalBannerGiftContainer);
+        com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+        TextView tvNotice = findViewById(R.id.globalTvBannerNotice);
+        com.roomchatapps.Pmishra.utils.GlobalGiftBannerManager.getInstance().bindContainer(this, container, player, tvNotice);
+    }
+
     // DAILY CHECK-IN AUTO SHOW
     private void checkAndShowDailyCheckIn() {
         String currentUid = FirebaseAuth.getInstance().getUid();

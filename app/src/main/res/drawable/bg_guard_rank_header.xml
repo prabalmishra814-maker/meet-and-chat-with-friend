@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Royal Atmospheric Deep Purple Header Gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#6A1B9A"
+                android:centerColor="#8E24AA"
+                android:endColor="#E1BEE7"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Golden Light Arc Bottom Stroke -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#40FFE082"
+                android:endColor="#00000000"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="96dp"
+    android:height="64dp"
+    android:viewportWidth="96"
+    android:viewportHeight="64">
+
+    <!-- Left Wing -->
+    <path
+        android:pathData="M32,28 C26,18 16,16 6,20 C14,26 18,34 22,40 C26,38 30,34 32,28 Z"
+        android:strokeWidth="1">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="32"
+                android:endY="40"
+                android:startX="6"
+                android:startY="16"
+                android:type="linear">
+                <item android:color="#FFFFE8F0" android:offset="0.0" />
+                <item android:color="#FFF8BBD0" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M30,32 C22,24 14,24 8,28 C16,33 20,38 25,42 C28,39 29,35 30,32 Z"
+        android:fillColor="#FFFFCDD2" />
+
+    <!-- Right Wing -->
+    <path
+        android:pathData="M64,28 C70,18 80,16 90,20 C82,26 78,34 74,40 C70,38 66,34 64,28 Z"
+        android:strokeWidth="1">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="64"
+                android:endY="40"
+                android:startX="90"
+                android:startY="16"
+                android:type="linear">
+                <item android:color="#FFFFE8F0" android:offset="0.0" />
+                <item android:color="#FFF8BBD0" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M66,32 C74,24 82,24 88,28 C80,33 76,38 71,42 C68,39 67,35 66,32 Z"
+        android:fillColor="#FFFFCDD2" />
+
+    <!-- Red Glowing Heart -->
+    <path
+        android:pathData="M48,50 C48,50 30,38 30,26 C30,19 35.5,14 42,14 C45.6,14 48,16.5 48,16.5 C48,16.5 50.4,14 54,14 C60.5,14 66,19 66,26 C66,38 48,50 48,50 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="48"
+                android:endY="50"
+                android:startX="48"
+                android:startY="14"
+                android:type="linear">
+                <item android:color="#FFFF5252" android:offset="0.0" />
+                <item android:color="#FFD50000" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Heart Glow Highlight -->
+    <path
+        android:pathData="M40,18 C36,18 33,21 33,25 C33,27 34,29 34,29 C34,29 36,22 41,20 C42,19.5 40,18 40,18 Z"
+        android:fillColor="#80FFFFFF" />
+
+    <!-- Heartbeat ECG Pulse Line -->
+    <path
+        android:pathData="M31,30 L38,30 L40,24 L43,36 L46,26 L49,32 L51,30 L65,30"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

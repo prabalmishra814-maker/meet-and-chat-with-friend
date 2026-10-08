@@ -518,6 +518,12 @@ public class RoomChatActivity extends AppCompatActivity {
             isMinimized = false; // ROOM MINIMIZE FIX
             RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
         } // ROOM MINIMIZE FIX
+
+        View container = findViewById(R.id.globalBannerGiftContainer);
+        com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+        TextView tvNotice = findViewById(R.id.globalTvBannerNotice);
+        com.roomchatapps.Pmishra.utils.GlobalGiftBannerManager.getInstance().bindContainer(this, container, player, tvNotice);
+
         if (userID != null) {
             UserProfileCache.invalidate(userID);
             UserProfileCache.getUserProfile(userID, profile -> {

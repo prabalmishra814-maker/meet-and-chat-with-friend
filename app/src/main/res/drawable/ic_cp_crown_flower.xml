@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="280dp"
+    android:height="60dp"
+    android:viewportWidth="280"
+    android:viewportHeight="60">
+
+    <!-- Deep Magenta/Burgundy Floral Arch Path -->
+    <path
+        android:pathData="M10,48 C40,25 90,15 140,15 C190,15 240,25 270,48 C250,38 195,25 140,25 C85,25 30,38 10,48 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="10"
+                android:startY="15"
+                android:endX="270"
+                android:endY="48"
+                android:type="linear">
+                <item android:color="#FFC2185B" android:offset="0.0" />
+                <item android:color="#FF880E4F" android:offset="0.5" />
+                <item android:color="#FFC2185B" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Golden Wings/Ribbon underneath Central Emblem -->
+    <path
+        android:pathData="M140,32 C120,24 95,22 80,26 C95,30 115,35 140,38 C165,35 185,30 200,26 C185,22 160,24 140,32 Z"
+        android:fillColor="#FFD700" />
+
+    <!-- Left Flowers (Roses & Petals) -->
+    <path
+        android:pathData="M40,38 C32,32 30,24 38,20 C46,24 48,32 40,38 Z"
+        android:fillColor="#FFAD1457" />
+    <path
+        android:pathData="M65,30 C58,24 56,16 64,12 C72,16 74,24 65,30 Z"
+        android:fillColor="#FF880E4F" />
+
+    <!-- Right Flowers (Roses & Petals) -->
+    <path
+        android:pathData="M240,38 C232,32 230,24 238,20 C246,24 248,32 240,38 Z"
+        android:fillColor="#FFAD1457" />
+    <path
+        android:pathData="M215,30 C208,24 206,16 214,12 C222,16 224,24 215,30 Z"
+        android:fillColor="#FF880E4F" />
+
+    <!-- Central 3D Golden Rose Emblem -->
+    <!-- Rose Outer Petals -->
+    <path
+        android:pathData="M140,2 C124,2 118,16 128,26 C134,32 146,32 152,26 C162,16 156,2 140,2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="140"
+                android:startY="2"
+                android:endX="140"
+                android:endY="32"
+                android:type="linear">
+                <item android:color="#FFFFE082" android:offset="0.0" />
+                <item android:color="#FFFFB300" android:offset="0.5" />
+                <item android:color="#FFFF6F00" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Rose Inner Core -->
+    <path
+        android:pathData="M140,8 C132,8 128,14 134,20 C138,24 142,24 146,20 C152,14 148,8 140,8 Z"
+        android:fillColor="#FFFFF59D" />
+
+    <!-- Sparkling Diamond Stars -->
+    <!-- Left Star 1 -->
+    <path
+        android:pathData="M24,20 L26,16 L28,20 L32,22 L28,24 L26,28 L24,24 L20,22 Z"
+        android:fillColor="#FFFFFFFF" />
+    <!-- Left Star 2 -->
+    <path
+        android:pathData="M90,14 L91,11 L92,14 L95,15 L92,16 L91,19 L90,16 L87,15 Z"
+        android:fillColor="#FFFFE082" />
+    <!-- Right Star 1 -->
+    <path
+        android:pathData="M256,20 L258,16 L260,20 L264,22 L260,24 L258,28 L256,24 L252,22 Z"
+        android:fillColor="#FFFFFFFF" />
+    <!-- Right Star 2 -->
+    <path
+        android:pathData="M190,14 L191,11 L192,14 L195,15 L192,16 L191,19 L190,16 L187,15 Z"
+        android:fillColor="#FFFFE082" />
+</vector>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="#2A004B"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#509C27B0"
+    app:strokeWidth="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <!-- Left Circular Icon Container -->
+        <FrameLayout
+            android:id="@+id/flIconBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/chip_room_bg">
+
+            <ImageView
+                android:id="@+id/ivTaskIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:contentDescription="Task Icon"
+                android:src="@drawable/gift_icon" />
+        </FrameLayout>
+
+        <!-- Right Side Reward Count Badge (e.g. 0 🍀 or 0 🪙) -->
+        <LinearLayout
+            android:id="@+id/llRewardBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvRewardCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                tools:text="0" />
+
+            <TextView
+                android:id="@+id/tvRewardIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textSize="16sp"
+                tools:text="🍀" />
+        </LinearLayout>
+
+        <!-- Center Task Title & Subtitle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toEndOf="@+id/flIconBg"
+            android:layout_toStartOf="@+id/llRewardBadge"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvTaskTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:maxLines="2"
+                    android:textColor="#E2E8F0"
+                    android:textSize="14sp"
+                    tools:text="Friends bind your invitation code" />
+
+                <TextView
+                    android:id="@+id/tvHelpIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="❓"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTaskDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#B0FFFFFF"
+                android:textSize="12sp"
+                tools:text="1 friend = 200000 🍀" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

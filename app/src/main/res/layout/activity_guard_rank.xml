@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F3E5F5"
+    android:orientation="vertical">
+
+    <!-- Top Header Area with Atmospheric Gradient & Podiums -->
+    <RelativeLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:background="@drawable/bg_guard_rank_header">
+
+        <!-- Toolbar -->
+        <RelativeLayout
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:paddingHorizontal="8dp">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=" Guard Rank"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnHelp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="7dp"
+                android:src="@drawable/ic_help_question_circle" />
+        </RelativeLayout>
+
+        <!-- Top 3 Podiums Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar"
+            android:gravity="bottom|center_horizontal"
+            android:orientation="horizontal"
+            android:paddingBottom="12dp">
+
+            <!-- Rank 2 (Left) -->
+            <LinearLayout
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivRank2Avatar"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_20260904_135725"
+                    app:shapeAppearanceOverlay="@style/CircleImage" />
+
+                <TextView
+                    android:id="@+id/tvRank2Score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-10dp"
+                    android:background="@drawable/bg_cp_guard_banner"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="💎 45.1K"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRank2Name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="VARUN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="80dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_podium_stand_silver" />
+            </LinearLayout>
+
+            <!-- Rank 1 (Center) -->
+            <LinearLayout
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivRank1Avatar"
+                    android:layout_width="68dp"
+                    android:layout_height="68dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_20260904_135725"
+                    app:shapeAppearanceOverlay="@style/CircleImage" />
+
+                <TextView
+                    android:id="@+id/tvRank1Score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-12dp"
+                    android:background="@drawable/bg_cp_guard_banner"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="3dp"
+                    android:text="💎 73.5K"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRank1Name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="VARUN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="94dp"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_podium_stand_gold" />
+            </LinearLayout>
+
+            <!-- Rank 3 (Right) -->
+            <LinearLayout
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivRank3Avatar"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_20260904_135725"
+                    app:shapeAppearanceOverlay="@style/CircleImage" />
+
+                <TextView
+                    android:id="@+id/tvRank3Score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-10dp"
+                    android:background="@drawable/bg_cp_guard_banner"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="💎 45K"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRank3Name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="⋯"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="80dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_podium_stand_bronze" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- Guard Rank List (4+) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvGuardRankList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        tools:listitem="@layout/item_guard_rank_user" />
+
+    <!-- Royal Purple Bottom Bar for Current User -->
+    <RelativeLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_guard_my_rank_bar"
+        android:paddingHorizontal="16dp">
+
+        <FrameLayout
+            android:id="@+id/containerBadge"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_heart_rank_badge">
+
+            <TextView
+                android:id="@+id/tvMyRank"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="853"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivMyAvatar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@id/containerBadge"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img_20260904_135725"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toStartOf="@id/btnProtectAction"
+            android:layout_toEndOf="@id/ivMyAvatar"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMyName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Prabal Mishra"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMySubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Protect: 1"
+                android:textColor="#E1BEE7"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnProtectAction"
+            android:layout_width="110dp"
+            android:layout_height="38dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_btn_dialog_invite"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Protect"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+</LinearLayout>

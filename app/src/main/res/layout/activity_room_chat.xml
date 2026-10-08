@@ -19,6 +19,38 @@
             android:clickable="false"
             android:elevation="10dp"
             android:focusable="false" />
+
+        <!-- Global Realtime SVGA Gift Banner Overlay Container -->
+        <FrameLayout
+            android:id="@+id/globalBannerGiftContainer"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:layout_gravity="top"
+            android:layout_marginTop="85dp"
+            android:elevation="30dp"
+            android:visibility="gone">
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/globalSvgaBannerPlayer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                app:clearsAfterStop="true"
+                app:loopCount="1" />
+
+            <TextView
+                android:id="@+id/globalTvBannerNotice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:letterSpacing="0.01"
+                android:paddingHorizontal="40dp"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp" />
+        </FrameLayout>
     </com.roomchatapps.Pmishra.AudioRoomBackgroundView>
 
     <!-- Top Header Bar using LinearLayout -->

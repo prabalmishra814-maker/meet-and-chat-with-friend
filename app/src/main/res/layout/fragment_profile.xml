@@ -555,6 +555,171 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- Love House Card -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardLoveHouse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:padding="16dp">
+
+                <!-- Love House Icon Container -->
+                <FrameLayout
+                    android:id="@+id/loveHouseIconContainer"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_icon_circle_accent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivLoveHouse"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_love_house" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvLoveHouseTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Love House"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/loveHouseIconContainer"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#B3FFFFFF" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- CP Level Card -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardCpLevel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:padding="16dp">
+
+                <!-- CP Level Icon Container -->
+                <FrameLayout
+                    android:id="@+id/cpLevelIconContainer"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_icon_circle_accent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivCpLevel"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_cp_level" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvCpLevelTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="CP Level"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/cpLevelIconContainer"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#B3FFFFFF" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Family Card -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardFamily"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:padding="16dp">
+
+                <!-- Family Icon Container -->
+                <FrameLayout
+                    android:id="@+id/familyIconContainer"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_icon_circle_accent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivFamily"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_family_shield" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvFamilyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Family"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/familyIconContainer"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#B3FFFFFF" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <!-- Management & Centers Card (Agency Center, BD Center, Host Center, Become VIP) -->
             <LinearLayout
                 android:id="@+id/cardCenters"
