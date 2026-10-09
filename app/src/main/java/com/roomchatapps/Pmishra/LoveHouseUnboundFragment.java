@@ -31,6 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.adapters.CpFriendAdapter;
 import com.roomchatapps.Pmishra.databinding.FragmentLoveHouseUnboundBinding;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.utils.CpBindingManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -236,21 +237,11 @@ public class LoveHouseUnboundFragment extends Fragment {
             inviteData.put("status", "accepted");
             inviteRef.setValue(inviteData);
 
-            DatabaseReference bindingRef1 = FirebaseDatabase.getInstance().getReference("cp_bindings").child(currentUid);
-            Map<String, Object> cpData1 = new HashMap<>();
-            cpData1.put("partnerUid", targetUid);
-            cpData1.put("partnerName", !TextUtils.isEmpty(targetUser.getUserName()) ? targetUser.getUserName() : "Partner");
-            cpData1.put("partnerAvatar", !TextUtils.isEmpty(targetUser.getUserIcon()) ? targetUser.getUserIcon() : "");
-            cpData1.put("timestamp", System.currentTimeMillis());
-            bindingRef1.setValue(cpData1);
+            String curName = !TextUtils.isEmpty(binding.tvUserName.getText().toString()) ? binding.tvUserName.getText().toString() : "Partner";
+            String targetName = !TextUtils.isEmpty(targetUser.getUserName()) ? targetUser.getUserName() : "Partner";
+            String targetAvatar = !TextUtils.isEmpty(targetUser.getUserIcon()) ? targetUser.getUserIcon() : "";
 
-            DatabaseReference bindingRef2 = FirebaseDatabase.getInstance().getReference("cp_bindings").child(targetUid);
-            Map<String, Object> cpData2 = new HashMap<>();
-            cpData2.put("partnerUid", currentUid);
-            cpData2.put("partnerName", !TextUtils.isEmpty(binding.tvUserName.getText().toString()) ? binding.tvUserName.getText().toString() : "Partner");
-            cpData2.put("partnerAvatar", "");
-            cpData2.put("timestamp", System.currentTimeMillis());
-            bindingRef2.setValue(cpData2);
+            CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
         }
 
         if (adapter != null) {

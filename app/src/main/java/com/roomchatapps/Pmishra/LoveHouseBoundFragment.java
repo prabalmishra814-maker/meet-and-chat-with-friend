@@ -29,10 +29,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.roomchatapps.Pmishra.adapters.CpHouseThemeAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.databinding.FragmentLoveHouseBoundBinding;
+import com.roomchatapps.Pmishra.models.CpHouseThemeModel;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
+import com.roomchatapps.Pmishra.utils.CpBindingManager;
+import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
@@ -92,11 +96,7 @@ public class LoveHouseBoundFragment extends Fragment {
         });
 
         if (binding.btnWardrobe != null) {
-            binding.btnWardrobe.setOnClickListener(v -> {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "CP Wardrobe & Outfits", Toast.LENGTH_SHORT).show();
-                }
-            });
+            binding.btnWardrobe.setOnClickListener(v -> showCpHouseThemeDialog());
         }
 
         if (binding.btnMenu != null) {
@@ -109,9 +109,26 @@ public class LoveHouseBoundFragment extends Fragment {
 
         binding.btnProposal.setOnClickListener(v -> {
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Proposal sent to CP partner!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getContext(), ProposalActivity.class);
+                if (!TextUtils.isEmpty(partnerUid)) {
+                    intent.putExtra("partnerUid", partnerUid);
+                }
+                startActivity(intent);
             }
         });
+
+        View.OnClickListener openCpLevelListener = v -> {
+            if (getContext() != null) {
+                startActivity(new Intent(getContext(), CpLevelActivity.class));
+            }
+        };
+
+        if (binding.layoutCpLevelBadge != null) {
+            binding.layoutCpLevelBadge.setOnClickListener(openCpLevelListener);
+        }
+        if (binding.tvCpLevel != null) {
+            binding.tvCpLevel.setOnClickListener(openCpLevelListener);
+        }
 
         binding.layoutBottomSendGifts.setOnClickListener(v -> showGiftStoreDialog());
     }
@@ -167,11 +184,14 @@ public class LoveHouseBoundFragment extends Fragment {
                     String partnerAvatar = snapshot.child("partnerAvatar").getValue(String.class);
                     Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
-                    long days = 96;
-                    if (timestamp != null && timestamp > 0) {
-                        long diff = (System.currentTimeMillis() - timestamp) / (1000L * 60 * 60 * 24);
-                        if (diff > 0) days = diff;
+                    if (timestamp == null || timestamp <= 0) {
+                        timestamp = System.currentTimeMillis();
+                        if (cpRef != null) {
+                            cpRef.child("timestamp").setValue(timestamp);
+                        }
                     }
+
+                    long days = CpBindingManager.getBindingDays(timestamp);
                     binding.tvDaysCount.setText(String.valueOf(days));
 
                     if (!TextUtils.isEmpty(partnerName)) {
@@ -188,6 +208,20 @@ public class LoveHouseBoundFragment extends Fragment {
                                 .into(binding.ivPartnerAvatar);
                     }
 
+                    if (snapshot.hasChild("houseTheme")) {
+                        String savedTheme = snapshot.child("houseTheme").getValue(String.class);
+                        if (!TextUtils.isEmpty(savedTheme)) {
+                            equippedThemeId = savedTheme;
+                            if ("pink_aisle".equals(savedTheme)) {
+                                binding.getRoot().setBackgroundResource(R.drawable.bg_theme_pink_aisle);
+                            } else if ("purple_palace".equals(savedTheme)) {
+                                binding.getRoot().setBackgroundResource(R.drawable.bg_theme_purple_palace);
+                            } else {
+                                binding.getRoot().setBackgroundResource(R.drawable.bg_theme_floral_arch);
+                            }
+                        }
+                    }
+
                     loadCpIntimacyAndBlessingStats(partnerUid);
                 }
             }
@@ -195,6 +229,64 @@ public class LoveHouseBoundFragment extends Fragment {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private String equippedThemeId = "floral_arch";
+
+    private void showCpHouseThemeDialog() {
+        if (getContext() == null || getActivity() == null || getActivity().isFinishing()) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(getContext(), R.style.CustomBottomSheetDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_cp_house_theme, null, false);
+        if (dialogView == null) return;
+        dialog.setContentView(dialogView);
+
+        RecyclerView rvThemes = dialogView.findViewById(R.id.rvThemes);
+
+        if (rvThemes != null) {
+            List<CpHouseThemeModel> themeList = new ArrayList<>();
+
+            // Card 1: Custom Upload Theme
+            themeList.add(new CpHouseThemeModel("custom", "Custom Theme", 0, 10, true, true, false));
+
+            // Card 2: Floral Arch Theme (LV.6)
+            themeList.add(new CpHouseThemeModel("floral_arch", "Floral Arch", R.drawable.bg_theme_floral_arch, 6, false, false, "floral_arch".equals(equippedThemeId)));
+
+            // Card 3: Pink Aisle Theme (LV.7)
+            themeList.add(new CpHouseThemeModel("pink_aisle", "Pink Aisle", R.drawable.bg_theme_pink_aisle, 7, false, false, "pink_aisle".equals(equippedThemeId)));
+
+            // Card 4: Purple Palace Theme (LV.8)
+            themeList.add(new CpHouseThemeModel("purple_palace", "Purple Palace", R.drawable.bg_theme_purple_palace, 8, false, false, "purple_palace".equals(equippedThemeId)));
+
+            CpHouseThemeAdapter themeAdapter = new CpHouseThemeAdapter(themeList, (theme, position) -> {
+                if (theme.isCustomAdd() || theme.isLocked()) {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Requires CP Level " + theme.getUnlockLevel() + " to unlock!", Toast.LENGTH_SHORT).show();
+                    }
+                    return;
+                }
+
+                equippedThemeId = theme.getId();
+                if (binding != null) {
+                    binding.getRoot().setBackgroundResource(theme.getDrawableRes());
+                }
+
+                if (cpRef != null) {
+                    cpRef.child("houseTheme").setValue(equippedThemeId);
+                }
+
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Equipped " + theme.getName() + " theme!", Toast.LENGTH_SHORT).show();
+                }
+
+                dialog.dismiss();
+            });
+
+            rvThemes.setLayoutManager(new GridLayoutManager(getContext(), 2));
+            rvThemes.setAdapter(themeAdapter);
+        }
+
+        dialog.show();
     }
 
     private void loadCpIntimacyAndBlessingStats(String pUid) {
@@ -208,26 +300,41 @@ public class LoveHouseBoundFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded() || binding == null) return;
 
-                long intimacy = 35429;
+                long intimacy = 0;
                 if (snapshot.exists()) {
                     Long val = snapshot.child("value").getValue(Long.class);
-                    if (val != null && val > 0) {
+                    if (val != null) {
                         intimacy = val;
                     }
                 }
 
                 binding.tvIntimacyScore.setText("💖 " + intimacy + " Intimacy");
-                binding.tvBlessingScore.setText("🎁 0 Blessing");
 
-                String levelStr = "LV.1";
-                if (intimacy >= 30000) {
-                    levelStr = "LV.4";
-                } else if (intimacy >= 15000) {
-                    levelStr = "LV.3";
-                } else if (intimacy >= 5000) {
-                    levelStr = "LV.2";
+                int level = CpIntimacyManager.calculateCpLevel(intimacy);
+                binding.tvCpLevel.setText("LV." + level);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        DatabaseReference blessingRef = FirebaseDatabase.getInstance().getReference("cp_blessing_values")
+                .child(currentUid).child(pUid);
+
+        blessingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || binding == null) return;
+
+                long blessing = 0;
+                if (snapshot.exists()) {
+                    Long val = snapshot.child("value").getValue(Long.class);
+                    if (val != null) {
+                        blessing = val;
+                    }
                 }
-                binding.tvCpLevel.setText(levelStr);
+
+                binding.tvBlessingScore.setText("🎁 " + blessing + " Blessing");
             }
 
             @Override

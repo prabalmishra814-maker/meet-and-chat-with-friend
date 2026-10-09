@@ -353,7 +353,7 @@ public class ProfileFragment extends Fragment {
             binding.cardCpLevel.setOnClickListener(v -> {
                 AnimationHelper.bounceAnimation(binding.cardCpLevel);
                 if (getActivity() != null) {
-                    Intent intent = new Intent(getActivity(), LoveHouseActivity.class);
+                    Intent intent = new Intent(getActivity(), CpLevelActivity.class);
                     startActivity(intent);
                 }
             });

@@ -98,6 +98,9 @@
         <activity android:name=".CollectionActivity" />
         <activity android:name=".OtherCollectionActivity" />
         <activity android:name=".LoveHouseActivity" />
+        <activity android:name=".CpLevelActivity" />
+        <activity android:name=".ProposalActivity" />
+        <activity android:name=".RingSelectActivity" />
         <activity android:name=".GuardRankActivity" />
         <activity android:name=".ReferralActivity" />
         <activity android:name=".EditProfileActivity" />

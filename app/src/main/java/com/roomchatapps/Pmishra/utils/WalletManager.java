@@ -482,6 +482,7 @@ public class WalletManager {
 
                                     for (String targetUid : targetUids) {
                                         if (targetUid != null && !targetUid.isEmpty()) {
+                                            CpIntimacyManager.addIntimacy(senderUid, targetUid, shareValue);
                                             addEnergyToUser(targetUid, energyAward, giftName, "Received Gift Energy (Targeted): " + giftName);
                                             NotificationHelper.sendGiftNotification(targetUid, giftName);
 
@@ -705,6 +706,7 @@ public class WalletManager {
                         // Broadcast Global Realtime SVGA Banner for Coin Gifts / Direct Transfers
                         if (recipientUid != null && !recipientUid.trim().isEmpty()) {
                             final String targetUid = recipientUid.trim();
+                            CpIntimacyManager.addIntimacy(senderUid, targetUid, giftCost);
                             UserProfileCache.getUserProfile(senderUid, sProfile -> {
                                 String sName = (sProfile != null && sProfile.name != null) ? sProfile.name : "A User";
                                 String sAvatar = (sProfile != null && sProfile.avatarUrl != null) ? sProfile.avatarUrl : "";
