@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,8 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -140,6 +143,8 @@ public class CpFriendAdapter extends RecyclerView.Adapter<CpFriendAdapter.ViewHo
             holder.ivFriendAvatar.setImageResource(R.drawable.img_20260904_135725);
         }
 
+        FrameUtils.displayFrame(context, user.getEquippedFrame(), holder.ivFriendFrame, holder.svgaFriendFrame);
+
         boolean isInvited = invitedUserIds.contains(user.getUserId()) || invitedUserIds.contains(user.getProfileId());
         boolean isSearching = !TextUtils.isEmpty(currentQuery) && !currentQuery.trim().isEmpty();
 
@@ -172,6 +177,8 @@ public class CpFriendAdapter extends RecyclerView.Adapter<CpFriendAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView ivFriendAvatar;
+        ImageView ivFriendFrame;
+        SVGAImageView svgaFriendFrame;
         TextView tvFriendName;
         TextView tvFriendId;
         TextView btnInvite;
@@ -179,6 +186,8 @@ public class CpFriendAdapter extends RecyclerView.Adapter<CpFriendAdapter.ViewHo
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivFriendAvatar = itemView.findViewById(R.id.ivFriendAvatar);
+            ivFriendFrame = itemView.findViewById(R.id.ivFriendFrame);
+            svgaFriendFrame = itemView.findViewById(R.id.svgaFriendFrame);
             tvFriendName = itemView.findViewById(R.id.tvFriendName);
             tvFriendId = itemView.findViewById(R.id.tvFriendId);
             btnInvite = itemView.findViewById(R.id.btnInvite);

@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +39,7 @@ import com.roomchatapps.Pmishra.models.CpHouseThemeModel;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
@@ -50,6 +53,8 @@ public class LoveHouseBoundFragment extends Fragment {
     private FirebaseAuth mAuth;
     private DatabaseReference userRef;
     private DatabaseReference cpRef;
+    private DatabaseReference partnerUserRef;
+    private ValueEventListener partnerUserListener;
     private String currentUid;
     private String partnerUid;
 
@@ -100,11 +105,7 @@ public class LoveHouseBoundFragment extends Fragment {
         }
 
         if (binding.btnMenu != null) {
-            binding.btnMenu.setOnClickListener(v -> {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Love House Options", Toast.LENGTH_SHORT).show();
-                }
-            });
+            binding.btnMenu.setOnClickListener(v -> showLoveHousePopupMenu(v));
         }
 
         binding.btnProposal.setOnClickListener(v -> {
@@ -162,6 +163,9 @@ public class LoveHouseBoundFragment extends Fragment {
                                 .error(R.drawable.img_20260904_135725)
                                 .into(binding.ivUserAvatar);
                     }
+
+                    String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
+                    FrameUtils.displayFrame(getContext(), equippedFrame, binding.ivUserFrame, binding.svgaUserFrame);
                 }
             }
 
@@ -208,6 +212,47 @@ public class LoveHouseBoundFragment extends Fragment {
                                 .into(binding.ivPartnerAvatar);
                     }
 
+                    if (!TextUtils.isEmpty(partnerUid)) {
+                        if (partnerUserRef != null && partnerUserListener != null) {
+                            partnerUserRef.removeEventListener(partnerUserListener);
+                        }
+                        partnerUserRef = FirebaseDatabase.getInstance().getReference("users").child(partnerUid);
+                        partnerUserListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot partnerSnap) {
+                                if (!isAdded() || binding == null) return;
+                                if (partnerSnap.exists()) {
+                                    String pName = partnerSnap.child("name").getValue(String.class);
+                                    String pAvatar = partnerSnap.child("avtar").getValue(String.class);
+                                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerSnap.child("avatar").getValue(String.class);
+                                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerSnap.child("photoUrl").getValue(String.class);
+                                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerSnap.child("image").getValue(String.class);
+                                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerSnap.child("userIcon").getValue(String.class);
+
+                                    String pFrame = partnerSnap.child("equipped_frame").getValue(String.class);
+
+                                    if (!TextUtils.isEmpty(pName)) {
+                                        binding.tvPartnerName.setText(pName);
+                                    }
+
+                                    if (!TextUtils.isEmpty(pAvatar) && getContext() != null) {
+                                        Glide.with(getContext())
+                                                .load(pAvatar)
+                                                .placeholder(R.drawable.img_20260904_135725)
+                                                .error(R.drawable.img_20260904_135725)
+                                                .into(binding.ivPartnerAvatar);
+                                    }
+
+                                    FrameUtils.displayFrame(getContext(), pFrame, binding.ivPartnerFrame, binding.svgaPartnerFrame);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {}
+                        };
+                        partnerUserRef.addValueEventListener(partnerUserListener);
+                    }
+
                     if (snapshot.hasChild("houseTheme")) {
                         String savedTheme = snapshot.child("houseTheme").getValue(String.class);
                         if (!TextUtils.isEmpty(savedTheme)) {
@@ -232,6 +277,87 @@ public class LoveHouseBoundFragment extends Fragment {
     }
 
     private String equippedThemeId = "floral_arch";
+
+    private void showLoveHousePopupMenu(View anchorView) {
+        if (getContext() == null || anchorView == null) return;
+
+        View popupView = getLayoutInflater().inflate(R.layout.popup_love_house_menu, null, false);
+        PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+
+        popupWindow.setElevation(16f);
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true);
+
+        View itemBreakUp = popupView.findViewById(R.id.itemCpBreakUp);
+        View itemRule = popupView.findViewById(R.id.itemRule);
+
+        if (itemBreakUp != null) {
+            itemBreakUp.setOnClickListener(v -> {
+                popupWindow.dismiss();
+                confirmCpBreakUp();
+            });
+        }
+
+        if (itemRule != null) {
+            itemRule.setOnClickListener(v -> {
+                popupWindow.dismiss();
+                showCpHelpDialog();
+            });
+        }
+
+        int xOffset = -dpToPx(100);
+        int yOffset = dpToPx(8);
+        popupWindow.showAsDropDown(anchorView, xOffset, yOffset);
+    }
+
+    private void confirmCpBreakUp() {
+        if (getContext() == null) return;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Break Up CP")
+                .setMessage("Are you sure you want to break up your CP relationship?")
+                .setPositiveButton("Break Up", (dialog, which) -> {
+                    if (currentUid != null) {
+                        DatabaseReference db = FirebaseDatabase.getInstance().getReference("cp_bindings");
+                        db.child(currentUid).removeValue();
+                        if (!TextUtils.isEmpty(partnerUid)) {
+                            db.child(partnerUid).removeValue();
+                        }
+
+                        DatabaseReference inviteDb = FirebaseDatabase.getInstance().getReference("cp_invitations");
+                        inviteDb.child(currentUid).removeValue();
+                        if (!TextUtils.isEmpty(partnerUid)) {
+                            inviteDb.child(partnerUid).removeValue();
+                        }
+                    }
+                    Toast.makeText(getContext(), "CP relationship broken up", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void showCpHelpDialog() {
+        if (getContext() == null) return;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Love House & CP Rules")
+                .setMessage("1. Guard value between two friends must reach 600 or more to become a CP.\n\n" +
+                        "2. Send gifts and interact together in voice chat rooms to increase your intimacy & guard value.\n\n" +
+                        "3. When you bind with a CP, your CP status and special animations will be unlocked!\n\n" +
+                        "4. You can break up your CP relationship at any time from this menu.")
+                .setPositiveButton("Got It", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private int dpToPx(int dp) {
+        if (getContext() == null) return dp;
+        return (int) (dp * getContext().getResources().getDisplayMetrics().density);
+    }
 
     private void showCpHouseThemeDialog() {
         if (getContext() == null || getActivity() == null || getActivity().isFinishing()) return;
@@ -447,6 +573,9 @@ public class LoveHouseBoundFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (partnerUserRef != null && partnerUserListener != null) {
+            partnerUserRef.removeEventListener(partnerUserListener);
+        }
         super.onDestroyView();
         binding = null;
     }

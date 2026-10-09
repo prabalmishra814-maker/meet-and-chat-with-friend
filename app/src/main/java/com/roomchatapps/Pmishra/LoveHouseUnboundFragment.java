@@ -32,6 +32,7 @@ import com.roomchatapps.Pmishra.adapters.CpFriendAdapter;
 import com.roomchatapps.Pmishra.databinding.FragmentLoveHouseUnboundBinding;
 import com.roomchatapps.Pmishra.models.User;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,6 +82,7 @@ public class LoveHouseUnboundFragment extends Fragment {
         setupRecyclerView();
         setupSearchAndActions();
         loadCurrentUserData();
+        resetPartnerDisplayToDefault();
         loadCandidateFriends();
     }
 
@@ -221,8 +223,45 @@ public class LoveHouseUnboundFragment extends Fragment {
         return 0;
     }
 
+    public void resetPartnerDisplayToDefault() {
+        if (binding == null) return;
+
+        binding.tvPlusSign.setVisibility(View.VISIBLE);
+        binding.ivPartnerAvatar.setVisibility(View.GONE);
+        FrameUtils.clearFrame(binding.ivPartnerFrame, binding.svgaPartnerFrame);
+        binding.tvPartnerName.setText("Add");
+    }
+
+    public void updatePartnerDisplay(User partner) {
+        if (binding == null || partner == null) return;
+
+        binding.tvPlusSign.setVisibility(View.GONE);
+        binding.ivPartnerAvatar.setVisibility(View.VISIBLE);
+
+        String avatar = partner.getUserIcon();
+        if (!TextUtils.isEmpty(avatar) && getContext() != null) {
+            Glide.with(getContext())
+                    .load(avatar)
+                    .placeholder(R.drawable.img_20260904_135725)
+                    .error(R.drawable.img_20260904_135725)
+                    .into(binding.ivPartnerAvatar);
+        } else {
+            binding.ivPartnerAvatar.setImageResource(R.drawable.img_20260904_135725);
+        }
+
+        String frame = partner.getEquippedFrame();
+        FrameUtils.displayFrame(getContext(), frame, binding.ivPartnerFrame, binding.svgaPartnerFrame);
+
+        String name = !TextUtils.isEmpty(partner.getUserName()) ? partner.getUserName() : "Partner";
+        binding.tvPartnerName.setText(name);
+    }
+
+
+
     private void bindCpPartnerDirectly(User targetUser) {
         if (targetUser == null || getContext() == null) return;
+
+        updatePartnerDisplay(targetUser);
 
         String targetUid = targetUser.getUserId() != null ? targetUser.getUserId() : targetUser.getProfileId();
         if (targetUid == null) return;
@@ -241,7 +280,29 @@ public class LoveHouseUnboundFragment extends Fragment {
             String targetName = !TextUtils.isEmpty(targetUser.getUserName()) ? targetUser.getUserName() : "Partner";
             String targetAvatar = !TextUtils.isEmpty(targetUser.getUserIcon()) ? targetUser.getUserIcon() : "";
 
-            CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
+            if (userRef != null) {
+                userRef.child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snap) {
+                        String curAvatar = "";
+                        if (snap.exists()) {
+                            curAvatar = snap.child("avtar").getValue(String.class);
+                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("avatar").getValue(String.class);
+                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("photoUrl").getValue(String.class);
+                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("image").getValue(String.class);
+                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("userIcon").getValue(String.class);
+                        }
+                        CpBindingManager.createCpBinding(currentUid, curName, curAvatar, targetUid, targetName, targetAvatar);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
+                    }
+                });
+            } else {
+                CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
+            }
         }
 
         if (adapter != null) {
@@ -253,7 +314,8 @@ public class LoveHouseUnboundFragment extends Fragment {
     }
 
     private void showCpInsufficientGuardDialog(User targetUser) {
-        if (getContext() == null) return;
+        if (getContext() == null || targetUser == null) return;
+        updatePartnerDisplay(targetUser);
         com.roomchatapps.Pmishra.dialogs.CpInsufficientGuardDialog dialog = new com.roomchatapps.Pmishra.dialogs.CpInsufficientGuardDialog(getContext(), targetUser);
         dialog.setOnProtectClickListener(() -> {
             if (getContext() != null) {
@@ -354,9 +416,12 @@ public class LoveHouseUnboundFragment extends Fragment {
         if (TextUtils.isEmpty(avatar)) avatar = ds.child("image").getValue(String.class);
         if (TextUtils.isEmpty(avatar)) avatar = ds.child("userIcon").getValue(String.class);
 
+        String frame = ds.child("equipped_frame").getValue(String.class);
+
         user.setUserName(!TextUtils.isEmpty(name) ? name : "User");
         user.setProfileId(profileId);
         user.setUserIcon(avatar);
+        user.setEquippedFrame(frame);
 
         candidateList.add(user);
         return true;
@@ -391,6 +456,9 @@ public class LoveHouseUnboundFragment extends Fragment {
                                 .error(R.drawable.img_20260904_135725)
                                 .into(binding.ivUserAvatar);
                     }
+
+                    String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
+                    FrameUtils.displayFrame(getContext(), equippedFrame, binding.ivUserFrame, binding.svgaUserFrame);
                 }
             }
 

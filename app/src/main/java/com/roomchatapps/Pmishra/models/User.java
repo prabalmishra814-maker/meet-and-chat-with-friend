@@ -8,6 +8,7 @@ public class User {
     private String profileId;
     private String userName;
     private String userIcon;
+    private String equippedFrame;
     private boolean isHost;
     private boolean isSpeaker;
     private boolean isMicOn;
@@ -46,6 +47,11 @@ public class User {
     public String getUserIcon() { return userIcon; }
     @PropertyName("avtar")
     public void setUserIcon(String userIcon) { this.userIcon = userIcon; }
+
+    @PropertyName("equipped_frame")
+    public String getEquippedFrame() { return equippedFrame; }
+    @PropertyName("equipped_frame")
+    public void setEquippedFrame(String equippedFrame) { this.equippedFrame = equippedFrame; }
 
     public boolean isHost() { return isHost; }
     public void setHost(boolean host) { isHost = host; }

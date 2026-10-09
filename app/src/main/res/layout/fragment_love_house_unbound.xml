@@ -75,29 +75,50 @@
                 android:orientation="vertical">
 
                 <FrameLayout
-                    android:layout_width="72dp"
-                    android:layout_height="72dp">
+                    android:id="@+id/flUserAvatarContainer"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp">
 
                     <View
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:layout_gravity="center"
                         android:background="@drawable/bg_avatar_white_ring" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivUserAvatar"
-                        android:layout_width="66dp"
-                        android:layout_height="66dp"
+                        android:layout_width="58dp"
+                        android:layout_height="58dp"
                         android:layout_gravity="center"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_20260904_135725"
                         app:shapeAppearanceOverlay="@style/CircleImage" />
+
+                    <!-- Frame Overlay (Static) -->
+                    <ImageView
+                        android:id="@+id/ivUserFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone" />
+
+                    <!-- Animated SVGA Frame Overlay -->
+                    <com.opensource.svgaplayer.SVGAImageView
+                        android:id="@+id/svgaUserFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        app:autoPlay="true"
+                        app:loopCount="0" />
                 </FrameLayout>
 
                 <TextView
                     android:id="@+id/tvUserName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="Prabal Mishra"
@@ -125,8 +146,8 @@
 
                 <FrameLayout
                     android:id="@+id/containerCpAdd"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
                     android:background="@drawable/bg_cp_add_circle"
                     android:clickable="true"
                     android:focusable="true">
@@ -143,19 +164,38 @@
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivPartnerAvatar"
-                        android:layout_width="66dp"
-                        android:layout_height="66dp"
+                        android:layout_width="58dp"
+                        android:layout_height="58dp"
                         android:layout_gravity="center"
                         android:scaleType="centerCrop"
                         android:visibility="gone"
                         app:shapeAppearanceOverlay="@style/CircleImage" />
+
+                    <!-- Frame Overlay (Static) -->
+                    <ImageView
+                        android:id="@+id/ivPartnerFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone" />
+
+                    <!-- Animated SVGA Frame Overlay -->
+                    <com.opensource.svgaplayer.SVGAImageView
+                        android:id="@+id/svgaPartnerFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        app:autoPlay="true"
+                        app:loopCount="0" />
                 </FrameLayout>
 
                 <TextView
                     android:id="@+id/tvPartnerName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="Add"

@@ -8,14 +8,39 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
-    <!-- Candidate Avatar -->
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivFriendAvatar"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/img_20260904_135725"
-        app:shapeAppearanceOverlay="@style/CircleImage" />
+    <!-- Candidate Avatar Container -->
+    <FrameLayout
+        android:layout_width="60dp"
+        android:layout_height="60dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivFriendAvatar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img_20260904_135725"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <!-- Static Frame Overlay -->
+        <ImageView
+            android:id="@+id/ivFriendFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Animated SVGA Frame Overlay -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaFriendFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="0" />
+    </FrameLayout>
 
     <!-- Name and ID Info -->
     <LinearLayout
