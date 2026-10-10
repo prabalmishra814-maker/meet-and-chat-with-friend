@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="54dp"
+    android:height="54dp"
+    android:viewportWidth="54"
+    android:viewportHeight="54">
+    <!-- Blue Heart Medal Ring Base -->
+    <path
+        android:fillColor="#29B6F6"
+        android:pathData="M27,8 C15,8 8,17 8,26 C8,35 18,41 27,46 C36,41 46,35 46,26 C46,17 39,8 27,8 Z" />
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M27,12 C18,12 12,19 12,26 C12,33 20,38 27,42 C34,38 42,33 42,26 C42,19 36,12 27,12 Z" />
+
+    <!-- Wings -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M12,20 C4,14 0,22 8,26 Z" />
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M42,20 C50,14 54,22 46,26 Z" />
+
+    <!-- LV.4 Pill Badge -->
+    <path
+        android:fillColor="#0288D1"
+        android:pathData="M18,30 L36,30 A4,4 0 0,1 40,34 L40,34 A4,4 0 0,1 36,38 L18,38 A4,4 0 0,1 14,34 L14,34 A4,4 0 0,1 18,30 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,32 L22,32 L22,36 L24,36 L24,37 L20,37 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,32 L30,32 L30,34 L32,34 L32,32 L34,32 L34,37 L32,37 L32,35 L30,35 L30,37 L28,37 Z" />
+</vector>

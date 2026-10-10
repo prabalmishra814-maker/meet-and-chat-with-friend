@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_wedding_aisle">
+
+    <!-- Top Header Bar (Fixed at Top) -->
+    <RelativeLayout
+        android:id="@+id/headerBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:minHeight="56dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:paddingHorizontal="16dp">
+
+            <!-- Back Button -->
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_exit_circle_ripple"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/ic_back_arrow" />
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tvHeaderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="Proposal"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <!-- Main Content Area -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerBar"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="12dp">
+
+            <!-- Center Stationery Letter Card -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Stacked Paper Shadow Effect -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="440dp"
+                    android:layout_marginTop="8dp"
+                    android:rotation="3"
+                    android:background="@drawable/bg_proposal_card"
+                    android:alpha="0.5" />
+
+                <!-- Main White Letter Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_proposal_card"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="24dp">
+
+                    <!-- Dual Circular Avatars at Top -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <!-- Left User Avatar -->
+                        <FrameLayout
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:layout_marginEnd="-8dp">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_avatar_white_ring" />
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/ivUserAvatar"
+                                android:layout_width="58dp"
+                                android:layout_height="58dp"
+                                android:layout_gravity="center"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/img_20260904_135725"
+                                app:shapeAppearanceOverlay="@style/CircleImage" />
+                        </FrameLayout>
+
+                        <!-- Right Partner Avatar -->
+                        <FrameLayout
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:layout_marginStart="-8dp">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_partner_blue_ring" />
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/ivPartnerAvatar"
+                                android:layout_width="58dp"
+                                android:layout_height="58dp"
+                                android:layout_gravity="center"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/img_20260904_135725"
+                                app:shapeAppearanceOverlay="@style/CircleImage" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <!-- Proposal To Label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Proposal to"
+                        android:textColor="#B38059"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <!-- Partner Name -->
+                    <TextView
+                        android:id="@+id/tvPartnerName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Ishant Sharma"
+                        android:textColor="#AD2B6A"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <!-- Ring Selection Container & Tooltip -->
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp">
+
+                        <!-- Pink Tooltip Callout on Left -->
+                        <TextView
+                            android:id="@+id/layoutRingTooltip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toStartOf="@id/layoutRingBox"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/bg_tooltip_pink"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:text="Click to add a ring"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <!-- Center Pink Square Ring Box -->
+                        <FrameLayout
+                            android:id="@+id/layoutRingBox"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:layout_centerInParent="true"
+                            android:background="@drawable/bg_ring_box"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:id="@+id/ivRingIcon"
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:layout_gravity="center"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/ic_proposal_ring_icon" />
+
+                            <TextView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="top|end"
+                                android:layout_margin="4dp"
+                                android:gravity="center"
+                                android:text="+"
+                                android:textColor="#FFFFFF"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </FrameLayout>
+
+                    </RelativeLayout>
+
+                    <!-- Editable Proposal Message -->
+                    <EditText
+                        android:id="@+id/etProposalMessage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:background="@null"
+                        android:gravity="center"
+                        android:lineSpacingExtra="8dp"
+                        android:minLines="2"
+                        android:text="So lucky to meet you, hope I can marry you and\nstay together for a life time~"
+                        android:textColor="#B38059"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:background="#E0C2A6" />
+
+                    <!-- Choose Wedding Date Button -->
+                    <TextView
+                        android:id="@+id/btnChooseDate"
+                        android:layout_width="200dp"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="24dp"
+                        android:background="@drawable/bg_btn_choose_date"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="Choose wedding date"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <!-- Confirm Proposal Button at Bottom -->
+            <TextView
+                android:id="@+id/btnConfirmProposal"
+                android:layout_width="220dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/proposal_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
+                android:paddingBottom="8dp"
+                android:shadowColor="#80000000"
+                android:shadowDx="1.8"
+                android:shadowDy="1.8"
+                android:shadowRadius="4"
+                android:text="Confirm"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Subtitle Requirement Text -->
+            <TextView
+                android:id="@+id/tvProposalRequirement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="CP level meets to propose"
+                android:textColor="#41CDDC39"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</RelativeLayout>

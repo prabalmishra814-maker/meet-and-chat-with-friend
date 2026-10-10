@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp"
+    android:height="48dp"
+    android:viewportWidth="60"
+    android:viewportHeight="48">
+    <!-- Envelope Body Base -->
+    <path
+        android:fillColor="#FFF8E1"
+        android:pathData="M6,12 L54,12 L54,42 L6,42 Z" />
+    <!-- Envelope Flap Line Fold -->
+    <path
+        android:fillColor="#FFE082"
+        android:pathData="M6,12 L30,28 L54,12 L50,12 L30,25 L10,12 Z" />
+    <path
+        android:fillColor="#FFECB3"
+        android:pathData="M6,42 L24,26 L6,16 Z" />
+    <path
+        android:fillColor="#FFECB3"
+        android:pathData="M54,42 L36,26 L54,16 Z" />
+
+    <!-- Red Wax Seal -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M30,26 A6,6 0 1,1 29.9,26 Z" />
+    <path
+        android:fillColor="#B71C1C"
+        android:pathData="M30,28 A4,4 0 1,1 29.9,28 Z" />
+
+    <!-- Marry Me Text Lines Sim -->
+    <path
+        android:fillColor="#D81B60"
+        android:pathData="M22,17 L38,17 L38,18 L22,18 Z" />
+    <path
+        android:fillColor="#D81B60"
+        android:pathData="M25,21 L35,21 L35,22 L25,22 Z" />
+</vector>

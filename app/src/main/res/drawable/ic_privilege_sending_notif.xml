@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="40dp"
+    android:viewportWidth="64"
+    android:viewportHeight="40">
+    <!-- Notification Pill Banner -->
+    <path
+        android:fillColor="#EC407A"
+        android:pathData="M12,10 L52,10 A10,10 0 0,1 62,20 L62,20 A10,10 0 0,1 52,30 L12,30 A10,10 0 0,1 2,20 L2,20 A10,10 0 0,1 12,10 Z" />
+    <path
+        android:fillColor="#F48FB1"
+        android:pathData="M12,12 L52,12 A8,8 0 0,1 60,20 L60,20 A8,8 0 0,1 52,28 L12,28 A8,8 0 0,1 4,20 L4,20 A8,8 0 0,1 12,12 Z" />
+
+    <!-- Avatar Circle Left -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M12,12 A8,8 0 1,1 11.9,12 Z" />
+    <path
+        android:fillColor="#5C6BC0"
+        android:pathData="M12,14 A6,6 0 1,1 11.9,14 Z" />
+
+    <!-- Text line representation -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22,17 L38,17 L38,19 L22,19 Z" />
+    <path
+        android:fillColor="#FFE082"
+        android:pathData="M22,21 L32,21 L32,23 L22,23 Z" />
+
+    <!-- GO Badge Button Right -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M50,14 A6,6 0 1,1 49.9,14 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,17 L48,21 L52,21 L52,19 L50,19 L50,18 L52,18 L52,17 Z" />
+</vector>

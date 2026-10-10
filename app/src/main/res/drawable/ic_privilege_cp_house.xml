@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="54dp"
+    android:height="54dp"
+    android:viewportWidth="54"
+    android:viewportHeight="54">
+    <!-- Blue Glow Aura -->
+    <path
+        android:fillColor="#4064B5F6"
+        android:pathData="M27,2 A25,25 0 1,1 26.9,2 Z" />
+    <!-- Castle Towers -->
+    <path
+        android:fillColor="#42A5F5"
+        android:pathData="M16,22 L16,42 L38,42 L38,22 L32,22 L32,28 L28,28 L28,22 Z" />
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M12,28 L12,42 L18,42 L18,28 Z" />
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M36,28 L36,42 L42,42 L42,28 Z" />
+    <!-- Castle Spire Spires -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M27,10 L21,22 L33,22 Z" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M15,18 L10,28 L20,28 Z" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M39,18 L34,28 L44,28 Z" />
+    <!-- Door -->
+    <path
+        android:fillColor="#0D47A1"
+        android:pathData="M23,34 A4,4 0 0,1 31,34 L31,42 L23,42 Z" />
+</vector>

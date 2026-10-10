@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="48dp"
+    android:viewportWidth="64"
+    android:viewportHeight="48">
+    <!-- Left Avatar Circle -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M18,12 A14,14 0 1,1 17.9,12 Z" />
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M18,14 A12,12 0 1,1 17.9,14 Z" />
+    <path
+        android:fillColor="#5C6BC0"
+        android:pathData="M18,18 A5,5 0 1,1 17.9,18 Z" />
+    <path
+        android:fillColor="#5C6BC0"
+        android:pathData="M10,34 C10,29 14,27 18,27 C22,27 26,29 26,34 Z" />
+
+    <!-- Right Avatar Circle -->
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M46,18 A12,12 0 1,1 45.9,18 Z" />
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M46,20 A10,10 0 1,1 45.9,20 Z" />
+    <path
+        android:fillColor="#EC407A"
+        android:pathData="M46,23 A4,4 0 1,1 45.9,23 Z" />
+    <path
+        android:fillColor="#EC407A"
+        android:pathData="M39,36 C39,32 42,30 46,30 C50,30 53,32 53,36 Z" />
+
+    <!-- Connecting Winged Heart -->
+    <path
+        android:fillColor="#FF206E"
+        android:pathData="M32,22 C32,22 28,18 26,21 C24,24 28,27 32,30 C36,27 40,24 38,21 C36,18 32,22 32,22 Z" />
+    <!-- Wings -->
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M26,22 C22,20 19,23 23,25 Z" />
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M38,22 C42,20 45,23 41,25 Z" />
+</vector>

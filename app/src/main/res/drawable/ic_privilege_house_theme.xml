@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="54dp"
+    android:height="54dp"
+    android:viewportWidth="54"
+    android:viewportHeight="54">
+    <!-- Store House Base -->
+    <path
+        android:fillColor="#F48FB1"
+        android:pathData="M12,22 L42,22 L42,44 L12,44 Z" />
+    <!-- Roof Awning Striped -->
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M8,14 L46,14 L46,22 L8,22 Z" />
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M14,14 L20,14 L20,22 L14,22 Z" />
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M26,14 L32,14 L32,22 L26,22 Z" />
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M38,14 L44,14 L44,22 L38,22 Z" />
+    <!-- Heart Door -->
+    <path
+        android:fillColor="#EC407A"
+        android:pathData="M27,28 C27,28 21,24 19,27 C17,30 22,34 27,38 C32,34 37,30 35,27 C33,24 27,28 27,28 Z" />
+</vector>

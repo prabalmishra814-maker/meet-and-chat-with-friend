@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardThemeContainer"
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="#FAFAFA"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Theme Preview Background Image -->
+        <ImageView
+            android:id="@+id/ivThemePreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_theme_floral_arch" />
+
+        <!-- Custom Add Plus Icon (For Custom Theme Card) -->
+        <ImageView
+            android:id="@+id/ivCustomPlus"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerInParent="true"
+            android:src="@android:drawable/ic_input_add"
+            android:visibility="gone"
+            app:tint="#CCCCCC" />
+
+        <!-- Top Left Lock Icon -->
+        <ImageView
+            android:id="@+id/ivLockIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="10dp"
+            android:background="@drawable/bg_exit_circle_ripple"
+            android:padding="5dp"
+            android:src="@android:drawable/ic_lock_lock"
+            app:tint="#FFFFFF" />
+
+        <!-- Top Right Level Badge (e.g. LV.6) -->
+        <TextView
+            android:id="@+id/tvLevelBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="10dp"
+            android:background="@drawable/bg_level_badge_pink"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:text="LV.6"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <!-- Bottom Action Button Bar (Use / In Use) -->
+        <TextView
+            android:id="@+id/btnUseTheme"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_alignParentBottom="true"
+            android:background="#90E6A885"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Use"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

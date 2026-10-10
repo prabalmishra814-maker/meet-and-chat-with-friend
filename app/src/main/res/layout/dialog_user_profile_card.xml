@@ -595,45 +595,122 @@
 
     </LinearLayout>
 
-    <!-- Center Top Floating Avatar Stack -->
-    <FrameLayout
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+    <!-- Center Top Floating Double/Single Avatar Stack -->
+    <RelativeLayout
+        android:id="@+id/flAvatarContainer"
+        android:layout_width="168dp"
+        android:layout_height="108dp"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
-        <!-- Circular User Avatar (Drawn First - Inside Frame Hole) -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivUserProfileAvatar"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@drawable/logo_placeholder"
-            app:shapeAppearanceOverlay="@style/CircleImage"
-            app:strokeColor="#10FFFFFF"
-            app:strokeWidth="1dp" />
+        <!-- CP Partner Avatar Container (Drawn BEHIND on Right) -->
+        <FrameLayout
+            android:id="@+id/flCpPartnerAvatarContainer"
+            android:layout_width="68dp"
+            android:layout_height="68dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="88dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:visibility="gone">
 
-        <!-- Profile Frame Overlay (Drawn On Top) -->
-        <ImageView
-            android:id="@+id/ivUserProfileFrame"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_gravity="center"
-            android:contentDescription="Profile Frame"
-            android:scaleType="fitCenter"
-            android:visibility="gone" />
+            <!-- Ultra-Sharp Pure White Ring Background View -->
+            <View
+                android:layout_width="63dp"
+                android:layout_height="63dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_avatar_white_ring" />
 
-        <!-- Animated SVGA Profile Frame Overlay (Drawn On Top) -->
-        <com.opensource.svgaplayer.SVGAImageView
-            android:id="@+id/svgaUserProfileFrame"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            app:autoPlay="true"
-            app:loopCount="0" />
+            <!-- Circular CP Partner Profile Pic -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivCpPartnerAvatar"
+                android:layout_width="58dp"
+                android:layout_height="58dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                app:shapeAppearanceOverlay="@style/CircleImage" />
+        </FrameLayout>
 
-    </FrameLayout>
+        <!-- Main User Avatar Container (Drawn IN FRONT on Left - With Equipped Frame/Banner) -->
+        <FrameLayout
+            android:id="@+id/flMainUserAvatarContainer"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:layout_centerVertical="true"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Circular Main User Avatar -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivUserProfileAvatar"
+                android:layout_width="66dp"
+                android:layout_height="66dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                app:strokeColor="#10FFFFFF"
+                app:strokeWidth="1dp" />
+
+            <!-- Main Profile Frame Overlay (Static) -->
+            <ImageView
+                android:id="@+id/ivUserProfileFrame"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="center"
+                android:contentDescription="Profile Frame"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <!-- Main Profile Animated SVGA Frame Overlay -->
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaUserProfileFrame"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
+        </FrameLayout>
+
+        <!-- Center Junction CP Badge / Level Ring -->
+        <FrameLayout
+            android:id="@+id/layoutCpJunctionBadge"
+            android:layout_width="44dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="66dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivCpBadgeIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="CP Badge"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_cp_level_badge" />
+
+            <TextView
+                android:id="@+id/tvCpLevelBadgeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="2dp"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="LV.1"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>

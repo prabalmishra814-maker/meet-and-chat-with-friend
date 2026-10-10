@@ -6,6 +6,8 @@ import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
+import com.roomchatapps.Pmishra.utils.CpBindingManager;
+import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.StoreManager;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
@@ -41,6 +43,7 @@ import android.os.SystemClock;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
@@ -1289,9 +1292,70 @@ public class RoomChatActivity extends AppCompatActivity {
                         tvLocation.setText(loc);
                     }
 
-                    // Frame Overlay
+                    // Frame Overlay on Front Avatar
                     String equippedFrame = snapshot.child("equipped_frame").getValue(String.class);
                     FrameUtils.displayFrame(RoomChatActivity.this, equippedFrame, ivProfileFrame, svgaProfileFrame);
+
+                    // Check CP Binding for Double Avatar Display
+                    View flCpPartnerAvatarContainer = profileView.findViewById(R.id.flCpPartnerAvatarContainer);
+                    ImageView ivCpPartnerAvatar = profileView.findViewById(R.id.ivCpPartnerAvatar);
+                    View layoutCpJunctionBadge = profileView.findViewById(R.id.layoutCpJunctionBadge);
+                    TextView tvCpLevelBadgeText = profileView.findViewById(R.id.tvCpLevelBadgeText);
+
+                    Runnable hideCpPartner = () -> {
+                        if (flCpPartnerAvatarContainer != null) flCpPartnerAvatarContainer.setVisibility(View.GONE);
+                        if (layoutCpJunctionBadge != null) layoutCpJunctionBadge.setVisibility(View.GONE);
+                    };
+
+                    DatabaseReference cpBindingRootRef = FirebaseDatabase.getInstance().getReference("cp_bindings");
+                    cpBindingRootRef.child(targetUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot cpSnap) {
+                            if (isFinishing() || isDestroyed()) return;
+
+                            String cpPartnerUid = null;
+                            Long timestamp = null;
+
+                            if (cpSnap.exists() && cpSnap.hasChild("partnerUid")) {
+                                cpPartnerUid = cpSnap.child("partnerUid").getValue(String.class);
+                                timestamp = cpSnap.child("timestamp").getValue(Long.class);
+                            }
+
+                            if (!TextUtils.isEmpty(cpPartnerUid)) {
+                                bindCpPartnerInfo(targetUid, cpPartnerUid, timestamp, flCpPartnerAvatarContainer, layoutCpJunctionBadge, tvCpLevelBadgeText, ivCpPartnerAvatar);
+                            } else {
+                                // Search fallback if stored under partner key
+                                cpBindingRootRef.orderByChild("partnerUid").equalTo(targetUid).limitToFirst(1)
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot searchSnap) {
+                                                if (isFinishing() || isDestroyed()) return;
+                                                if (searchSnap.exists() && searchSnap.hasChildren()) {
+                                                    for (DataSnapshot child : searchSnap.getChildren()) {
+                                                        String foundPartnerUid = child.getKey();
+                                                        Long ts = child.child("timestamp").getValue(Long.class);
+                                                        if (!TextUtils.isEmpty(foundPartnerUid)) {
+                                                            bindCpPartnerInfo(targetUid, foundPartnerUid, ts, flCpPartnerAvatarContainer, layoutCpJunctionBadge, tvCpLevelBadgeText, ivCpPartnerAvatar);
+                                                            return;
+                                                        }
+                                                    }
+                                                }
+                                                hideCpPartner.run();
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                                hideCpPartner.run();
+                                            }
+                                        });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            hideCpPartner.run();
+                        }
+                    });
 
                     // Level & XP Progress
                     TextView tvLevelBadge = profileView.findViewById(R.id.tvLevelBadge);
@@ -5710,6 +5774,104 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private void playEntrySceneVideo() {
         // Entry video dialog removed
+    }
+
+    private void bindCpPartnerInfo(String targetUid, String pUid, Long timestamp, View flCpPartnerAvatarContainer, View layoutCpJunctionBadge, TextView tvCpLevelBadgeText, ImageView ivCpPartnerAvatar) {
+        if (isFinishing() || isDestroyed()) return;
+
+        if (flCpPartnerAvatarContainer != null) flCpPartnerAvatarContainer.setVisibility(View.VISIBLE);
+        if (layoutCpJunctionBadge != null) layoutCpJunctionBadge.setVisibility(View.VISIBLE);
+
+        // Query "cp_guard_values" to get real intimacy score and calculate actual CP Level (LV.1 to LV.10)
+        DatabaseReference cpGuardRootRef = FirebaseDatabase.getInstance().getReference("cp_guard_values");
+        cpGuardRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+
+                long maxIntimacy = 0;
+                if (snapshot.exists()) {
+                    if (snapshot.hasChild(targetUid) && snapshot.child(targetUid).hasChild(pUid)) {
+                        maxIntimacy = Math.max(maxIntimacy, parseGuardValue(snapshot.child(targetUid).child(pUid)));
+                    }
+                    if (snapshot.hasChild(pUid) && snapshot.child(pUid).hasChild(targetUid)) {
+                        maxIntimacy = Math.max(maxIntimacy, parseGuardValue(snapshot.child(pUid).child(targetUid)));
+                    }
+                    String pairKey1 = targetUid + "_" + pUid;
+                    String pairKey2 = pUid + "_" + targetUid;
+                    if (snapshot.hasChild(pairKey1)) {
+                        maxIntimacy = Math.max(maxIntimacy, parseGuardValue(snapshot.child(pairKey1)));
+                    }
+                    if (snapshot.hasChild(pairKey2)) {
+                        maxIntimacy = Math.max(maxIntimacy, parseGuardValue(snapshot.child(pairKey2)));
+                    }
+                }
+
+                int cpLevel = CpIntimacyManager.calculateCpLevel(maxIntimacy);
+                if (tvCpLevelBadgeText != null) {
+                    tvCpLevelBadgeText.setText("LV." + cpLevel);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (tvCpLevelBadgeText != null) {
+                    tvCpLevelBadgeText.setText("LV.1");
+                }
+            }
+        });
+
+        View.OnClickListener cpClickListener = v -> {
+            Intent intent = new Intent(RoomChatActivity.this, CpLevelActivity.class);
+            startActivity(intent);
+        };
+
+        if (layoutCpJunctionBadge != null) layoutCpJunctionBadge.setOnClickListener(cpClickListener);
+
+        DatabaseReference cpUserRef = FirebaseDatabase.getInstance().getReference("users").child(pUid);
+        cpUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot partnerUserSnap) {
+                if (isFinishing() || isDestroyed()) return;
+                if (partnerUserSnap.exists()) {
+                    String pAvatar = partnerUserSnap.child("avtar").getValue(String.class);
+                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerUserSnap.child("avatar").getValue(String.class);
+                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerUserSnap.child("photoUrl").getValue(String.class);
+                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerUserSnap.child("image").getValue(String.class);
+                    if (TextUtils.isEmpty(pAvatar)) pAvatar = partnerUserSnap.child("userIcon").getValue(String.class);
+
+                    if (!TextUtils.isEmpty(pAvatar) && ivCpPartnerAvatar != null) {
+                        Glide.with(RoomChatActivity.this)
+                                .load(pAvatar)
+                                .placeholder(R.drawable.logo_placeholder)
+                                .error(R.drawable.logo_placeholder)
+                                .into(ivCpPartnerAvatar);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private long parseGuardValue(DataSnapshot snapshot) {
+        if (snapshot == null || !snapshot.exists()) return 0;
+        if (snapshot.hasChild("value")) {
+            Object val = snapshot.child("value").getValue();
+            if (val != null) {
+                try {
+                    return Long.parseLong(String.valueOf(val).trim());
+                } catch (Exception ignored) {}
+            }
+        }
+        Object rootVal = snapshot.getValue();
+        if (rootVal != null) {
+            try {
+                return Long.parseLong(String.valueOf(rootVal).trim());
+            } catch (Exception ignored) {}
+        }
+        return 0;
     }
 
     @Override

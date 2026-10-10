@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dark"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Top Action Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tvSheetTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Choose wedding date"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnConfirmDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:text="Confirm"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <!-- 5 Wheel Pickers Container -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp">
+
+        <!-- Top & Bottom Divider Lines across active row -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="-24dp"
+            android:background="#455A64" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="24dp"
+            android:background="#455A64" />
+
+        <!-- Pickers Horizontal Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Month Picker -->
+            <NumberPicker
+                android:id="@+id/pickerMonth"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.4"
+                android:descendantFocusability="blocksDescendants"
+                android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+            <!-- Day Picker -->
+            <NumberPicker
+                android:id="@+id/pickerDay"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:descendantFocusability="blocksDescendants"
+                android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+            <!-- Year Picker -->
+            <NumberPicker
+                android:id="@+id/pickerYear"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:descendantFocusability="blocksDescendants"
+                android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+            <!-- Hour Picker -->
+            <NumberPicker
+                android:id="@+id/pickerHour"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:descendantFocusability="blocksDescendants"
+                android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+            <!-- Minute Picker -->
+            <NumberPicker
+                android:id="@+id/pickerMinute"
+                android:layout_width="61dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:descendantFocusability="blocksDescendants"
+                android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>

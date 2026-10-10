@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="40dp"
+    android:viewportWidth="64"
+    android:viewportHeight="40">
+    <!-- Entrance Ribbon Banner -->
+    <path
+        android:fillColor="#F06292"
+        android:pathData="M8,12 L56,12 A6,6 0 0,1 62,18 L62,22 A6,6 0 0,1 56,28 L8,28 A6,6 0 0,1 2,22 L2,18 A6,6 0 0,1 8,12 Z" />
+    <path
+        android:fillColor="#F8BBD0"
+        android:pathData="M8,14 L56,14 L56,26 L8,26 Z" />
+
+    <!-- Avatar Circle -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M12,12 A8,8 0 1,1 11.9,12 Z" />
+    <path
+        android:fillColor="#8E24AA"
+        android:pathData="M12,14 A6,6 0 1,1 11.9,14 Z" />
+
+    <!-- Text SORA Entered -->
+    <path
+        android:fillColor="#AD1457"
+        android:pathData="M22,18 L48,18 L48,20 L22,20 Z" />
+    <path
+        android:fillColor="#AD1457"
+        android:pathData="M22,22 L38,22 L38,23 L22,23 Z" />
+
+    <!-- Floating Heart Right -->
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M54,16 C54,16 51,14 50,16 C49,18 52,20 54,22 C56,20 59,18 58,16 C57,14 54,16 54,16 Z" />
+</vector>

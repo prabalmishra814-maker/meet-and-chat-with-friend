@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="54dp"
+    android:height="54dp"
+    android:viewportWidth="54"
+    android:viewportHeight="54">
+    <!-- Blushing/Kiss Emoji (Left/Top) -->
+    <path
+        android:fillColor="#FFCA28"
+        android:pathData="M22,10 A14,14 0 1,1 21.9,10 Z" />
+    <!-- Closed Happy Eyes -->
+    <path
+        android:fillColor="#5D4037"
+        android:pathData="M14,20 C14,18 18,18 18,20 Z" />
+    <path
+        android:fillColor="#5D4037"
+        android:pathData="M24,20 C24,18 28,18 28,20 Z" />
+    <!-- Pink Cheeks -->
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M12,24 A3,2 0 1,1 11.9,24 Z" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M28,24 A3,2 0 1,1 27.9,24 Z" />
+
+    <!-- I <3 U Emoji (Right/Bottom) -->
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M34,22 A14,14 0 1,1 33.9,22 Z" />
+    <!-- I <3 U Red Heart Badge -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M26,36 L42,36 A3,3 0 0,1 45,39 L45,45 A3,3 0 0,1 42,48 L26,48 A3,3 0 0,1 23,45 L23,39 A3,3 0 0,1 26,36 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,39 L28,39 L28,45 L26,45 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,40 C34,40 31,38 30,40 C29,42 32,44 34,46 C36,44 39,42 38,40 C37,38 34,40 34,40 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,39 C38,39 38,43 40,43 C42,43 42,39 40,39 Z" />
+</vector>

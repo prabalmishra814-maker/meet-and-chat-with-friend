@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="48dp"
+    android:viewportWidth="64"
+    android:viewportHeight="48">
+    <!-- Card Frame Base -->
+    <path
+        android:fillColor="#B17BF5"
+        android:pathData="M6,10 L58,10 A4,4 0 0,1 62,14 L62,40 A4,4 0 0,1 58,44 L6,44 A4,4 0 0,1 2,40 L2,14 A4,4 0 0,1 6,10 Z" />
+    <path
+        android:fillColor="#8C4BE7"
+        android:pathData="M4,12 L60,12 L60,42 L4,42 Z" />
+    <!-- Gold Crown Header -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M22,10 L28,4 L32,8 L36,4 L42,10 Z" />
+    <!-- White Glow Line -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M6,14 L58,14 L58,24 L6,20 Z" />
+</vector>

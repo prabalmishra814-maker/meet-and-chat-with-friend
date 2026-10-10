@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="54dp"
+    android:height="54dp"
+    android:viewportWidth="54"
+    android:viewportHeight="54">
+    <!-- Ring Metallic Band -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M27,22 C17,22 10,29 10,38 C10,47 17,50 27,50 C37,50 44,47 44,38 C44,29 37,22 27,22 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M27,26 C19,26 14,31 14,38 C14,45 19,47 27,47 C35,47 40,45 40,38 C40,31 35,26 27,26 Z" />
+
+    <!-- Crown Top Ring Base -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M20,18 L34,18 L32,24 L22,24 Z" />
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M20,18 L24,10 L27,15 L30,10 L34,18 Z" />
+
+    <!-- Large Heart Diamond Gem -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M27,4 C27,4 21,0 18,3 C15,6 20,10 27,15 C34,10 39,6 36,3 C33,0 27,4 27,4 Z" />
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M27,6 C27,6 23,2 20,4 C18,6 22,9 27,13 C32,9 36,6 34,4 C31,2 27,6 27,6 Z" />
+
+    <!-- Wings -->
+    <path
+        android:fillColor="#B3E5FC"
+        android:pathData="M16,14 C8,10 2,18 10,20 Z" />
+    <path
+        android:fillColor="#B3E5FC"
+        android:pathData="M38,14 C46,10 52,18 44,20 Z" />
+</vector>
