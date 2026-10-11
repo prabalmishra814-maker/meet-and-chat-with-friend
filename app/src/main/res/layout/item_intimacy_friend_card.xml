@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardFriendRoot"
+    android:layout_width="112dp"
+    android:layout_height="170dp"
+    android:layout_margin="4dp"
+    android:background="@drawable/bg_intimacy_friend_card_purple"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- Top Badge Header (e.g. Lv.3 or Friend) -->
+    <TextView
+        android:id="@+id/tvFriendBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lv.3"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Avatar -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivFriendAvatar"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_marginTop="8dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo_placeholder"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="1.5dp" />
+
+    <!-- User Name -->
+    <TextView
+        android:id="@+id/tvFriendName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Name"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Binding Date & Days -->
+    <TextView
+        android:id="@+id/tvFriendDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:text="2026-08-25-now\n48 days"
+        android:textColor="#D0FFFFFF"
+        android:textSize="9.5sp" />
+
+    <!-- Showcase Button at Bottom -->
+    <TextView
+        android:id="@+id/btnShowcase"
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/chip_room_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="showcase"
+        android:textColor="#FF80AB"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

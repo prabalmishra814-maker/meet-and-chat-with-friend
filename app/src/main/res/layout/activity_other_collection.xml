@@ -490,7 +490,7 @@
                     </RelativeLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 2. Couple Header -->
+                <!-- 2. Couple Section Header -->
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -506,112 +506,145 @@
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <!-- Pink Couple Card Banner with Wings Emblem -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- Ornate Couple Card Banner with Gold Frame -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="140dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    app:cardBackgroundColor="#3B1123"
-                    app:cardCornerRadius="18dp"
-                    app:strokeColor="#80FF69B4"
-                    app:strokeWidth="1.5dp">
+                    android:background="@drawable/bg_intimacy_couple_card"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="14dp">
 
-                    <RelativeLayout
+                    <!-- Avatars & CP Level Badge Row -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:padding="12dp">
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
-                        <!-- Wings Top Center Graphic -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentTop="true"
-                            android:layout_centerHorizontal="true"
-                            android:text="🪽 💖 🪽"
-                            android:textSize="16sp" />
-
+                        <!-- Left Partner Slot (Target / Current User) -->
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
+                            android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="horizontal">
+                            android:orientation="vertical">
 
-                            <!-- Left Partner Slot (Current User) -->
-                            <LinearLayout
-                                android:layout_width="0dp"
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/ivCoupleLeftAvatar"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/logo_placeholder"
+                                app:shapeAppearanceOverlay="@style/CircleImage"
+                                app:strokeColor="#FFFFFF"
+                                app:strokeWidth="2dp" />
+
+                            <TextView
+                                android:id="@+id/tvCoupleLeftName"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:gravity="center"
-                                android:orientation="vertical">
-
-                                <com.google.android.material.imageview.ShapeableImageView
-                                    android:id="@+id/ivCoupleLeftAvatar"
-                                    android:layout_width="60dp"
-                                    android:layout_height="60dp"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/logo_placeholder"
-                                    app:shapeAppearanceOverlay="@style/CircleImage"
-                                    app:strokeColor="#FF69B4"
-                                    app:strokeWidth="2dp" />
-
-                                <TextView
-                                    android:id="@+id/tvCoupleLeftName"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="User"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <!-- Center Heartbeat pulse indicator -->
-                            <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:contentDescription="Heartbeat"
-                                android:src="@drawable/ic_heart_white"
-                                app:tint="#FF4081" />
-
-                            <!-- Right Partner Slot (Add Partner / None) -->
-                            <LinearLayout
-                                android:id="@+id/btnAddCouplePartner"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:gravity="center"
-                                android:orientation="vertical">
-
-                                <com.google.android.material.imageview.ShapeableImageView
-                                    android:id="@+id/ivCoupleRightAvatar"
-                                    android:layout_width="60dp"
-                                    android:layout_height="60dp"
-                                    android:padding="16dp"
-                                    android:scaleType="center"
-                                    android:src="@drawable/add_button"
-                                    app:shapeAppearanceOverlay="@style/CircleImage"
-                                    app:strokeColor="#80FF69B4"
-                                    app:strokeWidth="1.5dp" />
-
-                                <TextView
-                                    android:id="@+id/tvCoupleRightName"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
-                                    android:text="None"
-                                    android:textColor="#C0FFFFFF"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
+                                android:layout_marginTop="6dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="User"
+                                android:textColor="#FFFFFF"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
 
-                    </RelativeLayout>
-                </com.google.android.material.card.MaterialCardView>
+                        <!-- Center Winged CP Level Badge -->
+                        <FrameLayout
+                            android:layout_width="88dp"
+                            android:layout_height="56dp">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/ic_cp_level_badge" />
+
+                            <TextView
+                                android:id="@+id/tvCoupleLevelBadgeText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginTop="2dp"
+                                android:shadowColor="#80000000"
+                                android:shadowDx="0"
+                                android:shadowDy="1"
+                                android:shadowRadius="2"
+                                android:text="LV.6"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <!-- Right Partner Slot (CP Partner) -->
+                        <LinearLayout
+                            android:id="@+id/btnAddCouplePartner"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/ivCoupleRightAvatar"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/logo_placeholder"
+                                app:shapeAppearanceOverlay="@style/CircleImage"
+                                app:strokeColor="#FFFFFF"
+                                app:strokeWidth="2dp" />
+
+                            <TextView
+                                android:id="@+id/tvCoupleRightName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="Partner"
+                                android:textColor="#FFFFFF"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Binding Date & Days Subtitle -->
+                    <TextView
+                        android:id="@+id/tvCoupleDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="2026-09-19-now 23 days"
+                        android:textColor="#E0FFFFFF"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Showcase Pill Button below Couple Card -->
+                <TextView
+                    android:id="@+id/btnCoupleShowcase"
+                    android:layout_width="140dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/chip_room_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="showcase"
+                    android:textColor="#FF80AB"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <!-- 3. Best Friends Section -->
                 <TextView
@@ -623,112 +656,73 @@
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvBestFriends"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_collection_horizontal" />
 
-                    <!-- Best Friend Slot 1 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="90dp"
-                        android:layout_marginEnd="6dp"
-                        android:layout_weight="1"
-                        app:cardBackgroundColor="#131A28"
-                        app:cardCornerRadius="14dp"
-                        app:strokeColor="#20FFFFFF"
-                        app:strokeWidth="1dp">
+                <!-- 4. Supporters Section -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvSupportersTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:text="Supporters"
+                        android:textColor="#E2E8F0"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⭐"
-                                android:textSize="20sp" />
+                    <TextView
+                        android:id="@+id/tvSupportersMore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="›"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="Best Friend"
-                                android:textColor="#80FFFFFF"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSupporters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_supporter_avatar" />
 
-                    <!-- Best Friend Slot 2 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="90dp"
-                        android:layout_marginHorizontal="3dp"
-                        android:layout_weight="1"
-                        app:cardBackgroundColor="#131A28"
-                        app:cardCornerRadius="14dp"
-                        app:strokeColor="#20FFFFFF"
-                        app:strokeWidth="1dp">
+                <!-- 5. Friend Intimacy Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Friend"
+                    android:textColor="#E2E8F0"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⭐"
-                                android:textSize="20sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="Best Friend"
-                                android:textColor="#80FFFFFF"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Best Friend Slot 3 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="90dp"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        app:cardBackgroundColor="#131A28"
-                        app:cardCornerRadius="14dp"
-                        app:strokeColor="#20FFFFFF"
-                        app:strokeWidth="1dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⭐"
-                                android:textSize="20sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="Best Friend"
-                                android:textColor="#80FFFFFF"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvIntimacyFriends"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="3"
+                    tools:listitem="@layout/item_intimacy_friend_card" />
 
             </LinearLayout>
 

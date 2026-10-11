@@ -33,6 +33,8 @@ import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.adapters.HorizontalCollectionAdapter;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
+import com.roomchatapps.Pmishra.utils.CpBindingManager;
+import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.NotificationHelper;
 
@@ -385,6 +387,88 @@ public class OtherCollectionActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         };
         userProfileRef.addListenerForSingleValueEvent(userProfileListener);
+        loadIntimacyTabData(selectedUserId);
+    }
+
+    private void loadIntimacyTabData(String uid) {
+        if (uid == null || isFinishing() || isDestroyed()) return;
+
+        // Load CP Couple Data
+        DatabaseReference cpRef = FirebaseDatabase.getInstance().getReference("cp_bindings").child(uid);
+        cpRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                if (snapshot.exists() && snapshot.hasChild("partnerUid")) {
+                    String pUid = snapshot.child("partnerUid").getValue(String.class);
+                    Long timestamp = snapshot.child("timestamp").getValue(Long.class);
+
+                    if (timestamp != null && timestamp > 0) {
+                        long days = CpBindingManager.getBindingDays(timestamp);
+                        TextView tvCoupleDuration = findViewById(R.id.tvCoupleDuration);
+                        if (tvCoupleDuration != null) {
+                            String startDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date(timestamp));
+                            tvCoupleDuration.setText(startDate + "-now " + days + " days");
+                        }
+                    }
+
+                    if (!android.text.TextUtils.isEmpty(pUid)) {
+                        DatabaseReference cpGuardRef = FirebaseDatabase.getInstance().getReference("cp_guard_values")
+                                .child(uid).child(pUid);
+
+                        cpGuardRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot guardSnap) {
+                                if (isFinishing() || isDestroyed()) return;
+                                long intimacy = 0;
+                                if (guardSnap.exists()) {
+                                    Long val = guardSnap.child("value").getValue(Long.class);
+                                    if (val != null) intimacy = val;
+                                }
+                                int level = CpIntimacyManager.calculateCpLevel(intimacy);
+                                TextView tvCoupleLevelBadgeText = findViewById(R.id.tvCoupleLevelBadgeText);
+                                if (tvCoupleLevelBadgeText != null) {
+                                    tvCoupleLevelBadgeText.setText("LV." + level);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {}
+                        });
+
+                        DatabaseReference partnerRef = FirebaseDatabase.getInstance().getReference("users").child(pUid);
+                        partnerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot pSnap) {
+                                if (isFinishing() || isDestroyed()) return;
+                                if (pSnap.exists()) {
+                                    String pName = pSnap.child("name").getValue(String.class);
+                                    String pAvatar = pSnap.child("avtar").getValue(String.class);
+                                    if (android.text.TextUtils.isEmpty(pAvatar)) pAvatar = pSnap.child("avatar").getValue(String.class);
+
+                                    if (tvCoupleRightName != null && !android.text.TextUtils.isEmpty(pName)) {
+                                        tvCoupleRightName.setText(pName);
+                                    }
+
+                                    if (ivCoupleRightAvatar != null && !android.text.TextUtils.isEmpty(pAvatar)) {
+                                        Glide.with(OtherCollectionActivity.this)
+                                                .load(pAvatar)
+                                                .placeholder(R.drawable.logo_placeholder)
+                                                .into(ivCoupleRightAvatar);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {}
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void loadSelectedUserCollection() {

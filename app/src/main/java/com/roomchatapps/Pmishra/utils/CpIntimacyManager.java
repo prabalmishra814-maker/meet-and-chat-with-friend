@@ -74,4 +74,30 @@ public class CpIntimacyManager {
         if (intimacy >= 5000) return 2;
         return 1;
     }
+
+    /**
+     * Calculates the exact Intimacy Points to add for a gift based on gift name and coin price
+     */
+    public static long calculateIntimacyAddition(String giftName, long giftCost) {
+        if (giftName == null) giftName = "";
+        String lower = giftName.toLowerCase().trim();
+
+        // 1. CP Ring / Engagement Ring Gifts -> Intimacy = Half of Ring Coin Cost (50%)
+        if (lower.contains("ring") || lower.contains("engagement")) {
+            return Math.max(500, giftCost / 2);
+        }
+
+        // 2. Proposal / Wedding Love Gifts -> Intimacy = 500 points
+        if (lower.contains("proposal") || lower.contains("wedding") || lower.contains("bride") || lower.contains("marry")) {
+            return 500;
+        }
+
+        // 3. Love / Relationship Gifts -> Intimacy = 150 points
+        if (lower.contains("love") || lower.contains("couple") || lower.contains("relationship") || lower.contains("rose") || lower.contains("confession") || lower.contains("heart") || lower.contains("kiss") || lower.contains("pure")) {
+            return 150;
+        }
+
+        // 4. Normal Gifts -> Intimacy = 1 point per gift
+        return 1;
+    }
 }

@@ -706,7 +706,8 @@ public class WalletManager {
                         // Broadcast Global Realtime SVGA Banner for Coin Gifts / Direct Transfers
                         if (recipientUid != null && !recipientUid.trim().isEmpty()) {
                             final String targetUid = recipientUid.trim();
-                            CpIntimacyManager.addIntimacy(senderUid, targetUid, giftCost);
+                            long intimacyPoints = CpIntimacyManager.calculateIntimacyAddition(giftName, giftCost);
+                            CpIntimacyManager.addIntimacy(senderUid, targetUid, intimacyPoints);
                             UserProfileCache.getUserProfile(senderUid, sProfile -> {
                                 String sName = (sProfile != null && sProfile.name != null) ? sProfile.name : "A User";
                                 String sAvatar = (sProfile != null && sProfile.avatarUrl != null) ? sProfile.avatarUrl : "";

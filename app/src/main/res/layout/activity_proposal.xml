@@ -180,7 +180,7 @@
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="6dp"
                             android:text="Click to add a ring"
-                            android:textColor="#FFFFFF"
+                            android:textColor="#EFB1CF"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -200,7 +200,7 @@
                                 android:layout_height="52dp"
                                 android:layout_gravity="center"
                                 android:scaleType="fitCenter"
-                                android:src="@drawable/ic_proposal_ring_icon" />
+                                android:src="@drawable/ic_ring_pink_winged" />
 
                             <TextView
                                 android:layout_width="16dp"
@@ -259,22 +259,22 @@
             <!-- Confirm Proposal Button at Bottom -->
             <TextView
                 android:id="@+id/btnConfirmProposal"
-                android:layout_width="220dp"
-                android:layout_height="48dp"
+                android:layout_width="226dp"
+                android:layout_height="59dp"
                 android:layout_marginTop="32dp"
                 android:background="@drawable/proposal_background"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
-                android:paddingBottom="8dp"
+                android:paddingBottom="11dp"
                 android:shadowColor="#80000000"
                 android:shadowDx="1.8"
-                android:shadowDy="1.8"
-                android:shadowRadius="4"
+                android:shadowDy="1.4"
+                android:shadowRadius="3"
                 android:text="Confirm"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <!-- Subtitle Requirement Text -->
@@ -288,7 +288,7 @@
                 android:shadowDy="1"
                 android:shadowRadius="2"
                 android:text="CP level meets to propose"
-                android:textColor="#41CDDC39"
+                android:textColor="#E0BD0C67"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
