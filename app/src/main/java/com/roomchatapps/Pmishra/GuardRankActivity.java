@@ -165,14 +165,111 @@ public class GuardRankActivity extends AppCompatActivity {
         }
 
         // Setup Gifts List
-        List<GiftStoreAdapter.GiftStoreItem> allGifts = GiftCatalog.getAllGifts();
-        final GiftStoreAdapter.GiftStoreItem[] selectedGift = {allGifts != null && !allGifts.isEmpty() ? allGifts.get(0) : null};
+        TabLayout tabCategory = dialogView.findViewById(R.id.tabCategoryGifts);
+        String[] categories = new String[]{"Gift", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
-        if (rvGifts != null && allGifts != null) {
-            GiftStoreAdapter giftAdapter = new GiftStoreAdapter(allGifts);
-            giftAdapter.setOnGiftSelectedListener((item, position, isReSelected) -> selectedGift[0] = item);
+        List<GiftStoreAdapter.GiftStoreItem> allGifts = GiftCatalog.getAllGifts();
+
+        List<GiftStoreAdapter.GiftStoreItem> initialCategoryGifts = new ArrayList<>();
+        if (allGifts != null) {
+            for (GiftStoreAdapter.GiftStoreItem item : allGifts) {
+                if ("Gift".equalsIgnoreCase(item.category)) {
+                    initialCategoryGifts.add(item);
+                }
+            }
+            if (initialCategoryGifts.isEmpty()) {
+                initialCategoryGifts.addAll(allGifts);
+            }
+        }
+
+        final GiftStoreAdapter.GiftStoreItem[] selectedGift = {!initialCategoryGifts.isEmpty() ? initialCategoryGifts.get(0) : null};
+
+        // Quantity Selection Chips
+        final int[] selectedQuantity = new int[]{1};
+        TextView chipQty1 = dialogView.findViewById(R.id.chipQty1);
+        TextView chipQty7 = dialogView.findViewById(R.id.chipQty7);
+        TextView chipQty77 = dialogView.findViewById(R.id.chipQty77);
+        TextView chipQty777 = dialogView.findViewById(R.id.chipQty777);
+        TextView tvSendActionText = dialogView.findViewById(R.id.tvSendActionText);
+
+        View.OnClickListener qtyClickListener = v -> {
+            if (chipQty1 != null) chipQty1.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty7 != null) chipQty7.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty77 != null) chipQty77.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty777 != null) chipQty777.setBackgroundResource(R.drawable.bg_room_chat_pill);
+
+            v.setBackgroundResource(R.drawable.bg_send_button_glow);
+            int qty = 1;
+            if (v.getId() == R.id.chipQty7) qty = 7;
+            else if (v.getId() == R.id.chipQty77) qty = 77;
+            else if (v.getId() == R.id.chipQty777) qty = 777;
+
+            selectedQuantity[0] = qty;
+            if (tvSendActionText != null) {
+                tvSendActionText.setText(qty > 1 ? "Send (x" + qty + ")" : "Send");
+            }
+        };
+
+        if (chipQty1 != null) chipQty1.setOnClickListener(qtyClickListener);
+        if (chipQty7 != null) chipQty7.setOnClickListener(qtyClickListener);
+        if (chipQty77 != null) chipQty77.setOnClickListener(qtyClickListener);
+        if (chipQty777 != null) chipQty777.setOnClickListener(qtyClickListener);
+
+        if (rvGifts != null && !initialCategoryGifts.isEmpty()) {
+            GiftStoreAdapter giftAdapter = new GiftStoreAdapter(initialCategoryGifts);
+            giftAdapter.setOnGiftSelectedListener((item, position, isReSelected) -> {
+                if (isReSelected) {
+                    selectedQuantity[0]++;
+                } else {
+                    selectedQuantity[0] = 1;
+                }
+
+                int qty = selectedQuantity[0];
+                if (chipQty1 != null) chipQty1.setBackgroundResource(qty == 1 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty7 != null) chipQty7.setBackgroundResource(qty == 7 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty77 != null) chipQty77.setBackgroundResource(qty == 77 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty777 != null) chipQty777.setBackgroundResource(qty == 777 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+
+                if (tvSendActionText != null) {
+                    tvSendActionText.setText(qty > 1 ? "Send (x" + qty + ")" : "Send");
+                }
+                selectedGift[0] = item;
+            });
             rvGifts.setLayoutManager(new GridLayoutManager(this, 4));
             rvGifts.setAdapter(giftAdapter);
+
+            if (tabCategory != null) {
+                tabCategory.removeAllTabs();
+                for (String cat : categories) {
+                    tabCategory.addTab(tabCategory.newTab().setText(cat));
+                }
+
+                tabCategory.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                    @Override
+                    public void onTabSelected(TabLayout.Tab tab) {
+                        String selectedCategory = categories[tab.getPosition()];
+                        List<GiftStoreAdapter.GiftStoreItem> filtered = new ArrayList<>();
+                        if (allGifts != null) {
+                            for (GiftStoreAdapter.GiftStoreItem item : allGifts) {
+                                if (item.category.equalsIgnoreCase(selectedCategory)) {
+                                    filtered.add(item);
+                                }
+                            }
+                        }
+                        if (filtered.isEmpty() && allGifts != null) {
+                            filtered.addAll(allGifts);
+                        }
+                        giftAdapter.updateItems(filtered);
+                        rvGifts.scrollToPosition(0);
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab tab) {}
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab tab) {}
+                });
+            }
         }
 
         if (btnSendAction != null) {
@@ -182,7 +279,10 @@ public class GuardRankActivity extends AppCompatActivity {
                     return;
                 }
 
-                long giftCost = selectedGift[0].cost;
+                int qty = selectedQuantity[0];
+                long totalCost = selectedGift[0].cost * qty;
+                String giftDisplayName = selectedGift[0].name + (qty > 1 ? " (x" + qty + ")" : "");
+
                 if (currentUid == null) {
                     Toast.makeText(this, "Please login to send gifts", Toast.LENGTH_SHORT).show();
                     return;
@@ -190,11 +290,11 @@ public class GuardRankActivity extends AppCompatActivity {
 
                 String keyTarget = !TextUtils.isEmpty(targetUid) ? targetUid : "target_user";
 
-                WalletManager.spendCoinsForGift(currentUid, keyTarget, giftCost, selectedGift[0].name, new WalletManager.WalletCallback() {
+                WalletManager.spendCoinsForGift(currentUid, keyTarget, totalCost, giftDisplayName, new WalletManager.WalletCallback() {
                     @Override
                     public void onSuccess(String message, long newCoinBalance) {
                         runOnUiThread(() -> {
-                            sendProtectGuardPoints(giftCost, selectedGift[0].name);
+                            sendProtectGuardPoints(totalCost, giftDisplayName);
                             dialog.dismiss();
                         });
                     }

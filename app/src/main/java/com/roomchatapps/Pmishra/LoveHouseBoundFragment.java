@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,11 +33,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.adapters.CpHouseThemeAdapter;
+import com.roomchatapps.Pmishra.adapters.CpRecentGiftAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftRecipientAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
+import com.roomchatapps.Pmishra.adapters.RingAdapter;
 import com.roomchatapps.Pmishra.databinding.FragmentLoveHouseBoundBinding;
 import com.roomchatapps.Pmishra.models.CpHouseThemeModel;
+import com.roomchatapps.Pmishra.models.CpRecentGiftModel;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
+import com.roomchatapps.Pmishra.models.RingModel;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
@@ -44,7 +49,9 @@ import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LoveHouseBoundFragment extends Fragment {
 
@@ -91,6 +98,8 @@ public class LoveHouseBoundFragment extends Fragment {
         setupToolbar();
         loadCurrentUserData();
         loadCpBoundData();
+        loadCpRingsData();
+        loadCpRecentGiftsData();
     }
 
     private void setupToolbar() {
@@ -468,6 +477,103 @@ public class LoveHouseBoundFragment extends Fragment {
         });
     }
 
+    private void loadCpRingsData() {
+        if (currentUid == null) return;
+
+        DatabaseReference proposalsRef = FirebaseDatabase.getInstance().getReference("cp_proposals");
+        proposalsRef.child(currentUid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || binding == null) return;
+
+                List<RingModel> ringList = new ArrayList<>();
+                if (snapshot.exists()) {
+                    Integer ringRes = snapshot.child("ringRes").getValue(Integer.class);
+                    if (ringRes != null && ringRes != 0) {
+                        ringList.add(new RingModel("prop_ring", "Proposal Ring", ringRes, "", 0, true));
+                    }
+                }
+
+                DatabaseReference cpRingsRef = FirebaseDatabase.getInstance().getReference("cp_rings").child(currentUid);
+                cpRingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot ringSnap) {
+                        if (!isAdded() || binding == null) return;
+
+                        if (ringSnap.exists()) {
+                            for (DataSnapshot ds : ringSnap.getChildren()) {
+                                try {
+                                    String name = ds.child("name").getValue(String.class);
+                                    Integer iconRes = ds.child("iconRes").getValue(Integer.class);
+                                    if (iconRes != null && iconRes != 0) {
+                                        ringList.add(new RingModel(ds.getKey(), !TextUtils.isEmpty(name) ? name : "CP Ring", iconRes, "", 0, false));
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+                        }
+
+                        if (!ringList.isEmpty()) {
+                            binding.tvNoRingData.setVisibility(View.GONE);
+                            binding.rvCpRings.setVisibility(View.VISIBLE);
+                            RingAdapter ringAdapter = new RingAdapter(ringList, null);
+                            binding.rvCpRings.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                            binding.rvCpRings.setAdapter(ringAdapter);
+                        } else {
+                            binding.rvCpRings.setVisibility(View.GONE);
+                            binding.tvNoRingData.setText("");
+                            binding.tvNoRingData.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void loadCpRecentGiftsData() {
+        if (currentUid == null) return;
+
+        DatabaseReference recentGiftsRef = FirebaseDatabase.getInstance().getReference("cp_recent_gifts").child(currentUid);
+        recentGiftsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || binding == null) return;
+
+                List<CpRecentGiftModel> giftList = new ArrayList<>();
+                if (snapshot.exists()) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        try {
+                            CpRecentGiftModel gift = ds.getValue(CpRecentGiftModel.class);
+                            if (gift != null) {
+                                if (gift.getId() == null) gift.setId(ds.getKey());
+                                giftList.add(0, gift);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                if (!giftList.isEmpty()) {
+                    binding.tvNoGiftData.setVisibility(View.GONE);
+                    binding.rvCpRecentGifts.setVisibility(View.VISIBLE);
+                    CpRecentGiftAdapter giftAdapter = new CpRecentGiftAdapter(giftList);
+                    binding.rvCpRecentGifts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                    binding.rvCpRecentGifts.setAdapter(giftAdapter);
+                } else {
+                    binding.rvCpRecentGifts.setVisibility(View.GONE);
+                    binding.tvNoGiftData.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void showGiftStoreDialog() {
         if (getContext() == null || getActivity() == null || getActivity().isFinishing()) return;
 
@@ -513,14 +619,111 @@ public class LoveHouseBoundFragment extends Fragment {
             rvGiftRecipients.setAdapter(recipientAdapter);
         }
 
-        List<GiftStoreAdapter.GiftStoreItem> allGifts = GiftCatalog.getAllGifts();
-        final GiftStoreAdapter.GiftStoreItem[] selectedGift = {allGifts != null && !allGifts.isEmpty() ? allGifts.get(0) : null};
+        TabLayout tabCategory = dialogView.findViewById(R.id.tabCategoryGifts);
+        String[] categories = new String[]{"Gift", "Relationship", "Nation Flag", "Luxury", "Customization"};
 
-        if (rvGifts != null && allGifts != null) {
-            GiftStoreAdapter giftAdapter = new GiftStoreAdapter(allGifts);
-            giftAdapter.setOnGiftSelectedListener((item, position, isReSelected) -> selectedGift[0] = item);
+        List<GiftStoreAdapter.GiftStoreItem> allGifts = GiftCatalog.getAllGifts();
+
+        List<GiftStoreAdapter.GiftStoreItem> initialCategoryGifts = new ArrayList<>();
+        if (allGifts != null) {
+            for (GiftStoreAdapter.GiftStoreItem item : allGifts) {
+                if ("Gift".equalsIgnoreCase(item.category)) {
+                    initialCategoryGifts.add(item);
+                }
+            }
+            if (initialCategoryGifts.isEmpty()) {
+                initialCategoryGifts.addAll(allGifts);
+            }
+        }
+
+        final GiftStoreAdapter.GiftStoreItem[] selectedGift = {!initialCategoryGifts.isEmpty() ? initialCategoryGifts.get(0) : null};
+
+        // Quantity Selection Chips
+        final int[] selectedQuantity = new int[]{1};
+        TextView chipQty1 = dialogView.findViewById(R.id.chipQty1);
+        TextView chipQty7 = dialogView.findViewById(R.id.chipQty7);
+        TextView chipQty77 = dialogView.findViewById(R.id.chipQty77);
+        TextView chipQty777 = dialogView.findViewById(R.id.chipQty777);
+        TextView tvSendActionText = dialogView.findViewById(R.id.tvSendActionText);
+
+        View.OnClickListener qtyClickListener = v -> {
+            if (chipQty1 != null) chipQty1.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty7 != null) chipQty7.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty77 != null) chipQty77.setBackgroundResource(R.drawable.bg_room_chat_pill);
+            if (chipQty777 != null) chipQty777.setBackgroundResource(R.drawable.bg_room_chat_pill);
+
+            v.setBackgroundResource(R.drawable.bg_send_button_glow);
+            int qty = 1;
+            if (v.getId() == R.id.chipQty7) qty = 7;
+            else if (v.getId() == R.id.chipQty77) qty = 77;
+            else if (v.getId() == R.id.chipQty777) qty = 777;
+
+            selectedQuantity[0] = qty;
+            if (tvSendActionText != null) {
+                tvSendActionText.setText(qty > 1 ? "Send (x" + qty + ")" : "Send");
+            }
+        };
+
+        if (chipQty1 != null) chipQty1.setOnClickListener(qtyClickListener);
+        if (chipQty7 != null) chipQty7.setOnClickListener(qtyClickListener);
+        if (chipQty77 != null) chipQty77.setOnClickListener(qtyClickListener);
+        if (chipQty777 != null) chipQty777.setOnClickListener(qtyClickListener);
+
+        if (rvGifts != null && !initialCategoryGifts.isEmpty()) {
+            GiftStoreAdapter giftAdapter = new GiftStoreAdapter(initialCategoryGifts);
+            giftAdapter.setOnGiftSelectedListener((item, position, isReSelected) -> {
+                if (isReSelected) {
+                    selectedQuantity[0]++;
+                } else {
+                    selectedQuantity[0] = 1;
+                }
+
+                int qty = selectedQuantity[0];
+                if (chipQty1 != null) chipQty1.setBackgroundResource(qty == 1 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty7 != null) chipQty7.setBackgroundResource(qty == 7 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty77 != null) chipQty77.setBackgroundResource(qty == 77 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+                if (chipQty777 != null) chipQty777.setBackgroundResource(qty == 777 ? R.drawable.bg_send_button_glow : R.drawable.bg_room_chat_pill);
+
+                if (tvSendActionText != null) {
+                    tvSendActionText.setText(qty > 1 ? "Send (x" + qty + ")" : "Send");
+                }
+                selectedGift[0] = item;
+            });
             rvGifts.setLayoutManager(new GridLayoutManager(getContext(), 4));
             rvGifts.setAdapter(giftAdapter);
+
+            if (tabCategory != null) {
+                tabCategory.removeAllTabs();
+                for (String cat : categories) {
+                    tabCategory.addTab(tabCategory.newTab().setText(cat));
+                }
+
+                tabCategory.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                    @Override
+                    public void onTabSelected(TabLayout.Tab tab) {
+                        String selectedCategory = categories[tab.getPosition()];
+                        List<GiftStoreAdapter.GiftStoreItem> filtered = new ArrayList<>();
+                        if (allGifts != null) {
+                            for (GiftStoreAdapter.GiftStoreItem item : allGifts) {
+                                if (item.category.equalsIgnoreCase(selectedCategory)) {
+                                    filtered.add(item);
+                                }
+                            }
+                        }
+                        if (filtered.isEmpty() && allGifts != null) {
+                            filtered.addAll(allGifts);
+                        }
+                        giftAdapter.updateItems(filtered);
+                        rvGifts.scrollToPosition(0);
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab tab) {}
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab tab) {}
+                });
+            }
         }
 
         if (btnSendAction != null) {
@@ -530,7 +733,10 @@ public class LoveHouseBoundFragment extends Fragment {
                     return;
                 }
 
-                long giftCost = selectedGift[0].cost;
+                int qty = selectedQuantity[0];
+                long totalCost = selectedGift[0].cost * qty;
+                String giftDisplayName = selectedGift[0].name + (qty > 1 ? " (x" + qty + ")" : "");
+
                 if (currentUid == null) {
                     if (getContext() != null) Toast.makeText(getContext(), "Please login to send gifts", Toast.LENGTH_SHORT).show();
                     return;
@@ -538,13 +744,31 @@ public class LoveHouseBoundFragment extends Fragment {
 
                 String pUid = !TextUtils.isEmpty(partnerUid) ? partnerUid : "cp_partner";
 
-                WalletManager.spendCoinsForGift(currentUid, pUid, giftCost, selectedGift[0].name, new WalletManager.WalletCallback() {
+                WalletManager.spendCoinsForGift(currentUid, pUid, totalCost, giftDisplayName, new WalletManager.WalletCallback() {
                     @Override
                     public void onSuccess(String message, long newCoinBalance) {
+                        DatabaseReference recentRef = FirebaseDatabase.getInstance().getReference("cp_recent_gifts");
+                        String giftKey = recentRef.child(currentUid).push().getKey();
+                        if (giftKey != null) {
+                            Map<String, Object> giftData = new HashMap<>();
+                            giftData.put("id", giftKey);
+                            giftData.put("giftName", giftDisplayName);
+                            giftData.put("giftCost", totalCost);
+                            giftData.put("senderUid", currentUid);
+                            giftData.put("senderName", binding != null ? binding.tvUserName.getText().toString() : "Partner");
+                            giftData.put("iconRes", selectedGift[0].iconRes);
+                            giftData.put("timestamp", System.currentTimeMillis());
+
+                            recentRef.child(currentUid).child(giftKey).setValue(giftData);
+                            if (!TextUtils.isEmpty(partnerUid)) {
+                                recentRef.child(partnerUid).child(giftKey).setValue(giftData);
+                            }
+                        }
+
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
                                 if (getContext() != null) {
-                                    Toast.makeText(getContext(), "Sent " + selectedGift[0].name + "! Intimacy increased!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Sent " + giftDisplayName + "! Intimacy increased!", Toast.LENGTH_SHORT).show();
                                 }
                                 dialog.dismiss();
                             });

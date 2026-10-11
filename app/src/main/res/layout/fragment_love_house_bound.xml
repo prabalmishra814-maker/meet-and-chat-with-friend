@@ -420,14 +420,25 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCpRings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
+
                 <TextView
+                    android:id="@+id/tvNoRingData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:paddingVertical="32dp"
-                    android:text="No More Data"
+                    android:paddingVertical="12dp"
+                    android:text=""
                     android:textColor="#B0B0B0"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <!-- Section 2: Recent gifts -->
                 <TextView
@@ -447,7 +458,17 @@
                     android:textColor="#888888"
                     android:textSize="12sp" />
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCpRecentGifts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
+
                 <TextView
+                    android:id="@+id/tvNoGiftData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
