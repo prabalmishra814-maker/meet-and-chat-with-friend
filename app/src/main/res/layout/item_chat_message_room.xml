@@ -60,7 +60,7 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/logo_placeholder"
                 android:visibility="visible"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+                app:shapeAppearanceOverlay="@style/CircleImage" />
 
             <ImageView
                 android:id="@+id/ivFrame"

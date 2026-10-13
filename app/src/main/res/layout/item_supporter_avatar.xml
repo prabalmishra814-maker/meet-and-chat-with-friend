@@ -20,8 +20,8 @@
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
             app:shapeAppearanceOverlay="@style/CircleImage"
-            app:strokeColor="#FFD700"
-            app:strokeWidth="1.5dp" />
+            app:strokeColor="#00000000"
+            app:strokeWidth="0dp" />
 
         <!-- Rank Badge Overlay (1st, 2nd, 3rd) -->
         <TextView

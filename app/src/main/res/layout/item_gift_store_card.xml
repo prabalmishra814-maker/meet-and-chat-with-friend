@@ -29,6 +29,17 @@
                 android:layout_height="match_parent"
                 android:contentDescription="Gift Icon"
                 android:scaleType="fitCenter" />
+
+            <!-- Lock Icon Overlay for Locked Relationship Gifts -->
+            <ImageView
+                android:id="@+id/ivLockOverlay"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:contentDescription="Locked"
+                android:src="@drawable/ic_lock"
+                android:visibility="gone"
+                app:tint="#FF5252" />
         </FrameLayout>
 
         <TextView

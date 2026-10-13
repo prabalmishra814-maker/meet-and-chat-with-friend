@@ -14,7 +14,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import android.os.Handler;
+import android.os.Looper;
+import com.opensource.svgaplayer.SVGADrawable;
 import com.opensource.svgaplayer.SVGAImageView;
+import com.opensource.svgaplayer.SVGAParser;
+import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.SeatAnimationManager;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
@@ -23,7 +28,12 @@ import com.roomchatapps.Pmishra.zego.SeatManager;
 import com.roomchatapps.Pmishra.zego.SeatModel;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
@@ -35,9 +45,26 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
     }
 
     private final List<SeatModel> seats = new ArrayList<>();
+    private final Map<String, String> activeSeatEmojiMap = new ConcurrentHashMap<>();
+    private final Map<String, Queue<String>> userEmojiQueueMap = new ConcurrentHashMap<>();
+    private final Set<String> playingUserSet = ConcurrentHashMap.newKeySet();
+    private final Handler emojiHandler = new Handler(Looper.getMainLooper());
     private final OnSeatClickListener listener;
     private int availableHeight = 0;
     private int availableWidth = 0;
+    private RecyclerView attachedRecyclerView;
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.attachedRecyclerView = recyclerView;
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        this.attachedRecyclerView = null;
+    }
 
     public SeatAdapter(OnSeatClickListener listener) {
         this.listener = listener;
@@ -100,13 +127,17 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SeatModel model = seats.get(position);
+        int adapterPos = holder.getBindingAdapterPosition();
+        final int realPos = (adapterPos != RecyclerView.NO_POSITION) ? adapterPos : position;
+        if (realPos < 0 || realPos >= seats.size()) return;
+
+        SeatModel model = seats.get(realPos);
         Context context = holder.itemView.getContext();
         float density = context.getResources().getDisplayMetrics().density;
-        boolean isHost = (position == 0);
+        boolean isHost = (realPos == 0);
         int totalSeats = getItemCount();
         int totalRows = (totalSeats <= 9) ? 3 : (totalSeats <= 17 ? 5 : 6);
-        int rowIndex = (position == 0) ? 0 : 1 + (position - 1) / 4;
+        int rowIndex = (realPos == 0) ? 0 : 1 + (realPos - 1) / 4;
 
         int parentWidth = 0;
         if (holder.itemView.getParent() instanceof View) {
@@ -166,6 +197,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                     Glide.with(context)
                             .load(model.userAvatar)
                             .placeholder(R.drawable.logo_placeholder)
+                            .circleCrop()
                             .into(holder.ivSeatAvatar);
                 } else {
                     UserProfileCache.getUserProfile(model.userID, profile -> {
@@ -174,10 +206,12 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                             Glide.with(context)
                                     .load(profile.avatarUrl)
                                     .placeholder(R.drawable.logo_placeholder)
+                                    .circleCrop()
                                     .into(holder.ivSeatAvatar);
                         } else {
                             Glide.with(context)
                                     .load(R.drawable.logo_placeholder)
+                                    .circleCrop()
                                     .into(holder.ivSeatAvatar);
                         }
                     });
@@ -193,6 +227,38 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
                     String equipped = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
                     FrameUtils.displayFrame(context, equipped, holder.ivSeatFrame, holder.svgaSeatFrame);
                 });
+            }
+
+            // 3. Animated Emoji Overlay (Plays 1 loop for natural duration)
+            if (holder.svgaSeatEmoji != null) {
+                String activeEmojiId = activeSeatEmojiMap.get(model.userID);
+                if (activeEmojiId != null && !activeEmojiId.trim().isEmpty()) {
+                    holder.svgaSeatEmoji.setVisibility(View.VISIBLE);
+                    holder.svgaSeatEmoji.setLoops(1);
+                    String assetPath = "emoji/" + activeEmojiId + ".svga";
+                    SVGAParser parser = new SVGAParser(context.getApplicationContext());
+                    parser.decodeFromAssets(assetPath, new SVGAParser.ParseCompletion() {
+                        @Override
+                        public void onComplete(@NonNull SVGAVideoEntity videoItem) {
+                            if (holder.svgaSeatEmoji != null) {
+                                SVGADrawable drawable = new SVGADrawable(videoItem);
+                                holder.svgaSeatEmoji.setImageDrawable(drawable);
+                                holder.svgaSeatEmoji.setLoops(1);
+                                holder.svgaSeatEmoji.startAnimation();
+                            }
+                        }
+
+                        @Override
+                        public void onError() {
+                            if (holder.svgaSeatEmoji != null) {
+                                holder.svgaSeatEmoji.setVisibility(View.GONE);
+                            }
+                        }
+                    }, null);
+                } else {
+                    holder.svgaSeatEmoji.setVisibility(View.GONE);
+                    holder.svgaSeatEmoji.clear();
+                }
             }
 
         } else if (model.isClosed) {
@@ -224,10 +290,10 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             if (holder.ivSeatLocked != null) holder.ivSeatLocked.setVisibility(View.GONE);
 
             if (holder.tvSeatName != null) {
-                if (position == 0) {
+                if (realPos == 0) {
                     holder.tvSeatName.setText("Host Seat");
                 } else {
-                    holder.tvSeatName.setText(String.valueOf(model.index + 1));
+                    holder.tvSeatName.setText(String.valueOf(model.index));
                 }
             }
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
@@ -253,8 +319,8 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         } else {
             SeatAnimationManager.stopPulsingRing(holder.speakingIndicator);
             if (holder.ivSeatAvatar != null) {
-                holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, position == 0 ? android.R.color.holo_orange_light : R.color.glass_white));
-                holder.ivSeatAvatar.setStrokeWidth(position == 0 ? 2f : 1.2f);
+                holder.ivSeatAvatar.setStrokeColor(ContextCompat.getColorStateList(context, realPos == 0 ? android.R.color.holo_orange_light : R.color.glass_white));
+                holder.ivSeatAvatar.setStrokeWidth(realPos == 0 ? 2f : 1.2f);
             }
         }
 
@@ -356,7 +422,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             }
 
             float finalCircleDp = Math.max(minCircleDp, Math.min(targetCircleDp, maxCircleDp));
-            float frameMultiplier = isHost ? 1.28f : 1.25f;
+            float frameMultiplier = 1.50f; // 1.50x ratio ensures frame surrounds avatar border perfectly
 
             spec.circleSizePx = Math.round(finalCircleDp * density);
             spec.containerSizePx = Math.round(finalCircleDp * frameMultiplier * density);
@@ -383,6 +449,79 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         }
     }
 
+    public void playEmojiOnSeat(Context context, String userID, String emojiId) {
+        if (userID == null || emojiId == null) return;
+
+        Queue<String> queue = userEmojiQueueMap.computeIfAbsent(userID, k -> new LinkedList<>());
+        queue.add(emojiId);
+
+        if (!playingUserSet.contains(userID)) {
+            processNextEmojiForUser(context, userID);
+        }
+    }
+
+    public void playEmojiOnSeat(String userID, String emojiId) {
+        playEmojiOnSeat(null, userID, emojiId);
+    }
+
+    private void processNextEmojiForUser(Context ctxParam, String userID) {
+        Queue<String> queue = userEmojiQueueMap.get(userID);
+        if (queue == null || queue.isEmpty()) {
+            playingUserSet.remove(userID);
+            activeSeatEmojiMap.remove(userID);
+            refreshUserSeatItem(userID);
+            return;
+        }
+
+        playingUserSet.add(userID);
+        String nextEmojiId = queue.poll();
+        if (nextEmojiId != null) {
+            activeSeatEmojiMap.put(userID, nextEmojiId);
+            refreshUserSeatItem(userID);
+
+            Context context = (ctxParam != null) ? ctxParam : (attachedRecyclerView != null ? attachedRecyclerView.getContext() : null);
+
+            if (context != null) {
+                String assetPath = "emoji/" + nextEmojiId + ".svga";
+                SVGAParser parser = new SVGAParser(context.getApplicationContext());
+                parser.decodeFromAssets(assetPath, new SVGAParser.ParseCompletion() {
+                    @Override
+                    public void onComplete(@NonNull SVGAVideoEntity videoItem) {
+                        int frames = videoItem.getFrames();
+                        int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
+                        long exactNaturalDurationMs = (long) (((double) frames / fps) * 1000L);
+
+                        emojiHandler.postDelayed(() -> processNextEmojiForUser(context, userID), Math.max(500L, exactNaturalDurationMs + 50L));
+                    }
+
+                    @Override
+                    public void onError() {
+                        emojiHandler.postDelayed(() -> processNextEmojiForUser(context, userID), 2000L);
+                    }
+                }, null);
+            } else {
+                emojiHandler.postDelayed(() -> processNextEmojiForUser(null, userID), 2000L);
+            }
+        } else {
+            playingUserSet.remove(userID);
+            activeSeatEmojiMap.remove(userID);
+            refreshUserSeatItem(userID);
+        }
+    }
+
+    private void refreshUserSeatItem(String userID) {
+        int targetPos = -1;
+        for (int i = 0; i < seats.size(); i++) {
+            if (userID.equals(seats.get(i).userID)) {
+                targetPos = i;
+                break;
+            }
+        }
+        if (targetPos != -1) {
+            notifyItemChanged(targetPos);
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         View avatarContainer;
         View vEmptySeatBg;
@@ -390,6 +529,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
         ShapeableImageView ivSeatAvatar;
         ImageView ivSeatFrame;
         SVGAImageView svgaSeatFrame;
+        SVGAImageView svgaSeatEmoji;
         ImageView ivSeatLocked;
         ImageView ivMicStatus;
         TextView tvSeatName;
@@ -404,6 +544,7 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             ivSeatAvatar = itemView.findViewById(R.id.ivSeatAvatar);
             ivSeatFrame = itemView.findViewById(R.id.ivSeatFrame);
             svgaSeatFrame = itemView.findViewById(R.id.svgaSeatFrame);
+            svgaSeatEmoji = itemView.findViewById(R.id.svgaSeatEmoji);
             ivSeatLocked = itemView.findViewById(R.id.ivSeatLocked);
             ivMicStatus = itemView.findViewById(R.id.ivMicStatus);
             tvSeatName = itemView.findViewById(R.id.tvSeatName);
@@ -428,6 +569,10 @@ public class SeatAdapter extends RecyclerView.Adapter<SeatAdapter.ViewHolder> {
             updateViewSize(vEmptySeatBg, spec.circleSizePx, spec.circleSizePx);
             updateViewSize(ivSeatAvatar, spec.circleSizePx, spec.circleSizePx);
             updateViewSize(speakingIndicator, spec.circleSizePx, spec.circleSizePx);
+
+            updateViewSize(ivSeatFrame, spec.containerSizePx, spec.containerSizePx);
+            updateViewSize(svgaSeatFrame, spec.containerSizePx, spec.containerSizePx);
+            updateViewSize(svgaSeatEmoji, spec.containerSizePx, spec.containerSizePx);
 
             updateViewSize(ivAddIcon, spec.addIconSizePx, spec.addIconSizePx);
             updateViewSize(ivSeatLocked, spec.lockIconSizePx, spec.lockIconSizePx);

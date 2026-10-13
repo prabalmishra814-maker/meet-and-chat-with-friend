@@ -84,6 +84,7 @@ public class LoveHouseUnboundFragment extends Fragment {
         loadCurrentUserData();
         resetPartnerDisplayToDefault();
         loadCandidateFriends();
+        listenForIncomingCpInvitations();
     }
 
     private void setupToolbar() {
@@ -162,7 +163,7 @@ public class LoveHouseUnboundFragment extends Fragment {
                 }
 
                 if (maxGuardValue >= 600) {
-                    bindCpPartnerDirectly(targetUser);
+                    sendCpInvitation(targetUser);
                 } else {
                     final long guardFromCpValues = maxGuardValue;
                     usersRef.child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -180,7 +181,7 @@ public class LoveHouseUnboundFragment extends Fragment {
                             }
 
                             if (totalGuard >= 600) {
-                                bindCpPartnerDirectly(targetUser);
+                                sendCpInvitation(targetUser);
                             } else {
                                 showCpInsufficientGuardDialog(targetUser);
                             }
@@ -258,59 +259,153 @@ public class LoveHouseUnboundFragment extends Fragment {
 
 
 
-    private void bindCpPartnerDirectly(User targetUser) {
+    private void sendCpInvitation(User targetUser) {
         if (targetUser == null || getContext() == null) return;
 
         updatePartnerDisplay(targetUser);
 
         String targetUid = targetUser.getUserId() != null ? targetUser.getUserId() : targetUser.getProfileId();
-        if (targetUid == null) return;
+        if (targetUid == null || currentUid == null) return;
 
-        if (currentUid != null) {
-            DatabaseReference inviteRef = FirebaseDatabase.getInstance().getReference("cp_invitations")
-                    .child(targetUid).child(currentUid);
+        String curName = !TextUtils.isEmpty(binding.tvUserName.getText().toString()) ? binding.tvUserName.getText().toString() : "Partner";
+        String targetName = !TextUtils.isEmpty(targetUser.getUserName()) ? targetUser.getUserName() : "Partner";
+        String targetAvatar = !TextUtils.isEmpty(targetUser.getUserIcon()) ? targetUser.getUserIcon() : "";
 
-            Map<String, Object> inviteData = new HashMap<>();
-            inviteData.put("fromUid", currentUid);
-            inviteData.put("timestamp", System.currentTimeMillis());
-            inviteData.put("status", "accepted");
-            inviteRef.setValue(inviteData);
-
-            String curName = !TextUtils.isEmpty(binding.tvUserName.getText().toString()) ? binding.tvUserName.getText().toString() : "Partner";
-            String targetName = !TextUtils.isEmpty(targetUser.getUserName()) ? targetUser.getUserName() : "Partner";
-            String targetAvatar = !TextUtils.isEmpty(targetUser.getUserIcon()) ? targetUser.getUserIcon() : "";
-
-            if (userRef != null) {
-                userRef.child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snap) {
-                        String curAvatar = "";
-                        if (snap.exists()) {
-                            curAvatar = snap.child("avtar").getValue(String.class);
-                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("avatar").getValue(String.class);
-                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("photoUrl").getValue(String.class);
-                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("image").getValue(String.class);
-                            if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("userIcon").getValue(String.class);
-                        }
-                        CpBindingManager.createCpBinding(currentUid, curName, curAvatar, targetUid, targetName, targetAvatar);
+        if (userRef != null) {
+            userRef.child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snap) {
+                    String curAvatar = "";
+                    if (snap.exists()) {
+                        curAvatar = snap.child("avtar").getValue(String.class);
+                        if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("avatar").getValue(String.class);
+                        if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("photoUrl").getValue(String.class);
+                        if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("image").getValue(String.class);
+                        if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("userIcon").getValue(String.class);
                     }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
+                    DatabaseReference inviteRef = FirebaseDatabase.getInstance().getReference("cp_invitations")
+                            .child(targetUid).child(currentUid);
+
+                    Map<String, Object> inviteData = new HashMap<>();
+                    inviteData.put("fromUid", currentUid);
+                    inviteData.put("fromName", curName);
+                    inviteData.put("fromAvatar", curAvatar);
+                    inviteData.put("targetUid", targetUid);
+                    inviteData.put("targetName", targetName);
+                    inviteData.put("targetAvatar", targetAvatar);
+                    inviteData.put("timestamp", System.currentTimeMillis());
+                    inviteData.put("status", "pending");
+
+                    inviteRef.setValue(inviteData);
+
+                    if (getContext() != null) {
+                        com.roomchatapps.Pmishra.dialogs.CpInviteSentDialog sentDialog = new com.roomchatapps.Pmishra.dialogs.CpInviteSentDialog(getContext());
+                        sentDialog.show();
                     }
-                });
-            } else {
-                CpBindingManager.createCpBinding(currentUid, curName, "", targetUid, targetName, targetAvatar);
-            }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(getContext(), "Failed to send invitation. Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         if (adapter != null) {
             adapter.markAsInvited(targetUser.getUserId());
             adapter.markAsInvited(targetUser.getProfileId());
         }
+    }
 
-        Toast.makeText(getContext(), "Bound with " + targetUser.getUserName() + " as CP partner!", Toast.LENGTH_SHORT).show();
+    private DatabaseReference cpInviteRef;
+    private ValueEventListener cpInviteListener;
+
+    private void listenForIncomingCpInvitations() {
+        if (currentUid == null) return;
+        cpInviteRef = FirebaseDatabase.getInstance().getReference("cp_invitations").child(currentUid);
+        cpInviteListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || getContext() == null) return;
+                if (snapshot.exists()) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String status = child.child("status").getValue(String.class);
+                        if ("pending".equalsIgnoreCase(status)) {
+                            String fromUid = child.child("fromUid").getValue(String.class);
+                            String fromName = child.child("fromName").getValue(String.class);
+                            String fromAvatar = child.child("fromAvatar").getValue(String.class);
+
+                            if (fromUid != null && !fromUid.equals(currentUid)) {
+                                showIncomingCpInviteDialog(fromUid, fromName, fromAvatar);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        cpInviteRef.addValueEventListener(cpInviteListener);
+    }
+
+    private android.app.Dialog activeIncomingInviteDialog;
+
+    private void showIncomingCpInviteDialog(String fromUid, String fromName, String fromAvatar) {
+        if (activeIncomingInviteDialog != null && activeIncomingInviteDialog.isShowing()) {
+            return;
+        }
+
+        User sender = new User();
+        sender.setUserId(fromUid);
+        sender.setProfileId(fromUid);
+        sender.setUserName(!TextUtils.isEmpty(fromName) ? fromName : "Partner");
+        sender.setUserIcon(!TextUtils.isEmpty(fromAvatar) ? fromAvatar : "");
+
+        com.roomchatapps.Pmishra.dialogs.CpInviteConfirmDialog dialog =
+                new com.roomchatapps.Pmishra.dialogs.CpInviteConfirmDialog(getContext(), sender);
+
+        dialog.setOnConfirmListener(targetUser -> {
+            acceptCpInvitation(fromUid, fromName, fromAvatar);
+        });
+
+        activeIncomingInviteDialog = dialog;
+        dialog.show();
+    }
+
+    private void acceptCpInvitation(String fromUid, String fromName, String fromAvatar) {
+        if (currentUid == null || fromUid == null) return;
+
+        FirebaseDatabase.getInstance().getReference("cp_invitations")
+                .child(currentUid).child(fromUid).child("status").setValue("accepted");
+
+        String curName = (binding != null && binding.tvUserName != null && !TextUtils.isEmpty(binding.tvUserName.getText().toString()))
+                ? binding.tvUserName.getText().toString() : "Partner";
+
+        FirebaseDatabase.getInstance().getReference("users").child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snap) {
+                String curAvatar = "";
+                if (snap.exists()) {
+                    curAvatar = snap.child("avtar").getValue(String.class);
+                    if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("avatar").getValue(String.class);
+                    if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("photoUrl").getValue(String.class);
+                    if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("image").getValue(String.class);
+                    if (TextUtils.isEmpty(curAvatar)) curAvatar = snap.child("userIcon").getValue(String.class);
+                }
+
+                CpBindingManager.createCpBinding(currentUid, curName, curAvatar, fromUid, fromName, fromAvatar);
+                Toast.makeText(getContext(), "🎉 CP Relationship Bound Successfully!", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                CpBindingManager.createCpBinding(currentUid, curName, "", fromUid, fromName, fromAvatar);
+                Toast.makeText(getContext(), "🎉 CP Relationship Bound Successfully!", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void showCpInsufficientGuardDialog(User targetUser) {

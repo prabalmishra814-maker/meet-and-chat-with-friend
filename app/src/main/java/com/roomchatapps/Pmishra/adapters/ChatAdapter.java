@@ -344,9 +344,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String rawMessage = message.getMessage() != null ? message.getMessage() : "";
             String senderId = message.getSenderId();
             boolean isSystemMsg = "SYSTEM".equalsIgnoreCase(senderId)
+                    || "ROOM_WELCOME".equalsIgnoreCase(senderId)
+                    || "NEW_USER_WELCOME".equalsIgnoreCase(senderId)
                     || rawMessage.contains("joined the room")
                     || rawMessage.contains("left the room")
-                    || rawMessage.contains("Enter the room");
+                    || rawMessage.contains("Enter the room")
+                    || rawMessage.startsWith("📢")
+                    || rawMessage.startsWith("👋");
             boolean isGiftMsg = rawMessage.contains(" sent ") && rawMessage.contains(" 🎁");
 
             // 1. Choose background pill style based on message type
@@ -418,6 +422,78 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 } else {
                     builder.append(rawMessage);
                     builder.setSpan(new ForegroundColorSpan(Color.parseColor("#FFCDD2")), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+            } else if (rawMessage.startsWith("📢") || rawMessage.startsWith("👋") || "ROOM_WELCOME".equalsIgnoreCase(senderId) || "NEW_USER_WELCOME".equalsIgnoreCase(senderId)) {
+                builder.append(rawMessage);
+                int atIndex = rawMessage.indexOf("@");
+                while (atIndex != -1) {
+                    int endMention = rawMessage.length();
+                    int space1 = rawMessage.indexOf(" ", atIndex);
+                    if (space1 != -1) {
+                        endMention = space1;
+                        int space2 = rawMessage.indexOf(" ", space1 + 1);
+                        String word2 = (space2 != -1) ? rawMessage.substring(space1 + 1, space2) : rawMessage.substring(space1 + 1);
+                        String cleanWord2 = word2.replaceAll("[,!?:;.]+$", "").trim();
+
+                        boolean isKeyword2 = cleanWord2.equalsIgnoreCase("Welcome")
+                                || cleanWord2.equalsIgnoreCase("welcome")
+                                || cleanWord2.equalsIgnoreCase("swagat")
+                                || cleanWord2.equalsIgnoreCase("aapka")
+                                || cleanWord2.equalsIgnoreCase("joined")
+                                || cleanWord2.equalsIgnoreCase("entered")
+                                || cleanWord2.equalsIgnoreCase("feel")
+                                || cleanWord2.equalsIgnoreCase("to")
+                                || cleanWord2.equalsIgnoreCase("in")
+                                || cleanWord2.equalsIgnoreCase("enjoy")
+                                || cleanWord2.equalsIgnoreCase("our")
+                                || cleanWord2.equalsIgnoreCase("the")
+                                || cleanWord2.equalsIgnoreCase("room")
+                                || cleanWord2.equalsIgnoreCase("member");
+
+                        if (!cleanWord2.isEmpty() && !isKeyword2) {
+                            endMention = (space2 != -1) ? space2 : rawMessage.length();
+
+                            if (space2 != -1) {
+                                int space3 = rawMessage.indexOf(" ", space2 + 1);
+                                String word3 = (space3 != -1) ? rawMessage.substring(space2 + 1, space3) : rawMessage.substring(space2 + 1);
+                                String cleanWord3 = word3.replaceAll("[,!?:;.]+$", "").trim();
+
+                                boolean isKeyword3 = cleanWord3.equalsIgnoreCase("Welcome")
+                                        || cleanWord3.equalsIgnoreCase("welcome")
+                                        || cleanWord3.equalsIgnoreCase("swagat")
+                                        || cleanWord3.equalsIgnoreCase("aapka")
+                                        || cleanWord3.equalsIgnoreCase("joined")
+                                        || cleanWord3.equalsIgnoreCase("entered")
+                                        || cleanWord3.equalsIgnoreCase("feel")
+                                        || cleanWord3.equalsIgnoreCase("to")
+                                        || cleanWord3.equalsIgnoreCase("in")
+                                        || cleanWord3.equalsIgnoreCase("enjoy")
+                                        || cleanWord3.equalsIgnoreCase("our")
+                                        || cleanWord3.equalsIgnoreCase("the")
+                                        || cleanWord3.equalsIgnoreCase("room")
+                                        || cleanWord3.equalsIgnoreCase("member");
+
+                                if (!cleanWord3.isEmpty() && !isKeyword3) {
+                                    endMention = (space3 != -1) ? space3 : rawMessage.length();
+                                }
+                            }
+                        }
+                    }
+
+                    // Trim trailing punctuation or space from mention end
+                    while (endMention > atIndex + 1 && (rawMessage.charAt(endMention - 1) == ','
+                            || rawMessage.charAt(endMention - 1) == '!'
+                            || rawMessage.charAt(endMention - 1) == ':'
+                            || rawMessage.charAt(endMention - 1) == '.'
+                            || rawMessage.charAt(endMention - 1) == ' ')) {
+                        endMention--;
+                    }
+
+                    if (endMention > atIndex + 1) {
+                        builder.setSpan(new ForegroundColorSpan(Color.parseColor("#00E5FF")), atIndex, endMention, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        builder.setSpan(new StyleSpan(Typeface.BOLD), atIndex, endMention, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+                    atIndex = rawMessage.indexOf("@", endMention);
                 }
             } else if (rawMessage.contains(" : ")) {
                 int colonIndex = rawMessage.indexOf(" : ");

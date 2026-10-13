@@ -44,17 +44,28 @@
         android:id="@+id/etWelcomeMessageInput"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="8dp"
         android:autofillHints="none"
         android:background="@drawable/edittext_bg"
         android:gravity="top|start"
-        android:hint="Type custom welcome message here..."
+        android:hint="Type custom welcome message here... (e.g. Welcome to our room!)"
         android:inputType="textMultiLine"
         android:maxLines="4"
         android:padding="14dp"
         android:textColor="#FFFFFF"
         android:textColorHint="#70FFFFFF"
         android:textSize="14sp" />
+
+    <!-- Tag Hint Helper Text -->
+    <TextView
+        android:id="@+id/tvWelcomeTagHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="start"
+        android:text="💡 Tip: The joining member's name will automatically be tagged as @username (or place {user} in your message)."
+        android:textColor="#00E5FF"
+        android:textSize="11sp" />
 
     <!-- Progress Bar (Hidden by default) -->
     <ProgressBar

@@ -2,6 +2,7 @@ package com.roomchatapps.Pmishra;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.adapters.CollectionAdapter;
+import com.roomchatapps.Pmishra.adapters.EmojiAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
@@ -226,6 +227,9 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private DatabaseReference roomEntriesRef;
     private ChildEventListener roomEntriesChildEventListener;
+
+    private DatabaseReference roomEmojiRef;
+    private ChildEventListener roomEmojiEventListener;
 
     private DatabaseReference roomOnlineUsersRef;
     private DatabaseReference mySeatInviteRef;
@@ -823,6 +827,15 @@ public class RoomChatActivity extends AppCompatActivity {
             showGiftDialog();
         });
 
+        View btnEmoji = findViewById(R.id.btnEmoji);
+        if (btnEmoji != null) {
+            AnimationHelper.applyClickAnimation(btnEmoji);
+            btnEmoji.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showEmojiPickerDialog();
+            });
+        }
+
         View btnSpinWheel = findViewById(R.id.btnSpinWheel);
         if (btnSpinWheel != null) {
             btnSpinWheel.setVisibility(View.GONE);
@@ -1080,9 +1093,9 @@ public class RoomChatActivity extends AppCompatActivity {
         boolean isEmpty = model.userID == null || model.userID.trim().isEmpty();
 
         if (isEmpty) {
-            // Seat 0 Security: Seat 1 is strictly reserved for the Host
+            // Seat 0 Security: Host Seat is strictly reserved for the Host
             if (model.index == 0 && !isHost) {
-                Toast.makeText(this, "Seat 1 is reserved for the Host!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Host Seat is reserved for the Host!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1102,7 +1115,8 @@ public class RoomChatActivity extends AppCompatActivity {
                         Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
                     } else {
                         ZegoManager.getInstance().startPublishing();
-                        Toast.makeText(this, "You took Seat " + (model.index + 1) + "!", Toast.LENGTH_SHORT).show();
+                        String seatNameLabel = model.index == 0 ? "Host Seat" : ("Seat " + model.index);
+                        Toast.makeText(this, "You took " + seatNameLabel + "!", Toast.LENGTH_SHORT).show();
                     }
                 });
                 return;
@@ -1142,7 +1156,7 @@ public class RoomChatActivity extends AppCompatActivity {
                         return;
                     }
                     if (model.index == 0 && !isHost) {
-                        Toast.makeText(this, "Seat 1 is reserved for the Host!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Host Seat is reserved for the Host!", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     String myAvatar = SessionManager.getInstance(this).getAvatar();
@@ -1153,7 +1167,8 @@ public class RoomChatActivity extends AppCompatActivity {
                             Toast.makeText(this, "This seat is already occupied!", Toast.LENGTH_SHORT).show();
                         } else {
                             ZegoManager.getInstance().startPublishing();
-                            Toast.makeText(this, "You took Seat " + (model.index + 1) + "!", Toast.LENGTH_SHORT).show();
+                            String seatNameLabel = model.index == 0 ? "Host Seat" : ("Seat " + model.index);
+                            Toast.makeText(this, "You took " + seatNameLabel + "!", Toast.LENGTH_SHORT).show();
                         }
                     });
                     emptyDialog.dismiss();
@@ -1477,15 +1492,9 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View layoutCollectionHeader = profileView.findViewById(R.id.layoutCollectionHeader);
         if (layoutCollectionHeader != null) {
-            layoutCollectionHeader.setOnClickListener(v -> {
-                if (rvProfileCollection != null && rvProfileCollection.getVisibility() == View.VISIBLE) {
-                    openFullCollection.run();
-                } else {
-                    if (rvProfileCollection != null) {
-                        rvProfileCollection.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
+            layoutCollectionHeader.setOnClickListener(null);
+            layoutCollectionHeader.setClickable(false);
+            layoutCollectionHeader.setFocusable(false);
         }
 
         if (tvCollectionCountBadge != null) {
@@ -1719,7 +1728,8 @@ public class RoomChatActivity extends AppCompatActivity {
                     if (ivHostLockIcon != null) {
                         ivHostLockIcon.setImageResource(newClosedState ? R.drawable.ic_lock : R.drawable.ic_lock_open);
                     }
-                    Toast.makeText(RoomChatActivity.this, (newClosedState ? "Locked " : "Unlocked ") + "Seat " + (model.index + 1), Toast.LENGTH_SHORT).show();
+                    String targetSeatName = model.index == 0 ? "Host Seat" : ("Seat " + model.index);
+                    Toast.makeText(RoomChatActivity.this, (newClosedState ? "Locked " : "Unlocked ") + targetSeatName, Toast.LENGTH_SHORT).show();
                 });
             }
 
@@ -2038,6 +2048,9 @@ public class RoomChatActivity extends AppCompatActivity {
             if (roomEntriesRef != null && roomEntriesChildEventListener != null) {
                 roomEntriesRef.removeEventListener(roomEntriesChildEventListener);
             }
+            if (roomEmojiRef != null && roomEmojiEventListener != null) {
+                roomEmojiRef.removeEventListener(roomEmojiEventListener);
+            }
             if (roomOnlineUsersListRef != null && roomOnlineUsersValueListener != null) {
                 roomOnlineUsersListRef.removeEventListener(roomOnlineUsersValueListener);
             }
@@ -2154,6 +2167,7 @@ public class RoomChatActivity extends AppCompatActivity {
         setupRoomMusicListener();
         setupRoomThemeListener();
         setupRoomEntriesListener();
+        setupRoomEmojiListener();
         setupRoomOnlineUsersListener();
         listenForRoomKick();
         checkInitialRoomKick();
@@ -2410,12 +2424,6 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                     if (!updatedSeats.isEmpty()) {
                         SeatManager.getInstance().setSeatsFromExternal(updatedSeats);
-                        if (isHost && SeatManager.getInstance().findUserSeatIndex(userID) == -1) {
-                            String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
-                            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
-                            String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
-                            SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
-                        }
                     }
                 }
             }
@@ -2595,21 +2603,36 @@ public class RoomChatActivity extends AppCompatActivity {
                         chatAdapter.addAutoExpiringMessage(entryMsg, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
 
-                    // 1. ROOM WELCOME MESSAGE (Show in chat when someone enters)
-                    String welcomeNoticeText = (currentRoomWelcomeMessage != null && !currentRoomWelcomeMessage.trim().isEmpty())
+                    // 1. ROOM WELCOME MESSAGE (Show in chat when someone enters with @username)
+                    String rawWelcome = (currentRoomWelcomeMessage != null && !currentRoomWelcomeMessage.trim().isEmpty())
                             ? currentRoomWelcomeMessage.trim()
-                            : ("📢 Welcome to " + (roomNameLabel != null ? roomNameLabel : "our room") + "! Enjoy chatting & party 🎙️");
+                            : ("Welcome to " + (roomNameLabel != null ? roomNameLabel : "our room") + "! Enjoy chatting & party 🎙️");
+
+                    String formattedWelcomeText;
+                    if (rawWelcome.contains("{user}")) {
+                        formattedWelcomeText = rawWelcome.replace("{user}", "@" + displayName);
+                    } else if (rawWelcome.contains("@user")) {
+                        formattedWelcomeText = rawWelcome.replace("@user", "@" + displayName);
+                    } else if (!rawWelcome.contains("@" + displayName)) {
+                        formattedWelcomeText = "@" + displayName + " " + rawWelcome;
+                    } else {
+                        formattedWelcomeText = rawWelcome;
+                    }
+
+                    if (!formattedWelcomeText.startsWith("📢")) {
+                        formattedWelcomeText = "📢 " + formattedWelcomeText;
+                    }
 
                     ChatMessage roomWelcomeNotice = new ChatMessage();
                     roomWelcomeNotice.setSenderId("ROOM_WELCOME");
-                    roomWelcomeNotice.setMessage("📢 " + welcomeNoticeText);
+                    roomWelcomeNotice.setMessage(formattedWelcomeText);
                     roomWelcomeNotice.setTimestamp((ts != null ? ts : System.currentTimeMillis()) + 1);
 
                     if (chatAdapter != null) {
                         chatAdapter.addAutoExpiringMessage(roomWelcomeNotice, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS);
                     }
 
-                    // 2. NEW USER WELCOME MESSAGE (Show dedicated message to new member entering room)
+                    // 2. NEW USER WELCOME MESSAGE (Show dedicated message to new member entering room with @username)
                     if (userID != null && userID.equals(senderId)) {
                         SharedPreferences prefs = getSharedPreferences("RoomNewUserPrefs", MODE_PRIVATE);
                         String prefKey = "is_new_user_room_" + roomID + "_" + userID;
@@ -2618,19 +2641,34 @@ public class RoomChatActivity extends AppCompatActivity {
                         if (!hasEnteredRoomBefore) {
                             prefs.edit().putBoolean(prefKey, true).apply();
 
-                            String newUserMsgText = (currentNewUserWelcomeMessage != null && !currentNewUserWelcomeMessage.trim().isEmpty())
+                            String rawNewUserMsg = (currentNewUserWelcomeMessage != null && !currentNewUserWelcomeMessage.trim().isEmpty())
                                     ? currentNewUserWelcomeMessage.trim()
-                                    : "👋 Welcome new member! Feel free to tap a seat to join the mic or send gifts.";
+                                    : "Welcome new member! Feel free to tap a seat to join the mic or send gifts.";
+
+                            String formattedNewUserMsg;
+                            if (rawNewUserMsg.contains("{user}")) {
+                                formattedNewUserMsg = rawNewUserMsg.replace("{user}", "@" + displayName);
+                            } else if (rawNewUserMsg.contains("@user")) {
+                                formattedNewUserMsg = rawNewUserMsg.replace("@user", "@" + displayName);
+                            } else if (!rawNewUserMsg.contains("@" + displayName)) {
+                                formattedNewUserMsg = "@" + displayName + " " + rawNewUserMsg;
+                            } else {
+                                formattedNewUserMsg = rawNewUserMsg;
+                            }
+
+                            if (!formattedNewUserMsg.startsWith("👋")) {
+                                formattedNewUserMsg = "👋 " + formattedNewUserMsg;
+                            }
 
                             ChatMessage newUserNotice = new ChatMessage();
                             newUserNotice.setSenderId("NEW_USER_WELCOME");
-                            newUserNotice.setMessage("👋 " + newUserMsgText);
+                            newUserNotice.setMessage(formattedNewUserMsg);
                             newUserNotice.setTimestamp((ts != null ? ts : System.currentTimeMillis()) + 2);
 
                             if (chatAdapter != null) {
                                 chatAdapter.addAutoExpiringMessage(newUserNotice, ChatAdapter.ROOM_MESSAGE_EXPIRE_MS * 2);
                             }
-                            Toast.makeText(RoomChatActivity.this, "👋 " + newUserMsgText, Toast.LENGTH_LONG).show();
+                            Toast.makeText(RoomChatActivity.this, formattedNewUserMsg, Toast.LENGTH_LONG).show();
                         }
                     }
 
@@ -2654,6 +2692,112 @@ public class RoomChatActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         };
         roomEntriesRef.addChildEventListener(roomEntriesChildEventListener);
+    }
+
+    // ANIMATED PROFILE EMOJI PICKER DIALOG & REALTIME SYNC
+    private void showEmojiPickerDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        applyGlassyStyle(dialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_emoji_picker, null, false);
+        if (dialogView == null) return;
+
+        RecyclerView rvEmojiGrid = dialogView.findViewById(R.id.rvEmojiGrid);
+        if (rvEmojiGrid != null) {
+            rvEmojiGrid.setLayoutManager(new GridLayoutManager(this, 4));
+            EmojiAdapter adapter = new EmojiAdapter(emojiId -> {
+                dialog.dismiss();
+                sendEmojiToRoom(emojiId);
+            });
+            rvEmojiGrid.setAdapter(adapter);
+
+            // Category Tabs: All, Reactions, Love, Party, Expressive
+            TextView tabAll = dialogView.findViewById(R.id.tabEmojiAll);
+            TextView tabReactions = dialogView.findViewById(R.id.tabEmojiReactions);
+            TextView tabLove = dialogView.findViewById(R.id.tabEmojiLove);
+            TextView tabParty = dialogView.findViewById(R.id.tabEmojiParty);
+            TextView tabExpressive = dialogView.findViewById(R.id.tabEmojiExpressive);
+
+            TextView[] tabs = new TextView[]{tabAll, tabReactions, tabLove, tabParty, tabExpressive};
+
+            View.OnClickListener onTabClick = v -> {
+                for (TextView t : tabs) {
+                    if (t != null) {
+                        t.setBackgroundResource(t == v ? R.drawable.bg_wallet_chip_selected : R.drawable.bg_wallet_chip_unselected);
+                        t.setTextColor(t == v ? Color.WHITE : Color.parseColor("#A0FFFFFF"));
+                        t.setTypeface(null, t == v ? Typeface.BOLD : Typeface.NORMAL);
+                    }
+                }
+
+                List<String> filteredList = new ArrayList<>();
+                int id = v.getId();
+                if (id == R.id.tabEmojiReactions) { // IDs 1 to 5
+                    for (int i = 1; i <= 5; i++) filteredList.add(String.valueOf(i));
+                } else if (id == R.id.tabEmojiLove) { // IDs 6 to 10
+                    for (int i = 6; i <= 10; i++) filteredList.add(String.valueOf(i));
+                } else if (id == R.id.tabEmojiParty) { // IDs 11 to 15
+                    for (int i = 11; i <= 15; i++) filteredList.add(String.valueOf(i));
+                } else if (id == R.id.tabEmojiExpressive) { // IDs 16 to 20
+                    for (int i = 16; i <= 20; i++) filteredList.add(String.valueOf(i));
+                } else { // All: IDs 1 to 20
+                    for (int i = 1; i <= 20; i++) filteredList.add(String.valueOf(i));
+                }
+                adapter.updateList(filteredList);
+            };
+
+            for (TextView t : tabs) {
+                if (t != null) t.setOnClickListener(onTabClick);
+            }
+        }
+
+        dialog.setContentView(dialogView);
+        dialog.show();
+    }
+
+    private void sendEmojiToRoom(String emojiId) {
+        if (roomID == null || userID == null || emojiId == null) return;
+
+        Map<String, Object> emojiData = new HashMap<>();
+        emojiData.put("senderUid", userID);
+        emojiData.put("senderName", userName != null ? userName : "User");
+        emojiData.put("emojiId", emojiId);
+        emojiData.put("timestamp", System.currentTimeMillis());
+
+        FirebaseDatabase.getInstance().getReference("room_emojis")
+                .child(roomID)
+                .push()
+                .setValue(emojiData);
+    }
+
+    private void setupRoomEmojiListener() {
+        if (roomID == null || roomID.trim().isEmpty()) return;
+        if (roomEmojiRef != null && roomEmojiEventListener != null) {
+            roomEmojiRef.removeEventListener(roomEmojiEventListener);
+        }
+
+        roomEmojiRef = FirebaseDatabase.getInstance().getReference("room_emojis").child(roomID);
+        roomEmojiEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!snapshot.exists()) return;
+
+                String senderUid = snapshot.child("senderUid").getValue(String.class);
+                String emojiId = snapshot.child("emojiId").getValue(String.class);
+                Long ts = snapshot.child("timestamp").getValue(Long.class);
+
+                if (ts != null && ts < roomJoinTime - 5000) return;
+
+                if (senderUid != null && emojiId != null && seatAdapter != null) {
+                    seatAdapter.playEmojiOnSeat(RoomChatActivity.this, senderUid, emojiId);
+                }
+            }
+
+            @Override public void onChildChanged(@NonNull DataSnapshot s, @Nullable String p) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot s) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot s, @Nullable String p) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        };
+        roomEmojiRef.addChildEventListener(roomEmojiEventListener);
     }
 
     private void broadcastUserEntry() {
@@ -3147,12 +3291,12 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
-        // Option 7: Coin -> Energy Exchange
+        // Option 7: Energy -> Coin Exchange
         View btnOptionExchange = dialogView.findViewById(R.id.btnOptionExchange);
         if (btnOptionExchange != null) {
             btnOptionExchange.setOnClickListener(v -> {
                 dialog.dismiss();
-                showCoinExchangeDialog();
+                startActivity(new Intent(RoomChatActivity.this, EnergyConvertActivity.class));
             });
         }
 
@@ -4695,6 +4839,22 @@ public class RoomChatActivity extends AppCompatActivity {
             rvGifts.setNestedScrollingEnabled(true);
             GiftStoreAdapter adapter = new GiftStoreAdapter(initialCategoryGifts);
             rvGifts.setAdapter(adapter);
+
+            // Check if user is bound in a CP relationship to unlock Relationship Gifts
+            FirebaseDatabase.getInstance().getReference("cp_bindings").child(userID)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (isFinishing() || isDestroyed()) return;
+                            boolean hasRelationship = snapshot.exists()
+                                    && snapshot.hasChild("partnerUid")
+                                    && !TextUtils.isEmpty(snapshot.child("partnerUid").getValue(String.class));
+
+                            adapter.setRelationshipUnlocked(hasRelationship);
+                        }
+
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
+                    });
 
             adapter.setOnGiftSelectedListener((item, position, isReSelected) -> {
                 if (isReSelected) {

@@ -29,7 +29,7 @@
         android:layout_marginStart="6dp"
         android:scaleType="centerCrop"
         android:src="@drawable/logo_placeholder"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        app:shapeAppearanceOverlay="@style/CircleImage" />
 
     <!-- User Name & Label -->
     <LinearLayout

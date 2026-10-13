@@ -362,7 +362,10 @@ public class ProfileFragment extends Fragment {
         if (binding.cardFamily != null) {
             binding.cardFamily.setOnClickListener(v -> {
                 AnimationHelper.bounceAnimation(binding.cardFamily);
-                showToast("Family");
+                if (getActivity() != null) {
+                    Intent intent = new Intent(getActivity(), FamilyRankingActivity.class);
+                    startActivity(intent);
+                }
             });
         }
 

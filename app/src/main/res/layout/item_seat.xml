@@ -11,8 +11,8 @@
     <!-- Avatar & Seat Container -->
     <FrameLayout
         android:id="@+id/avatarContainer"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,7 +55,9 @@
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"
             android:visibility="gone"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            app:strokeColor="#00000000"
+            app:strokeWidth="0dp" />
 
         <!-- Profile Frame Overlay -->
         <ImageView
@@ -75,6 +77,17 @@
             android:visibility="gone"
             app:autoPlay="true"
             app:loopCount="0" />
+
+        <!-- Animated SVGA Emoji Overlay (Plays 1 loop for natural duration) -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaSeatEmoji"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:elevation="6dp"
+            android:visibility="gone"
+            app:autoPlay="true"
+            app:loopCount="1" />
 
         <!-- Locked / Closed Seat Overlay -->
         <ImageView

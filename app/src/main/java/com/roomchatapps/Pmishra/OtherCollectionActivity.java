@@ -31,8 +31,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.adapters.GiftGridAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
 import com.roomchatapps.Pmishra.adapters.HorizontalCollectionAdapter;
+import com.roomchatapps.Pmishra.adapters.IntimacyFriendAdapter;
+import com.roomchatapps.Pmishra.adapters.SupporterAdapter;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
+import com.roomchatapps.Pmishra.models.IntimacyFriendModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
+import com.roomchatapps.Pmishra.models.SupporterModel;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
@@ -54,6 +58,7 @@ public class OtherCollectionActivity extends AppCompatActivity {
     private TextView tvTabProfile, tvTabIntimacy;
     private View indicatorProfile, indicatorIntimacy;
     private RecyclerView rvPhotos, rvFrames, rvVehicles, rvGiftsReceived, rvCollectionHall;
+    private RecyclerView rvBestFriends, rvSupporters, rvIntimacyFriends;
     private TextView tvCollectionHallCount;
     private Button btnAddFriend, btnFollowUser;
     private ProgressBar progressBar;
@@ -67,12 +72,18 @@ public class OtherCollectionActivity extends AppCompatActivity {
     private final List<CollectionItemModel> vehicleList = new ArrayList<>();
     private final List<CollectionItemModel> giftList = new ArrayList<>();
     private final List<CollectionItemModel> collectionHallList = new ArrayList<>();
+    private final List<SupporterModel> supporterList = new ArrayList<>();
+    private final List<IntimacyFriendModel> bestFriendsList = new ArrayList<>();
+    private final List<IntimacyFriendModel> intimacyFriendsList = new ArrayList<>();
 
     private HorizontalCollectionAdapter photoAdapter;
     private HorizontalCollectionAdapter frameAdapter;
     private HorizontalCollectionAdapter vehicleAdapter;
     private HorizontalCollectionAdapter collectionHallAdapter;
     private GiftGridAdapter giftAdapter;
+    private SupporterAdapter supporterAdapter;
+    private IntimacyFriendAdapter bestFriendAdapter;
+    private IntimacyFriendAdapter intimacyFriendAdapter;
 
     private DatabaseReference txRef;
     private ValueEventListener txListener;
@@ -161,6 +172,9 @@ public class OtherCollectionActivity extends AppCompatActivity {
         rvVehicles = findViewById(R.id.rvVehicles);
         rvGiftsReceived = findViewById(R.id.rvGiftsReceived);
         rvCollectionHall = findViewById(R.id.rvCollectionHall);
+        rvBestFriends = findViewById(R.id.rvBestFriends);
+        rvSupporters = findViewById(R.id.rvSupporters);
+        rvIntimacyFriends = findViewById(R.id.rvIntimacyFriends);
         tvCollectionHallCount = findViewById(R.id.tvCollectionHallCount);
         btnAddFriend = findViewById(R.id.btnAddFriend);
         btnFollowUser = findViewById(R.id.btnFollowUser);
@@ -221,6 +235,25 @@ public class OtherCollectionActivity extends AppCompatActivity {
             giftAdapter = new GiftGridAdapter(giftList, item ->
                     Toast.makeText(this, item.getItemName() + " (Received x" + item.getReceivedCount() + ")", Toast.LENGTH_SHORT).show());
             rvGiftsReceived.setAdapter(giftAdapter);
+        }
+
+        if (rvSupporters != null) {
+            rvSupporters.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            supporterAdapter = new SupporterAdapter(this, supporterList);
+            rvSupporters.setAdapter(supporterAdapter);
+        }
+
+        if (rvBestFriends != null) {
+            rvBestFriends.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            bestFriendAdapter = new IntimacyFriendAdapter(this, bestFriendsList);
+            rvBestFriends.setAdapter(bestFriendAdapter);
+        }
+
+        if (rvIntimacyFriends != null) {
+            rvIntimacyFriends.setLayoutManager(new GridLayoutManager(this, 3));
+            rvIntimacyFriends.setNestedScrollingEnabled(false);
+            intimacyFriendAdapter = new IntimacyFriendAdapter(this, intimacyFriendsList);
+            rvIntimacyFriends.setAdapter(intimacyFriendAdapter);
         }
     }
 
@@ -393,7 +426,27 @@ public class OtherCollectionActivity extends AppCompatActivity {
     private void loadIntimacyTabData(String uid) {
         if (uid == null || isFinishing() || isDestroyed()) return;
 
-        // Load CP Couple Data
+        // 1. Fetch Supporters
+        CpIntimacyManager.fetchSupporters(uid, supporters -> {
+            if (isFinishing() || isDestroyed()) return;
+            supporterList.clear();
+            if (supporters != null) supporterList.addAll(supporters);
+            if (supporterAdapter != null) supporterAdapter.notifyDataSetChanged();
+        });
+
+        // 2. Fetch Best Friends & Intimacy Friends
+        CpIntimacyManager.fetchIntimacyFriends(uid, (best, friends) -> {
+            if (isFinishing() || isDestroyed()) return;
+            bestFriendsList.clear();
+            if (best != null) bestFriendsList.addAll(best);
+            if (bestFriendAdapter != null) bestFriendAdapter.notifyDataSetChanged();
+
+            intimacyFriendsList.clear();
+            if (friends != null) intimacyFriendsList.addAll(friends);
+            if (intimacyFriendAdapter != null) intimacyFriendAdapter.notifyDataSetChanged();
+        });
+
+        // 3. Load CP Couple Data
         DatabaseReference cpRef = FirebaseDatabase.getInstance().getReference("cp_bindings").child(uid);
         cpRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

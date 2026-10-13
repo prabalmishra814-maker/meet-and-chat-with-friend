@@ -20,7 +20,7 @@
             android:layout_height="@dimen/audience_size"
             android:layout_gravity="center"
             android:src="@drawable/logo_placeholder"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+            app:shapeAppearanceOverlay="@style/CircleImage" />
 
         <!-- Static Profile Frame Overlay -->
         <ImageView
