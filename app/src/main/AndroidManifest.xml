@@ -108,6 +108,10 @@
         <activity android:name=".EnergyConvertActivity" />
         <activity android:name=".FamilyRankingActivity" />
         <activity
+            android:name=".CreateFamilyActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".CheckActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
