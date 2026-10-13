@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer Metallic Silver Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#E6ECF5"
+                android:centerColor="#8A9AA8"
+                android:endColor="#4B5866"
+                android:type="linear" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <!-- Inner Metallic Grey/Silver Fill -->
+    <item
+        android:bottom="1.5dp"
+        android:left="1.5dp"
+        android:right="1.5dp"
+        android:top="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#B8C4D0"
+                android:centerColor="#7C8B99"
+                android:endColor="#546270"
+                android:type="linear" />
+            <corners android:radius="6.5dp" />
+        </shape>
+    </item>
+</layer-list>

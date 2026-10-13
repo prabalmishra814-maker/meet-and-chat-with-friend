@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardFamilyRankRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_family_gold_card"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="8dp">
+
+    <!-- Rank Position (Shield Icon for Top 3, Text for 4+) -->
+    <FrameLayout
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginEnd="6dp">
+
+        <ImageView
+            android:id="@+id/ivRankShield"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_family_shield_gold"
+            android:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvRankNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:shadowColor="#80000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="1"
+            android:textColor="#3D2600"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <!-- Family Logo Container -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivFamilyLogo"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo_placeholder"
+        app:shapeAppearanceOverlay="@style/Rounded16"
+        app:strokeColor="#FFD700"
+        app:strokeWidth="1.5dp" />
+
+    <!-- Family Info, Name Badge & Member Avatars Row -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Family Name & Name Badge Row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFamilyName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="HELL RULER"
+                android:textColor="#FFFFFF"
+                android:textSize="14.5sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivFamilyNameBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="4dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@drawable/family_name_badges"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Top Member Avatars Overlapping Row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Member Avatar 1 -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivMemberAvatar1"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1dp" />
+
+            <!-- Member Avatar 2 -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivMemberAvatar2"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="-6dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1dp" />
+
+            <!-- Member Avatar 3 -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivMemberAvatar3"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="-6dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_placeholder"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1dp" />
+
+            <!-- Right Arrow Chevron -->
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginStart="6dp"
+                android:importantForAccessibility="no"
+                android:rotation="180"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="#D0FFFFFF" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Crown Score Badge -->
+    <LinearLayout
+        android:id="@+id/cardScoreBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_level_badge_gold"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="3dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/crown_circle" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="x"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCrownScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1574"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

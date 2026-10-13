@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dark Green Metallic Body -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#243A34"
+                android:centerColor="#182A26"
+                android:endColor="#0D1816"
+                android:type="linear" />
+        </shape>
+    </item>
+    <!-- Gold Top Border Line -->
+    <item android:height="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#00FFD700"
+                android:centerColor="#FFD700"
+                android:endColor="#00FFD700"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
