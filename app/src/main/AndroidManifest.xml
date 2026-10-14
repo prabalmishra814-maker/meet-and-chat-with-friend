@@ -116,6 +116,20 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Agency Activities -->
+        <activity
+            android:name=".AgencyDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AgencyWalletActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ApplyAgencyActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Background Persistent Notification Service -->
         <service
             android:name=".services.AppNotificationService"

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_agency_card_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-black"
+            android:text="Add Host To Agency"
+            android:textColor="#FFD700"
+            android:textSize="17sp" />
+
+        <ImageView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="#64748B" />
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:fontFamily="sans-serif"
+        android:text="Enter the User Profile ID or UID to invite them to join your official agency."
+        android:textColor="#CBD5E1"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-bold"
+        android:text="Host User ID / Profile ID *"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp" />
+
+    <EditText
+        android:id="@+id/etHostProfileId"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_agency_input_field"
+        android:hint="e.g. 100234 or User UID"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#64748B"
+        android:textSize="14sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAddHostConfirm"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="#EC4899"
+        android:fontFamily="sans-serif-bold"
+        android:text="Add Host Now"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.adapters.CollectionAdapter;
 import com.roomchatapps.Pmishra.adapters.EmojiAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
+import com.roomchatapps.Pmishra.dialogs.JoinAgencyDialog;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
@@ -664,6 +665,17 @@ public class RoomChatActivity extends AppCompatActivity {
             btnRoomClose.setOnClickListener(v -> {
                 if (isFastClick(v)) return;
                 showExitOptionsDialog();
+            });
+        }
+
+        View btnRoomAgencyIcon = findViewById(R.id.btnRoomAgencyIcon);
+        if (btnRoomAgencyIcon != null) {
+            btnRoomAgencyIcon.setVisibility((isHost || isAdminOrHost()) ? View.VISIBLE : View.GONE);
+            btnRoomAgencyIcon.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                if (userID != null) {
+                    new JoinAgencyDialog(RoomChatActivity.this, userID).show();
+                }
             });
         }
 
@@ -2233,6 +2245,11 @@ public class RoomChatActivity extends AppCompatActivity {
         View layoutRoomMusic = findViewById(R.id.layoutRoomMusic);
         if (layoutRoomMusic != null) {
             layoutRoomMusic.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
+        }
+        View btnRoomAgencyIcon = findViewById(R.id.btnRoomAgencyIcon);
+        if (btnRoomAgencyIcon != null) {
+            boolean isOnSeat = SeatManager.getInstance().findUserSeatIndex(userID) != -1;
+            btnRoomAgencyIcon.setVisibility((hasAdminAccess || isHost || isOnSeat) ? View.VISIBLE : View.GONE);
         }
     }
 

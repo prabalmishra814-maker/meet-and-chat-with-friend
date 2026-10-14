@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_agency_card_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-black"
+            android:text="Agency Membership"
+            android:textColor="#FFD700"
+            android:textSize="17sp" />
+
+        <ImageView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="#64748B" />
+    </RelativeLayout>
+
+    <!-- LOADING VIEW -->
+    <LinearLayout
+        android:id="@+id/layoutLoadingStatus"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:indeterminateTint="#FFD700" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Checking agency membership..."
+            android:textColor="#94A3B8"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 1. JOINED AGENCY VIEW -->
+    <LinearLayout
+        android:id="@+id/layoutJoinedState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_agency_input_field"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:contentDescription="Agency icon"
+                android:src="@drawable/app_create_room_ic" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvJoinedAgencyName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Official Agency"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvJoinedAgencyId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="Agency ID: AGY_10023"
+                    android:textColor="#FFD700"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_agency_badge_active"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="MEMBER"
+                android:textColor="#10B981"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans-serif"
+            android:text="Hosts can belong to only 1 agency at a time."
+            android:textColor="#CBD5E1"
+            android:textSize="12.5sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLeaveAgency"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#1E293B"
+            android:fontFamily="sans-serif-bold"
+            android:text="Leave Agency"
+            android:textAllCaps="false"
+            android:textColor="#EF4444"
+            app:cornerRadius="12dp"
+            app:strokeColor="#EF4444"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <!-- 2. COOLDOWN ACTIVE VIEW -->
+    <LinearLayout
+        android:id="@+id/layoutCooldownState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="Cooldown Period Active"
+            android:textColor="#F59E0B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvCooldownNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans-serif"
+            android:text="You recently left an agency. You must wait before joining a new agency."
+            android:textColor="#CBD5E1"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvCooldownTimerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-bold"
+            android:text="Expires in: 5 days, 12 hours"
+            android:textColor="#FFD700"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 3. JOIN AGENCY FORM VIEW WITH LIST & SEARCH -->
+    <LinearLayout
+        android:id="@+id/layoutJoinFormState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:text="Select an agency from the list or search by Agency Name / ID."
+            android:textColor="#CBD5E1"
+            android:textSize="13sp" />
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/etTargetAgencyId"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_agency_input_field"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="10dp"
+            android:drawableTint="#94A3B8"
+            android:hint="Search agency by Name or enter Agency ID..."
+            android:inputType="text"
+            android:paddingHorizontal="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#64748B"
+            android:textSize="14sp" />
+
+        <!-- Available Agencies Label & Loading -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:fontFamily="sans-serif-bold"
+                android:text="Available Agencies"
+                android:textColor="#FFD700"
+                android:textSize="13.5sp" />
+
+            <ProgressBar
+                android:id="@+id/pbLoadingAgencies"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:indeterminateTint="#FFD700"
+                android:visibility="gone" />
+        </RelativeLayout>
+
+        <!-- Empty Agencies Notice -->
+        <TextView
+            android:id="@+id/tvEmptyAgencies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="No agencies found. Type an Agency ID above to join directly."
+            android:textColor="#94A3B8"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <!-- RecyclerView for Agencies List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAgencies"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="10dp"
+            android:overScrollMode="never"
+            tools:listitem="@layout/item_agency_list" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnJoinAgencyConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#EC4899"
+            android:fontFamily="sans-serif-bold"
+            android:text="Join Agency via ID"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+</LinearLayout>

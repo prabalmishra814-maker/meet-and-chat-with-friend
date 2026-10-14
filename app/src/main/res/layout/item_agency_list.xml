@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_agency_card_glass"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <!-- Agency Logo -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivAgencyLogo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/app_create_room_ic"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+        app:strokeColor="#FFD700"
+        app:strokeWidth="1.5dp" />
+
+    <!-- Agency Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvAgencyName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-black"
+            android:maxLines="1"
+            android:text="Official Agency Name"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tvAgencyDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif"
+            android:maxLines="1"
+            android:text="ID: AGY_100293 • Owner: John"
+            android:textColor="#94A3B8"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Join Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnJoinAgencyItem"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:backgroundTint="#EC4899"
+        android:fontFamily="sans-serif-bold"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:paddingHorizontal="14dp"
+        android:text="Join"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="12.5sp"
+        app:cornerRadius="18dp" />
+
+</LinearLayout>
