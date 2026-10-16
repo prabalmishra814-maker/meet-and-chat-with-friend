@@ -32,6 +32,21 @@ public class EconomyConfig {
     public static float SYSTEM_CUT_PERCENTAGE = 0.70f;       // Default 70% System Cut
 
     /**
+     * Agency Commission Rate (Default 10%).
+     * Dynamic Rate configured from Admin Panel via /app_config/agencyCommissionPercentage
+     */
+    public static double DEFAULT_AGENCY_COMMISSION_PERCENTAGE = 10.0;
+
+    /**
+     * Calculates Agency Commission Coins earned from Host Income Coins.
+     * Example: Host Income = 100,000 Coins @ 10% = 10,000 Coins Agency Commission.
+     */
+    public static long calculateAgencyCommissionCoins(long hostIncomeCoins, double commissionPercentage) {
+        if (hostIncomeCoins <= 0 || commissionPercentage <= 0) return 0;
+        return (long) Math.floor(hostIncomeCoins * (commissionPercentage / 100.0));
+    }
+
+    /**
      * Animation thresholds:
      * - Low-Value gifts: < 50,00,000 (50 Lakh)
      * - High-Value gifts: >= 50,00,000 (50 Lakh / 1 Crore)

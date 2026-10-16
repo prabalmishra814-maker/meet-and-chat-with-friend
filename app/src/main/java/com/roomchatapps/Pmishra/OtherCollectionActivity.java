@@ -3,6 +3,7 @@ package com.roomchatapps.Pmishra;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -45,9 +46,12 @@ import com.roomchatapps.Pmishra.utils.NotificationHelper;
 import com.roomchatapps.Pmishra.utils.StatusBarUtils;
 import com.roomchatapps.Pmishra.utils.StoreManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class OtherCollectionActivity extends AppCompatActivity {
@@ -466,12 +470,12 @@ public class OtherCollectionActivity extends AppCompatActivity {
                         long days = CpBindingManager.getBindingDays(timestamp);
                         TextView tvCoupleDuration = findViewById(R.id.tvCoupleDuration);
                         if (tvCoupleDuration != null) {
-                            String startDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date(timestamp));
+                            String startDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date(timestamp));
                             tvCoupleDuration.setText(startDate + "-now " + days + " days");
                         }
                     }
 
-                    if (!android.text.TextUtils.isEmpty(pUid)) {
+                    if (!TextUtils.isEmpty(pUid)) {
                         DatabaseReference cpGuardRef = FirebaseDatabase.getInstance().getReference("cp_guard_values")
                                 .child(uid).child(pUid);
 
@@ -503,13 +507,13 @@ public class OtherCollectionActivity extends AppCompatActivity {
                                 if (pSnap.exists()) {
                                     String pName = pSnap.child("name").getValue(String.class);
                                     String pAvatar = pSnap.child("avtar").getValue(String.class);
-                                    if (android.text.TextUtils.isEmpty(pAvatar)) pAvatar = pSnap.child("avatar").getValue(String.class);
+                                    if (TextUtils.isEmpty(pAvatar)) pAvatar = pSnap.child("avatar").getValue(String.class);
 
-                                    if (tvCoupleRightName != null && !android.text.TextUtils.isEmpty(pName)) {
+                                    if (tvCoupleRightName != null && !TextUtils.isEmpty(pName)) {
                                         tvCoupleRightName.setText(pName);
                                     }
 
-                                    if (ivCoupleRightAvatar != null && !android.text.TextUtils.isEmpty(pAvatar)) {
+                                    if (ivCoupleRightAvatar != null && !TextUtils.isEmpty(pAvatar)) {
                                         Glide.with(OtherCollectionActivity.this)
                                                 .load(pAvatar)
                                                 .placeholder(R.drawable.logo_placeholder)

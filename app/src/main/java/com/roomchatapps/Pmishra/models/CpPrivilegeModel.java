@@ -8,14 +8,20 @@ public class CpPrivilegeModel {
     private int unlockLevel;
     private String description;
     private boolean isUnlocked;
+    private String svgaPath;
 
     public CpPrivilegeModel(String id, String title, int iconRes, int unlockLevel, String description, boolean isUnlocked) {
+        this(id, title, iconRes, unlockLevel, description, isUnlocked, null);
+    }
+
+    public CpPrivilegeModel(String id, String title, int iconRes, int unlockLevel, String description, boolean isUnlocked, String svgaPath) {
         this.id = id;
         this.title = title;
         this.iconRes = iconRes;
         this.unlockLevel = unlockLevel;
         this.description = description;
         this.isUnlocked = isUnlocked;
+        this.svgaPath = svgaPath;
     }
 
     public String getId() {
@@ -44,5 +50,13 @@ public class CpPrivilegeModel {
 
     public void setUnlocked(boolean unlocked) {
         isUnlocked = unlocked;
+    }
+
+    public String getSvgaPath() {
+        return svgaPath;
+    }
+
+    public void setSvgaPath(String svgaPath) {
+        this.svgaPath = svgaPath;
     }
 }

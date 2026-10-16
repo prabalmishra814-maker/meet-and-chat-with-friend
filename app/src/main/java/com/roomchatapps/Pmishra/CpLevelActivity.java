@@ -23,6 +23,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.opensource.svgaplayer.SVGAParser;
+import com.opensource.svgaplayer.SVGAVideoEntity;
 import com.roomchatapps.Pmishra.adapters.CpPrivilegeAdapter;
 import com.roomchatapps.Pmishra.models.CpPrivilegeModel;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
@@ -194,19 +197,34 @@ public class CpLevelActivity extends AppCompatActivity {
     private void buildPrivilegesList() {
         privilegeList.clear();
 
-        privilegeList.add(new CpPrivilegeModel("1", "CP Card", R.drawable.ic_privilege_cp_card, 1, "Exclusive CP Card banner to showcase your bond in rooms and profiles.", currentDisplayLevel >= 1));
-        privilegeList.add(new CpPrivilegeModel("2", "CP Online\nNotification", R.drawable.ic_privilege_online_notif, 1, "Special online notification broadcasted when your CP partner arrives.", currentDisplayLevel >= 1));
-        privilegeList.add(new CpPrivilegeModel("3", "Unlock CP\nHouse", R.drawable.ic_privilege_cp_house, 2, "Unlock access to your shared CP Love House space.", currentDisplayLevel >= 2));
-        privilegeList.add(new CpPrivilegeModel("4", "CP together\nprofile", R.drawable.ic_privilege_together_profile, 2, "Displays linked dual avatar profile badge on both user profiles.", currentDisplayLevel >= 2));
-        privilegeList.add(new CpPrivilegeModel("5", "Unlock\nExclusive CP...", R.drawable.ic_privilege_exclusive_cp, 3, "Unlocks exclusive CP gift packs and intimate interaction items.", currentDisplayLevel >= 3));
-        privilegeList.add(new CpPrivilegeModel("6", "Unlock\nProposal...", R.drawable.ic_privilege_proposal, 3, "Unlocks custom proposal envelopes and wedding proposal gifts.", currentDisplayLevel >= 3));
-        privilegeList.add(new CpPrivilegeModel("7", "CP Online\nEffect", R.drawable.ic_privilege_online_effect, 4, "Glow trail and winged heart animation effect when CP joins.", currentDisplayLevel >= 4));
-        privilegeList.add(new CpPrivilegeModel("8", "CP Sending\nNotification in...", R.drawable.ic_privilege_sending_notif, 4, "Special banner notification when sending CP gifts in room chat.", currentDisplayLevel >= 4));
-        privilegeList.add(new CpPrivilegeModel("9", "CP Emoji", R.drawable.ic_privilege_cp_emoji, 4, "Exclusive romantic CP emoji pack usable in chat and room.", currentDisplayLevel >= 4));
-        privilegeList.add(new CpPrivilegeModel("10", "CP Enter\nNotification", R.drawable.ic_privilege_enter_notif, 5, "Grand entrance banner when CP enters any chat room.", currentDisplayLevel >= 5));
-        privilegeList.add(new CpPrivilegeModel("11", "Unlock CP\nHouse Theme", R.drawable.ic_privilege_house_theme, 5, "Customizable themes and decorations for your Love House.", currentDisplayLevel >= 5));
-        privilegeList.add(new CpPrivilegeModel("12", "CP Medal", R.drawable.ic_privilege_cp_medal, 4, "Glowing winged heart CP Medal displayed on your profile card.", currentDisplayLevel >= 4));
-        privilegeList.add(new CpPrivilegeModel("13", "CP Ring", R.drawable.ic_privilege_cp_ring, 6, "Exclusive crowned diamond CP Ring displayed on user info.", currentDisplayLevel >= 6));
+        privilegeList.add(new CpPrivilegeModel(
+                "0",
+                "CP Banner",
+                R.drawable.cp_banner,
+                1,
+                "Exclusive CP banner displayed for room and user profile.",
+                userActualLevel >= 1
+        ));
+
+        privilegeList.add(new CpPrivilegeModel(
+                "1",
+                "CP Enter Effect",
+                R.drawable.ic_privilege_enter_notif,
+                1,
+                "Exclusive CP entrance animation effect when entering a room.",
+                userActualLevel >= 1,
+                "cp_level/enter_1.svga"
+        ));
+
+        privilegeList.add(new CpPrivilegeModel(
+                "2",
+                "CP Level 5 Notification",
+                R.drawable.ic_privilege_sending_notif,
+                5,
+                "Grand CP Level 5 banner notification effect.",
+                userActualLevel >= 5,
+                "cp_level/notification_level_5.svga"
+        ));
     }
 
     private void showPrivilegeDetailDialog(CpPrivilegeModel model) {
@@ -218,6 +236,7 @@ public class CpLevelActivity extends AppCompatActivity {
         dialog.setContentView(dialogView);
 
         ImageView ivDetailIcon = dialogView.findViewById(R.id.ivDetailIcon);
+        SVGAImageView svgaDetailPlayer = dialogView.findViewById(R.id.svgaDetailPlayer);
         TextView tvDetailTitle = dialogView.findViewById(R.id.tvDetailTitle);
         TextView tvDetailLevel = dialogView.findViewById(R.id.tvDetailLevel);
         TextView tvDetailDescription = dialogView.findViewById(R.id.tvDetailDescription);
@@ -233,6 +252,49 @@ public class CpLevelActivity extends AppCompatActivity {
             }
         }
         if (tvDetailDescription != null) tvDetailDescription.setText(model.getDescription());
+
+        if (model.getSvgaPath() != null && !model.getSvgaPath().isEmpty() && svgaDetailPlayer != null) {
+            if (ivDetailIcon != null) {
+                ivDetailIcon.setVisibility(View.GONE);
+            }
+            svgaDetailPlayer.setVisibility(View.VISIBLE);
+            svgaDetailPlayer.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            SVGAParser parser = new SVGAParser(this);
+            parser.decodeFromAssets(model.getSvgaPath(), new SVGAParser.ParseCompletion() {
+                @Override
+                public void onComplete(@NonNull SVGAVideoEntity videoItem) {
+                    runOnUiThread(() -> {
+                        if (svgaDetailPlayer != null) {
+                            svgaDetailPlayer.setVideoItem(videoItem);
+                            svgaDetailPlayer.setLoops(0);
+                            svgaDetailPlayer.stepToFrame(0, true);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError() {
+                    runOnUiThread(() -> {
+                        if (svgaDetailPlayer != null) {
+                            svgaDetailPlayer.setVisibility(View.GONE);
+                        }
+                        if (ivDetailIcon != null) {
+                            ivDetailIcon.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            }, null);
+        } else {
+            if (svgaDetailPlayer != null) svgaDetailPlayer.setVisibility(View.GONE);
+            if (ivDetailIcon != null) ivDetailIcon.setVisibility(View.VISIBLE);
+        }
+
+        dialog.setOnDismissListener(dialogInterface -> {
+            if (svgaDetailPlayer != null) {
+                svgaDetailPlayer.stopAnimation();
+                svgaDetailPlayer.clear();
+            }
+        });
 
         if (btnCloseDetail != null) {
             btnCloseDetail.setOnClickListener(v -> dialog.dismiss());

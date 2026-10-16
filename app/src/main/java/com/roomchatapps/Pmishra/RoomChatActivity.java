@@ -1,15 +1,19 @@
 package com.roomchatapps.Pmishra;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.firebase.auth.FirebaseUser;
 import com.roomchatapps.Pmishra.adapters.CollectionAdapter;
 import com.roomchatapps.Pmishra.adapters.EmojiAdapter;
 import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
+import com.roomchatapps.Pmishra.dialogs.JoinAgencyDialog;
 import com.roomchatapps.Pmishra.models.CollectionItemModel;
 import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelController;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
 import com.roomchatapps.Pmishra.utils.GiftCatalog;
+import com.roomchatapps.Pmishra.utils.GlobalGiftBannerManager;
 import com.roomchatapps.Pmishra.utils.StoreManager;
 import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
@@ -35,6 +39,11 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.database.Cursor;
+import android.content.ContentUris;
+import android.provider.MediaStore;
+import androidx.core.content.ContextCompat;
+import java.io.File;
+import java.io.FileOutputStream;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -265,6 +274,162 @@ public class RoomChatActivity extends AppCompatActivity {
                 }
             }
     );
+
+    public static class DeviceAudioTrack {
+        public String title;
+        public Uri uri;
+        public String path;
+
+        public DeviceAudioTrack(String title, Uri uri, String path) {
+            this.title = title;
+            this.uri = uri;
+            this.path = path;
+        }
+    }
+
+    private final List<DeviceAudioTrack> deviceAudioTracks = new ArrayList<>();
+    private int currentDeviceTrackIndex = -1;
+
+    private final ActivityResultLauncher<String> audioPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    loadDeviceAudioTracks();
+                    Toast.makeText(this, "Loaded " + deviceAudioTracks.size() + " device music tracks!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permission required to access device music", Toast.LENGTH_SHORT).show();
+                }
+            }
+    );
+
+    private void loadDeviceAudioTracks() {
+        deviceAudioTracks.clear();
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
+                Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        Uri collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = new String[] {
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.DURATION
+        };
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+
+        try (Cursor cursor = getContentResolver().query(collection, projection, selection, null, MediaStore.Audio.Media.TITLE + " ASC")) {
+            if (cursor != null) {
+                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                int titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+                int dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+                int durationColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(idColumn);
+                    String title = cursor.getString(titleColumn);
+                    long duration = durationColumn != -1 ? cursor.getLong(durationColumn) : 0;
+
+                    if (duration > 0 && duration < 10000) {
+                        continue;
+                    }
+
+                    Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                    String path = dataColumn != -1 ? cursor.getString(dataColumn) : null;
+
+                    if (title != null && !title.isEmpty()) {
+                        deviceAudioTracks.add(new DeviceAudioTrack(title, contentUri, path));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error loading device audio tracks", e);
+        }
+    }
+
+    private void playDeviceTrack(int index) {
+        if (!isAdminOrHost()) {
+            Toast.makeText(this, "Only Room Host or Administrators can play music!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
+                Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            audioPermissionLauncher.launch(permission);
+            return;
+        }
+
+        if (deviceAudioTracks.isEmpty()) {
+            loadDeviceAudioTracks();
+        }
+
+        if (deviceAudioTracks.isEmpty()) {
+            Toast.makeText(this, "No music files found on device!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (index < 0) {
+            index = deviceAudioTracks.size() - 1;
+        } else if (index >= deviceAudioTracks.size()) {
+            index = 0;
+        }
+
+        currentDeviceTrackIndex = index;
+        DeviceAudioTrack track = deviceAudioTracks.get(currentDeviceTrackIndex);
+
+        String audioPath = null;
+        if (track.path != null && new File(track.path).canRead()) {
+            audioPath = track.path;
+        } else if (track.uri != null) {
+            try {
+                File cacheFile = new File(getCacheDir(), "room_music_device.mp3");
+                try (InputStream in = getContentResolver().openInputStream(track.uri);
+                     OutputStream out = new FileOutputStream(cacheFile)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((in != null) && (bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                }
+                if (cacheFile.exists()) {
+                    audioPath = cacheFile.getAbsolutePath();
+                }
+            } catch (Exception e) {
+                Log.e("RoomChatActivity", "Error caching device audio", e);
+            }
+        }
+
+        if (audioPath != null) {
+            currentPlayingSongName = track.title;
+            ZegoManager.getInstance().playMusicResource(audioPath, track.title);
+            syncMusicStateToFirebase(track.title, true);
+            Toast.makeText(this, "🎵 Playing: " + track.title, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Unable to play track: " + track.title, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void playNextDeviceTrack() {
+        if (deviceAudioTracks.isEmpty()) {
+            playDeviceTrack(0);
+        } else {
+            playDeviceTrack((currentDeviceTrackIndex + 1) % deviceAudioTracks.size());
+        }
+    }
+
+    private void playPrevDeviceTrack() {
+        if (deviceAudioTracks.isEmpty()) {
+            playDeviceTrack(0);
+        } else {
+            int prevIndex = currentDeviceTrackIndex - 1;
+            if (prevIndex < 0) prevIndex = deviceAudioTracks.size() - 1;
+            playDeviceTrack(prevIndex);
+        }
+    }
 
     private Uri editRoomSelectedImageUri = null;
     private ImageView ivEditRoomCoverRef = null;
@@ -527,9 +692,9 @@ public class RoomChatActivity extends AppCompatActivity {
         } // ROOM MINIMIZE FIX
 
         View container = findViewById(R.id.globalBannerGiftContainer);
-        com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+        SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
         TextView tvNotice = findViewById(R.id.globalTvBannerNotice);
-        com.roomchatapps.Pmishra.utils.GlobalGiftBannerManager.getInstance().bindContainer(this, container, player, tvNotice);
+        GlobalGiftBannerManager.getInstance().bindContainer(this, container, player, tvNotice);
 
         if (userID != null) {
             UserProfileCache.invalidate(userID);
@@ -664,6 +829,17 @@ public class RoomChatActivity extends AppCompatActivity {
             btnRoomClose.setOnClickListener(v -> {
                 if (isFastClick(v)) return;
                 showExitOptionsDialog();
+            });
+        }
+
+        View btnRoomAgencyIcon = findViewById(R.id.btnRoomAgencyIcon);
+        if (btnRoomAgencyIcon != null) {
+            btnRoomAgencyIcon.setVisibility((isHost || isAdminOrHost()) ? View.VISIBLE : View.GONE);
+            btnRoomAgencyIcon.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                if (userID != null) {
+                    new JoinAgencyDialog(RoomChatActivity.this, userID).show();
+                }
             });
         }
 
@@ -1919,7 +2095,7 @@ public class RoomChatActivity extends AppCompatActivity {
         for (Map.Entry<String, Integer> entry : giftCountMap.entrySet()) {
             String giftName = entry.getKey();
             int count = entry.getValue();
-            GiftStoreAdapter.GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
+            GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
             if (catalogGift != null) {
                 finalCollection.add(new CollectionItemModel(catalogGift, count));
             } else {
@@ -2237,6 +2413,11 @@ public class RoomChatActivity extends AppCompatActivity {
         if (layoutRoomMusic != null) {
             layoutRoomMusic.setVisibility(hasAdminAccess ? View.VISIBLE : View.GONE);
         }
+        View btnRoomAgencyIcon = findViewById(R.id.btnRoomAgencyIcon);
+        if (btnRoomAgencyIcon != null) {
+            boolean isOnSeat = SeatManager.getInstance().findUserSeatIndex(userID) != -1;
+            btnRoomAgencyIcon.setVisibility((hasAdminAccess || isHost || isOnSeat) ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setupRoomInfoListener() {
@@ -2493,6 +2674,7 @@ public class RoomChatActivity extends AppCompatActivity {
     private String currentPlayingSongName = "";
 
     private void setupRoomMusicListener() {
+        ZegoManager.getInstance().setMusicStateChangeListener(() -> runOnUiThread(this::playNextDeviceTrack));
         roomMusicRef = FirebaseDatabase.getInstance().getReference("room_music").child(roomID);
         roomMusicValueEventListener = new ValueEventListener() {
             @Override
@@ -2513,7 +2695,10 @@ public class RoomChatActivity extends AppCompatActivity {
                             layoutMusicWidget.setVisibility(View.VISIBLE);
                             layoutMusicWidget.setOnClickListener(v -> showMusicControlSheet());
                         }
-                        if (tvMusicTitle != null) tvMusicTitle.setText(songName);
+                        if (tvMusicTitle != null) {
+                            tvMusicTitle.setText(songName);
+                            tvMusicTitle.setSelected(true);
+                        }
 
                         if (btnWidgetMusicPause != null) {
                             btnWidgetMusicPause.setVisibility(isHost ? View.VISIBLE : View.GONE);
@@ -2885,15 +3070,60 @@ public class RoomChatActivity extends AppCompatActivity {
         if (dialogView == null) return;
 
         TextView tvSongTitle = dialogView.findViewById(R.id.tvMusicDialogSongTitle);
+        TextView tvTrackCount = dialogView.findViewById(R.id.tvMusicTrackCount);
         TextView tvVolumeText = dialogView.findViewById(R.id.tvMusicVolumeText);
         SeekBar seekBarVolume = dialogView.findViewById(R.id.seekBarMusicVolume);
+
+        MaterialButton btnPrev = dialogView.findViewById(R.id.btnMusicPrev);
+        MaterialButton btnPlayPause = dialogView.findViewById(R.id.btnMusicPlayPause);
+        MaterialButton btnNext = dialogView.findViewById(R.id.btnMusicNext);
         View btnSelectSong = dialogView.findViewById(R.id.btnDialogSelectSong);
         View btnStopMusic = dialogView.findViewById(R.id.btnDialogStopMusic);
 
-        boolean isPlaying = ZegoManager.getInstance().isMusicPlaying();
-        if (tvSongTitle != null) {
-            tvSongTitle.setText(isPlaying && !currentPlayingSongName.isEmpty() ? "Playing: " + currentPlayingSongName : "Room Music Control");
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
+                Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+            if (deviceAudioTracks.isEmpty()) {
+                loadDeviceAudioTracks();
+            }
         }
+
+        if (tvSongTitle != null) {
+            tvSongTitle.setSelected(true);
+        }
+
+        Runnable updateUiState = () -> {
+            boolean isPlaying = ZegoManager.getInstance().isMusicPlaying();
+            boolean isPaused = ZegoManager.getInstance().isMusicPaused();
+
+            if (tvSongTitle != null) {
+                if (isPlaying || isPaused) {
+                    tvSongTitle.setText((isPlaying ? "🎵 Playing: " : "⏸ Paused: ") + (currentPlayingSongName.isEmpty() ? "Device Song" : currentPlayingSongName));
+                } else {
+                    tvSongTitle.setText("No Song Playing");
+                }
+            }
+
+            if (tvTrackCount != null) {
+                if (deviceAudioTracks.isEmpty()) {
+                    tvTrackCount.setText("Tap Play or Next to load device tracks");
+                } else if (currentDeviceTrackIndex >= 0 && currentDeviceTrackIndex < deviceAudioTracks.size()) {
+                    tvTrackCount.setText("Track " + (currentDeviceTrackIndex + 1) + " of " + deviceAudioTracks.size() + " • Device Playlist");
+                } else {
+                    tvTrackCount.setText("Device Music (" + deviceAudioTracks.size() + " songs loaded)");
+                }
+            }
+
+            if (btnPlayPause != null) {
+                if (isPlaying) {
+                    btnPlayPause.setIconResource(R.drawable.ic_pause);
+                } else {
+                    btnPlayPause.setIconResource(R.drawable.ic_play);
+                }
+            }
+        };
+
+        updateUiState.run();
 
         int currentVol = ZegoManager.getInstance().getMusicVolume();
         if (seekBarVolume != null) {
@@ -2915,6 +3145,47 @@ public class RoomChatActivity extends AppCompatActivity {
             });
         }
 
+        if (btnPlayPause != null) {
+            btnPlayPause.setOnClickListener(v -> {
+                if (!isAdminOrHost()) {
+                    Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (ZegoManager.getInstance().isMusicPlaying()) {
+                    ZegoManager.getInstance().pauseMusic();
+                    syncMusicStateToFirebase(currentPlayingSongName, false);
+                } else if (ZegoManager.getInstance().isMusicPaused()) {
+                    ZegoManager.getInstance().resumeMusic();
+                    syncMusicStateToFirebase(currentPlayingSongName, true);
+                } else {
+                    playNextDeviceTrack();
+                }
+                updateUiState.run();
+            });
+        }
+
+        if (btnPrev != null) {
+            btnPrev.setOnClickListener(v -> {
+                if (!isAdminOrHost()) {
+                    Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                playPrevDeviceTrack();
+                updateUiState.run();
+            });
+        }
+
+        if (btnNext != null) {
+            btnNext.setOnClickListener(v -> {
+                if (!isAdminOrHost()) {
+                    Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                playNextDeviceTrack();
+                updateUiState.run();
+            });
+        }
+
         if (btnSelectSong != null) {
             btnSelectSong.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
             btnSelectSong.setOnClickListener(v -> {
@@ -2928,6 +3199,7 @@ public class RoomChatActivity extends AppCompatActivity {
             btnStopMusic.setOnClickListener(v -> {
                 ZegoManager.getInstance().stopMusic();
                 syncMusicStateToFirebase("", false);
+                updateUiState.run();
                 dialog.dismiss();
             });
         }
@@ -3338,7 +3610,7 @@ public class RoomChatActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_private_room_settings, null, false);
         if (dialogView == null) return;
 
-        com.google.android.material.materialswitch.MaterialSwitch swPrivateRoom = dialogView.findViewById(R.id.swPrivateRoom);
+        MaterialSwitch swPrivateRoom = dialogView.findViewById(R.id.swPrivateRoom);
         EditText etRoomPin = dialogView.findViewById(R.id.etRoomPin);
         View btnSavePrivateSettings = dialogView.findViewById(R.id.btnSavePrivateSettings);
 

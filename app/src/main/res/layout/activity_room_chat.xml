@@ -300,6 +300,15 @@
                 android:src="@drawable/setting" />
 
             <ImageView
+                android:id="@+id/btnRoomAgencyIcon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="Agency"
+                android:src="@drawable/app_create_room_ic"
+                android:visibility="gone" />
+
+            <ImageView
                 android:id="@+id/btnRoomShare"
                 android:layout_width="26dp"
                 android:layout_height="26dp"

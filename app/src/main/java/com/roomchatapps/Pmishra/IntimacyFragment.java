@@ -1,12 +1,15 @@
 package com.roomchatapps.Pmishra;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +19,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -23,12 +28,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.opensource.svgaplayer.SVGAParser;
+import com.opensource.svgaplayer.SVGAVideoEntity;
+import com.roomchatapps.Pmishra.adapters.CpRewardAdapter;
 import com.roomchatapps.Pmishra.adapters.IntimacyFriendAdapter;
 import com.roomchatapps.Pmishra.adapters.SupporterAdapter;
+import com.roomchatapps.Pmishra.models.CpLevelRewardModel;
 import com.roomchatapps.Pmishra.models.IntimacyFriendModel;
 import com.roomchatapps.Pmishra.models.SupporterModel;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.CpIntimacyManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,14 +59,18 @@ public class IntimacyFragment extends Fragment {
     private ShapeableImageView ivCoupleLeftAvatar, ivCoupleRightAvatar;
     private TextView tvCoupleLeftName, tvCoupleRightName, tvCoupleLevelBadgeText, tvCoupleDuration;
     private View btnAddCouplePartner;
-    private RecyclerView rvBestFriends, rvSupporters, rvIntimacyFriends;
+    private RecyclerView rvBestFriends, rvSupporters, rvIntimacyFriends, rvCpRewards;
 
     private SupporterAdapter supporterAdapter;
     private IntimacyFriendAdapter bestFriendAdapter, intimacyFriendAdapter;
+    private CpRewardAdapter cpRewardAdapter;
 
     private final List<SupporterModel> supporterList = new ArrayList<>();
     private final List<IntimacyFriendModel> bestFriendsList = new ArrayList<>();
     private final List<IntimacyFriendModel> intimacyFriendsList = new ArrayList<>();
+    private final List<CpLevelRewardModel> cpRewardList = new ArrayList<>();
+
+    private SVGAImageView activePreviewSvgaPlayer;
 
     public IntimacyFragment() {
         // Required empty public constructor
@@ -146,6 +162,14 @@ public class IntimacyFragment extends Fragment {
             rvIntimacyFriends.setNestedScrollingEnabled(false);
             intimacyFriendAdapter = new IntimacyFriendAdapter(getContext(), intimacyFriendsList);
             rvIntimacyFriends.setAdapter(intimacyFriendAdapter);
+        }
+
+        // Initialize CP Level SVGA Rewards RecyclerView
+        rvCpRewards = view.findViewById(R.id.rvCpRewards);
+        if (rvCpRewards != null) {
+            rvCpRewards.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+            cpRewardAdapter = new CpRewardAdapter(getContext(), cpRewardList, this::showRewardPreviewDialog);
+            rvCpRewards.setAdapter(cpRewardAdapter);
         }
     }
 
@@ -266,5 +290,176 @@ public class IntimacyFragment extends Fragment {
 
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+
+        // 5. Load CP Level SVGA Rewards
+        loadCpLevelRewards();
+    }
+
+    private void loadCpLevelRewards() {
+        cpRewardList.clear();
+
+        // Testing Mode: All 3 SVGA rewards from assets/cp_level/ are unlocked by default
+        cpRewardList.add(new CpLevelRewardModel(
+                "cp_enter_1",
+                "CP Entrance 1",
+                "Exclusive CP entrance effect animation displayed when entering chat rooms.",
+                "cp_level/enter_1.svga",
+                R.drawable.ic_privilege_enter_notif,
+                1,
+                "ENTRANCE"
+        ));
+
+        cpRewardList.add(new CpLevelRewardModel(
+                "cp_notification5",
+                "CP Notification 5",
+                "Special online banner notification broadcast when your CP partner arrives.",
+                "cp_level/notification5.svga",
+                R.drawable.ic_privilege_online_notif,
+                5,
+                "NOTIFICATION"
+        ));
+
+        cpRewardList.add(new CpLevelRewardModel(
+                "cp_notification_level_5",
+                "CP Level 5 Notification",
+                "Grand level 5 notification banner for CP gift sending and events.",
+                "cp_level/notification_level_5.svga",
+                R.drawable.ic_privilege_sending_notif,
+                5,
+                "NOTIFICATION"
+        ));
+
+        if (cpRewardAdapter != null) {
+            cpRewardAdapter.updateList(cpRewardList);
+        }
+    }
+
+    private void showRewardPreviewDialog(CpLevelRewardModel reward) {
+        if (reward == null || getContext() == null || !isAdded()) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(getContext(), R.style.CustomBottomSheetDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_cp_reward_preview, null, false);
+        if (dialogView == null) return;
+        dialog.setContentView(dialogView);
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvPreviewTitle);
+        TextView tvBadge = dialogView.findViewById(R.id.tvPreviewBadge);
+        TextView tvDescription = dialogView.findViewById(R.id.tvPreviewDescription);
+        SVGAImageView svgaPlayer = dialogView.findViewById(R.id.svgaPreviewPlayer);
+        ProgressBar pbLoading = dialogView.findViewById(R.id.pbPreviewLoading);
+        TextView btnReplay = dialogView.findViewById(R.id.btnReplayAnim);
+        MaterialButton btnAction = dialogView.findViewById(R.id.btnPreviewAction);
+        View btnClose = dialogView.findViewById(R.id.btnClosePreview);
+
+        activePreviewSvgaPlayer = svgaPlayer;
+
+        if (tvTitle != null) tvTitle.setText(reward.getTitle());
+        if (tvBadge != null) {
+            if (reward.isEquipped()) {
+                tvBadge.setText("EQUIPPED ✨");
+                tvBadge.setBackgroundResource(R.drawable.chip_room_bg);
+            } else {
+                tvBadge.setText("UNLOCKED (TESTING) ✨");
+                tvBadge.setBackgroundResource(R.drawable.bg_level_badge_cyan);
+            }
+        }
+        if (tvDescription != null) tvDescription.setText(reward.getDescription());
+
+        if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        // Load and Play SVGA Animation
+        if (svgaPlayer != null && reward.getSvgaPath() != null && !reward.getSvgaPath().isEmpty()) {
+            svgaPlayer.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
+
+            SVGAParser parser = new SVGAParser(getContext());
+            parser.decodeFromAssets(reward.getSvgaPath(), new SVGAParser.ParseCompletion() {
+                @Override
+                public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                            if (svgaPlayer != null) {
+                                svgaPlayer.setVideoItem(videoItem);
+                                svgaPlayer.setLoops(0);
+                                svgaPlayer.stepToFrame(0, true);
+                                svgaPlayer.startAnimation();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError() {
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                            Toast.makeText(getContext(), "Unable to load preview animation", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            }, null);
+
+            if (btnReplay != null) {
+                btnReplay.setOnClickListener(v -> {
+                    if (svgaPlayer != null) {
+                        svgaPlayer.stepToFrame(0, true);
+                        svgaPlayer.startAnimation();
+                    }
+                });
+            }
+        }
+
+        if (btnAction != null) {
+            if (reward.isEquipped()) {
+                btnAction.setText("Unequip Reward");
+                btnAction.setBackgroundColor(Color.parseColor("#FF6B6B"));
+                btnAction.setTextColor(Color.parseColor("#FFFFFF"));
+            } else {
+                btnAction.setText("Equip Reward ✨");
+                btnAction.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnAction.setTextColor(Color.parseColor("#050E1E"));
+            }
+
+            btnAction.setOnClickListener(v -> {
+                boolean newEquippedState = !reward.isEquipped();
+                reward.setEquipped(newEquippedState);
+
+                // Unequip others in same category if equipping
+                if (newEquippedState) {
+                    for (CpLevelRewardModel item : cpRewardList) {
+                        if (item != reward && item.getCategory().equalsIgnoreCase(reward.getCategory())) {
+                            item.setEquipped(false);
+                        }
+                    }
+                }
+
+                if (cpRewardAdapter != null) cpRewardAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+
+                String msg = newEquippedState ? "Equipped " + reward.getTitle() + " ✨" : "Unequipped " + reward.getTitle();
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        dialog.setOnDismissListener(d -> {
+            if (activePreviewSvgaPlayer != null) {
+                activePreviewSvgaPlayer.stopAnimation();
+                activePreviewSvgaPlayer.clear();
+                activePreviewSvgaPlayer = null;
+            }
+        });
+
+        dialog.show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (activePreviewSvgaPlayer != null) {
+            activePreviewSvgaPlayer.stopAnimation();
+            activePreviewSvgaPlayer.clear();
+            activePreviewSvgaPlayer = null;
+        }
+        super.onDestroyView();
     }
 }

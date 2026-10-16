@@ -1,544 +1,1621 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Room Chat - Web Admin Control Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Chat - Firebase Web Admin Panel</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Google Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase JS SDK (Compat mode for direct browser usage) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase Compatibility Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-  <!-- Login Screen Overlay -->
-  <div class="login-overlay active" id="loginOverlay">
-    <div class="login-card">
-      <div class="login-header">
-        <div class="login-logo">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <h2>Admin Control Portal</h2>
-        <p>Enter your credentials to manage Room Chat</p>
-      </div>
-
-      <form id="formAdminLogin">
-        <div class="form-group">
-          <label><i class="fa-solid fa-envelope"></i> Email Address</label>
-          <input type="email" id="loginEmail" class="form-control" placeholder="Enter admin email..." required>
-        </div>
-
-        <div class="form-group">
-          <label><i class="fa-solid fa-lock"></i> Password</label>
-          <div style="position: relative;">
-            <input type="password" id="loginPassword" class="form-control" placeholder="Enter password..." required>
-            <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px;">
-              <i class="fa-solid fa-eye" id="iconEye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 13px;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary);">
-            <input type="checkbox" id="loginRemember" checked style="accent-color: var(--primary);"> Remember Session
-          </label>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px; font-weight: 700;">
-          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Admin Panel
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <div class="admin-wrapper">
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">
-          <i class="fa-solid fa-comments"></i>
-        </div>
-        <div class="brand-text">
-          <h2>Room Chat</h2>
-          <p>Admin Control</p>
-        </div>
-      </div>
-
-      <nav class="nav-menu">
-        <a class="nav-item active" data-target="dashboard">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span>Dashboard</span>
-        </a>
-        <a class="nav-item" data-target="recharges">
-          <i class="fa-solid fa-credit-card"></i>
-          <span>Recharge Requests</span>
-        </a>
-        <a class="nav-item" data-target="users">
-          <i class="fa-solid fa-users"></i>
-          <span>Users</span>
-        </a>
-        <a class="nav-item" data-target="rooms">
-          <i class="fa-solid fa-microphone"></i>
-          <span>Audio Rooms</span>
-        </a>
-        <a class="nav-item" data-target="posts">
-          <i class="fa-solid fa-newspaper"></i>
-          <span>Posts &amp; Feed</span>
-        </a>
-        <a class="nav-item" data-target="notifications">
-          <i class="fa-solid fa-bullhorn"></i>
-          <span>Broadcast Push</span>
-        </a>
-        <a class="nav-item" data-target="transactions">
-          <i class="fa-solid fa-wallet"></i>
-          <span>Transactions</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="connection-status">
-          <div class="status-dot" id="statusDot"></div>
-          <span id="statusText">Connecting Firebase...</span>
-        </div>
-        <button class="btn-danger" id="btnSidebarLogout" style="width: 100%; margin-top: 12px; justify-content: center; font-size: 12px; padding: 6px;">
-          <i class="fa-solid fa-power-off"></i> Logout Admin
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-
-      <!-- Top Header -->
-      <header class="top-header">
-        <div class="page-title">
-          <h1 id="activePageTitle">Dashboard Overview</h1>
-        </div>
-
-        <div class="header-actions">
-          <button class="btn-icon" id="btnRefresh" title="Refresh Realtime Data">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
-          <button class="btn-primary" id="btnOpenConfig">
-            <i class="fa-solid fa-gear"></i>
-            <span>Firebase Config</span>
-          </button>
-          <button class="btn-danger" id="btnLogout" title="Logout Session" style="padding: 8px 14px; font-size: 13px;">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Logout</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Content Views -->
-      <div class="content-body">
-
-        <!-- 1. DASHBOARD OVERVIEW TAB -->
-        <section id="dashboard" class="tab-pane active">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-success);">
-                <i class="fa-solid fa-credit-card"></i>
-              </div>
-              <div class="stat-info">
-                <h3 id="statPendingRecharges">0</h3>
-                <p>Pending Recharges</p>
-              </div>
+    <!-- LOGIN SCREEN (Shown if auth == null) -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 px-4">
+        <div class="glass-card w-full max-w-md p-8 rounded-2xl shadow-2xl border border-slate-800 text-center">
+            <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
             </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Room Chat Admin Panel</h2>
+            <p class="text-sm text-slate-400 mb-6">Sign in with Firebase Admin Credentials to access system control</p>
 
-            <div class="stat-card">
-              <div class="stat-icon users">
-                <i class="fa-solid fa-users"></i>
-              </div>
-              <div class="stat-info">
-                <h3 id="statTotalUsers">0</h3>
-                <p>Total Registered Users</p>
-              </div>
-            </div>
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs text-left"></div>
 
-            <div class="stat-card">
-              <div class="stat-icon rooms">
-                <i class="fa-solid fa-microphone"></i>
-              </div>
-              <div class="stat-info">
-                <h3 id="statTotalRooms">0</h3>
-                <p>Active Audio Rooms</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
-                <i class="fa-solid fa-newspaper"></i>
-              </div>
-              <div class="stat-info">
-                <h3 id="statTotalPosts">0</h3>
-                <p>Community Posts</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon coins">
-                <i class="fa-solid fa-coins"></i>
-              </div>
-              <div class="stat-info">
-                <h3 id="statTotalCoins">0</h3>
-                <p>Total Coins Circulating</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Action Section -->
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>⚡ Quick Management Actions</h2>
-            </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-              <button class="btn-primary" onclick="switchTab('recharges')">
-                <i class="fa-solid fa-check-double"></i> Verify Payment Requests
-              </button>
-              <button class="btn-primary" onclick="switchTab('users')">
-                <i class="fa-solid fa-user-plus"></i> Manage Users &amp; Topup Coins
-              </button>
-              <button class="btn-primary" onclick="switchTab('notifications')">
-                <i class="fa-solid fa-paper-plane"></i> Send System Broadcast
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 2. RECHARGE REQUESTS TAB (PAYMENT VERIFICATION) -->
-        <section id="recharges" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>💳 User Payment Verification &amp; Recharge Requests</h2>
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="rechargeSearch" placeholder="Search by name, UTR, or UID...">
-              </div>
-            </div>
-
-            <div class="table-responsive">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>User Profile</th>
-                    <th>Package &amp; Coins</th>
-                    <th>Price</th>
-                    <th>UTR / Transaction ID</th>
-                    <th>Status</th>
-                    <th>Timestamp</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="rechargeTableBody">
-                  <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading payment requests...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3. USERS MANAGEMENT TAB -->
-        <section id="users" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>👥 User Accounts Management</h2>
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="userSearch" placeholder="Search by name, ID, or UID...">
-              </div>
-            </div>
-
-            <div class="table-responsive">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>User Profile</th>
-                    <th>User ID</th>
-                    <th>Coins</th>
-                    <th>Energy ⚡</th>
-                    <th>Diamonds</th>
-                    <th>Level</th>
-                    <th>Gender</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="userTableBody">
-                  <tr><td colspan="8" style="text-align:center; color: var(--text-muted);">Loading users from Firebase...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- 4. AUDIO ROOMS TAB -->
-        <section id="rooms" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>🎙️ Active Audio Chat Rooms</h2>
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="roomSearch" placeholder="Search rooms by name or ID...">
-              </div>
-            </div>
-
-            <div class="cards-grid" id="roomsGrid">
-              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading rooms...</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 5. POSTS & FEED TAB -->
-        <section id="posts" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>📝 Community Feed Posts</h2>
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="postSearch" placeholder="Search posts content or author...">
-              </div>
-            </div>
-
-            <div class="cards-grid" id="postsGrid">
-              <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted);">Loading posts...</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 7. BROADCAST PUSH TAB -->
-        <section id="notifications" class="tab-pane">
-          <div class="glass-container" style="max-width: 600px; margin: 0 auto;">
-            <div class="section-header">
-              <h2>📢 System Notification Broadcast</h2>
-            </div>
-
-            <form id="formBroadcast">
-              <div class="form-group">
-                <label>Target Audience</label>
-                <select id="broadcastTarget" class="form-control">
-                  <option value="ALL">All Users (Broadcast)</option>
-                  <option value="SPECIFIC">Specific User UID</option>
-                </select>
-              </div>
-
-              <div class="form-group" id="targetUidGroup" style="display: none;">
-                <label>Target User UID</label>
-                <input type="text" id="broadcastUid" class="form-control" placeholder="Enter user UID...">
-              </div>
-
-              <div class="form-group">
-                <label>Notification Title</label>
-                <input type="text" id="broadcastTitle" class="form-control" placeholder="e.g. System Reward 🎁" required>
-              </div>
-
-              <div class="form-group">
-                <label>Notification Message</label>
-                <textarea id="broadcastMessage" class="form-control" rows="4" placeholder="Enter message text..." required></textarea>
-              </div>
-
-              <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
-                <i class="fa-solid fa-paper-plane"></i> Dispatch Notification
-              </button>
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label for="login-email" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Admin Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
+                        <input type="email" id="login-email" required placeholder="admin@example.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                    </div>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                    </div>
+                </div>
+                <button type="submit" id="login-btn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition duration-200">
+                    Sign In as Admin
+                </button>
             </form>
-          </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- 8. TRANSACTIONS LOG TAB -->
-        <section id="transactions" class="tab-pane">
-          <div class="glass-container">
-            <div class="section-header">
-              <h2>💸 Wallet Transactions Log</h2>
+    <!-- MAIN DASHBOARD CONTENT (Hidden until logged in) -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row">
+
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-64 bg-slate-900/90 border-r border-slate-800 flex flex-col shrink-0">
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-comments text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-white text-base leading-tight">Room Chat</h1>
+                        <span class="text-xs text-indigo-400 font-medium">Control Panel</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="table-responsive">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>Tx ID</th>
-                    <th>User</th>
-                    <th>Title &amp; Type</th>
-                    <th>Coin Amount</th>
-                    <th>Diamond Amount</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody id="txTableBody">
-                  <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Loading transactions...</td></tr>
-                </tbody>
-              </table>
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1 flex-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition active">
+                    <i class="fa-solid fa-chart-pie text-indigo-400 w-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('users')" id="nav-users" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-users text-blue-400 w-5"></i> Users Management
+                </button>
+                <button onclick="switchTab('recharges')" id="nav-recharges" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-coins text-amber-400 w-5"></i> Coin Recharges
+                    <span id="badge-recharges" class="ml-auto bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                </button>
+                <button onclick="switchTab('agency-withdrawals')" id="nav-agency-withdrawals" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-money-bill-transfer text-emerald-400 w-5"></i> Agency Payouts
+                    <span id="badge-withdrawals" class="ml-auto bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                </button>
+                <button onclick="switchTab('rooms')" id="nav-rooms" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-microphone text-emerald-400 w-5"></i> Audio Rooms
+                </button>
+                <button onclick="switchTab('agencies')" id="nav-agencies" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-building text-purple-400 w-5"></i> Agency Applications
+                    <span id="badge-agencies" class="ml-auto bg-purple-500/20 text-purple-400 text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                </button>
+                <button onclick="switchTab('posts')" id="nav-posts" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-newspaper text-teal-400 w-5"></i> Feed & Posts
+                </button>
+                <button onclick="switchTab('couples')" id="nav-couples" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-heart text-rose-400 w-5"></i> CP Couples
+                </button>
+                <button onclick="switchTab('notifications')" id="nav-notifications" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-paper-plane text-pink-400 w-5"></i> Push Notifications
+                </button>
+                <button onclick="switchTab('config')" id="nav-config" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-sliders text-cyan-400 w-5"></i> App Settings
+                </button>
+            </nav>
+
+            <!-- User Info & Logout -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/50">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="truncate">
+                        <p class="text-xs text-slate-400">Logged in as</p>
+                        <p id="admin-user-email" class="text-xs font-semibold text-white truncate">admin@firebase.com</p>
+                    </div>
+                    <button onclick="handleLogout()" title="Sign Out" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
             </div>
-          </div>
-        </section>
+        </aside>
 
-      </div>
-    </main>
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
 
-  </div>
+            <!-- HEADER BAR -->
+            <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div>
+                    <h2 id="page-title" class="text-2xl font-bold text-white">Dashboard Overview</h2>
+                    <p id="page-subtitle" class="text-xs text-slate-400 mt-1">Real-time statistics & system control</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-medium">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        System Connected
+                    </div>
+                </div>
+            </header>
 
-  <!-- MODALS -->
+            <!-- TAB 1: DASHBOARD OVERVIEW -->
+            <section id="tab-dashboard" class="space-y-6">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">TOTAL USERS</p>
+                            <h3 id="stat-total-users" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
 
-  <!-- Top-Up Coins & Diamonds Modal -->
-  <div class="modal-overlay" id="modalTopup">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>🪙 Top-Up / Edit Coins</h3>
-        <button class="btn-icon" onclick="closeModal('modalTopup')"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">ACTIVE ROOMS</p>
+                            <h3 id="stat-active-rooms" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                    </div>
 
-      <form id="formTopup">
-        <input type="hidden" id="topupUid">
-        <div class="form-group">
-          <label>User Name</label>
-          <input type="text" id="topupUserName" class="form-control" readonly>
-        </div>
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">RECHARGE REQS</p>
+                            <h3 id="stat-pending-recharges" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-          <label>Coins Amount to Add / Set</label>
-          <input type="number" id="topupCoins" class="form-control" placeholder="e.g. 1000" required>
-        </div>
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">AGENCY PAYOUTS</p>
+                            <h3 id="stat-pending-withdrawals" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-          <label>Operation Type</label>
-          <select id="topupOpType" class="form-control">
-            <option value="ADD">Add Coins (+) </option>
-            <option value="SET">Set Exact Balance</option>
-          </select>
-        </div>
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">AGENCY REQS</p>
+                            <h3 id="stat-agency-requests" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                    </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
-          Update Balance
-        </button>
-      </form>
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-400">COMMUNITY POSTS</p>
+                            <h3 id="stat-total-posts" class="text-xl font-bold text-white mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-teal-500/10 text-teal-400 rounded-xl flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Quick Add Coins -->
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-circle-plus text-amber-400"></i> Quick Coin / Gem Recharge
+                        </h3>
+                        <p class="text-xs text-slate-400">Directly add coins or diamonds to any user account by UID.</p>
+                        <form onsubmit="handleQuickRecharge(event)" class="space-y-3">
+                            <div>
+                                <input type="text" id="quick-user-uid" required placeholder="User UID (e.g. abc123xyz)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" id="quick-coins" placeholder="Add Coins (e.g. 5000)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                                <input type="number" id="quick-gems" placeholder="Add Diamonds (e.g. 100)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-amber-600/20 transition">
+                                Grant Balance
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Quick Grant Store Item / VIP / Frame -->
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-crown text-purple-400"></i> Grant VIP / Frame / Entry SVGA
+                        </h3>
+                        <p class="text-xs text-slate-400">Assign special avatar frames or entry animations to user.</p>
+                        <form onsubmit="handleGrantStoreItem(event)" class="space-y-3">
+                            <input type="text" id="grant-user-uid" required placeholder="User UID" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <select id="grant-item-type" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                                <option value="frame_vip_7">Frame: VIP 7 Golden Crown Frame</option>
+                                <option value="frame_dragon">Frame: Inferno Dragon Frame</option>
+                                <option value="frame_champion">Frame: Champion Crown Frame</option>
+                                <option value="entry_supercar">Entry Effect: Golden Super Car SVGA</option>
+                                <option value="entry_yacht">Entry Effect: Luxury Yacht SVGA</option>
+                                <option value="vip_level_7">VIP Status: Set Level 7</option>
+                            </select>
+                            <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-purple-600/20 transition">
+                                Grant Store Item
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Broadcast Notification -->
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-pink-400"></i> Broadcast System Notice
+                        </h3>
+                        <p class="text-xs text-slate-400">Send an in-app system notification to all users instantly.</p>
+                        <form onsubmit="handleQuickNotice(event)" class="space-y-3">
+                            <input type="text" id="quick-notice-title" required placeholder="Notice Title (e.g. System Update)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                            <textarea id="quick-notice-msg" required rows="2" placeholder="Notice Message text..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
+                            <button type="submit" class="w-full py-2.5 bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-pink-600/20 transition">
+                                Send Broadcast
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: USERS MANAGEMENT -->
+            <section id="tab-users" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="relative w-full sm:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="user-search-input" onkeyup="filterUsers()" placeholder="Search user by UID, Name, Email..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <p class="text-xs text-slate-400">Showing <span id="users-count-display" class="font-bold text-white">0</span> registered accounts</p>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">User</th>
+                                    <th class="p-4">UID</th>
+                                    <th class="p-4">Coins Balance</th>
+                                    <th class="p-4">Diamonds / Gems</th>
+                                    <th class="p-4">VIP / Role</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-500">Loading users from Firebase...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: COIN RECHARGES -->
+            <section id="tab-recharges" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="font-bold text-white text-sm">Pending Recharge Requests</h3>
+                        <span class="text-xs text-slate-400">Manual payment approval queue</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">User UID</th>
+                                    <th class="p-4">Payment Method</th>
+                                    <th class="p-4">Tx ID / Proof</th>
+                                    <th class="p-4">Amount Paid</th>
+                                    <th class="p-4">Coins Requested</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recharges-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-500">No recharge requests found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: AGENCY PAYOUTS WITHDRAWALS -->
+            <section id="tab-agency-withdrawals" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Agency Owner Payout Requests</h3>
+                            <p class="text-xs text-slate-400">Review & disburse cash withdrawal requests from agency owners</p>
+                        </div>
+                        <span class="text-xs text-indigo-400 font-mono">/agency_withdrawals</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">Withdrawal ID</th>
+                                    <th class="p-4">Agency / Owner</th>
+                                    <th class="p-4">Amount Requested ($)</th>
+                                    <th class="p-4">Payout Method</th>
+                                    <th class="p-4">Account Details</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawals-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-500">No agency withdrawal requests found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: AUDIO ROOMS -->
+            <section id="tab-rooms" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="font-bold text-white text-sm">Active Voice Chat Rooms</h3>
+                        <span class="text-xs text-slate-400">Live room moderation</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">Room Name & ID</th>
+                                    <th class="p-4">Host UID</th>
+                                    <th class="p-4">Category</th>
+                                    <th class="p-4">Seats / Lock</th>
+                                    <th class="p-4">Online Users</th>
+                                    <th class="p-4 text-right">Moderation Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rooms-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="6" class="p-8 text-center text-slate-500">No active rooms found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: AGENCIES -->
+            <section id="tab-agencies" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <button onclick="filterAgenciesByStatus('all')" id="btn-agency-filter-all" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white">All Applications</button>
+                        <button onclick="filterAgenciesByStatus('pending')" id="btn-agency-filter-pending" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Pending</button>
+                        <button onclick="filterAgenciesByStatus('approved')" id="btn-agency-filter-approved" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Approved</button>
+                        <button onclick="filterAgenciesByStatus('rejected')" id="btn-agency-filter-rejected" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Rejected</button>
+                    </div>
+                    <p class="text-xs text-slate-400">Connected with Android app node <code class="text-purple-400 bg-slate-900 px-1.5 py-0.5 rounded">/agency_applications</code> & <code class="text-purple-400 bg-slate-900 px-1.5 py-0.5 rounded">/agencies</code></p>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">Agency Logo & Name</th>
+                                    <th class="p-4">Applicant UID</th>
+                                    <th class="p-4">Owner Info & Phone</th>
+                                    <th class="p-4">National ID</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Review Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agencies-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="6" class="p-8 text-center text-slate-500">Loading agency applications...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: POSTS & FEED MODERATION -->
+            <section id="tab-posts" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="font-bold text-white text-sm">Community Moments & Feed Posts</h3>
+                        <span class="text-xs text-slate-400">Content moderation</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">Post ID & Preview</th>
+                                    <th class="p-4">Publisher UID</th>
+                                    <th class="p-4">Caption / Text</th>
+                                    <th class="p-4">Comments</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posts-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-500">No community posts found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: CP COUPLES MONITOR -->
+            <section id="tab-couples" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="font-bold text-white text-sm">Active Couple (CP) Bindings & Intimacy Rankings</h3>
+                        <span class="text-xs text-rose-400 font-mono">/cp_bindings</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4">Partner 1 UID</th>
+                                    <th class="p-4">Partner 2 UID</th>
+                                    <th class="p-4">Intimacy Guard Level</th>
+                                    <th class="p-4">Ring Selection</th>
+                                    <th class="p-4 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couples-table-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-500">No active CP couple bindings found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: NOTIFICATIONS -->
+            <section id="tab-notifications" class="hidden space-y-6">
+                <div class="glass-card p-6 rounded-2xl space-y-4 max-w-2xl">
+                    <h3 class="font-bold text-white text-base">Send In-App Push Notification</h3>
+                    <form onsubmit="handleSendCustomNotification(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Target Recipient</label>
+                            <select id="notif-target-type" onchange="toggleNotifUserUidInput()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                                <option value="all">Broadcast to ALL Users</option>
+                                <option value="single">Single User UID</option>
+                            </select>
+                        </div>
+                        <div id="notif-uid-container" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Target User UID</label>
+                            <input type="text" id="notif-target-uid" placeholder="Enter target user UID" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Notification Title</label>
+                            <input type="text" id="notif-title" required placeholder="e.g. Free Coins Gift!" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Notification Message</label>
+                            <textarea id="notif-message" required rows="3" placeholder="Enter full notification description..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="px-6 py-2.5 bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-pink-600/20 transition">
+                            Send Notification
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 7: APP CONFIG -->
+            <section id="tab-config" class="hidden space-y-6">
+                <div class="glass-card p-6 rounded-2xl space-y-4 max-w-2xl">
+                    <h3 class="font-bold text-white text-base">Global App Configurations</h3>
+                    <p class="text-xs text-slate-400">Settings stored under <code class="bg-slate-900 px-1 py-0.5 rounded text-indigo-400">/app_config</code> in Firebase</p>
+                    <form onsubmit="handleSaveConfig(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Agency Commission Percentage (%)</label>
+                            <input type="number" id="cfg-agency-commission" placeholder="e.g. 10" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Home Announcement Banner / Notice Message</label>
+                            <input type="text" id="cfg-notice-msg" placeholder="Welcome to Room Chat app!" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Minimum Coin Withdrawal Limit</label>
+                            <input type="number" id="cfg-min-withdrawal" placeholder="e.g. 1000" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <button type="submit" class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-cyan-600/20 transition">
+                            Save Global Settings
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
     </div>
-  </div>
 
-  <!-- Top-Up / Edit Energy Modal -->
-  <div class="modal-overlay" id="modalEnergy">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚡ Top-Up / Edit Energy</h3>
-        <button class="btn-icon" onclick="closeModal('modalEnergy')"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="formEnergy">
-        <input type="hidden" id="energyUid">
-        <div class="form-group">
-          <label>User Name</label>
-          <input type="text" id="energyUserName" class="form-control" readonly>
+    <!-- MODAL: EDIT USER -->
+    <div id="modal-edit-user" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+        <div class="glass-card w-full max-w-lg p-6 rounded-2xl shadow-2xl space-y-4 border border-slate-800">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base">Edit User Account</h3>
+                <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleSaveUserModal(event)" class="space-y-3">
+                <input type="hidden" id="edit-uid">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Name / Username</label>
+                    <input type="text" id="edit-name" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Coins Balance</label>
+                        <input type="number" id="edit-coins" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Diamonds Balance</label>
+                        <input type="number" id="edit-diamonds" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">VIP Level</label>
+                        <input type="number" id="edit-vip" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Account Ban Status</label>
+                        <select id="edit-banned" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white">
+                            <option value="false">Active (Normal)</option>
+                            <option value="true">Banned (Restricted)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md">Save Changes</button>
+                </div>
+            </form>
         </div>
-
-        <div class="form-group">
-          <label>Energy Amount to Add / Set</label>
-          <input type="number" id="energyAmount" class="form-control" placeholder="e.g. 500" required>
-        </div>
-
-        <div class="form-group">
-          <label>Operation Type</label>
-          <select id="energyOpType" class="form-control">
-            <option value="ADD">Add Energy (+)</option>
-            <option value="SET">Set Exact Balance</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px; background: #00c896; border-color: #00c896;">
-          Update Energy Balance
-        </button>
-      </form>
     </div>
-  </div>
 
-  <!-- Edit User Modal -->
-  <div class="modal-overlay" id="modalEditUser">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>✏️ Edit User Details</h3>
-        <button class="btn-icon" onclick="closeModal('modalEditUser')"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+    <!-- MODAL: PROCESS AGENCY APPLICATION -->
+    <div id="modal-agency-detail" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-xl p-6 rounded-2xl shadow-2xl space-y-4 border border-slate-800 my-8">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-base">Agency Application Review</h3>
+                        <p class="text-xs text-slate-400">Inspect applicant details and approve or reject application</p>
+                    </div>
+                </div>
+                <button onclick="closeAgencyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
 
-      <form id="formEditUser">
-        <input type="hidden" id="editUserUid">
+            <div class="space-y-3 text-xs">
+                <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <div id="modal-agency-logo-container" class="w-16 h-16 rounded-2xl bg-slate-800 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center font-bold text-slate-400">
+                        <i class="fa-solid fa-image text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 id="modal-agency-title" class="font-bold text-white text-base">Agency Name</h4>
+                        <p id="modal-agency-uid" class="font-mono text-slate-400 mt-0.5">UID: -</p>
+                        <span id="modal-agency-status-badge" class="inline-block mt-2 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-purple-500/20 text-purple-400">PENDING</span>
+                    </div>
+                </div>
 
-        <div class="form-group">
-          <label>Display Name</label>
-          <input type="text" id="editUserName" class="form-control" required>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold">Owner Full Name</span>
+                        <span id="modal-agency-owner" class="text-white font-semibold block mt-0.5">Owner Name</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold">Contact Phone</span>
+                        <span id="modal-agency-phone" class="text-white font-semibold block mt-0.5">Phone</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold">Owner Email</span>
+                        <span id="modal-agency-email" class="text-white font-semibold block mt-0.5">Email</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold">National ID / Identity</span>
+                        <span id="modal-agency-nationalid" class="text-white font-semibold block mt-0.5">National ID</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    <span class="text-slate-500 block text-[10px] uppercase font-bold">Agency Description</span>
+                    <p id="modal-agency-desc" class="text-slate-300 mt-1 leading-relaxed">Description text...</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Admin Rejection Reason / Review Note (Optional for Approval)</label>
+                    <input type="text" id="modal-agency-admin-note" placeholder="e.g. Invalid document details. Please upload clear national ID." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeAgencyModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Close</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-modal-reject" onclick="execRejectAgency()" class="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition">Reject Application</button>
+                    <button type="button" id="btn-modal-approve" onclick="execApproveAgency()" class="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-purple-600/20 transition">Approve Agency</button>
+                </div>
+            </div>
         </div>
-
-        <div class="form-group">
-          <label>Level (e.g. 1, 5, 10)</label>
-          <input type="text" id="editUserLevel" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-          <label>Gender</label>
-          <select id="editUserGender" class="form-control">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Bio Notice</label>
-          <textarea id="editUserBio" class="form-control" rows="3"></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
-          Save Changes
-        </button>
-      </form>
     </div>
-  </div>
 
-  <!-- Firebase Config Modal -->
-  <div class="modal-overlay" id="modalConfig">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚙️ Firebase Database Config</h3>
-        <button class="btn-icon" onclick="closeModal('modalConfig')"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. Firebase Credentials from google-services.json
+        const firebaseConfig = {
+            apiKey: "AIzaSyDO8H1cGyL757e2I8bwyOjrwFN2YSfqq40",
+            authDomain: "meet-and-chat-3abdb.firebaseapp.com",
+            databaseURL: "https://meet-and-chat-3abdb-default-rtdb.firebaseio.com",
+            projectId: "meet-and-chat-3abdb",
+            storageBucket: "meet-and-chat-3abdb.firebasestorage.app",
+            messagingSenderId: "686945289016",
+            appId: "1:686945289016:android:d1e17a1431e8e2e21ef7cd"
+        };
 
-      <form id="formConfig">
-        <div class="form-group">
-          <label>Realtime Database URL</label>
-          <input type="text" id="cfgDatabaseURL" class="form-control" required>
-        </div>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-        <div class="form-group">
-          <label>API Key</label>
-          <input type="text" id="cfgApiKey" class="form-control" required>
-        </div>
+        let rawUsersData = {};
+        let rawAgenciesData = {};
+        let rawWithdrawalsData = {};
+        let selectedAgencyUid = null;
+        let currentAgencyFilter = 'all';
 
-        <div class="form-group">
-          <label>Project ID</label>
-          <input type="text" id="cfgProjectId" class="form-control" required>
-        </div>
+        // 2. Auth State Observer
+        auth.onAuthStateChanged(user => {
+            const loginScreen = document.getElementById('login-screen');
+            const appContainer = document.getElementById('app-container');
 
-        <div style="display:flex; gap:10px; margin-top:20px;">
-          <button type="submit" class="btn-primary" style="flex:1; justify-content: center;">
-            Save &amp; Reconnect
-          </button>
-          <button type="button" id="btnResetConfig" class="btn-danger" style="padding: 10px 14px;">
-            Reset Defaults
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+            if (user) {
+                loginScreen.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                document.getElementById('admin-user-email').innerText = user.email || user.uid;
 
-  <!-- Toasts Container -->
-  <div class="toast-container" id="toastContainer"></div>
+                // Initialize Data Listeners
+                setupFirebaseListeners();
+            } else {
+                loginScreen.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+            }
+        });
 
-  <!-- Admin Application Logic -->
-  <script src="admin.js"></script>
+        // 3. Login Handler
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            const btn = document.getElementById('login-btn');
+
+            btn.disabled = true;
+            btn.innerText = "Authenticating...";
+            errorDiv.classList.add('hidden');
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Sign In as Admin";
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerText = "Sign In as Admin";
+                    errorDiv.innerText = err.message;
+                    errorDiv.classList.remove('hidden');
+                });
+        }
+
+        // 4. Logout Handler
+        function handleLogout() {
+            auth.signOut();
+        }
+
+        // 5. Setup Firebase Realtime Listeners
+        function setupFirebaseListeners() {
+            // Listen to Users
+            db.ref('users').on('value', snapshot => {
+                rawUsersData = snapshot.val() || {};
+                renderUsersTable(rawUsersData);
+                document.getElementById('stat-total-users').innerText = Object.keys(rawUsersData).length;
+            });
+
+            // Listen to Active Rooms
+            db.ref('rooms').on('value', snapshot => {
+                const rooms = snapshot.val() || {};
+                renderRoomsTable(rooms);
+                document.getElementById('stat-active-rooms').innerText = Object.keys(rooms).length;
+            });
+
+            // Listen to Recharge Requests
+            db.ref('recharge_requests').on('value', snapshot => {
+                const recharges = snapshot.val() || {};
+                renderRechargesTable(recharges);
+                let pendingCount = 0;
+                Object.values(recharges).forEach(r => {
+                    if (r && r.status === 'pending') pendingCount++;
+                });
+                document.getElementById('stat-pending-recharges').innerText = pendingCount;
+                const badge = document.getElementById('badge-recharges');
+                if (pendingCount > 0) {
+                    badge.innerText = pendingCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Listen to Agency Withdrawals
+            db.ref('agency_withdrawals').on('value', snapshot => {
+                rawWithdrawalsData = snapshot.val() || {};
+                renderWithdrawalsTable(rawWithdrawalsData);
+                let pendingCount = 0;
+                Object.values(rawWithdrawalsData).forEach(w => {
+                    if (w && (w.status || 'PENDING').toUpperCase() === 'PENDING') pendingCount++;
+                });
+                document.getElementById('stat-pending-withdrawals').innerText = pendingCount;
+                const badge = document.getElementById('badge-withdrawals');
+                if (pendingCount > 0) {
+                    badge.innerText = pendingCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Listen to Agency Applications
+            db.ref('agency_applications').on('value', snapshot => {
+                rawAgenciesData = snapshot.val() || {};
+                renderAgenciesTable(rawAgenciesData);
+                let pendingAgencies = 0;
+                Object.values(rawAgenciesData).forEach(a => {
+                    if (a && (a.status || 'PENDING').toUpperCase() === 'PENDING') pendingAgencies++;
+                });
+                document.getElementById('stat-agency-requests').innerText = pendingAgencies;
+                const badge = document.getElementById('badge-agencies');
+                if (pendingAgencies > 0) {
+                    badge.innerText = pendingAgencies;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Listen to Posts
+            db.ref('Posts').on('value', snapshot => {
+                const posts = snapshot.val() || {};
+                renderPostsTable(posts);
+                document.getElementById('stat-total-posts').innerText = Object.keys(posts).length;
+            });
+
+            // Listen to CP Couples
+            db.ref('cp_bindings').on('value', snapshot => {
+                const couples = snapshot.val() || {};
+                renderCouplesTable(couples);
+            });
+
+            // Fetch App Config
+            db.ref('app_config').once('value', snapshot => {
+                const cfg = snapshot.val() || {};
+                if (cfg.agencyCommissionPercentage) document.getElementById('cfg-agency-commission').value = cfg.agencyCommissionPercentage;
+                if (cfg.noticeMessage) document.getElementById('cfg-notice-msg').value = cfg.noticeMessage;
+                if (cfg.minWithdrawal) document.getElementById('cfg-min-withdrawal').value = cfg.minWithdrawal;
+            });
+        }
+
+        // 6. Navigation Tabs Switcher
+        function switchTab(tabName) {
+            const tabs = ['dashboard', 'users', 'recharges', 'agency-withdrawals', 'rooms', 'agencies', 'posts', 'couples', 'notifications', 'config'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) el.classList.add('hidden');
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) btn.classList.remove('active', 'bg-slate-800', 'text-white');
+            });
+
+            const activeEl = document.getElementById(`tab-${tabName}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) activeBtn.classList.add('active', 'bg-slate-800', 'text-white');
+
+            const titles = {
+                'dashboard': ['Dashboard Overview', 'Real-time statistics & system control'],
+                'users': ['Users Management', 'Manage account balances, VIP status & ban status'],
+                'recharges': ['Coin Recharge Requests', 'Review & approve manual user coin recharge requests'],
+                'agency-withdrawals': ['Agency Payouts', 'Approve or reject cash withdrawals requested by agency owners'],
+                'rooms': ['Audio Chat Rooms', 'Live voice room monitoring and moderation'],
+                'agencies': ['Agencies & Host Applications', 'Approve/reject host agency creation requests'],
+                'posts': ['Community Moments & Feed', 'Inspect and moderate user uploaded posts and captions'],
+                'couples': ['Couple (CP) Relationships', 'Monitor active CP bindings and guard scores'],
+                'notifications': ['Push Notifications', 'Send broadcast or targeted user notifications'],
+                'config': ['App Configuration', 'Global app commission and announcement settings']
+            };
+
+            if (titles[tabName]) {
+                document.getElementById('page-title').innerText = titles[tabName][0];
+                document.getElementById('page-subtitle').innerText = titles[tabName][1];
+            }
+        }
+
+        // 7. Render Users Table
+        function renderUsersTable(usersMap) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            const uids = Object.keys(usersMap);
+            document.getElementById('users-count-display').innerText = uids.length;
+
+            if (uids.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No registered users in Firebase database</td></tr>`;
+                return;
+            }
+
+            uids.forEach(uid => {
+                const u = usersMap[uid] || {};
+                const name = u.username || u.name || 'Anonymous User';
+                const coins = u.coins || u.coins_balance || 0;
+                const gems = u.diamonds || u.gems || 0;
+                const vip = u.vipLevel || 0;
+                const isBanned = u.isBanned === true || u.status === 'banned';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center font-bold text-slate-400 shrink-0">
+                                ${u.avatar || u.profilePic ? `<img src="${u.avatar || u.profilePic}" class="w-full h-full object-cover">` : name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-white">${escapeHtml(name)}</p>
+                                <p class="text-[11px] text-slate-500">${escapeHtml(u.email || 'No Email')}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 font-mono text-[11px] text-slate-400">${uid}</td>
+                    <td class="p-4 font-bold text-amber-400">🪙 ${coins.toLocaleString()}</td>
+                    <td class="p-4 font-bold text-cyan-400">💎 ${gems.toLocaleString()}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${vip > 0 ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-800 text-slate-400'}">
+                            VIP ${vip}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isBanned ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}">
+                            ${isBanned ? 'Banned' : 'Active'}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="openEditUserModal('${uid}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                        <button onclick="toggleBanUser('${uid}', ${!isBanned})" class="px-2.5 py-1 ${isBanned ? 'bg-emerald-600/20 text-emerald-400' : 'bg-red-600/20 text-red-400'} hover:opacity-80 rounded-lg text-xs font-semibold transition">
+                            ${isBanned ? 'Unban' : 'Ban'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('user-search-input').value.toLowerCase().trim();
+            if (!query) {
+                renderUsersTable(rawUsersData);
+                return;
+            }
+            const filtered = {};
+            Object.keys(rawUsersData).forEach(uid => {
+                const u = rawUsersData[uid] || {};
+                const name = (u.username || u.name || '').toLowerCase();
+                const email = (u.email || '').toLowerCase();
+                if (uid.toLowerCase().includes(query) || name.includes(query) || email.includes(query)) {
+                    filtered[uid] = u;
+                }
+            });
+            renderUsersTable(filtered);
+        }
+
+        function openEditUserModal(uid) {
+            const u = rawUsersData[uid] || {};
+            document.getElementById('edit-uid').value = uid;
+            document.getElementById('edit-name').value = u.username || u.name || '';
+            document.getElementById('edit-coins').value = u.coins || u.coins_balance || 0;
+            document.getElementById('edit-diamonds').value = u.diamonds || u.gems || 0;
+            document.getElementById('edit-vip').value = u.vipLevel || 0;
+            document.getElementById('edit-banned').value = (u.isBanned === true || u.status === 'banned') ? 'true' : 'false';
+
+            document.getElementById('modal-edit-user').classList.remove('hidden');
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('modal-edit-user').classList.add('hidden');
+        }
+
+        function handleSaveUserModal(e) {
+            e.preventDefault();
+            const uid = document.getElementById('edit-uid').value;
+            const name = document.getElementById('edit-name').value;
+            const coins = parseInt(document.getElementById('edit-coins').value) || 0;
+            const diamonds = parseInt(document.getElementById('edit-diamonds').value) || 0;
+            const vip = parseInt(document.getElementById('edit-vip').value) || 0;
+            const isBanned = document.getElementById('edit-banned').value === 'true';
+
+            db.ref(`users/${uid}`).update({
+                username: name,
+                name: name,
+                coins: coins,
+                coins_balance: coins,
+                diamonds: diamonds,
+                gems: diamonds,
+                vipLevel: vip,
+                isBanned: isBanned,
+                status: isBanned ? 'banned' : 'active'
+            }).then(() => {
+                closeEditUserModal();
+                alert(`User ${uid} updated successfully!`);
+            }).catch(err => alert("Error: " + err.message));
+        }
+
+        function toggleBanUser(uid, shouldBan) {
+            if (!confirm(`Are you sure you want to ${shouldBan ? 'BAN' : 'UNBAN'} user ${uid}?`)) return;
+            db.ref(`users/${uid}`).update({
+                isBanned: shouldBan,
+                status: shouldBan ? 'banned' : 'active'
+            });
+        }
+
+        // 8. Render Recharges Table
+        function renderRechargesTable(recharges) {
+            const tbody = document.getElementById('recharges-table-body');
+            tbody.innerHTML = '';
+            const keys = Object.keys(recharges);
+
+            if (keys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No recharge requests submitted yet</td></tr>`;
+                return;
+            }
+
+            keys.forEach(reqId => {
+                const r = recharges[reqId] || {};
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-[11px] text-slate-300">${r.uid || 'N/A'}</td>
+                    <td class="p-4 font-semibold text-white">${escapeHtml(r.paymentMethod || 'Manual Transfer')}</td>
+                    <td class="p-4 font-mono text-slate-400">${escapeHtml(r.transactionId || 'N/A')}</td>
+                    <td class="p-4 font-bold text-emerald-400">$${r.amount || 0}</td>
+                    <td class="p-4 font-bold text-amber-400">🪙 ${r.coins || 0}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : r.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${(r.status || 'pending').toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        ${r.status === 'pending' ? `
+                            <button onclick="approveRecharge('${reqId}', '${r.uid}', ${r.coins || 0})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">Approve & Credit</button>
+                            <button onclick="rejectRecharge('${reqId}')" class="px-3 py-1 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-lg text-xs font-semibold transition">Reject</button>
+                        ` : '<span class="text-slate-500 text-xs">Processed</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function approveRecharge(reqId, uid, coinsToCredit) {
+            if (!confirm(`Approve recharge and credit ${coinsToCredit} coins to UID: ${uid}?`)) return;
+
+            db.ref(`users/${uid}/coins`).transaction(current => (current || 0) + coinsToCredit);
+            db.ref(`users/${uid}/coins_balance`).transaction(current => (current || 0) + coinsToCredit);
+            db.ref(`recharge_requests/${reqId}`).update({ status: 'approved' });
+
+            db.ref(`notifications/${uid}`).push({
+                title: "Recharge Successful!",
+                message: `Your recharge request has been approved and 🪙 ${coinsToCredit} coins have been added to your account!`,
+                timestamp: Date.now()
+            });
+        }
+
+        function rejectRecharge(reqId) {
+            if (!confirm("Reject this recharge request?")) return;
+            db.ref(`recharge_requests/${reqId}`).update({ status: 'rejected' });
+        }
+
+        // RENDER AGENCY PAYOUTS / WITHDRAWALS TABLE
+        function renderWithdrawalsTable(withdrawals) {
+            const tbody = document.getElementById('withdrawals-table-body');
+            tbody.innerHTML = '';
+            const keys = Object.keys(withdrawals);
+
+            if (keys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No agency withdrawal requests found</td></tr>`;
+                return;
+            }
+
+            keys.forEach(wId => {
+                const w = withdrawals[wId] || {};
+                const status = (w.status || 'PENDING').toUpperCase();
+                const amount = w.amountUsd || w.amount || 0;
+                const ownerUid = w.ownerUid || w.agencyId;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+
+                let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400">PENDING</span>`;
+                if (status === 'APPROVED') statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">PAID & APPROVED</span>`;
+                else if (status === 'REJECTED') statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400">REJECTED</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-[11px] text-slate-400">${wId}</td>
+                    <td class="p-4">
+                        <p class="font-bold text-white text-xs">${escapeHtml(w.agencyName || 'Agency')}</p>
+                        <p class="font-mono text-[10px] text-slate-500">UID: ${escapeHtml(ownerUid || 'N/A')}</p>
+                    </td>
+                    <td class="p-4 font-bold text-emerald-400 text-sm">$${amount.toFixed(2)}</td>
+                    <td class="p-4 font-semibold text-white">${escapeHtml(w.paymentMethod || 'Bank Transfer')}</td>
+                    <td class="p-4 font-mono text-slate-300">${escapeHtml(w.accountDetails || 'N/A')}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 text-right space-x-2">
+                        ${status === 'PENDING' ? `
+                            <button onclick="approveAgencyWithdrawal('${wId}', '${ownerUid}', ${amount}, '${escapeHtml(w.paymentMethod)}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">Approve Payout</button>
+                            <button onclick="rejectAgencyWithdrawal('${wId}', '${ownerUid}', ${amount})" class="px-3 py-1 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-lg text-xs font-semibold transition">Reject & Refund</button>
+                        ` : '<span class="text-slate-500 text-xs">Completed</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function approveAgencyWithdrawal(wId, ownerUid, amount, method) {
+            if (!confirm(`Confirm payout approval of $${amount} via ${method} for Agency Owner ${ownerUid}?`)) return;
+
+            db.ref(`agency_withdrawals/${wId}`).update({
+                status: 'APPROVED',
+                adminNote: `Payout of $${amount} processed successfully via ${method}`
+            });
+
+            if (ownerUid) {
+                db.ref(`agencies/${ownerUid}/withdrawals/${wId}`).update({
+                    status: 'APPROVED',
+                    adminNote: `Payout processed via ${method}`
+                });
+
+                db.ref(`agencies/${ownerUid}/wallet/pendingWithdrawalUsd`).transaction(curr => Math.max(0, (curr || 0) - amount));
+                db.ref(`agencies/${ownerUid}/wallet/withdrawnBalanceUsd`).transaction(curr => (curr || 0) + amount);
+
+                db.ref(`notifications/${ownerUid}`).push({
+                    title: "Payout Disbursed! 💸",
+                    message: `Your withdrawal request of $${amount.toFixed(2)} via ${method} has been approved and processed!`,
+                    timestamp: Date.now()
+                });
+            }
+
+            alert("Withdrawal payout approved!");
+        }
+
+        function rejectAgencyWithdrawal(wId, ownerUid, amount) {
+            const reason = prompt("Enter rejection reason for agency owner:") || "Account details invalid";
+
+            db.ref(`agency_withdrawals/${wId}`).update({
+                status: 'REJECTED',
+                adminNote: reason
+            });
+
+            if (ownerUid) {
+                db.ref(`agencies/${ownerUid}/withdrawals/${wId}`).update({
+                    status: 'REJECTED',
+                    adminNote: reason
+                });
+
+                db.ref(`agencies/${ownerUid}/wallet/availableBalanceUsd`).transaction(curr => (curr || 0) + amount);
+                db.ref(`agencies/${ownerUid}/wallet/pendingWithdrawalUsd`).transaction(curr => Math.max(0, (curr || 0) - amount));
+
+                db.ref(`notifications/${ownerUid}`).push({
+                    title: "Withdrawal Request Rejected",
+                    message: `Your withdrawal request of $${amount.toFixed(2)} was rejected. Reason: ${reason}. Funds have been refunded to your wallet.`,
+                    timestamp: Date.now()
+                });
+            }
+
+            alert("Withdrawal request rejected and funds refunded to agency wallet!");
+        }
+
+        // 9. Render Rooms Table
+        function renderRoomsTable(roomsMap) {
+            const tbody = document.getElementById('rooms-table-body');
+            tbody.innerHTML = '';
+            const roomIds = Object.keys(roomsMap);
+
+            if (roomIds.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No active audio rooms found</td></tr>`;
+                return;
+            }
+
+            roomIds.forEach(roomId => {
+                const rm = roomsMap[roomId] || {};
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <p class="font-bold text-white text-xs">${escapeHtml(rm.roomName || 'Unnamed Room')}</p>
+                        <p class="font-mono text-[10px] text-slate-500">${roomId}</p>
+                    </td>
+                    <td class="p-4 font-mono text-[11px] text-slate-300">${rm.ownerUid || rm.hostUid || 'N/A'}</td>
+                    <td class="p-4 text-xs text-slate-400">${escapeHtml(rm.category || 'General')}</td>
+                    <td class="p-4 text-xs">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${rm.locked ? 'bg-red-500/20 text-red-400' : 'bg-slate-800 text-slate-300'}">
+                            ${rm.locked ? '🔒 Locked' : '🔓 Open'}
+                        </span>
+                    </td>
+                    <td class="p-4 font-bold text-indigo-400">👥 ${rm.onlineCount || 0}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="toggleRoomLock('${roomId}', ${!rm.locked})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold">
+                            ${rm.locked ? 'Unlock' : 'Lock'}
+                        </button>
+                        <button onclick="deleteRoom('${roomId}')" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold shadow">
+                            Close Room
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleRoomLock(roomId, shouldLock) {
+            db.ref(`rooms/${roomId}`).update({ locked: shouldLock });
+        }
+
+        function deleteRoom(roomId) {
+            if (!confirm(`Are you sure you want to close and remove room ${roomId}?`)) return;
+            db.ref(`rooms/${roomId}`).remove();
+        }
+
+        // 10. Render Agencies Table
+        function filterAgenciesByStatus(status) {
+            currentAgencyFilter = status;
+            ['all', 'pending', 'approved', 'rejected'].forEach(s => {
+                const btn = document.getElementById(`btn-agency-filter-${s}`);
+                if (btn) {
+                    if (s === status) {
+                        btn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white";
+                    } else {
+                        btn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white";
+                    }
+                }
+            });
+            renderAgenciesTable(rawAgenciesData);
+        }
+
+        function renderAgenciesTable(agencies) {
+            const tbody = document.getElementById('agencies-table-body');
+            tbody.innerHTML = '';
+            const keys = Object.keys(agencies);
+
+            let filteredKeys = keys;
+            if (currentAgencyFilter !== 'all') {
+                filteredKeys = keys.filter(k => {
+                    const st = (agencies[k]?.status || 'PENDING').toUpperCase();
+                    return st === currentAgencyFilter.toUpperCase();
+                });
+            }
+
+            if (filteredKeys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No agency applications match status filter: '${currentAgencyFilter}'</td></tr>`;
+                return;
+            }
+
+            filteredKeys.forEach(uid => {
+                const a = agencies[uid] || {};
+                const name = a.agencyName || 'Unnamed Agency';
+                const owner = a.ownerName || 'Unknown Owner';
+                const phone = a.ownerPhone || 'N/A';
+                const nationalId = a.ownerNationalId || 'N/A';
+                const status = (a.status || 'PENDING').toUpperCase();
+                const logo = a.agencyLogo || '';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+
+                let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400">PENDING</span>`;
+                if (status === 'APPROVED') statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">APPROVED</span>`;
+                else if (status === 'REJECTED') statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400">REJECTED</span>`;
+                else if (status === 'BANNED') statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">BANNED</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center font-bold text-slate-400 shrink-0">
+                                ${logo ? `<img src="${logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-building"></i>`}
+                            </div>
+                            <div>
+                                <p class="font-bold text-white text-xs">${escapeHtml(name)}</p>
+                                <p class="font-mono text-[10px] text-purple-400">${escapeHtml(a.agencyId || 'ID: Pending')}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 font-mono text-[11px] text-slate-300">${uid}</td>
+                    <td class="p-4">
+                        <p class="font-semibold text-white text-xs">${escapeHtml(owner)}</p>
+                        <p class="text-[11px] text-slate-400">${escapeHtml(phone)}</p>
+                    </td>
+                    <td class="p-4 font-mono text-slate-400 text-xs">${escapeHtml(nationalId)}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="openAgencyModal('${uid}')" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold shadow transition">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> Review Details
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAgencyModal(uid) {
+            selectedAgencyUid = uid;
+            const a = rawAgenciesData[uid] || {};
+
+            document.getElementById('modal-agency-title').innerText = a.agencyName || 'Unnamed Agency';
+            document.getElementById('modal-agency-uid').innerText = `Applicant UID: ${uid}`;
+            document.getElementById('modal-agency-owner').innerText = a.ownerName || 'N/A';
+            document.getElementById('modal-agency-phone').innerText = a.ownerPhone || 'N/A';
+            document.getElementById('modal-agency-email').innerText = a.ownerEmail || 'N/A';
+            document.getElementById('modal-agency-nationalid').innerText = a.ownerNationalId || 'N/A';
+            document.getElementById('modal-agency-desc').innerText = a.agencyDescription || 'No description provided.';
+            document.getElementById('modal-agency-admin-note').value = a.adminNote || '';
+
+            const status = (a.status || 'PENDING').toUpperCase();
+            const badge = document.getElementById('modal-agency-status-badge');
+            badge.innerText = status;
+            if (status === 'APPROVED') badge.className = "inline-block mt-2 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-500/20 text-emerald-400";
+            else if (status === 'REJECTED') badge.className = "inline-block mt-2 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-red-500/20 text-red-400";
+            else badge.className = "inline-block mt-2 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-purple-500/20 text-purple-400";
+
+            const logoContainer = document.getElementById('modal-agency-logo-container');
+            if (a.agencyLogo) {
+                logoContainer.innerHTML = `<img src="${a.agencyLogo}" class="w-full h-full object-cover">`;
+            } else {
+                logoContainer.innerHTML = `<i class="fa-solid fa-building text-2xl text-purple-400"></i>`;
+            }
+
+            document.getElementById('modal-agency-detail').classList.remove('hidden');
+        }
+
+        function closeAgencyModal() {
+            document.getElementById('modal-agency-detail').classList.add('hidden');
+            selectedAgencyUid = null;
+        }
+
+        function execApproveAgency() {
+            if (!selectedAgencyUid) return;
+            const uid = selectedAgencyUid;
+            const a = rawAgenciesData[uid] || {};
+            const agencyName = a.agencyName || 'Official Agency';
+            const generatedAgencyId = a.agencyId || ("AGY_" + (uid.length > 6 ? uid.substring(0, 6).toUpperCase() : uid.toUpperCase()));
+
+            if (!confirm(`Are you sure you want to APPROVE agency '${agencyName}' (ID: ${generatedAgencyId}) for user ${uid}?`)) return;
+
+            const now = Date.now();
+
+            db.ref(`agency_applications/${uid}`).update({
+                status: 'APPROVED',
+                agencyId: generatedAgencyId,
+                updatedAt: now
+            });
+
+            db.ref(`agencies/${uid}`).set({
+                agencyId: generatedAgencyId,
+                uid: uid,
+                agencyName: agencyName,
+                agencyLogo: a.agencyLogo || '',
+                agencyDescription: a.agencyDescription || '',
+                ownerName: a.ownerName || '',
+                ownerPhone: a.ownerPhone || '',
+                ownerEmail: a.ownerEmail || '',
+                ownerNationalId: a.ownerNationalId || '',
+                status: 'APPROVED',
+                appliedAt: a.appliedAt || now,
+                updatedAt: now,
+                commissionPercentage: 10
+            });
+
+            db.ref(`users/${uid}`).update({
+                agencyStatus: 'APPROVED',
+                agencyId: generatedAgencyId,
+                agencyName: agencyName,
+                role: 'AGENCY_OWNER'
+            });
+
+            db.ref(`notifications/${uid}`).push({
+                title: "Agency Application Approved! 🎉",
+                message: `Congratulations! Your agency '${agencyName}' (ID: ${generatedAgencyId}) has been approved by Admin. You can now access your Agency Dashboard!`,
+                timestamp: now
+            });
+
+            closeAgencyModal();
+            alert(`🎉 Agency '${agencyName}' successfully APPROVED! User was notified.`);
+        }
+
+        function execRejectAgency() {
+            if (!selectedAgencyUid) return;
+            const uid = selectedAgencyUid;
+            const a = rawAgenciesData[uid] || {};
+            const agencyName = a.agencyName || 'Agency';
+            const adminNote = document.getElementById('modal-agency-admin-note').value.trim() || 'Details did not meet requirements. Please re-apply with accurate information.';
+
+            if (!confirm(`Reject agency application for '${agencyName}'?`)) return;
+
+            const now = Date.now();
+
+            db.ref(`agency_applications/${uid}`).update({
+                status: 'REJECTED',
+                adminNote: adminNote,
+                updatedAt: now
+            });
+
+            db.ref(`users/${uid}`).update({
+                agencyStatus: 'REJECTED'
+            });
+
+            db.ref(`notifications/${uid}`).push({
+                title: "Agency Application Update",
+                message: `Your agency application for '${agencyName}' was rejected by Admin. Reason: ${adminNote}`,
+                timestamp: now
+            });
+
+            closeAgencyModal();
+            alert(`Agency application REJECTED. Rejection reason saved and user notified.`);
+        }
+
+        // RENDER POSTS & COMMUNITY FEED MODERATION TABLE
+        function renderPostsTable(postsMap) {
+            const tbody = document.getElementById('posts-table-body');
+            tbody.innerHTML = '';
+            const postIds = Object.keys(postsMap);
+
+            if (postIds.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No community posts found</td></tr>`;
+                return;
+            }
+
+            postIds.forEach(postId => {
+                const p = postsMap[postId] || {};
+                const publisher = p.publisher || p.uid || 'Anonymous';
+                const image = p.postImage || p.imageUrl || '';
+                const text = p.description || p.caption || '';
+                const commentCount = p.commentCount || 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center shrink-0 text-slate-500 font-bold">
+                                ${image ? `<img src="${image}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-file-lines text-lg"></i>`}
+                            </div>
+                            <div>
+                                <p class="font-mono text-[10px] text-slate-400">${postId}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 font-mono text-[11px] text-slate-300">${escapeHtml(publisher)}</td>
+                    <td class="p-4 text-xs text-slate-300 max-w-xs truncate">${escapeHtml(text || 'No description')}</td>
+                    <td class="p-4 font-bold text-teal-400">💬 ${commentCount}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deletePost('${postId}')" class="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold shadow transition">
+                            <i class="fa-solid fa-trash-can"></i> Delete Post
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deletePost(postId) {
+            if (!confirm(`Are you sure you want to remove post ${postId}?`)) return;
+            db.ref(`Posts/${postId}`).remove();
+            db.ref(`Comments/${postId}`).remove();
+        }
+
+        // RENDER CP COUPLES TABLE
+        function renderCouplesTable(couplesMap) {
+            const tbody = document.getElementById('couples-table-body');
+            tbody.innerHTML = '';
+            const uids = Object.keys(couplesMap);
+
+            if (uids.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No active CP couple bindings found</td></tr>`;
+                return;
+            }
+
+            uids.forEach(uid => {
+                const c = couplesMap[uid] || {};
+                const partnerUid = c.partnerUid || c.cpUid || 'N/A';
+                const guardVal = c.guardValue || c.intimacyLevel || 0;
+                const ring = c.ringName || 'Lovers Ring';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-slate-300 text-xs">${uid}</td>
+                    <td class="p-4 font-mono text-rose-400 text-xs">${escapeHtml(partnerUid)}</td>
+                    <td class="p-4 font-bold text-amber-400 text-xs">🛡️ ${guardVal} Guard</td>
+                    <td class="p-4 text-xs font-semibold text-purple-300">💍 ${escapeHtml(ring)}</td>
+                    <td class="p-4 text-right">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400">❤️ Bound</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // GRANT STORE ITEM & VIP STATUS
+        function handleGrantStoreItem(e) {
+            e.preventDefault();
+            const uid = document.getElementById('grant-user-uid').value.trim();
+            const itemType = document.getElementById('grant-item-type').value;
+
+            if (!uid) return alert("Please enter User UID");
+
+            if (itemType.startsWith('frame_')) {
+                const frameName = itemType.replace('frame_', '');
+                db.ref(`users/${uid}/equipped_frame`).set(frameName);
+                alert(`Granted frame '${frameName}' to user ${uid}!`);
+            } else if (itemType.startsWith('entry_')) {
+                const entryName = itemType.replace('entry_', '');
+                db.ref(`users/${uid}/equipped_entry`).set(entryName);
+                alert(`Granted entry effect '${entryName}' to user ${uid}!`);
+            } else if (itemType === 'vip_level_7') {
+                db.ref(`users/${uid}/vipLevel`).set(7);
+                alert(`Set VIP 7 status for user ${uid}!`);
+            }
+
+            document.getElementById('grant-user-uid').value = '';
+        }
+
+        // 11. Quick Actions & Notifications
+        function handleQuickRecharge(e) {
+            e.preventDefault();
+            const uid = document.getElementById('quick-user-uid').value.trim();
+            const coins = parseInt(document.getElementById('quick-coins').value) || 0;
+            const gems = parseInt(document.getElementById('quick-gems').value) || 0;
+
+            if (!uid) return alert("Please enter User UID");
+
+            if (coins > 0) {
+                db.ref(`users/${uid}/coins`).transaction(curr => (curr || 0) + coins);
+                db.ref(`users/${uid}/coins_balance`).transaction(curr => (curr || 0) + coins);
+            }
+
+            if (gems > 0) {
+                db.ref(`users/${uid}/diamonds`).transaction(curr => (curr || 0) + gems);
+                db.ref(`users/${uid}/gems`).transaction(curr => (curr || 0) + gems);
+            }
+
+            alert(`Successfully granted balance to UID: ${uid}`);
+            document.getElementById('quick-user-uid').value = '';
+            document.getElementById('quick-coins').value = '';
+            document.getElementById('quick-gems').value = '';
+        }
+
+        function handleQuickNotice(e) {
+            e.preventDefault();
+            const title = document.getElementById('quick-notice-title').value.trim();
+            const msg = document.getElementById('quick-notice-msg').value.trim();
+
+            if (!title || !msg) return;
+
+            db.ref('app_config/noticeMessage').set(msg);
+
+            // Broadcast notification to all users
+            Object.keys(rawUsersData).forEach(uid => {
+                db.ref(`notifications/${uid}`).push({
+                    title: title,
+                    message: msg,
+                    timestamp: Date.now()
+                });
+            });
+
+            alert(`Notice broadcasted to ${Object.keys(rawUsersData).length} users!`);
+            document.getElementById('quick-notice-title').value = '';
+            document.getElementById('quick-notice-msg').value = '';
+        }
+
+        function toggleNotifUserUidInput() {
+            const val = document.getElementById('notif-target-type').value;
+            const container = document.getElementById('notif-uid-container');
+            if (val === 'single') container.classList.remove('hidden');
+            else container.classList.add('hidden');
+        }
+
+        function handleSendCustomNotification(e) {
+            e.preventDefault();
+            const targetType = document.getElementById('notif-target-type').value;
+            const targetUid = document.getElementById('notif-target-uid').value.trim();
+            const title = document.getElementById('notif-title').value.trim();
+            const msg = document.getElementById('notif-message').value.trim();
+
+            if (targetType === 'single' && !targetUid) return alert("Please enter target UID");
+
+            const notifPayload = { title, message: msg, timestamp: Date.now() };
+
+            if (targetType === 'single') {
+                db.ref(`notifications/${targetUid}`).push(notifPayload);
+                alert(`Notification sent to user ${targetUid}`);
+            } else {
+                Object.keys(rawUsersData).forEach(uid => {
+                    db.ref(`notifications/${uid}`).push(notifPayload);
+                });
+                alert(`Broadcast notification sent to all ${Object.keys(rawUsersData).length} users!`);
+            }
+
+            document.getElementById('notif-title').value = '';
+            document.getElementById('notif-message').value = '';
+        }
+
+        function handleSaveConfig(e) {
+            e.preventDefault();
+            const comm = parseInt(document.getElementById('cfg-agency-commission').value) || 0;
+            const notice = document.getElementById('cfg-notice-msg').value.trim();
+            const minW = parseInt(document.getElementById('cfg-min-withdrawal').value) || 0;
+
+            db.ref('app_config').update({
+                agencyCommissionPercentage: comm,
+                noticeMessage: notice,
+                minWithdrawal: minW
+            }).then(() => alert("App config saved successfully!"))
+              .catch(err => alert("Error: " + err.message));
+        }
+
+        // Utility: Escape HTML to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
 </body>
 </html>

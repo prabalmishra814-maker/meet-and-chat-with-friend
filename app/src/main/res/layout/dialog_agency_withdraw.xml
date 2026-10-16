@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_agency_card_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-black"
+            android:text="Withdraw Commission Funds"
+            android:textColor="#FFD700"
+            android:textSize="17sp" />
+
+        <ImageView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="#64748B" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tvAvailableBalanceNotice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Available Balance: ₹1,000.00 | Min Withdrawal: ₹100.00"
+        android:textColor="#10B981"
+        android:textSize="13sp" />
+
+    <!-- Amount Input -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-bold"
+        android:text="Withdrawal Amount (₹ INR) *"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp" />
+
+    <EditText
+        android:id="@+id/etWithdrawAmount"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_agency_input_field"
+        android:hint="e.g. 50.00"
+        android:inputType="numberDecimal"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#64748B"
+        android:textSize="14sp" />
+
+    <!-- Payment Method Selector -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-bold"
+        android:text="Payment Method *"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp" />
+
+    <Spinner
+        android:id="@+id/spinnerPaymentMethod"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_agency_input_field"
+        android:paddingHorizontal="12dp"
+        android:spinnerMode="dropdown" />
+
+    <!-- Payment Account Details Input -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-bold"
+        android:text="Account Details / UPI ID / Phone *"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp" />
+
+    <EditText
+        android:id="@+id/etAccountDetails"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_agency_input_field"
+        android:hint="e.g. name@upi or Bank Acc/IFSC"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#64748B"
+        android:textSize="14sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSubmitWithdrawConfirm"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="22dp"
+        android:backgroundTint="#EC4899"
+        android:fontFamily="sans-serif-black"
+        android:text="Submit Withdrawal Request"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

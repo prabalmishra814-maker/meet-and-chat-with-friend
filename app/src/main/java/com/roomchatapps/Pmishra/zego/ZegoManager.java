@@ -6,6 +6,7 @@ import android.util.Log;
 import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.ZegoMediaPlayer;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
+import im.zego.zegoexpress.callback.IZegoMediaPlayerEventHandler;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerLoadResourceCallback;
 import im.zego.zegoexpress.constants.ZegoAudioConfigPreset;
 import im.zego.zegoexpress.constants.ZegoAudioRoute;
@@ -249,6 +250,16 @@ public class ZegoManager {
         return currentMusicVolume;
     }
 
+    public interface OnMusicStateChangeListener {
+        void onMusicEnded();
+    }
+
+    private OnMusicStateChangeListener musicStateChangeListener;
+
+    public void setMusicStateChangeListener(OnMusicStateChangeListener listener) {
+        this.musicStateChangeListener = listener;
+    }
+
     public void playMusicResource(String resourcePath, String fileName) {
         if (engine == null) return;
 
@@ -258,6 +269,16 @@ public class ZegoManager {
             mediaPlayer.enableAux(true);
             mediaPlayer.setPlayVolume(currentMusicVolume);
             mediaPlayer.setPublishVolume(currentMusicVolume);
+            mediaPlayer.setEventHandler(new IZegoMediaPlayerEventHandler() {
+                @Override
+                public void onMediaPlayerStateUpdate(ZegoMediaPlayer mediaPlayer, ZegoMediaPlayerState state, int errorCode) {
+                    if (state == ZegoMediaPlayerState.PLAY_ENDED) {
+                        if (musicStateChangeListener != null) {
+                            musicStateChangeListener.onMusicEnded();
+                        }
+                    }
+                }
+            });
         }
 
         mediaPlayer.stop();
@@ -296,6 +317,13 @@ public class ZegoManager {
     public boolean isMusicPlaying() {
         if (mediaPlayer != null) {
             return mediaPlayer.getCurrentState() == ZegoMediaPlayerState.PLAYING;
+        }
+        return false;
+    }
+
+    public boolean isMusicPaused() {
+        if (mediaPlayer != null) {
+            return mediaPlayer.getCurrentState() == ZegoMediaPlayerState.PAUSING;
         }
         return false;
     }

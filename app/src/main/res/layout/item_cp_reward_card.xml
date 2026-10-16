@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardReward"
+    android:layout_width="140dp"
+    android:layout_height="175dp"
+    android:layout_marginEnd="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="#211224"
+    app:cardCornerRadius="16dp"
+    app:strokeColor="#50FF69B4"
+    app:strokeWidth="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp">
+
+        <!-- Status / Unlock Badge -->
+        <TextView
+            android:id="@+id/tvRewardBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/bg_level_badge_cyan"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="UNLOCKED ✨"
+            android:textColor="#FFFFFF"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <!-- SVGA / Image Preview Area -->
+        <FrameLayout
+            android:id="@+id/flPreviewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_below="@id/tvRewardBadge"
+            android:layout_marginTop="4dp"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/ivRewardIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_privilege_cp_card" />
+
+            <com.opensource.svgaplayer.SVGAImageView
+                android:id="@+id/svgaRewardPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:autoPlay="true"
+                app:loopCount="0" />
+        </FrameLayout>
+
+        <!-- Reward Title -->
+        <TextView
+            android:id="@+id/tvRewardTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/flPreviewContainer"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="CP Entrance"
+            android:textColor="#FFFFFF"
+            android:textSize="12.5sp"
+            android:textStyle="bold" />
+
+        <!-- Reward Subtitle / Tap Action -->
+        <TextView
+            android:id="@+id/tvRewardSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvRewardTitle"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="Tap to preview ▶"
+            android:textColor="#FFB7D5"
+            android:textSize="10.5sp" />
+
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -10,6 +10,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.models.NotificationModel;
 
+import java.util.Locale;
+
 public class NotificationHelper {
 
     public static void sendNotification(String targetUserId, String title, String message, String type, String targetId) {
@@ -87,5 +89,51 @@ public class NotificationHelper {
 
     public static void sendSystemNotification(String targetUserId, String title, String message) {
         sendNotification(targetUserId, title, message, "SYSTEM", null);
+    }
+
+    public static void sendDirectNotification(String targetUserId, String title, String message, String type) {
+        if (targetUserId == null || targetUserId.isEmpty()) return;
+
+        DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                .getReference("notifications")
+                .child(targetUserId);
+
+        String notifId = notifRef.push().getKey();
+        if (notifId == null) return;
+
+        NotificationModel notification = new NotificationModel(
+                notifId,
+                title,
+                message,
+                type,
+                "SYSTEM",
+                "Room Chat System",
+                "",
+                System.currentTimeMillis(),
+                false,
+                null
+        );
+
+        notifRef.child(notifId).setValue(notification);
+    }
+
+    public static void sendNewHostJoinedNotification(String agencyOwnerUid, String hostName, String profileId) {
+        String msg = "🎉 " + hostName + " (ID: " + profileId + ") has joined your agency!";
+        sendDirectNotification(agencyOwnerUid, "New Host Joined 🌟", msg, "AGENCY_HOST_JOINED");
+    }
+
+    public static void sendHostLeftNotification(String agencyOwnerUid, String hostName) {
+        String msg = "⚠️ Host " + hostName + " has left your agency.";
+        sendDirectNotification(agencyOwnerUid, "Host Left Agency ⚠️", msg, "AGENCY_HOST_LEFT");
+    }
+
+    public static void sendWithdrawalApprovedNotification(String agencyOwnerUid, double amountUsd) {
+        String msg = String.format(Locale.getDefault(), "💰 Your commission payout request of $%.2f USD was APPROVED and processed by Admin!", amountUsd);
+        sendDirectNotification(agencyOwnerUid, "Withdrawal Approved! 💰", msg, "AGENCY_WITHDRAWAL_APPROVED");
+    }
+
+    public static void sendAgencyRankUpdatedNotification(String agencyOwnerUid, String agencyName, int rank) {
+        String msg = "🏆 Congratulations! Your agency '" + agencyName + "' is now ranked #" + rank + " on the Agency Leaderboard!";
+        sendDirectNotification(agencyOwnerUid, "Agency Rank Updated 🏆", msg, "AGENCY_RANK_UPDATED");
     }
 }

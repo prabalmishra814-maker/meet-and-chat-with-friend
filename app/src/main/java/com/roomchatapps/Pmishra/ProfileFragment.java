@@ -1,5 +1,6 @@
 package com.roomchatapps.Pmishra;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -389,11 +390,75 @@ public class ProfileFragment extends Fragment {
         // Centers Card Click Listeners
         binding.btnAgencyCenter.setOnClickListener(v -> {
             AnimationHelper.bounceAnimation(binding.btnAgencyCenter);
-            if (getActivity() != null) {
-                Intent intent = new Intent(getActivity(), LeaderboardActivity.class);
-                intent.putExtra("type", "AGENCY_CENTER");
+            Context context = getContext();
+            if (context == null || !isAdded()) return;
+
+            String uid = FirebaseAuth.getInstance().getUid();
+            if (uid == null) {
+                Intent intent = new Intent(context, ApplyAgencyActivity.class);
                 startActivity(intent);
+                return;
             }
+
+            // 1. Verify agency status live from Firebase
+            FirebaseDatabase.getInstance().getReference("agencies").child(uid)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot agencySnap) {
+                            if (!isAdded() || getContext() == null) return;
+
+                            if (agencySnap.exists()) {
+                                String status = agencySnap.child("status").getValue(String.class);
+                                if (status == null || "APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status)) {
+                                    Intent intent = new Intent(getContext(), AgencyDashboardActivity.class);
+                                    startActivity(intent);
+                                    return;
+                                }
+                            }
+
+                            // 2. Check agency_applications node
+                            FirebaseDatabase.getInstance().getReference("agency_applications").child(uid)
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot appSnap) {
+                                            if (!isAdded() || getContext() == null) return;
+
+                                            if (appSnap.exists()) {
+                                                String appStatus = appSnap.child("status").getValue(String.class);
+                                                if ("APPROVED".equalsIgnoreCase(appStatus)) {
+                                                    FirebaseDatabase.getInstance().getReference("users").child(uid)
+                                                            .child("agencyStatus").setValue("APPROVED");
+
+                                                    Intent intent = new Intent(getContext(), AgencyDashboardActivity.class);
+                                                    startActivity(intent);
+                                                } else {
+                                                    // PENDING, REJECTED, BANNED
+                                                    Intent intent = new Intent(getContext(), ApplyAgencyActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            } else {
+                                                // New / Not applied yet
+                                                Intent intent = new Intent(getContext(), ApplyAgencyActivity.class);
+                                                startActivity(intent);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                            if (!isAdded() || getContext() == null) return;
+                                            Intent intent = new Intent(getContext(), ApplyAgencyActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    });
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            if (!isAdded() || getContext() == null) return;
+                            Intent intent = new Intent(getContext(), ApplyAgencyActivity.class);
+                            startActivity(intent);
+                        }
+                    });
         });
 
         binding.btnBdCenter.setOnClickListener(v -> {
