@@ -17,6 +17,7 @@ public class UserProfileCache {
 
     public static class UserProfile {
         public String uid;
+        public String profileId;
         public String name;
         public String avatarUrl;
         public String equippedFrame = "";
@@ -58,6 +59,16 @@ public class UserProfileCache {
                 UserProfile profile = new UserProfile();
                 profile.uid = cleanUid;
                 if (snapshot.exists()) {
+                    String pid = snapshot.child("profileId").getValue(String.class);
+                    if (pid == null || pid.trim().isEmpty()) {
+                        pid = snapshot.child("userId").getValue(String.class);
+                    }
+                    if (pid == null || pid.trim().isEmpty()) {
+                        pid = String.valueOf(100000 + Math.abs((long) cleanUid.hashCode()) % 900000);
+                        userRef.child("profileId").setValue(pid);
+                    }
+                    profile.profileId = pid;
+
                     profile.name = snapshot.child("name").getValue(String.class);
                     String avatar = snapshot.child("avtar").getValue(String.class);
                     if (avatar == null || avatar.trim().isEmpty()) {

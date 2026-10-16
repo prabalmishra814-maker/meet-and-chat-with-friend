@@ -1279,7 +1279,10 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
 
                     String pId = snapshot.child("profileId").getValue(String.class);
-                    if (pId == null || pId.isEmpty()) pId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
+                    if (pId == null || pId.isEmpty()) {
+                        pId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
+                        FirebaseDatabase.getInstance().getReference("users").child(targetUid).child("profileId").setValue(pId);
+                    }
                     if (tvProfileId != null) tvProfileId.setText("ID:" + pId);
 
                     String followers = snapshot.child("Followers").getValue(String.class);

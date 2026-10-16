@@ -394,8 +394,14 @@ public class OtherCollectionActivity extends AppCompatActivity {
                         if (tvCoupleLeftName != null) tvCoupleLeftName.setText(selectedUserName);
                     }
 
+                    String profileId = snapshot.child("profileId").getValue(String.class);
+                    if (profileId == null || profileId.trim().isEmpty()) {
+                        profileId = String.valueOf(100000 + Math.abs((long) selectedUserId.hashCode()) % 900000);
+                        userProfileRef.child("profileId").setValue(profileId);
+                    }
+
                     if (tvUserMeta != null) {
-                        tvUserMeta.setText("ID: " + selectedUserId + "  |  1 followers  |  📍 India");
+                        tvUserMeta.setText("ID: " + profileId + "  |  1 followers  |  📍 India");
                     }
 
                     String avatar = snapshot.child("avtar").getValue(String.class);

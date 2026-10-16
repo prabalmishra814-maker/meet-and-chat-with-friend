@@ -400,10 +400,16 @@ public class UserDetailActivity extends AppCompatActivity {
                     String name = snapshot.child("name").getValue(String.class);
                     String profileId = snapshot.child("profileId").getValue(String.class);
                     String avatar = snapshot.child("avtar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("avatar").getValue(String.class);
                     String bio = snapshot.child("bio").getValue(String.class);
 
+                    if (profileId == null || profileId.trim().isEmpty()) {
+                        profileId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
+                        userRef.child("profileId").setValue(profileId);
+                    }
+
                     binding.userName.setText(name != null ? name : "User");
-                    binding.userId.setText("ID: " + (profileId != null ? profileId : targetUid));
+                    binding.userId.setText("ID: " + profileId);
                     if (bio != null && !bio.isEmpty()) {
                         binding.tvAbout.setText(bio);
                     }

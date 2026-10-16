@@ -112,6 +112,10 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".FamilyDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".CheckActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

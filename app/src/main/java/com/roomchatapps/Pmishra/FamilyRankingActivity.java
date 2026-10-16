@@ -2,6 +2,7 @@ package com.roomchatapps.Pmishra;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
@@ -120,7 +121,11 @@ public class FamilyRankingActivity extends AppCompatActivity {
             rvFamilyLeaderboard.setAdapter(adapter);
 
             adapter.setOnFamilyClickListener((family, position) -> {
-                Toast.makeText(FamilyRankingActivity.this, "Family: " + family.getFamilyName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(FamilyRankingActivity.this, FamilyDetailActivity.class);
+                intent.putExtra("familyId", family.getFamilyId());
+                intent.putExtra("familyName", family.getFamilyName());
+                intent.putExtra("familyLogo", family.getFamilyLogo());
+                startActivity(intent);
             });
         }
     }
@@ -411,11 +416,18 @@ public class FamilyRankingActivity extends AppCompatActivity {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String familyId = snapshot.child("familyId").getValue(String.class);
-                if (familyId == null || familyId.isEmpty()) {
+                String myFamilyId = snapshot.child("familyId").getValue(String.class);
+                String myFamilyName = snapshot.child("familyName").getValue(String.class);
+
+                if (TextUtils.isEmpty(myFamilyId)) {
                     showCreateFamilyPromptDialog();
                 } else {
-                    loadFamilyData();
+                    Intent intent = new Intent(FamilyRankingActivity.this, FamilyDetailActivity.class);
+                    intent.putExtra("familyId", myFamilyId);
+                    if (!TextUtils.isEmpty(myFamilyName)) {
+                        intent.putExtra("familyName", myFamilyName);
+                    }
+                    startActivity(intent);
                 }
             }
 

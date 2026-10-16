@@ -150,9 +150,13 @@ public class ProfileFragment extends Fragment {
                         binding.tvBio.setText("No bio available.");
                     }
 
-                    if ((profileId == null || profileId.isEmpty()) && uid != null) {
-                        profileId = String.valueOf(100000 + Math.abs((long) uid.hashCode()) % 900000);
-                        userRef.child("profileId").setValue(profileId);
+                    if ((profileId == null || profileId.isEmpty())) {
+                        String myUid = uid != null ? uid : (mAuth != null && mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null);
+                        if (myUid != null) {
+                            profileId = String.valueOf(100000 + Math.abs((long) myUid.hashCode()) % 900000);
+                            userRef.child("profileId").setValue(profileId);
+                            userRef.child("userId").setValue(profileId);
+                        }
                     }
                     
                     long coinsSpent = 0;
