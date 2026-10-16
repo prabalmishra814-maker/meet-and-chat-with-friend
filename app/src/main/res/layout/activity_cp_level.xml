@@ -143,9 +143,9 @@
         <TextView
             android:id="@+id/tvStageStatus"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="38dp"
             android:layout_alignParentBottom="true"
-            android:background="@drawable/bg_cp_arch_gained_banner"
+            android:background="@drawable/cp_banner"
             android:gravity="center"
             android:text="Gained"
             android:textColor="#FFFFFF"

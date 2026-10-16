@@ -93,18 +93,20 @@ public class CpIntimacyManager {
 
     /**
      * Calculates CP Level (1 to 10) based on Intimacy score
+     * 100 -> LV.1, 200 -> LV.2, 400 -> LV.3, 800 -> LV.4, 1600 -> LV.5, etc.
      */
     public static int calculateCpLevel(long intimacy) {
-        if (intimacy >= 300000) return 10;
-        if (intimacy >= 230000) return 9;
-        if (intimacy >= 170000) return 8;
-        if (intimacy >= 120000) return 7;
-        if (intimacy >= 80000) return 6;
-        if (intimacy >= 50000) return 5;
-        if (intimacy >= 30000) return 4;
-        if (intimacy >= 15000) return 3;
-        if (intimacy >= 5000) return 2;
-        return 1;
+        if (intimacy >= 50000) return 10;
+        if (intimacy >= 25600) return 9;
+        if (intimacy >= 12800) return 8;
+        if (intimacy >= 6400) return 7;
+        if (intimacy >= 3200) return 6;
+        if (intimacy >= 1600) return 5;
+        if (intimacy >= 800) return 4;
+        if (intimacy >= 400) return 3;
+        if (intimacy >= 200) return 2;
+        if (intimacy >= 100) return 1;
+        return 0;
     }
 
     /**
