@@ -151,10 +151,11 @@ public class ProfileFragment extends Fragment {
                         binding.tvBio.setText("No bio available.");
                     }
 
-                    if ((profileId == null || profileId.isEmpty())) {
-                        String myUid = uid != null ? uid : (mAuth != null && mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null);
+                    String myUid = uid != null ? uid : (mAuth != null && mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null);
+                    String numericProfileId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(myUid, profileId);
+                    if (profileId == null || !profileId.equals(numericProfileId)) {
+                        profileId = numericProfileId;
                         if (myUid != null) {
-                            profileId = String.valueOf(100000 + Math.abs((long) myUid.hashCode()) % 900000);
                             userRef.child("profileId").setValue(profileId);
                             userRef.child("userId").setValue(profileId);
                         }

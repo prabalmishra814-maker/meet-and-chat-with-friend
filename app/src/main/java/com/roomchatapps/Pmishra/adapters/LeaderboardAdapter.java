@@ -46,8 +46,8 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         holder.tvRank.setText(String.valueOf(item.getRank()));
         holder.tvUserName.setText(item.getName() != null ? item.getName() : "User");
         
-        String sub = item.getProfileId() != null && !item.getProfileId().isEmpty() ? "ID: " + item.getProfileId() : "User";
-        holder.tvUserSub.setText(sub);
+        String subId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(item.getUid(), item.getProfileId());
+        holder.tvUserSub.setText("ID: " + subId);
 
         holder.tvSpentCoins.setText(formatCoins(item.getSpentCoins()));
 

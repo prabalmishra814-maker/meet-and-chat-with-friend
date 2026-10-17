@@ -398,14 +398,15 @@ public class OtherCollectionActivity extends AppCompatActivity {
                         if (tvCoupleLeftName != null) tvCoupleLeftName.setText(selectedUserName);
                     }
 
-                    String profileId = snapshot.child("profileId").getValue(String.class);
-                    if (profileId == null || profileId.trim().isEmpty()) {
-                        profileId = String.valueOf(100000 + Math.abs((long) selectedUserId.hashCode()) % 900000);
-                        userProfileRef.child("profileId").setValue(profileId);
+                    String rawProfileId = snapshot.child("profileId").getValue(String.class);
+                    String numericProfileId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(selectedUserId, rawProfileId);
+                    if (rawProfileId == null || !rawProfileId.equals(numericProfileId)) {
+                        userProfileRef.child("profileId").setValue(numericProfileId);
+                        userProfileRef.child("userId").setValue(numericProfileId);
                     }
 
                     if (tvUserMeta != null) {
-                        tvUserMeta.setText("ID: " + profileId + "  |  1 followers  |  📍 India");
+                        tvUserMeta.setText("ID: " + numericProfileId + "  |  1 followers  |  📍 India");
                     }
 
                     String avatar = snapshot.child("avtar").getValue(String.class);

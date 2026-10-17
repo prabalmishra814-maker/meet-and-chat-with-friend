@@ -59,9 +59,9 @@ public class FollowAdapter extends RecyclerView.Adapter<FollowAdapter.ViewHolder
             lastAnimatedPosition = currentPos;
         }
 
-        String displayId = (user.getProfileId() != null && !user.getProfileId().trim().isEmpty()) ? user.getProfileId() : user.getUserId();
+        String displayId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(user.getUserId(), user.getProfileId());
         holder.binding.tvName.setText(user.getUserName() != null ? user.getUserName() : "User");
-        holder.binding.tvUid.setText("ID: " + (displayId != null ? displayId : ""));
+        holder.binding.tvUid.setText("ID: " + displayId);
 
         Glide.with(holder.itemView.getContext())
                 .load(user.getUserIcon())

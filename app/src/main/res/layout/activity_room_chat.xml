@@ -19,38 +19,6 @@
             android:clickable="false"
             android:elevation="10dp"
             android:focusable="false" />
-
-        <!-- Global Realtime SVGA Gift Banner Overlay Container -->
-        <FrameLayout
-            android:id="@+id/globalBannerGiftContainer"
-            android:layout_width="match_parent"
-            android:layout_height="102dp"
-            android:layout_gravity="top"
-            android:layout_marginTop="85dp"
-            android:elevation="30dp"
-            android:visibility="gone">
-
-            <com.opensource.svgaplayer.SVGAImageView
-                android:id="@+id/globalSvgaBannerPlayer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                app:clearsAfterStop="true"
-                app:loopCount="1" />
-
-            <TextView
-                android:id="@+id/globalTvBannerNotice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:letterSpacing="0.01"
-                android:paddingHorizontal="40dp"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp" />
-        </FrameLayout>
     </com.roomchatapps.Pmishra.AudioRoomBackgroundView>
 
     <!-- Top Header Bar using LinearLayout -->
@@ -374,91 +342,6 @@
             app:tint="#FF007A" />
     </LinearLayout>
 
-    <!-- Golden Gift Banner Container (Positioned in Top Seats / Profile Area) -->
-    <FrameLayout
-        android:id="@+id/bannerGiftContainer"
-        android:layout_width="match_parent"
-        android:layout_height="102dp"
-        android:layout_marginTop="2dp"
-        android:elevation="25dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar">
-
-        <!-- Golden Banner SVGA View -->
-        <com.opensource.svgaplayer.SVGAImageView
-            android:id="@+id/svgaBannerPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            app:clearsAfterStop="true"
-            app:loopCount="1" />
-
-        <!-- Dynamic Gift Text Overlay Inside Banner -->
-        <TextView
-            android:id="@+id/tvBannerNotice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:letterSpacing="0.01"
-            android:paddingHorizontal="40dp"
-            android:paddingVertical="4dp"
-            android:singleLine="true"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:shadowColor="#E0000000"
-            android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="6"
-            tools:text="akash sent Walkthrough" />
-    </FrameLayout>
-
-    <!-- User Entry Banner Container (Red Packet SVGA for Room Join Entry) -->
-    <FrameLayout
-        android:id="@+id/bannerEntryContainer"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="2dp"
-        android:elevation="26dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar">
-
-        <!-- Entry Banner SVGA View -->
-        <com.opensource.svgaplayer.SVGAImageView
-            android:id="@+id/svgaEntryBannerPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:clearsAfterStop="true"
-            app:loopCount="1" />
-
-        <!-- Dynamic Entry Notice Text Overlay Inside Banner -->
-        <TextView
-            android:id="@+id/tvEntryBannerNotice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.02"
-            android:paddingHorizontal="48dp"
-            android:singleLine="true"
-            android:textColor="#FFFFFF"
-            android:textSize="14.5sp"
-            android:textStyle="bold"
-            android:shadowColor="#A0000000"
-            android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="5"
-            tools:text="Roy Rupesh entered the room" />
-    </FrameLayout>
-
     <!-- SEAT LAYOUT FIX -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSeats"
@@ -620,5 +503,133 @@
         android:visibility="gone"
         app:autoPlay="false"
         app:loopCount="1" />
+
+    <!-- Golden Gift Banner Container (Positioned ON TOP of Seats / All Views) -->
+    <FrameLayout
+        android:id="@+id/bannerGiftContainer"
+        android:layout_width="match_parent"
+        android:layout_height="102dp"
+        android:layout_marginTop="2dp"
+        android:elevation="100dp"
+        android:translationZ="100dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <!-- Golden Banner SVGA View -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaBannerPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            app:clearsAfterStop="false"
+            app:loopCount="0" />
+
+        <!-- Dynamic Gift Text Overlay Inside Banner -->
+        <TextView
+            android:id="@+id/tvBannerNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="4dp"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:shadowColor="#E0000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            tools:text="akash sent Walkthrough" />
+    </FrameLayout>
+
+    <!-- User Entry Banner Container (Red Packet SVGA for Room Join Entry) -->
+    <FrameLayout
+        android:id="@+id/bannerEntryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="2dp"
+        android:elevation="100dp"
+        android:translationZ="100dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <!-- Entry Banner SVGA View -->
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/svgaEntryBannerPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:clearsAfterStop="false"
+            app:loopCount="0" />
+
+        <!-- Dynamic Entry Notice Text Overlay Inside Banner -->
+        <TextView
+            android:id="@+id/tvEntryBannerNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:paddingHorizontal="48dp"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14.5sp"
+            android:textStyle="bold"
+            android:shadowColor="#A0000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="5"
+            tools:text="Roy Rupesh entered the room" />
+    </FrameLayout>
+
+    <!-- Global Realtime SVGA Gift Banner Overlay Container -->
+    <FrameLayout
+        android:id="@+id/globalBannerGiftContainer"
+        android:layout_width="match_parent"
+        android:layout_height="102dp"
+        android:elevation="100dp"
+        android:translationZ="100dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <com.opensource.svgaplayer.SVGAImageView
+            android:id="@+id/globalSvgaBannerPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            app:clearsAfterStop="false"
+            app:loopCount="0" />
+
+        <TextView
+            android:id="@+id/globalTvBannerNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="4dp"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:shadowColor="#E0000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

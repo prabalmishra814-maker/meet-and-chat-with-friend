@@ -16,7 +16,6 @@ import com.opensource.svgaplayer.SVGAImageView;
 import com.roomchatapps.Pmishra.R;
 import com.roomchatapps.Pmishra.models.GiftRecipientModel;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
-import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,20 +103,8 @@ public class GiftRecipientAdapter extends RecyclerView.Adapter<GiftRecipientAdap
                 holder.ivAvatar.setImageResource(R.drawable.gift2);
             }
 
-            // Display Frame
-            if (item.getFrame() != null && !item.getFrame().trim().isEmpty()) {
-                FrameUtils.displayFrame(context, item.getFrame(), holder.ivFrame, holder.svgaFrame);
-            } else if (item.getUid() != null && !item.getUid().trim().isEmpty()) {
-                UserProfileCache.getUserProfile(item.getUid(), profile -> {
-                    if (profile != null) {
-                        FrameUtils.displayFrame(context, profile.equippedFrame, holder.ivFrame, holder.svgaFrame);
-                    } else {
-                        FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
-                    }
-                });
-            } else {
-                FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
-            }
+            // Frames removed from gift recipient selection list as requested
+            FrameUtils.clearFrame(holder.ivFrame, holder.svgaFrame);
         }
 
         // Selection ring

@@ -123,14 +123,8 @@ public class CpFriendAdapter extends RecyclerView.Adapter<CpFriendAdapter.ViewHo
         String name = !TextUtils.isEmpty(user.getUserName()) ? user.getUserName() : "User";
         holder.tvFriendName.setText(name);
 
-        String displayId = user.getProfileId();
-        if (TextUtils.isEmpty(displayId)) {
-            displayId = user.getUserId();
-        }
-        if (TextUtils.isEmpty(displayId)) {
-            displayId = "100098180";
-        }
-        holder.tvFriendId.setText("ID:" + displayId);
+        String displayId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(user.getUserId(), user.getProfileId());
+        holder.tvFriendId.setText("ID: " + displayId);
 
         String avatarUrl = user.getUserIcon();
         if (!TextUtils.isEmpty(avatarUrl)) {

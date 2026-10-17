@@ -532,13 +532,6 @@ public class RoomChatActivity extends AppCompatActivity {
         SeatManager.getInstance().setHostUserID(hostUid);
         SeatManager.getInstance().setCurrentRoomID(roomID);
 
-        if (isHost) {
-            String myAvatar = SessionManager.getInstance(this).getAvatar();
-            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
-            String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
-            SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
-        }
-
         UserProfileCache.getUserProfile(userID, profile -> {});
         TwentyFourHourRuleManager.record24HourEvent(userID, roomID);
         verifyPrivateRoomAccess();
@@ -1046,24 +1039,8 @@ public class RoomChatActivity extends AppCompatActivity {
             if (errorCode == 0) {
                 broadcastUserEntry();
                 if (isHost) {
-                    String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
-                    UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
-                    String initialFrame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
-                    SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, initialFrame);
                     ZegoManager.getInstance().setMicEnabled(true);
                     ZegoManager.getInstance().startPublishing();
-
-                    UserProfileCache.getUserProfile(userID, profile -> {
-                        String frame = (profile != null && profile.equippedFrame != null) ? profile.equippedFrame : "";
-                        SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame);
-                    });
-                } else {
-                    // Non-host users must NOT be on a seat when entering the room.
-                    // If an old seat exists for this user, clear it so their profile doesn't show on a seat.
-                    int existingIndex = SeatManager.getInstance().findUserSeatIndex(userID);
-                    if (existingIndex != -1) {
-                        SeatManager.getInstance().leaveSeat(existingIndex);
-                    }
                 }
             } else {
                 Toast.makeText(RoomChatActivity.this, "Failed to join room: " + errorCode, Toast.LENGTH_LONG).show();
@@ -1092,10 +1069,6 @@ public class RoomChatActivity extends AppCompatActivity {
         public void onUserLeft(ZegoUser user) {
             updateGlobalUserCount();
             if (user != null && user.userID != null && !user.userID.isEmpty()) {
-                int leftSeatIndex = SeatManager.getInstance().findUserSeatIndex(user.userID);
-                if (leftSeatIndex != -1) {
-                    SeatManager.getInstance().leaveSeat(leftSeatIndex);
-                }
                 String displayName = (user.userName != null && !user.userName.trim().isEmpty()) ? user.userName : "User";
                 ChatMessage systemMsg = new ChatMessage();
                 systemMsg.setSenderId("SYSTEM");
@@ -1155,15 +1128,8 @@ public class RoomChatActivity extends AppCompatActivity {
                                 }
                             }
 
-                            // 1. Play main SVGA gift animation across room (1 time per gift action)
-                            if (gSvga != null && !gSvga.trim().isEmpty()) {
-                                playSvgaAnimation(gSvga);
-                            } else if (gName.contains("Heart")) {
-                                playSvgaAnimation("gift/aladdin.svga");
-                            }
-
-                            // 2. Play rednotification.svga banner
-                            showGoldenGiftBanner(giftId, sName, gName, rName, qty);
+                            // Enqueue unified gift event (animation + banner synchronized together!)
+                            enqueueGiftEvent(giftId, sName, gName, rName, qty, gSvga);
                         } catch (Exception ignored) {}
                     } else {
                         textMessages.add(info);
@@ -1430,6 +1396,10 @@ public class RoomChatActivity extends AppCompatActivity {
         String initialName = (model.userName != null && !model.userName.isEmpty()) ? model.userName : "User";
         if (tvName != null) tvName.setText(initialName + roleTag);
 
+        UserProfileCache.UserProfile cachedTarget = UserProfileCache.getDirectCachedProfile(targetUid);
+        String initialPid = UserProfileCache.getDisplayNumericId(targetUid, cachedTarget != null ? cachedTarget.profileId : null);
+        if (tvProfileId != null) tvProfileId.setText("ID: " + initialPid);
+
         if (ivProfileAvatar != null) {
             if (model.userAvatar != null && !model.userAvatar.isEmpty()) {
                 Glide.with(this).load(model.userAvatar).placeholder(R.drawable.logo_placeholder).into(ivProfileAvatar);
@@ -1454,12 +1424,13 @@ public class RoomChatActivity extends AppCompatActivity {
                         Glide.with(RoomChatActivity.this).load(dbAvatar).placeholder(R.drawable.logo_placeholder).into(ivProfileAvatar);
                     }
 
-                    String pId = snapshot.child("profileId").getValue(String.class);
-                    if (pId == null || pId.isEmpty()) {
-                        pId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
-                        FirebaseDatabase.getInstance().getReference("users").child(targetUid).child("profileId").setValue(pId);
+                    String rawPid = snapshot.child("profileId").getValue(String.class);
+                    String numericPid = UserProfileCache.getDisplayNumericId(targetUid, rawPid);
+                    if (rawPid == null || !rawPid.equals(numericPid)) {
+                        FirebaseDatabase.getInstance().getReference("users").child(targetUid).child("profileId").setValue(numericPid);
+                        FirebaseDatabase.getInstance().getReference("users").child(targetUid).child("userId").setValue(numericPid);
                     }
-                    if (tvProfileId != null) tvProfileId.setText("ID:" + pId);
+                    if (tvProfileId != null) tvProfileId.setText("ID: " + numericPid);
 
                     String followers = snapshot.child("Followers").getValue(String.class);
                     if (tvFollowersCount != null) tvFollowersCount.setText((followers != null ? followers : "1") + " followers");
@@ -2534,15 +2505,9 @@ public class RoomChatActivity extends AppCompatActivity {
                         String senderAvatar = snapshot.child("senderAvatar").getValue(String.class);
                         int iconRes = (iconResLong != null) ? iconResLong.intValue() : R.drawable.gift_icon;
 
-                        // Broadcast Golden Banner SVGA at top between seats/profile for all users in the room!
-                        showGoldenGiftBanner(giftId, senderName, giftName, recipientName, quantity);
-
                         String giftSvga = snapshot.child("giftSvga").getValue(String.class);
-                        if (giftSvga != null) {
-                            playSvgaAnimation(giftSvga);
-                        } else if (giftName.contains("Heart")) {
-                            playSvgaAnimation("gift/aladdin.svga");
-                        }
+                        // Enqueue unified gift event for all room members (animation + banner synchronized together!)
+                        enqueueGiftEvent(giftId, senderName, giftName, recipientName, quantity, giftSvga);
                     }
                 }
             }
@@ -2608,6 +2573,27 @@ public class RoomChatActivity extends AppCompatActivity {
                     }
                     if (!updatedSeats.isEmpty()) {
                         SeatManager.getInstance().setSeatsFromExternal(updatedSeats);
+                    }
+                    // Ensure Host is placed on Seat 0 only when entering the room for the first time (if not on any seat yet)
+                    if (isHost && userID != null && !userID.isEmpty()) {
+                        int hostIdx = SeatManager.getInstance().findUserSeatIndex(userID);
+                        if (hostIdx == -1) {
+                            String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                            UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+                            String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
+                            SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame, true);
+                        }
+                    }
+                } else {
+                    // First time room initialization on Firebase by Host
+                    SeatManager.getInstance().setFirebaseSynced(true);
+                    if (isHost && userID != null && !userID.isEmpty()) {
+                        String myAvatar = SessionManager.getInstance(RoomChatActivity.this).getAvatar();
+                        UserProfileCache.UserProfile cached = UserProfileCache.getDirectCachedProfile(userID);
+                        String frame = (cached != null && cached.equippedFrame != null) ? cached.equippedFrame : "";
+                        SeatManager.getInstance().takeSeat(0, userID, userName, myAvatar, frame, true);
+                    } else {
+                        SeatManager.getInstance().syncSeatsToFirebase();
                     }
                 }
             }
@@ -5115,21 +5101,8 @@ public class RoomChatActivity extends AppCompatActivity {
             GiftStoreAdapter adapter = new GiftStoreAdapter(initialCategoryGifts);
             rvGifts.setAdapter(adapter);
 
-            // Check if user is bound in a CP relationship to unlock Relationship Gifts
-            FirebaseDatabase.getInstance().getReference("cp_bindings").child(userID)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (isFinishing() || isDestroyed()) return;
-                            boolean hasRelationship = snapshot.exists()
-                                    && snapshot.hasChild("partnerUid")
-                                    && !TextUtils.isEmpty(snapshot.child("partnerUid").getValue(String.class));
-
-                            adapter.setRelationshipUnlocked(hasRelationship);
-                        }
-
-                        @Override public void onCancelled(@NonNull DatabaseError error) {}
-                    });
+            // All Relationship Gifts unlocked by default
+            adapter.setRelationshipUnlocked(true);
 
             adapter.setOnGiftSelectedListener((item, position, isReSelected) -> {
                 if (isReSelected) {
@@ -5316,11 +5289,8 @@ public class RoomChatActivity extends AppCompatActivity {
                                         ZegoManager.getInstance().sendInRoomTextMessage(giftJson.toString());
                                     } catch (Exception ignored) {}
 
-                                    showGoldenGiftBanner(uniqueGiftId, senderDisplayName, giftName, recipientNames.toString(), quantity);
-                                    if (selectedGiftSvga != null && !selectedGiftSvga.trim().isEmpty()) {
-                                        markGiftProcessed(uniqueGiftId);
-                                        playSvgaAnimation(selectedGiftSvga);
-                                    }
+                                    markGiftProcessed(uniqueGiftId);
+                                    enqueueGiftEvent(uniqueGiftId, senderDisplayName, giftName, recipientNames.toString(), quantity, selectedGiftSvga);
 
                                     // Push Global Cross-Room Gift Event (for rednotification.svga banner outside room in MainActivity)
                                     try {
@@ -5762,27 +5732,6 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     // --- ANIMATION & BANNER QUEUE MANAGER ---
-    static class GiftAnimationItem {
-        String svgaPath;
-        GiftAnimationItem(String svgaPath) {
-            this.svgaPath = svgaPath;
-        }
-    }
-
-    static class BannerQueueItem {
-        String svgaAsset;
-        String htmlNotice;
-        boolean isEntryBanner;
-        BannerQueueItem(String svgaAsset, String htmlNotice, boolean isEntryBanner) {
-            this.svgaAsset = svgaAsset;
-            this.htmlNotice = htmlNotice;
-            this.isEntryBanner = isEntryBanner;
-        }
-    }
-
-    private final Queue<GiftAnimationItem> giftAnimationQueue = new ConcurrentLinkedQueue<>();
-    private boolean isGiftAnimationPlaying = false;
-    private long currentGiftPlayId = 0L; // GIFT SVGA FIX
     private final Handler giftHandler = new Handler(Looper.getMainLooper());
     private Runnable giftTimeoutRunnable = null;
     private final Set<String> processedGiftIds = Collections.synchronizedSet(new HashSet<>());
@@ -5821,8 +5770,65 @@ public class RoomChatActivity extends AppCompatActivity {
         return false;
     }
 
-    private final Queue<BannerQueueItem> bannerQueue = new ConcurrentLinkedQueue<>();
-    private boolean isBannerPlaying = false;
+    static class GiftEventItem {
+        final String giftSvgaPath;
+        final String bannerNoticeHtml;
+        final String giftId;
+
+        GiftEventItem(String giftSvgaPath, String bannerNoticeHtml, String giftId) {
+            this.giftSvgaPath = giftSvgaPath;
+            this.bannerNoticeHtml = bannerNoticeHtml;
+            this.giftId = giftId;
+        }
+    }
+
+    private final Queue<GiftEventItem> giftEventQueue = new ConcurrentLinkedQueue<>();
+    private boolean isGiftEventPlaying = false;
+    private long currentGiftEventPlayId = 0L;
+
+    public void enqueueGiftEvent(String giftId, String senderName, String giftName, String recipientName, int quantity, String giftSvga) {
+        if (isFinishing() || isDestroyed()) return;
+        if (giftId != null && !giftId.trim().isEmpty()) {
+            if (markGiftProcessed("event_" + giftId)) return;
+        }
+
+        String sName = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
+        String gName = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
+        String rName = (recipientName != null && !recipientName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + recipientName.trim() + "</b></font>") : "";
+
+        int qty = Math.max(1, quantity);
+        if (qty <= 1) {
+            int xIdx = gName.indexOf(" (x");
+            if (xIdx != -1) {
+                try {
+                    String numStr = gName.substring(xIdx + 3, gName.indexOf(")", xIdx));
+                    qty = Integer.parseInt(numStr);
+                } catch (Exception ignored) {}
+            }
+        }
+
+        String cleanGiftName = gName;
+        int idx = cleanGiftName.indexOf(" (x");
+        if (idx != -1) {
+            cleanGiftName = cleanGiftName.substring(0, idx);
+        }
+
+        String qtyText = (qty > 1) ? (qty + "x ") : "";
+        String htmlNotice = "<font color='#FFD700'><b>" + sName + "</b></font> sent <font color='#FF007A'><b>" + qtyText + cleanGiftName + "</b></font>" + rName + " 🎁";
+
+        String animPath = giftSvga;
+        if (animPath == null || animPath.trim().isEmpty()) {
+            GiftStoreAdapter.GiftStoreItem matched = GiftCatalog.findGiftByAny(gName, giftSvga);
+            if (matched != null && matched.svgaPath != null && !matched.svgaPath.trim().isEmpty()) {
+                animPath = matched.svgaPath;
+            } else {
+                animPath = "gift/rose.svga";
+            }
+        }
+
+        giftEventQueue.offer(new GiftEventItem(animPath, htmlNotice, giftId));
+        giftHandler.post(this::processNextGiftEvent);
+    }
 
     public void playSvgaAnimation(String fileName) {
         playSvgaAnimation(fileName, 1);
@@ -5833,305 +5839,228 @@ public class RoomChatActivity extends AppCompatActivity {
         if (fileName == null || fileName.trim().isEmpty()) return;
         int times = Math.max(1, count);
         for (int i = 0; i < times; i++) {
-            giftAnimationQueue.offer(new GiftAnimationItem(fileName));
+            enqueueGiftEvent(null, "User", "Gift", "", 1, fileName);
         }
-        giftHandler.post(this::processNextGiftAnimation);
-    }
-
-    private void processNextGiftAnimation() { // GIFT SVGA FIX
-        if (isFinishing() || isDestroyed()) return; // GIFT SVGA FIX
-        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
-            giftHandler.post(this::processNextGiftAnimation); // GIFT SVGA FIX
-            return; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-        if (isGiftAnimationPlaying) return; // GIFT SVGA FIX
-        GiftAnimationItem nextItem = giftAnimationQueue.poll(); // GIFT SVGA FIX
-        if (nextItem == null) return; // GIFT SVGA FIX
-
-        isGiftAnimationPlaying = true; // GIFT SVGA FIX
-        final long playId = ++currentGiftPlayId; // GIFT SVGA FIX
-
-        if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
-            giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-        giftTimeoutRunnable = () -> { // GIFT SVGA FIX
-            Log.w("RoomChatActivity", "Gift SVGA overall safety timeout reached for playId: " + playId); // GIFT SVGA FIX
-            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-        }; // GIFT SVGA FIX
-        giftHandler.postDelayed(giftTimeoutRunnable, 10000L); // GIFT SVGA FIX
-
-        playSvgaAnimationInternal(nextItem.svgaPath, playId); // GIFT SVGA FIX
-    }
-
-    private void finishCurrentGiftAnimation(final long playId) { // GIFT SVGA FIX
-        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
-            runOnUiThread(() -> finishCurrentGiftAnimation(playId)); // GIFT SVGA FIX
-            return; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        if (playId != currentGiftPlayId || playId == 0L) return; // GIFT SVGA FIX
-        currentGiftPlayId = 0L; // GIFT SVGA FIX
-
-        if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
-            giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
-            giftTimeoutRunnable = null; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        if (svgaPlayer != null) { // GIFT SVGA FIX
-            try { // GIFT SVGA FIX
-                svgaPlayer.setCallback(null); // GIFT SVGA FIX
-                svgaPlayer.stopAnimation(); // GIFT SVGA FIX
-                if (giftAnimationQueue.isEmpty()) { // GIFT SVGA FIX
-                    svgaPlayer.setVisibility(View.GONE); // GIFT SVGA FIX
-                    svgaPlayer.clear(); // GIFT SVGA FIX
-                } // GIFT SVGA FIX
-            } catch (Exception ignored) {} // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        isGiftAnimationPlaying = false; // GIFT SVGA FIX
-        processNextGiftAnimation(); // GIFT SVGA FIX
-    }
-
-    private final Map<String, SVGAVideoEntity> svgaEntityCache = new ConcurrentHashMap<>();
-
-    private void playSvgaAnimationInternal(String fileName, final long playId) { // GIFT SVGA FIX
-        if (svgaPlayer == null || fileName == null || fileName.trim().isEmpty() || playId != currentGiftPlayId) { // GIFT SVGA FIX
-            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-            return; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        try { // GIFT SVGA FIX
-            svgaPlayer.setCallback(null); // GIFT SVGA FIX
-            svgaPlayer.stopAnimation(); // GIFT SVGA FIX
-        } catch (Exception ignored) {} // GIFT SVGA FIX
-
-        // GIFT SVGA FIX: Decode fresh SVGAVideoEntity every time to guarantee SVGA player drawable state is never stale/recycled from prior playback
-        try { // GIFT SVGA FIX
-            SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this); // GIFT SVGA FIX
-            parser.decodeFromAssets(fileName, new SVGAParser.ParseCompletion() { // GIFT SVGA FIX
-                @Override
-                public void onComplete(@NotNull SVGAVideoEntity videoItem) { // GIFT SVGA FIX
-                    runOnUiThread(() -> { // GIFT SVGA FIX
-                        if (playId != currentGiftPlayId) return; // GIFT SVGA FIX
-                        playVideoEntity(videoItem, playId); // GIFT SVGA FIX
-                    }); // GIFT SVGA FIX
-                } // GIFT SVGA FIX
-
-                @Override
-                public void onError() { // GIFT SVGA FIX
-                    Log.e("RoomChatActivity", "Error parsing SVGA file: " + fileName); // GIFT SVGA FIX
-                    runOnUiThread(() -> finishCurrentGiftAnimation(playId)); // GIFT SVGA FIX
-                } // GIFT SVGA FIX
-            }, null); // GIFT SVGA FIX
-        } catch (Exception e) { // GIFT SVGA FIX
-            Log.e("RoomChatActivity", "Exception parsing SVGA file: " + fileName, e); // GIFT SVGA FIX
-            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-    }
-
-    private void playVideoEntity(@NotNull SVGAVideoEntity videoItem, final long playId) { // GIFT SVGA FIX
-        if (Looper.myLooper() != Looper.getMainLooper()) { // GIFT SVGA FIX
-            runOnUiThread(() -> playVideoEntity(videoItem, playId)); // GIFT SVGA FIX
-            return; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        if (isFinishing() || isDestroyed() || svgaPlayer == null || playId != currentGiftPlayId) { // GIFT SVGA FIX
-            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-            return; // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-
-        try { // GIFT SVGA FIX
-            svgaPlayer.setCallback(null); // GIFT SVGA FIX
-            svgaPlayer.stopAnimation(); // GIFT SVGA FIX
-
-            int frames = videoItem.getFrames(); // GIFT SVGA FIX
-            int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20; // GIFT SVGA FIX
-            long durationMs = (long) (((double) frames / fps) * 1000L); // GIFT SVGA FIX
-            long safetyTimeoutMs = Math.max(3500L, durationMs + 1000L); // GIFT SVGA FIX
-
-            if (giftTimeoutRunnable != null) { // GIFT SVGA FIX
-                giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
-            } // GIFT SVGA FIX
-            giftTimeoutRunnable = () -> finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-            giftHandler.postDelayed(giftTimeoutRunnable, safetyTimeoutMs); // GIFT SVGA FIX
-
-            svgaPlayer.setVisibility(View.VISIBLE); // GIFT SVGA FIX
-            svgaPlayer.setVideoItem(videoItem); // GIFT SVGA FIX
-            svgaPlayer.setLoops(1); // GIFT SVGA FIX
-            svgaPlayer.stepToFrame(0, false); // GIFT SVGA FIX
-            svgaPlayer.setCallback(new SVGACallback() { // GIFT SVGA FIX
-                private boolean isFinishedHandled = false; // GIFT SVGA FIX
-
-                @Override
-                public void onFinished() { // GIFT SVGA FIX
-                    if (!isFinishedHandled) { // GIFT SVGA FIX
-                        isFinishedHandled = true; // GIFT SVGA FIX
-                        finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-                    } // GIFT SVGA FIX
-                } // GIFT SVGA FIX
-
-                @Override public void onPause() {} // GIFT SVGA FIX
-                @Override public void onRepeat() {} // GIFT SVGA FIX
-                @Override public void onStep(int frame, double percentage) {} // GIFT SVGA FIX
-            }); // GIFT SVGA FIX
-            svgaPlayer.startAnimation(); // GIFT SVGA FIX
-        } catch (Exception e) { // GIFT SVGA FIX
-            Log.e("RoomChatActivity", "Error playing SVGA animation entity for playId: " + playId, e); // GIFT SVGA FIX
-            finishCurrentGiftAnimation(playId); // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-    }
-
-    public void showUserEntryBanner(String displayUserName) {
-        String name = (displayUserName != null && !displayUserName.trim().isEmpty()) ? displayUserName : "User";
-        String htmlNotice = "<font color='#FFD700'><b>" + name + "</b></font> entered the room 🎉";
-        bannerQueue.offer(new BannerQueueItem("Notification/rednotification (1).svga", htmlNotice, true));
-        processNextBanner();
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName) {
-        showGoldenGiftBanner(null, senderName, giftName, "", 1);
+        enqueueGiftEvent(null, senderName, giftName, "", 1, null);
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName, String recipientName) {
-        showGoldenGiftBanner(null, senderName, giftName, recipientName, 1);
+        enqueueGiftEvent(null, senderName, giftName, recipientName, 1, null);
     }
 
     public void showGoldenGiftBanner(String senderName, String giftName, String recipientName, int quantity) {
-        showGoldenGiftBanner(null, senderName, giftName, recipientName, quantity);
+        enqueueGiftEvent(null, senderName, giftName, recipientName, quantity, null);
     }
 
     public void showGoldenGiftBanner(String giftId, String senderName, String giftName, String recipientName, int quantity) {
-        if (giftId != null && !giftId.trim().isEmpty()) {
-            if (markGiftProcessed("banner_" + giftId)) return;
+        enqueueGiftEvent(giftId, senderName, giftName, recipientName, quantity, null);
+    }
+
+    private void processNextGiftEvent() {
+        if (isFinishing() || isDestroyed()) return;
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            giftHandler.post(this::processNextGiftEvent);
+            return;
         }
-        String sName = (senderName != null && !senderName.trim().isEmpty()) ? senderName : "User";
-        String gName = (giftName != null && !giftName.trim().isEmpty()) ? giftName : "Gift";
-        String rName = (recipientName != null && !recipientName.trim().isEmpty()) ? (" to <font color='#00FFC6'><b>" + recipientName.trim() + "</b></font>") : "";
+        if (isGiftEventPlaying) return;
 
-        String cleanGiftName = gName;
-        int idx = cleanGiftName.indexOf(" (x");
-        if (idx != -1) {
-            cleanGiftName = cleanGiftName.substring(0, idx);
+        GiftEventItem nextItem = giftEventQueue.poll();
+        if (nextItem == null) return;
+
+        isGiftEventPlaying = true;
+        final long playId = ++currentGiftEventPlayId;
+
+        if (giftTimeoutRunnable != null) {
+            giftHandler.removeCallbacks(giftTimeoutRunnable);
         }
+        giftTimeoutRunnable = () -> finishCurrentGiftEvent(playId);
 
-        int qty = Math.max(1, quantity);
-        String qtyText = (qty > 1) ? (qty + "x ") : "";
-
-        String htmlNotice = "<font color='#FFD700'><b>" + sName + "</b></font> sent <font color='#FF007A'><b>" + qtyText + cleanGiftName + "</b></font>" + rName + " 🎁";
-        bannerQueue.offer(new BannerQueueItem("Notification/rednotification (1).svga", htmlNotice, false));
-        processNextBanner();
+        playUnifiedGiftEvent(nextItem, playId);
     }
 
-    private final Handler bannerHandler = new Handler(Looper.getMainLooper());
-    private Runnable bannerTimeoutRunnable = null;
-
-    private synchronized void processNextBanner() {
-        if (isBannerPlaying) return;
-        BannerQueueItem nextBanner = bannerQueue.poll();
-        if (nextBanner == null) return;
-
-        isBannerPlaying = true;
-        playBannerInternal(nextBanner);
-    }
-
-    private void finishCurrentBanner() {
-        runOnUiThread(() -> {
-            if (bannerTimeoutRunnable != null) {
-                bannerHandler.removeCallbacks(bannerTimeoutRunnable);
-                bannerTimeoutRunnable = null;
-            }
-            if (bannerEntryContainer != null) bannerEntryContainer.setVisibility(View.GONE);
-            if (bannerGiftContainer != null) bannerGiftContainer.setVisibility(View.GONE);
-            if (svgaEntryBannerPlayer != null) {
-                try {
-                    svgaEntryBannerPlayer.setCallback(null);
-                    svgaEntryBannerPlayer.stopAnimation();
-                    svgaEntryBannerPlayer.clear();
-                } catch (Exception ignored) {}
-            }
-            if (svgaBannerPlayer != null) {
-                try {
-                    svgaBannerPlayer.setCallback(null);
-                    svgaBannerPlayer.stopAnimation();
-                    svgaBannerPlayer.clear();
-                } catch (Exception ignored) {}
-            }
-            isBannerPlaying = false;
-            bannerHandler.postDelayed(this::processNextBanner, 150L);
-        });
-    }
-
-    private void playBannerInternal(BannerQueueItem item) {
-        if (isFinishing() || isDestroyed() || item == null) {
-            finishCurrentBanner();
+    private void finishCurrentGiftEvent(final long playId) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> finishCurrentGiftEvent(playId));
             return;
         }
 
-        View container = item.isEntryBanner ? bannerEntryContainer : bannerGiftContainer;
-        SVGAImageView player = item.isEntryBanner ? svgaEntryBannerPlayer : svgaBannerPlayer;
-        TextView tvNotice = item.isEntryBanner ? tvEntryBannerNotice : tvBannerNotice;
+        if (playId != currentGiftEventPlayId || playId == 0L) return;
+        currentGiftEventPlayId = 0L;
 
-        if (container == null || player == null || tvNotice == null) {
-            finishCurrentBanner();
-            return;
+        if (giftTimeoutRunnable != null) {
+            giftHandler.removeCallbacks(giftTimeoutRunnable);
+            giftTimeoutRunnable = null;
         }
 
-        runOnUiThread(() -> {
+        if (svgaPlayer != null) {
             try {
-                container.setVisibility(View.GONE);
-                player.stopAnimation();
-                player.clear();
+                svgaPlayer.setCallback(null);
+                svgaPlayer.stopAnimation();
+                svgaPlayer.clear();
+                svgaPlayer.setVisibility(View.GONE);
             } catch (Exception ignored) {}
-        });
+        }
 
-        // Always decode fresh SVGAVideoEntity from assets to prevent bitmap recycling/disposal issues across multiple plays
+        if (tvBannerNotice != null) {
+            try {
+                tvBannerNotice.setVisibility(View.GONE);
+                tvBannerNotice.setText("");
+            } catch (Exception ignored) {}
+        }
+        if (svgaBannerPlayer != null) {
+            try {
+                svgaBannerPlayer.setCallback(null);
+                svgaBannerPlayer.stopAnimation();
+                svgaBannerPlayer.clear();
+                svgaBannerPlayer.setVisibility(View.GONE);
+            } catch (Exception ignored) {}
+        }
+        if (bannerGiftContainer != null) {
+            try {
+                bannerGiftContainer.setVisibility(View.GONE);
+            } catch (Exception ignored) {}
+        }
+
+        isGiftEventPlaying = false;
+        giftHandler.postDelayed(this::processNextGiftEvent, 100L);
+    }
+
+    private void playUnifiedGiftEvent(GiftEventItem item, final long playId) {
+        if (isFinishing() || isDestroyed() || item == null || playId != currentGiftEventPlayId) {
+            finishCurrentGiftEvent(playId);
+            return;
+        }
+
         SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
-        parser.decodeFromAssets(item.svgaAsset, new SVGAParser.ParseCompletion() {
+        parser.decodeFromAssets("Notification/rednotification.svga", new SVGAParser.ParseCompletion() {
             @Override
-            public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                playBannerVideoEntity(container, player, tvNotice, item.htmlNotice, videoItem);
+            public void onComplete(@NotNull SVGAVideoEntity bannerVideoItem) {
+                parser.decodeFromAssets(item.giftSvgaPath, new SVGAParser.ParseCompletion() {
+                    @Override
+                    public void onComplete(@NotNull SVGAVideoEntity giftVideoItem) {
+                        runOnUiThread(() -> {
+                            if (playId != currentGiftEventPlayId) return;
+                            startDualGiftPlayback(bannerVideoItem, giftVideoItem, item, playId);
+                        });
+                    }
+
+                    @Override
+                    public void onError() {
+                        parser.decodeFromAssets("gift/rose.svga", new SVGAParser.ParseCompletion() {
+                            @Override
+                            public void onComplete(@NotNull SVGAVideoEntity fallbackItem) {
+                                runOnUiThread(() -> {
+                                    if (playId != currentGiftEventPlayId) return;
+                                    startDualGiftPlayback(bannerVideoItem, fallbackItem, item, playId);
+                                });
+                            }
+
+                            @Override
+                            public void onError() {
+                                finishCurrentGiftEvent(playId);
+                            }
+                        }, null);
+                    }
+                }, null);
             }
 
             @Override
             public void onError() {
-                finishCurrentBanner();
+                parser.decodeFromAssets(item.giftSvgaPath, new SVGAParser.ParseCompletion() {
+                    @Override
+                    public void onComplete(@NotNull SVGAVideoEntity giftVideoItem) {
+                        runOnUiThread(() -> {
+                            if (playId != currentGiftEventPlayId) return;
+                            startDualGiftPlayback(null, giftVideoItem, item, playId);
+                        });
+                    }
+
+                    @Override
+                    public void onError() {
+                        finishCurrentGiftEvent(playId);
+                    }
+                }, null);
             }
         }, null);
     }
 
-    private void playBannerVideoEntity(View container, SVGAImageView player, TextView tvNotice, String htmlNotice, SVGAVideoEntity videoItem) {
-        runOnUiThread(() -> {
-            if (isFinishing() || isDestroyed() || player == null || container == null || tvNotice == null) {
-                finishCurrentBanner();
-                return;
+    private void startDualGiftPlayback(SVGAVideoEntity bannerItem, SVGAVideoEntity giftItem, GiftEventItem item, final long playId) {
+        if (isFinishing() || isDestroyed() || playId != currentGiftEventPlayId) {
+            finishCurrentGiftEvent(playId);
+            return;
+        }
+
+        try {
+            int frames = giftItem != null ? giftItem.getFrames() : 60;
+            int fps = (giftItem != null && giftItem.getFPS() > 0) ? giftItem.getFPS() : 20;
+            long giftDurationMs = (long) (((double) frames / fps) * 1000L);
+            long displayDurationMs = Math.max(3500L, giftDurationMs);
+
+            if (giftTimeoutRunnable != null) {
+                giftHandler.removeCallbacks(giftTimeoutRunnable);
+            }
+            giftTimeoutRunnable = () -> finishCurrentGiftEvent(playId);
+            giftHandler.postDelayed(giftTimeoutRunnable, displayDurationMs + 800L);
+
+            // 1. Start Banner SVGA & Notice Text together at exact same instant for 3 seconds only!
+            if (bannerItem != null && svgaBannerPlayer != null && bannerGiftContainer != null && tvBannerNotice != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    tvBannerNotice.setText(Html.fromHtml(item.bannerNoticeHtml, Html.FROM_HTML_MODE_LEGACY));
+                } else {
+                    tvBannerNotice.setText(Html.fromHtml(item.bannerNoticeHtml));
+                }
+
+                bannerGiftContainer.bringToFront();
+                svgaBannerPlayer.stopAnimation();
+                svgaBannerPlayer.clear();
+                svgaBannerPlayer.setVideoItem(bannerItem);
+                svgaBannerPlayer.setLoops(0);
+                svgaBannerPlayer.stepToFrame(0, false);
+
+                tvBannerNotice.setVisibility(View.VISIBLE);
+                svgaBannerPlayer.setVisibility(View.VISIBLE);
+                bannerGiftContainer.setVisibility(View.VISIBLE);
+
+                svgaBannerPlayer.startAnimation();
+
+                // Automatically hide notification banner after EXACTLY 3 seconds
+                giftHandler.postDelayed(() -> {
+                    try {
+                        if (bannerGiftContainer != null) bannerGiftContainer.setVisibility(View.GONE);
+                        if (tvBannerNotice != null) {
+                            tvBannerNotice.setVisibility(View.GONE);
+                            tvBannerNotice.setText("");
+                        }
+                        if (svgaBannerPlayer != null) {
+                            svgaBannerPlayer.stopAnimation();
+                            svgaBannerPlayer.clear();
+                            svgaBannerPlayer.setVisibility(View.GONE);
+                        }
+                    } catch (Exception ignored) {}
+                }, 3000L);
             }
 
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    tvNotice.setText(Html.fromHtml(htmlNotice, Html.FROM_HTML_MODE_LEGACY));
-                } else {
-                    tvNotice.setText(Html.fromHtml(htmlNotice));
-                }
+            // 2. Start Main Gift SVGA if available
+            if (giftItem != null && svgaPlayer != null) {
+                svgaPlayer.stopAnimation();
+                svgaPlayer.clear();
+                svgaPlayer.setVideoItem(giftItem);
+                svgaPlayer.setLoops(1);
+                svgaPlayer.stepToFrame(0, false);
+                svgaPlayer.setVisibility(View.VISIBLE);
 
-                int frames = videoItem.getFrames();
-                int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
-                long durationMs = (long) (((double) frames / fps) * 1000L);
-                long bannerDisplayDurationMs = Math.max(3500L, durationMs); // Sequential banner play duration
+                svgaPlayer.setCallback(new SVGACallback() {
+                    private boolean isHandled = false;
 
-                if (bannerTimeoutRunnable != null) {
-                    bannerHandler.removeCallbacks(bannerTimeoutRunnable);
-                }
-                bannerTimeoutRunnable = this::finishCurrentBanner;
-                bannerHandler.postDelayed(bannerTimeoutRunnable, bannerDisplayDurationMs + 300L);
-
-                player.stopAnimation();
-                player.clear();
-                player.setVideoItem(videoItem);
-                player.setLoops(1);
-                player.setCallback(new SVGACallback() {
                     @Override
                     public void onFinished() {
-                        finishCurrentBanner();
+                        if (!isHandled) {
+                            isHandled = true;
+                            finishCurrentGiftEvent(playId);
+                        }
                     }
 
                     @Override public void onPause() {}
@@ -6139,12 +6068,67 @@ public class RoomChatActivity extends AppCompatActivity {
                     @Override public void onStep(int frame, double percentage) {}
                 });
 
-                player.setVisibility(View.VISIBLE);
-                container.setVisibility(View.VISIBLE);
-                player.startAnimation();
-            } catch (Exception e) {
-                Log.e("RoomChatActivity", "Error playing banner SVGA", e);
-                finishCurrentBanner();
+                svgaPlayer.startAnimation();
+            } else {
+                giftHandler.postDelayed(() -> finishCurrentGiftEvent(playId), displayDurationMs);
+            }
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error starting dual gift playback", e);
+            finishCurrentGiftEvent(playId);
+        }
+    }
+
+    public void showUserEntryBanner(String displayUserName) {
+        if (isFinishing() || isDestroyed()) return;
+        String name = (displayUserName != null && !displayUserName.trim().isEmpty()) ? displayUserName : "User";
+        String htmlNotice = "<font color='#FFD700'><b>" + name + "</b></font> entered the room 🎉";
+
+        runOnUiThread(() -> {
+            if (tvEntryBannerNotice != null && bannerEntryContainer != null && svgaEntryBannerPlayer != null) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        tvEntryBannerNotice.setText(Html.fromHtml(htmlNotice, Html.FROM_HTML_MODE_LEGACY));
+                    } else {
+                        tvEntryBannerNotice.setText(Html.fromHtml(htmlNotice));
+                    }
+
+                    SVGAParser parser = (svgaParser != null) ? svgaParser : new SVGAParser(this);
+                    parser.decodeFromAssets("Notification/rednotification.svga", new SVGAParser.ParseCompletion() {
+                        @Override
+                        public void onComplete(@NotNull SVGAVideoEntity videoItem) {
+                            runOnUiThread(() -> {
+                                if (isFinishing() || isDestroyed()) return;
+                                try {
+                                    bannerEntryContainer.bringToFront();
+                                    svgaEntryBannerPlayer.stopAnimation();
+                                    svgaEntryBannerPlayer.clear();
+                                    svgaEntryBannerPlayer.setVideoItem(videoItem);
+                                    svgaEntryBannerPlayer.setLoops(1);
+                                    tvEntryBannerNotice.setVisibility(View.VISIBLE);
+                                    svgaEntryBannerPlayer.setVisibility(View.VISIBLE);
+                                    bannerEntryContainer.setVisibility(View.VISIBLE);
+                                    svgaEntryBannerPlayer.startAnimation();
+
+                                    giftHandler.postDelayed(() -> {
+                                        if (bannerEntryContainer != null) bannerEntryContainer.setVisibility(View.GONE);
+                                        if (tvEntryBannerNotice != null) {
+                                            tvEntryBannerNotice.setVisibility(View.GONE);
+                                            tvEntryBannerNotice.setText("");
+                                        }
+                                        if (svgaEntryBannerPlayer != null) {
+                                            svgaEntryBannerPlayer.stopAnimation();
+                                            svgaEntryBannerPlayer.clear();
+                                            svgaEntryBannerPlayer.setVisibility(View.GONE);
+                                        }
+                                    }, 3500L);
+                                } catch (Exception ignored) {}
+                            });
+                        }
+
+                        @Override
+                        public void onError() {}
+                    }, null);
+                } catch (Exception ignored) {}
             }
         });
     }
@@ -6254,22 +6238,30 @@ public class RoomChatActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable); // GIFT SVGA FIX
-        if (bannerTimeoutRunnable != null) bannerHandler.removeCallbacks(bannerTimeoutRunnable);
-        giftAnimationQueue.clear(); // GIFT SVGA FIX
-        bannerQueue.clear();
-        currentGiftPlayId = 0L; // GIFT SVGA FIX
-        isGiftAnimationPlaying = false; // GIFT SVGA FIX
-        if (svgaEntityCache != null) svgaEntityCache.clear(); // GIFT SVGA FIX
-        if (svgaPlayer != null) { // GIFT SVGA FIX
-            try { // GIFT SVGA FIX
-                svgaPlayer.setCallback(null); // GIFT SVGA FIX
-                svgaPlayer.stopAnimation(); // GIFT SVGA FIX
-                svgaPlayer.clear(); // GIFT SVGA FIX
-                svgaPlayer.setVisibility(View.GONE); // GIFT SVGA FIX
-            } catch (Exception ignored) {} // GIFT SVGA FIX
-        } // GIFT SVGA FIX
-        isBannerPlaying = false;
+        if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable);
+        giftEventQueue.clear();
+        currentGiftEventPlayId = 0L;
+        isGiftEventPlaying = false;
+        if (svgaPlayer != null) {
+            try {
+                svgaPlayer.setCallback(null);
+                svgaPlayer.stopAnimation();
+                svgaPlayer.clear();
+                svgaPlayer.setVisibility(View.GONE);
+            } catch (Exception ignored) {}
+        }
+        if (bannerGiftContainer != null) {
+            try {
+                bannerGiftContainer.setVisibility(View.GONE);
+            } catch (Exception ignored) {}
+        }
+        if (svgaBannerPlayer != null) {
+            try {
+                svgaBannerPlayer.setCallback(null);
+                svgaBannerPlayer.stopAnimation();
+                svgaBannerPlayer.clear();
+            } catch (Exception ignored) {}
+        }
         if (!isMinimized) {
             RoomFloatingManager.getInstance().removeFloatingBubble();
             if (!isRoomLeft) {

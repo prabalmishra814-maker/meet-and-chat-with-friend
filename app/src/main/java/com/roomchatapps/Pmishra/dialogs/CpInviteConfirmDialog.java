@@ -61,14 +61,8 @@ public class CpInviteConfirmDialog extends Dialog {
             String name = targetUser.getUserName();
             tvFriendName.setText(!TextUtils.isEmpty(name) ? name : "User");
 
-            String displayId = targetUser.getProfileId();
-            if (TextUtils.isEmpty(displayId)) {
-                displayId = targetUser.getUserId();
-            }
-            if (TextUtils.isEmpty(displayId)) {
-                displayId = "100098180";
-            }
-            tvFriendId.setText("ID:" + displayId);
+            String displayId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(targetUser.getUserId(), targetUser.getProfileId());
+            tvFriendId.setText("ID: " + displayId);
 
             String avatarUrl = targetUser.getUserIcon();
             if (!TextUtils.isEmpty(avatarUrl)) {

@@ -46,7 +46,7 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
 
     private final List<GiftStoreItem> items;
     private int selectedIndex = 0;
-    private boolean isRelationshipUnlocked = false;
+    private boolean isRelationshipUnlocked = true;
 
     public interface OnGiftSelectedListener {
         void onGiftSelected(GiftStoreItem item, int position, boolean isReSelected);
@@ -104,8 +104,8 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
         GiftStoreItem item = items.get(position);
         boolean isSelected = (position == selectedIndex);
 
-        boolean isRelationshipGift = item.category != null && "Relationship".equalsIgnoreCase(item.category);
-        boolean isLocked = isRelationshipGift && !isRelationshipUnlocked;
+        // All gifts/animations unlocked by default for all users
+        boolean isLocked = false;
 
         holder.tvGiftName.setText(item.name);
         holder.tvGiftCost.setText(com.roomchatapps.Pmishra.utils.CoinUtils.getCoinSpannable(holder.itemView.getContext(), item.cost));
@@ -113,16 +113,12 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
         holder.imgGiftStatic.setVisibility(View.VISIBLE);
 
         if (holder.ivLockOverlay != null) {
-            holder.ivLockOverlay.setVisibility(isLocked ? View.VISIBLE : View.GONE);
+            holder.ivLockOverlay.setVisibility(View.GONE);
         }
 
-        if (isLocked) {
-            holder.cardGiftItem.setAlpha(0.55f);
-        } else {
-            holder.cardGiftItem.setAlpha(1.0f);
-        }
+        holder.cardGiftItem.setAlpha(1.0f);
 
-        if (isSelected && !isLocked) {
+        if (isSelected) {
             holder.cardGiftItem.setStrokeColor(Color.parseColor("#FF007A"));
             holder.cardGiftItem.setStrokeWidth(dp2px(holder.itemView, 2));
             holder.cardGiftItem.setCardBackgroundColor(Color.parseColor("#33FF007A"));
@@ -142,15 +138,6 @@ public class GiftStoreAdapter extends RecyclerView.Adapter<GiftStoreAdapter.Gift
             if (pos < 0 || pos >= items.size()) return;
 
             GiftStoreItem currentItem = items.get(pos);
-            boolean currentIsRelationship = currentItem.category != null && "Relationship".equalsIgnoreCase(currentItem.category);
-            boolean currentIsLocked = currentIsRelationship && !isRelationshipUnlocked;
-
-            if (currentIsLocked) {
-                android.widget.Toast.makeText(holder.itemView.getContext(),
-                        "🔒 Relationship Gifts are locked! Bind a CP Relationship in Love House to unlock automatically!",
-                        android.widget.Toast.LENGTH_LONG).show();
-                return;
-            }
 
             int previousSelected = selectedIndex;
             boolean isReSelected = (pos == previousSelected);

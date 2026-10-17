@@ -429,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                 String slideNotice = "sent " + qtyText + gift + (rName != null && !rName.trim().isEmpty() ? " to " + rName.trim() : "") + " 🎁";
 
                 String htmlNotice = "<font color='#FFD700'><b>" + sender + "</b></font> sent <font color='#FF007A'><b>" + qtyText + cleanGift + "</b></font>" + target + room + " 🎁";
-                globalBannerQueue.add(new GlobalBannerItem("Notification/rednotification (1).svga", htmlNotice, sender, slideNotice, iconRes, sAvatar));
+                globalBannerQueue.add(new GlobalBannerItem("Notification/rednotification.svga", htmlNotice, sender, slideNotice, iconRes, sAvatar));
 
                 if (!isGlobalBannerPlaying) {
                     processNextGlobalBanner();
@@ -491,10 +491,7 @@ public class MainActivity extends AppCompatActivity {
                             tvNotice.setText(Html.fromHtml(item.htmlNotice));
                         }
 
-                        int frames = videoItem.getFrames();
-                        int fps = videoItem.getFPS() > 0 ? videoItem.getFPS() : 20;
-                        long durationMs = (long) (((double) frames / fps) * 1000L);
-                        long bannerDisplayDurationMs = Math.max(3500L, durationMs);
+                        long bannerDisplayDurationMs = 3000L; // Exactly 3 seconds display duration
 
                         if (globalBannerTimeoutRunnable != null) {
                             globalBannerHandler.removeCallbacks(globalBannerTimeoutRunnable);
@@ -505,7 +502,7 @@ public class MainActivity extends AppCompatActivity {
                         player.stopAnimation();
                         player.clear();
                         player.setVideoItem(videoItem);
-                        player.setLoops(1);
+                        player.setLoops(0);
                         player.setCallback(new com.opensource.svgaplayer.SVGACallback() {
                             @Override public void onFinished() { finishCurrentGlobalBanner(); }
                             @Override public void onPause() {}
@@ -513,7 +510,9 @@ public class MainActivity extends AppCompatActivity {
                             @Override public void onStep(int frame, double percentage) {}
                         });
 
+                        container.bringToFront();
                         player.setVisibility(View.VISIBLE);
+                        tvNotice.setVisibility(View.VISIBLE);
                         container.setVisibility(View.VISIBLE);
                         player.startAnimation();
                     } catch (Exception e) {
@@ -537,8 +536,10 @@ public class MainActivity extends AppCompatActivity {
             }
             View container = findViewById(R.id.globalBannerGiftContainer);
             com.opensource.svgaplayer.SVGAImageView player = findViewById(R.id.globalSvgaBannerPlayer);
+            TextView tvNotice = findViewById(R.id.globalTvBannerNotice);
 
             if (container != null) container.setVisibility(View.GONE);
+            if (tvNotice != null) tvNotice.setVisibility(View.GONE);
             if (player != null) {
                 try {
                     player.setCallback(null);

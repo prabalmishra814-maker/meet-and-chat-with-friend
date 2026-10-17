@@ -398,18 +398,19 @@ public class UserDetailActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed() || binding == null) return;
                 if (snapshot.exists()) {
                     String name = snapshot.child("name").getValue(String.class);
-                    String profileId = snapshot.child("profileId").getValue(String.class);
                     String avatar = snapshot.child("avtar").getValue(String.class);
                     if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("avatar").getValue(String.class);
                     String bio = snapshot.child("bio").getValue(String.class);
 
-                    if (profileId == null || profileId.trim().isEmpty()) {
-                        profileId = String.valueOf(100000 + Math.abs((long) targetUid.hashCode()) % 900000);
-                        userRef.child("profileId").setValue(profileId);
+                    String rawProfileId = snapshot.child("profileId").getValue(String.class);
+                    String numericProfileId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(targetUid, rawProfileId);
+                    if (rawProfileId == null || !rawProfileId.equals(numericProfileId)) {
+                        userRef.child("profileId").setValue(numericProfileId);
+                        userRef.child("userId").setValue(numericProfileId);
                     }
 
                     binding.userName.setText(name != null ? name : "User");
-                    binding.userId.setText("ID: " + profileId);
+                    binding.userId.setText("ID: " + numericProfileId);
                     if (bio != null && !bio.isEmpty()) {
                         binding.tvAbout.setText(bio);
                     }

@@ -60,12 +60,13 @@ public class UserProfileCache {
                 profile.uid = cleanUid;
                 if (snapshot.exists()) {
                     String pid = snapshot.child("profileId").getValue(String.class);
-                    if (pid == null || pid.trim().isEmpty()) {
+                    if (pid == null || pid.trim().isEmpty() || !pid.matches("\\d+")) {
                         pid = snapshot.child("userId").getValue(String.class);
                     }
-                    if (pid == null || pid.trim().isEmpty()) {
+                    if (pid == null || pid.trim().isEmpty() || !pid.matches("\\d+")) {
                         pid = String.valueOf(100000 + Math.abs((long) cleanUid.hashCode()) % 900000);
                         userRef.child("profileId").setValue(pid);
+                        userRef.child("userId").setValue(pid);
                     }
                     profile.profileId = pid;
 
@@ -130,6 +131,14 @@ public class UserProfileCache {
                 postToMain(() -> callback.onLoaded(fallback));
             }
         });
+    }
+
+    public static String getDisplayNumericId(String uid, String profileId) {
+        if (profileId != null && !profileId.trim().isEmpty() && profileId.matches("\\d+")) {
+            return profileId.trim();
+        }
+        if (uid == null || uid.trim().isEmpty()) return "100000";
+        return String.valueOf(100000 + Math.abs((long) uid.trim().hashCode()) % 900000);
     }
 
     public static UserProfile getDirectCachedProfile(String uid) {

@@ -61,7 +61,8 @@ public class AgencyHostAdapter extends RecyclerView.Adapter<AgencyHostAdapter.Ho
             if (host == null) return;
 
             binding.tvHostName.setText(host.getHostName() != null ? host.getHostName() : "Host User");
-            binding.tvHostProfileId.setText("ID: " + (host.getProfileId() != null ? host.getProfileId() : "N/A"));
+            String numericId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(host.getHostUid(), host.getProfileId());
+            binding.tvHostProfileId.setText("ID: " + numericId);
 
             long coins = host.getMonthlyCoins() > 0 ? host.getMonthlyCoins() : host.getTotalCoins();
             binding.tvMonthlyCoins.setText("🪙 " + String.format("%,d", coins) + " Coins");

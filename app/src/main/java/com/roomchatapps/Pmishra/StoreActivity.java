@@ -591,7 +591,8 @@ public class StoreActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull VH holder, int position) {
             UserProfileCache.UserProfile u = users.get(position);
             holder.tvName.setText(u.name);
-            holder.tvId.setText("ID: " + u.uid);
+            String numericId = UserProfileCache.getDisplayNumericId(u.uid, u.profileId);
+            holder.tvId.setText("ID: " + numericId);
             holder.rbSelect.setChecked(position == selectedPos);
 
             if (u.avatarUrl != null && !u.avatarUrl.trim().isEmpty()) {

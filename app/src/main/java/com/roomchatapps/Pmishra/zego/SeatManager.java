@@ -27,6 +27,7 @@ public class SeatManager {
     private final List<SeatModel> seatList = new ArrayList<>();
     private final List<SeatListener> listeners = new ArrayList<>();
     private String currentRoomID = "";
+    private boolean isFirebaseSynced = false;
 
     public interface SeatListener {
         void onSeatsUpdated(List<SeatModel> seats);
@@ -44,7 +45,19 @@ public class SeatManager {
     }
 
     public void setCurrentRoomID(String roomID) {
-        this.currentRoomID = roomID != null ? roomID : "";
+        String newId = roomID != null ? roomID : "";
+        if (!this.currentRoomID.equals(newId)) {
+            this.currentRoomID = newId;
+            this.isFirebaseSynced = false;
+        }
+    }
+
+    public void setFirebaseSynced(boolean synced) {
+        this.isFirebaseSynced = synced;
+    }
+
+    public boolean isFirebaseSynced() {
+        return isFirebaseSynced;
     }
 
     // SEAT SYSTEM FIX
@@ -255,6 +268,7 @@ public class SeatManager {
         }
 
         Runnable doSync = () -> {
+            this.isFirebaseSynced = true;
             notifySeatsUpdated();
             syncSeatsToExtraInfo();
             syncSeatsToFirebase();
@@ -292,6 +306,7 @@ public class SeatManager {
 
         seatList.get(index).clear();
         sanitizeDuplicateUsers();
+        this.isFirebaseSynced = true;
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
@@ -306,6 +321,7 @@ public class SeatManager {
             model.isMicOn = false;
         }
 
+        this.isFirebaseSynced = true;
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
@@ -323,6 +339,7 @@ public class SeatManager {
         }
 
         sanitizeDuplicateUsers();
+        this.isFirebaseSynced = true;
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
@@ -342,6 +359,7 @@ public class SeatManager {
         }
         model.isMicOn = isMicOn;
 
+        this.isFirebaseSynced = true;
         notifySeatsUpdated();
         syncSeatsToExtraInfo();
         syncSeatsToFirebase();
@@ -458,6 +476,7 @@ public class SeatManager {
             }
             sanitizeDuplicateUsers();
         }
+        this.isFirebaseSynced = true;
         notifySeatsUpdated();
     }
 
@@ -495,6 +514,7 @@ public class SeatManager {
     }
 
     public void syncSeatsToFirebase() {
+        if (!isFirebaseSynced) return;
         if (currentRoomID == null || currentRoomID.trim().isEmpty()) return;
         try {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("room_seats").child(currentRoomID);
