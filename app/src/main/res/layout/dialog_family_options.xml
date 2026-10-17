@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:backgroundTint="#0B1B2B"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <!-- 1. Family Rules Option -->
+    <TextView
+        android:id="@+id/btnOptionRules"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Family Rules"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40" />
+
+    <!-- 2. Invite Member Option -->
+    <TextView
+        android:id="@+id/btnOptionInvite"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Invite Member"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40" />
+
+    <!-- 3. Join Requests Option (Visible for Leader) -->
+    <TextView
+        android:id="@+id/btnOptionRequests"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Join Requests"
+        android:textColor="#FFD700"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/dividerOptionRequests"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40"
+        android:visibility="gone" />
+
+    <!-- Delete Family Option (Visible for Leader) -->
+    <TextView
+        android:id="@+id/btnOptionDelete"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Delete Family"
+        android:textColor="#FF4D4D"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/dividerOptionDelete"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40"
+        android:visibility="gone" />
+
+    <!-- 4. Quit Family Option -->
+    <TextView
+        android:id="@+id/btnOptionQuit"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Quit"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+
+    <!-- 4. Cancel Button -->
+    <TextView
+        android:id="@+id/btnOptionCancel"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_date_selector_glass"
+        android:backgroundTint="#16293D"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Cancel"
+        android:textColor="#A0B4C8"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

@@ -419,15 +419,32 @@ public class FamilyRankingActivity extends AppCompatActivity {
                 String myFamilyId = snapshot.child("familyId").getValue(String.class);
                 String myFamilyName = snapshot.child("familyName").getValue(String.class);
 
-                if (TextUtils.isEmpty(myFamilyId)) {
-                    showCreateFamilyPromptDialog();
+                if (!TextUtils.isEmpty(myFamilyId)) {
+                    openUserFamilyDetail(myFamilyId, myFamilyName);
                 } else {
-                    Intent intent = new Intent(FamilyRankingActivity.this, FamilyDetailActivity.class);
-                    intent.putExtra("familyId", myFamilyId);
-                    if (!TextUtils.isEmpty(myFamilyName)) {
-                        intent.putExtra("familyName", myFamilyName);
-                    }
-                    startActivity(intent);
+                    DatabaseReference familiesRef = FirebaseDatabase.getInstance().getReference("families");
+                    familiesRef.orderByChild("ownerUid").equalTo(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot fSnap) {
+                            if (fSnap.exists() && fSnap.hasChildren()) {
+                                DataSnapshot myFamSnap = fSnap.getChildren().iterator().next();
+                                String famId = myFamSnap.getKey();
+                                String famName = myFamSnap.child("familyName").getValue(String.class);
+
+                                userRef.child("familyId").setValue(famId);
+                                if (!TextUtils.isEmpty(famName)) userRef.child("familyName").setValue(famName);
+
+                                openUserFamilyDetail(famId, famName);
+                            } else {
+                                showCreateFamilyPromptDialog();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            showCreateFamilyPromptDialog();
+                        }
+                    });
                 }
             }
 
@@ -436,6 +453,15 @@ public class FamilyRankingActivity extends AppCompatActivity {
                 showCreateFamilyPromptDialog();
             }
         });
+    }
+
+    private void openUserFamilyDetail(String famId, String famName) {
+        Intent intent = new Intent(FamilyRankingActivity.this, FamilyDetailActivity.class);
+        intent.putExtra("familyId", famId);
+        if (!TextUtils.isEmpty(famName)) {
+            intent.putExtra("familyName", famName);
+        }
+        startActivity(intent);
     }
 
     private void showCreateFamilyPromptDialog() {

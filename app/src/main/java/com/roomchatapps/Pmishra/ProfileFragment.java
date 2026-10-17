@@ -347,30 +347,21 @@ public class ProfileFragment extends Fragment {
         if (binding.cardLoveHouse != null) {
             binding.cardLoveHouse.setOnClickListener(v -> {
                 AnimationHelper.bounceAnimation(binding.cardLoveHouse);
-                if (getActivity() != null) {
-                    Intent intent = new Intent(getActivity(), LoveHouseActivity.class);
-                    startActivity(intent);
-                }
+                Toast.makeText(getContext(), "Coming Soon", Toast.LENGTH_SHORT).show();
             });
         }
 
         if (binding.cardCpLevel != null) {
             binding.cardCpLevel.setOnClickListener(v -> {
                 AnimationHelper.bounceAnimation(binding.cardCpLevel);
-                if (getActivity() != null) {
-                    Intent intent = new Intent(getActivity(), CpLevelActivity.class);
-                    startActivity(intent);
-                }
+                Toast.makeText(getContext(), "Coming Soon", Toast.LENGTH_SHORT).show();
             });
         }
 
         if (binding.cardFamily != null) {
             binding.cardFamily.setOnClickListener(v -> {
                 AnimationHelper.bounceAnimation(binding.cardFamily);
-                if (getActivity() != null) {
-                    Intent intent = new Intent(getActivity(), FamilyRankingActivity.class);
-                    startActivity(intent);
-                }
+                Toast.makeText(getContext(), "Coming Soon", Toast.LENGTH_SHORT).show();
             });
         }
 

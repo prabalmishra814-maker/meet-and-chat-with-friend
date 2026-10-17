@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+
+    <!-- Member Avatar -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivMemberAvatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo_placeholder"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+        app:strokeColor="#FFD700"
+        app:strokeWidth="1.5dp" />
+
+    <!-- Member Details -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvMemberName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Member Name"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvMemberRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Member"
+            android:textColor="#A0B4C8"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Remove Member Button (Visible to Leader) -->
+    <TextView
+        android:id="@+id/btnRemoveMember"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_date_selector_glass"
+        android:backgroundTint="#C62828"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:text="Remove"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

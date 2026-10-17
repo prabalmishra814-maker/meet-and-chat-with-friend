@@ -250,6 +250,12 @@ public class CreateFamilyActivity extends AppCompatActivity {
                 userRef.child("familyId").setValue(familyId);
                 userRef.child("familyName").setValue(name);
 
+                // Add user to family_members node
+                FirebaseDatabase.getInstance().getReference("family_members").child(familyId).child(uid).setValue(true);
+
+                // Initialize Family Group Chat
+                initializeFamilyGroupChat(uid, familyId, name, logoUrl);
+
                 Toast.makeText(CreateFamilyActivity.this, "Family Created Successfully! 🎉", Toast.LENGTH_SHORT).show();
                 finish();
             }
@@ -258,6 +264,50 @@ public class CreateFamilyActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(CreateFamilyActivity.this, "Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    public static void initializeFamilyGroupChat(String uid, String familyId, String familyName, String logoUrl) {
+        if (uid == null || familyId == null) return;
+
+        long timestamp = System.currentTimeMillis();
+        String groupChatId = "family_" + familyId;
+
+        DatabaseReference recentRef = FirebaseDatabase.getInstance().getReference("RecentChats").child(uid).child(groupChatId);
+        Map<String, Object> recentMap = new HashMap<>();
+        recentMap.put("senderId", groupChatId);
+        recentMap.put("receiverId", groupChatId);
+        recentMap.put("message", "Welcome to " + (familyName != null ? familyName : "Family") + "! 🎉");
+        recentMap.put("timestamp", timestamp);
+        recentMap.put("isGroup", true);
+        recentMap.put("familyId", familyId);
+        recentMap.put("groupName", familyName != null ? familyName : "Family");
+        recentMap.put("groupAvatar", logoUrl != null ? logoUrl : "");
+        recentRef.setValue(recentMap);
+
+        // Send initial welcome message in family_group_messages if first time
+        DatabaseReference groupMsgRef = FirebaseDatabase.getInstance().getReference("family_group_messages").child(familyId);
+        groupMsgRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists() || !snapshot.hasChildren()) {
+                    String msgId = groupMsgRef.push().getKey();
+                    if (msgId != null) {
+                        Map<String, Object> msgMap = new HashMap<>();
+                        msgMap.put("messageId", msgId);
+                        msgMap.put("senderId", "SYSTEM");
+                        msgMap.put("senderName", familyName != null ? familyName : "Family");
+                        msgMap.put("senderAvatar", logoUrl != null ? logoUrl : "");
+                        msgMap.put("message", "Welcome to " + (familyName != null ? familyName : "Family") + " Group Chat! 🎉");
+                        msgMap.put("timestamp", timestamp);
+                        msgMap.put("type", "text");
+                        groupMsgRef.child(msgId).setValue(msgMap);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }

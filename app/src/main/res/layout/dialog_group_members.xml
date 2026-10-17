@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:backgroundTint="#0B1B2B"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <!-- Header Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Group Members &amp; Management"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="Close"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_close" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40" />
+
+    <!-- Group Members RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvGroupMembersList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="360dp"
+        android:overScrollMode="never"
+        tools:listitem="@layout/item_group_member" />
+
+</LinearLayout>

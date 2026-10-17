@@ -289,7 +289,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             FrameUtils.clearFrame(binding.ivFrame, binding.svgaFrame);
 
             String senderId = message.getSenderId();
-            if (senderId != null && !senderId.trim().isEmpty()) {
+            if (senderId != null && !senderId.trim().isEmpty() && !"SYSTEM".equalsIgnoreCase(senderId) && !senderId.startsWith("family_")) {
                 View.OnClickListener openProfile = v -> {
                     if (ctx != null) {
                         String myUid = FirebaseAuth.getInstance().getUid();

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:backgroundTint="#0B1B2B"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <!-- Header Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Pending Join Requests"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="Close"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_close" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#152A40" />
+
+    <!-- Empty State -->
+    <TextView
+        android:id="@+id/tvEmptyRequests"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:text="No pending join requests."
+        android:textColor="#A0B4C8"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <!-- Requests RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvJoinRequestsList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="320dp"
+        android:overScrollMode="never"
+        tools:listitem="@layout/item_family_join_request" />
+
+</LinearLayout>

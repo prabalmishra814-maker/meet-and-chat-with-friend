@@ -191,19 +191,38 @@ public class MessageFragment extends Fragment {
                 messages.clear();
                 if (snapshot.exists()) {
                     for (com.google.firebase.database.DataSnapshot ds : snapshot.getChildren()) {
-                        com.roomchatapps.Pmishra.models.ChatMessage chat = ds.getValue(com.roomchatapps.Pmishra.models.ChatMessage.class);
-                        if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
-                            String otherUserId = chat.getSenderId().equals(currentUid) ? chat.getReceiverId() : chat.getSenderId();
-                            String lastMsg = chat.getMessage();
-                            long timestamp = chat.getTimestamp();
+                        Boolean isGroupVal = ds.child("isGroup").getValue(Boolean.class);
+                        boolean isGroup = isGroupVal != null && isGroupVal;
+
+                        if (isGroup) {
+                            String gName = ds.child("groupName").getValue(String.class);
+                            String gAvatar = ds.child("groupAvatar").getValue(String.class);
+                            String fId = ds.child("familyId").getValue(String.class);
+                            if ((fId == null || fId.trim().isEmpty()) && ds.getKey() != null && ds.getKey().startsWith("family_")) {
+                                fId = ds.getKey().substring("family_".length());
+                            }
+                            String lastMsg = ds.child("message").getValue(String.class);
+                            Long ts = ds.child("timestamp").getValue(Long.class);
+                            long timestamp = ts != null ? ts : System.currentTimeMillis();
 
                             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
                             String time = sdf.format(new java.util.Date(timestamp));
 
-                            int unread = (!chat.isRead() && !chat.getSenderId().equals(currentUid)) ? 1 : 0;
+                            messages.add(new MessageItem(ds.getKey(), gName != null ? gName : "Family", gAvatar != null ? gAvatar : "", fId != null ? fId : "", lastMsg != null ? lastMsg : "", time, timestamp, 0));
+                        } else {
+                            com.roomchatapps.Pmishra.models.ChatMessage chat = ds.getValue(com.roomchatapps.Pmishra.models.ChatMessage.class);
+                            if (chat != null && chat.getSenderId() != null && chat.getReceiverId() != null) {
+                                String otherUserId = chat.getSenderId().equals(currentUid) ? chat.getReceiverId() : chat.getSenderId();
+                                String lastMsg = chat.getMessage();
+                                long timestamp = chat.getTimestamp();
 
-                            // Add placeholder MessageItem, details will be fetched in Adapter
-                            messages.add(new MessageItem(otherUserId, "Loading...", lastMsg, time, timestamp, unread));
+                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+                                String time = sdf.format(new java.util.Date(timestamp));
+
+                                int unread = (!chat.isRead() && !chat.getSenderId().equals(currentUid)) ? 1 : 0;
+
+                                messages.add(new MessageItem(otherUserId, "Loading...", lastMsg, time, timestamp, unread));
+                            }
                         }
                     }
                 }
@@ -227,6 +246,10 @@ public class MessageFragment extends Fragment {
         String userId, username, message, time;
         long timestamp;
         int unreadCount;
+        boolean isGroup = false;
+        String groupName = "";
+        String groupAvatar = "";
+        String familyId = "";
 
         MessageItem(String userId, String username, String message, String time, long timestamp, int unreadCount) {
             this.userId = userId;
@@ -235,6 +258,19 @@ public class MessageFragment extends Fragment {
             this.time = time;
             this.timestamp = timestamp;
             this.unreadCount = unreadCount;
+        }
+
+        MessageItem(String userId, String groupName, String groupAvatar, String familyId, String message, String time, long timestamp, int unreadCount) {
+            this.userId = userId;
+            this.username = groupName;
+            this.groupName = groupName;
+            this.groupAvatar = groupAvatar;
+            this.familyId = familyId;
+            this.message = message;
+            this.time = time;
+            this.timestamp = timestamp;
+            this.unreadCount = unreadCount;
+            this.isGroup = true;
         }
     }
 
@@ -260,35 +296,43 @@ public class MessageFragment extends Fragment {
 
             MessageItem item = items.get(targetPos);
 
-            // Reset UI for recycled view
-            holder.binding.tvUsername.setText("Loading...");
-            holder.binding.ivUserAvatar.setImageResource(R.drawable.ic_person);
+            if (item.isGroup) {
+                if (holder.binding.tvUsername != null) holder.binding.tvUsername.setText(item.groupName);
+                if (holder.binding.ivUserAvatar != null) {
+                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                            .load(item.groupAvatar)
+                            .placeholder(R.drawable.logo_placeholder)
+                            .into(holder.binding.ivUserAvatar);
+                }
+            } else {
+                holder.binding.tvUsername.setText("Loading...");
+                holder.binding.ivUserAvatar.setImageResource(R.drawable.ic_person);
 
-            // Fetch User Details
-            com.google.firebase.database.FirebaseDatabase.getInstance().getReference("users").child(item.userId)
-                    .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                            if (holder.itemView.getContext() == null) return;
-                            if (holder.itemView.getContext() instanceof android.app.Activity) {
-                                android.app.Activity act = (android.app.Activity) holder.itemView.getContext();
-                                if (act.isFinishing() || act.isDestroyed()) return;
-                            }
-                            if (snapshot.exists()) {
-                                String name = snapshot.child("name").getValue(String.class);
-                                String avatar = snapshot.child("avtar").getValue(String.class);
-                                if (holder.binding.tvUsername != null) holder.binding.tvUsername.setText(name != null ? name : "User");
-                                if (holder.binding.ivUserAvatar != null) {
-                                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
-                                            .load(avatar)
-                                            .placeholder(R.drawable.ic_person)
-                                            .into(holder.binding.ivUserAvatar);
+                com.google.firebase.database.FirebaseDatabase.getInstance().getReference("users").child(item.userId)
+                        .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                                if (holder.itemView.getContext() == null) return;
+                                if (holder.itemView.getContext() instanceof android.app.Activity) {
+                                    android.app.Activity act = (android.app.Activity) holder.itemView.getContext();
+                                    if (act.isFinishing() || act.isDestroyed()) return;
+                                }
+                                if (snapshot.exists()) {
+                                    String name = snapshot.child("name").getValue(String.class);
+                                    String avatar = snapshot.child("avtar").getValue(String.class);
+                                    if (holder.binding.tvUsername != null) holder.binding.tvUsername.setText(name != null ? name : "User");
+                                    if (holder.binding.ivUserAvatar != null) {
+                                        com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                                                .load(avatar)
+                                                .placeholder(R.drawable.ic_person)
+                                                .into(holder.binding.ivUserAvatar);
+                                    }
                                 }
                             }
-                        }
-                        @Override
-                        public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {}
-                    });
+                            @Override
+                            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {}
+                        });
+            }
 
             holder.binding.tvLastMsg.setText(item.message);
             holder.binding.tvMsgTime.setText(item.time);
@@ -302,8 +346,19 @@ public class MessageFragment extends Fragment {
                 }
 
                 android.content.Intent intent = new android.content.Intent(v.getContext(), ChatActivity.class);
-                intent.putExtra("receiverId", item.userId);
-                intent.putExtra("receiverName", holder.binding.tvUsername.getText().toString());
+                if (item.isGroup) {
+                    if (item.familyId == null || item.familyId.trim().isEmpty()) {
+                        Toast.makeText(v.getContext(), "Group chat unavailable", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    intent.putExtra("receiverId", "family_" + item.familyId);
+                    intent.putExtra("familyId", item.familyId);
+                    intent.putExtra("isGroup", true);
+                    intent.putExtra("receiverName", item.groupName != null ? item.groupName : "Family Group");
+                } else {
+                    intent.putExtra("receiverId", item.userId);
+                    intent.putExtra("receiverName", holder.binding.tvUsername.getText().toString());
+                }
                 v.getContext().startActivity(intent);
             });
 
