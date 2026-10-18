@@ -112,6 +112,7 @@ import okhttp3.Response;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.roomchatapps.Pmishra.adapters.AdminMemberAdapter;
@@ -679,8 +680,15 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        stopGameCarouselAutoScroll();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        startGameCarouselAutoScroll();
         if (isMinimized) { // ROOM MINIMIZE FIX
             isMinimized = false; // ROOM MINIMIZE FIX
             RoomFloatingManager.getInstance().removeFloatingBubble(); // ROOM MINIMIZE FIX
@@ -996,6 +1004,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 showRoomGameDialog();
             });
         }
+        setupGameCarousel();
 
         findViewById(R.id.btnGift).setOnClickListener(v -> {
             if (isFastClick(v)) return;
@@ -3273,6 +3282,144 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private BottomSheetDialog roomGameDialog;
     private Dialog activeWebGameDialog;
+    private ViewPager2 vpGameCarousel;
+    private View layoutGameCarouselContainer;
+    private final Handler gameCarouselHandler = new Handler(Looper.getMainLooper());
+    private Runnable gameCarouselRunnable;
+    private static final long CAROUSEL_AUTO_SCROLL_DELAY = 3000L;
+
+    private static class CarouselGameItem {
+        final String title;
+        final int iconRes;
+        final String url;
+
+        CarouselGameItem(String title, int iconRes, String url) {
+            this.title = title;
+            this.iconRes = iconRes;
+            this.url = url;
+        }
+    }
+
+    private interface OnGameClickListener {
+        void onGameClick(CarouselGameItem item);
+    }
+
+    private class GameCarouselAdapter extends RecyclerView.Adapter<GameCarouselAdapter.GameViewHolder> {
+        private final List<CarouselGameItem> gameList;
+        private final OnGameClickListener listener;
+
+        GameCarouselAdapter(List<CarouselGameItem> gameList, OnGameClickListener listener) {
+            this.gameList = gameList;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public GameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = getLayoutInflater().inflate(R.layout.item_game_carousel, parent, false);
+            return new GameViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
+            if (gameList.isEmpty()) return;
+            CarouselGameItem game = gameList.get(position % gameList.size());
+            holder.ivIcon.setImageResource(game.iconRes);
+            AnimationHelper.applyClickAnimation(holder.itemView);
+            holder.itemView.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                if (listener != null) {
+                    listener.onGameClick(game);
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return gameList.isEmpty() ? 0 : Integer.MAX_VALUE;
+        }
+
+        class GameViewHolder extends RecyclerView.ViewHolder {
+            ImageView ivIcon;
+
+            GameViewHolder(@NonNull View itemView) {
+                super(itemView);
+                ivIcon = itemView.findViewById(R.id.ivGameIcon);
+            }
+        }
+    }
+
+    private void setupGameCarousel() {
+        vpGameCarousel = findViewById(R.id.vpGameCarousel);
+        layoutGameCarouselContainer = findViewById(R.id.layoutGameCarouselContainer);
+
+        if (vpGameCarousel == null) return;
+
+        List<CarouselGameItem> gameList = new ArrayList<>();
+        gameList.add(new CarouselGameItem("Royal Slots", R.drawable.slot_icon, "file:///android_asset/slot_machine.html"));
+        gameList.add(new CarouselGameItem("Lucky Fruit", R.drawable.lucky_fruit, "file:///android_asset/lucky_fruit/index.html"));
+        gameList.add(new CarouselGameItem("Greedy Game", R.drawable.greedy_pro_icon, "file:///android_asset/greedy-game/index.html"));
+        gameList.add(new CarouselGameItem("Ludo", R.drawable.ludo_icon, "file:///android_asset/ludo-game/index.html"));
+
+        GameCarouselAdapter adapter = new GameCarouselAdapter(gameList, item -> {
+            showWebGameDialog(item.title, item.url);
+        });
+
+        vpGameCarousel.setAdapter(adapter);
+
+        int initialPos = (Integer.MAX_VALUE / 2) - ((Integer.MAX_VALUE / 2) % gameList.size());
+        vpGameCarousel.setCurrentItem(initialPos, false);
+
+        gameCarouselRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (vpGameCarousel != null && !gameList.isEmpty()) {
+                    int current = vpGameCarousel.getCurrentItem();
+                    vpGameCarousel.setCurrentItem(current + 1, true);
+                    gameCarouselHandler.postDelayed(this, CAROUSEL_AUTO_SCROLL_DELAY);
+                }
+            }
+        };
+
+        vpGameCarousel.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+                if (state == ViewPager2.SCROLL_STATE_DRAGGING) {
+                    stopGameCarouselAutoScroll();
+                } else if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    startGameCarouselAutoScroll();
+                }
+            }
+        });
+
+        if (layoutGameCarouselContainer != null) {
+            AnimationHelper.applyClickAnimation(layoutGameCarouselContainer);
+            layoutGameCarouselContainer.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                if (vpGameCarousel != null && !gameList.isEmpty()) {
+                    int currentItemIndex = vpGameCarousel.getCurrentItem() % gameList.size();
+                    CarouselGameItem currentItem = gameList.get(currentItemIndex);
+                    showWebGameDialog(currentItem.title, currentItem.url);
+                }
+            });
+        }
+
+        startGameCarouselAutoScroll();
+    }
+
+    private void startGameCarouselAutoScroll() {
+        stopGameCarouselAutoScroll();
+        if (gameCarouselHandler != null && gameCarouselRunnable != null) {
+            gameCarouselHandler.postDelayed(gameCarouselRunnable, CAROUSEL_AUTO_SCROLL_DELAY);
+        }
+    }
+
+    private void stopGameCarouselAutoScroll() {
+        if (gameCarouselHandler != null && gameCarouselRunnable != null) {
+            gameCarouselHandler.removeCallbacks(gameCarouselRunnable);
+        }
+    }
 
     private void showRoomGameDialog() {
         if (roomGameDialog != null && roomGameDialog.isShowing()) return;
@@ -3289,6 +3436,15 @@ public class RoomChatActivity extends AppCompatActivity {
             View btnClose = dialogView.findViewById(R.id.btnClose);
             if (btnClose != null) {
                 btnClose.setOnClickListener(v -> dialog.dismiss());
+            }
+
+            View cardSlotGame = dialogView.findViewById(R.id.cardSlotGame);
+            if (cardSlotGame != null) {
+                AnimationHelper.applyClickAnimation(cardSlotGame);
+                cardSlotGame.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    showWebGameDialog("Royal Slots", "file:///android_asset/slot_machine.html");
+                });
             }
 
             View cardLuckySpin = dialogView.findViewById(R.id.cardLuckySpin);
@@ -3314,7 +3470,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 AnimationHelper.applyClickAnimation(cardLudoGame);
                 cardLudoGame.setOnClickListener(v -> {
                     dialog.dismiss();
-                    showWebGameDialog("4v4 Ludo King", "file:///android_asset/ludo-game/index.html");
+                    showWebGameDialog("Ludo", "file:///android_asset/ludo-game/index.html");
                 });
             }
 
@@ -3332,7 +3488,11 @@ public class RoomChatActivity extends AppCompatActivity {
             if (activeWebGameDialog == d) activeWebGameDialog = null;
         });
 
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_web_game, null, false);
+        int layoutId = (gameUrl != null && gameUrl.contains("ludo-game"))
+                ? R.layout.dialog_ludo_game
+                : R.layout.dialog_web_game;
+
+        View dialogView = getLayoutInflater().inflate(layoutId, null, false);
         if (dialogView == null) return;
 
         dialog.setContentView(dialogView);
@@ -3370,8 +3530,8 @@ public class RoomChatActivity extends AppCompatActivity {
             settings.setDomStorageEnabled(true);
             settings.setAllowFileAccess(true);
             settings.setAllowContentAccess(true);
-            settings.setLoadWithOverviewMode(true);
-            settings.setUseWideViewPort(true);
+            settings.setLoadWithOverviewMode(false);
+            settings.setUseWideViewPort(false);
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
             settings.setBuiltInZoomControls(false);
@@ -5935,7 +6095,7 @@ public class RoomChatActivity extends AppCompatActivity {
 
         String animPath = giftSvga;
         if (animPath == null || animPath.trim().isEmpty()) {
-            GiftStoreAdapter.GiftStoreItem matched = GiftCatalog.findGiftByAny(gName, giftSvga);
+            GiftStoreItem matched = GiftCatalog.findGiftByAny(gName, giftSvga);
             if (matched != null && matched.svgaPath != null && !matched.svgaPath.trim().isEmpty()) {
                 animPath = matched.svgaPath;
             } else {
@@ -6355,6 +6515,7 @@ public class RoomChatActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopGameCarouselAutoScroll();
         if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable);
         giftEventQueue.clear();
         currentGiftEventPlayId = 0L;

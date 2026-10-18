@@ -1,0 +1,791 @@
+/* ==========================================================================
+   ROYAL SLOT MACHINE - REFERENCE SCREENSHOT MATCH (SCOPED TO #slot-game-root)
+   ========================================================================== */
+
+/* Root Variables & Color Palette matching screenshot */
+#slot-game-root {
+  --bg-dark-room: #090314;
+  --chassis-bg: #110526;
+  --purple-neon-border: #c084fc;
+  --purple-neon-glow: #a855f7;
+  --reel-lavender-start: #9d62db;
+  --reel-lavender-end: #6d28ad;
+  --gold-accent: #f59e0b;
+  --cyan-metallic-border: #06b6d4;
+  --metallic-silver-top: #ffffff;
+  --metallic-silver-mid: #cbd5e1;
+  --metallic-silver-bot: #94a3b8;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 540px;
+  background-color: var(--bg-dark-room);
+  font-family: var(--font-family);
+  color: #ffffff;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Anchors panel to bottom like dialog */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Background Stage Layer */
+#slot-game-root .bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
+}
+
+#slot-game-root .bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.4) contrast(1.2);
+}
+
+#slot-game-root .bg-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Main Slot Chassis Panel */
+#slot-game-root .slot-chassis {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 410px;
+  height: auto;
+  max-height: 100vh;
+  padding: 8px 12px 14px 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--chassis-bg);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: 1.5px solid #4a1380;
+  border-bottom: none;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.9), 0 0 20px rgba(168, 85, 247, 0.25);
+}
+
+/* 1. Header Section (Reference Matching) */
+#slot-game-root .game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+#slot-game-root .currency-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #150c3d;
+  border: 1.5px solid #2e1b80;
+  padding: 3px 10px 3px 6px;
+  border-radius: 16px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+#slot-game-root .currency-icon {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 4px #38bdf8);
+}
+
+#slot-game-root .currency-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+#slot-game-root .info-badge {
+  font-size: 12px;
+  color: #fef08a;
+  margin-left: 4px;
+  cursor: pointer;
+}
+
+#slot-game-root .header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+#slot-game-root .icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  background: #1f144d;
+  border: 1.5px solid #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  box-sizing: border-box;
+}
+
+#slot-game-root .icon-btn:hover {
+  filter: brightness(1.2);
+  transform: scale(1.08);
+}
+
+#slot-game-root .icon-btn:active {
+  transform: scale(0.92);
+}
+
+#slot-game-root .icon-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 2. Top Winners & Rewards Banner (Reference Matching) */
+#slot-game-root .rewards-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, #4c1d95 0%, #2e1065 100%);
+  border: 1.5px solid #7e22ce;
+  border-radius: 14px;
+  padding: 6px 12px;
+  box-sizing: border-box;
+}
+
+#slot-game-root .trophy-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#slot-game-root .trophy-img {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+#slot-game-root .trophy-badge {
+  font-size: 10px;
+  font-weight: 900;
+  color: #ffffff;
+  background: #dc2626;
+  padding: 1px 4px;
+  border-radius: 8px;
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+}
+
+#slot-game-root .winners-avatars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#slot-game-root .avatar-ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-accent);
+  background: #3b0764;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#slot-game-root .avatar-emoji {
+  font-size: 16px;
+}
+
+#slot-game-root .rewards-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#slot-game-root .counter-gold-val {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--gold-accent);
+  text-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+#slot-game-root .online-tag {
+  font-size: 10px;
+  color: #cbd5e1;
+  opacity: 0.8;
+}
+
+/* 3. Slot Machine Reels Housing Unit (Neon Violet Frame) */
+#slot-game-root .reels-housing {
+  position: relative;
+  width: 100%;
+  background: #090216;
+  border: 3px solid var(--purple-neon-border);
+  border-radius: 14px;
+  padding: 4px 18px; /* Extra side padding for vertical star strips */
+  box-sizing: border-box;
+  box-shadow: 0 0 16px var(--purple-neon-glow), inset 0 0 16px #6b21a8;
+}
+
+/* Vertical Side Star Strips */
+#slot-game-root .side-star-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 12;
+  background: #1a0836;
+}
+#slot-game-root .strip-left { left: 0; border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+#slot-game-root .strip-right { right: 0; border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+#slot-game-root .side-star {
+  color: #e9d5ff;
+  font-size: 11px;
+  filter: drop-shadow(0 0 4px var(--purple-neon-glow));
+}
+
+/* Side Payline Markers (5 ► and ◄ 5) */
+#slot-game-root .payline-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 900;
+  color: #e9d5ff;
+  background: #6b21a8;
+  padding: 2px 4px;
+  border-radius: 4px;
+  z-index: 15;
+  box-shadow: 0 0 6px #a855f7;
+}
+#slot-game-root .marker-left { left: -12px; }
+#slot-game-root .marker-right { right: -12px; }
+
+#slot-game-root .line-num {
+  font-size: 11px;
+  margin: 0 2px;
+}
+
+/* Payline SVG Overlay */
+#slot-game-root .payline-overlay {
+  position: absolute;
+  top: 4px;
+  left: 18px;
+  right: 18px;
+  bottom: 4px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#slot-game-root .payline-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#slot-game-root .payline {
+  stroke: var(--gold-accent);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 6 4;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  filter: drop-shadow(0 0 6px #fef08a);
+}
+
+#slot-game-root .payline.active {
+  opacity: 1;
+  animation: paylineDash 0.75s linear infinite;
+}
+
+@keyframes paylineDash {
+  0% { stroke-dashoffset: 0; stroke: var(--gold-accent); }
+  50% { stroke: #38bdf8; }
+  100% { stroke-dashoffset: 20; stroke: var(--gold-accent); }
+}
+
+/* 3 Vertical Slot Reels Grid */
+#slot-game-root .reels-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  background: #090216;
+  border-radius: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Individual Reel Window (Lavender Surface) */
+#slot-game-root .reel-window {
+  position: relative;
+  flex: 1;
+  height: 240px; /* 3 visible symbols x 80px height */
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, var(--reel-lavender-start) 0%, var(--reel-lavender-end) 100%);
+  border-right: 2px solid #3b0764;
+  box-sizing: border-box;
+}
+
+#slot-game-root .reel-window:last-child {
+  border-right: none;
+}
+
+/* Reel Strip Container */
+#slot-game-root .reel-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+#slot-game-root .reel-strip.spinning {
+  filter: blur(1.2px);
+}
+
+/* Symbol Cell inside Reel */
+#slot-game-root .symbol-cell {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  box-sizing: border-box;
+  transition: transform 0.2s ease;
+}
+
+#slot-game-root .symbol-cell img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+}
+
+/* Winning Symbol Highlight Effect */
+#slot-game-root .symbol-cell.win-highlight {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(109, 40, 173, 0) 75%);
+}
+
+#slot-game-root .symbol-cell.win-highlight img {
+  transform: scale(1.14);
+  filter: drop-shadow(0 0 10px #fef08a);
+  animation: symbolPulse 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes symbolPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.14); }
+}
+
+/* 4. Scoreboard Panels (TOTAL BET, TODAY'S WIN, WIN) */
+#slot-game-root .counters-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 2px 0;
+}
+
+#slot-game-root .counter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#slot-game-root .counter-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+#slot-game-root .digital-box {
+  width: 100%;
+  height: 32px;
+  background: #000000;
+  border: 1px solid #3b0764;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+#slot-game-root .digital-zeros {
+  font-size: 15px;
+  font-weight: 900;
+  color: #334155;
+  letter-spacing: 1px;
+}
+
+#slot-game-root .digital-num {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+#slot-game-root .gold-italic {
+  color: var(--gold-accent);
+  font-style: italic;
+  text-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+#slot-game-root .win-glow {
+  color: #38bdf8;
+  text-shadow: 0 0 6px #38bdf8;
+}
+
+/* 5. Metallic Action Controls Panel (BET -, BET +, AUTO, SPIN) */
+#slot-game-root .controls-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.3fr; /* SPIN button is slightly wider! */
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+#slot-game-root .ctrl-btn {
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  box-sizing: border-box;
+}
+
+/* Metallic Cyan & Silver Button Styling */
+#slot-game-root .ctrl-btn.metallic-btn {
+  border: 2px solid var(--cyan-metallic-border);
+  background: linear-gradient(180deg, var(--metallic-silver-top) 0%, var(--metallic-silver-mid) 50%, var(--metallic-silver-bot) 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6), 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+#slot-game-root .ctrl-btn.metallic-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+#slot-game-root .ctrl-btn.metallic-btn:active {
+  transform: translateY(1px);
+}
+
+#slot-game-root .btn-maintext {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+/* Auto Mode Active State */
+#slot-game-root .btn-auto-mode.active {
+  border-color: #22c55e;
+  background: linear-gradient(180deg, #ffffff 0%, #86efac 50%, #22c55e 100%);
+}
+
+/* Primary SPIN Button (Metallic Silver & Cyan Frame) */
+#slot-game-root .spin-btn-primary {
+  border: 2px solid #38bdf8;
+  background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5), inset 0 1px 0 #ffffff;
+}
+
+#slot-game-root .spin-btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+#slot-game-root .spin-btn-primary:active {
+  transform: translateY(1px);
+}
+
+#slot-game-root .spin-inner {
+  font-size: 17px;
+  font-weight: 900;
+  color: #032b45;
+  letter-spacing: 1px;
+}
+
+#slot-game-root .spin-btn-primary:disabled,
+#slot-game-root .spin-btn-primary.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  transform: none !important;
+}
+
+/* Test Mode Bar */
+#slot-game-root .test-mode-bar {
+  text-align: center;
+  margin-top: 1px;
+}
+
+#slot-game-root .test-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+#slot-game-root .test-toggle-btn:hover {
+  opacity: 1;
+  color: #38bdf8;
+}
+
+/* Win / Big Win Overlay Banner */
+#slot-game-root .win-banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#slot-game-root .win-banner-overlay:not(.hidden) {
+  opacity: 1;
+}
+
+#slot-game-root .win-banner-content {
+  background: linear-gradient(135deg, #2e1065 0%, #0f0728 100%);
+  border: 2px solid var(--gold-accent);
+  border-radius: 18px;
+  padding: 20px 32px;
+  text-align: center;
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.6);
+  transform: scale(0.85);
+  animation: bannerPop 0.35s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bannerPop {
+  100% { transform: scale(1); }
+}
+
+#slot-game-root .win-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #fef08a;
+  text-shadow: 0 0 8px var(--gold-accent);
+  margin-bottom: 8px;
+}
+
+#slot-game-root .win-amount-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+#slot-game-root .banner-coin {
+  width: 32px;
+  height: 32px;
+}
+
+/* Modals System */
+#slot-game-root .modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+#slot-game-root .modal-card {
+  width: 100%;
+  max-width: 360px;
+  background: #120626;
+  border: 1px solid var(--purple-neon-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+#slot-game-root .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1c0a38;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.2);
+}
+
+#slot-game-root .modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #fef08a;
+}
+
+#slot-game-root .modal-close-x {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#slot-game-root .modal-body {
+  padding: 14px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+#slot-game-root .paytable-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+#slot-game-root .paytable-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+#slot-game-root .paytable-row img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+#slot-game-root .symbol-name {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#slot-game-root .symbol-payout {
+  font-weight: 800;
+  color: var(--gold-accent);
+}
+
+#slot-game-root .payline-guide {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 8px;
+}
+
+#slot-game-root .history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#slot-game-root .history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+#slot-game-root .test-select {
+  width: 100%;
+  padding: 8px;
+  background: #090314;
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  border-radius: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+#slot-game-root .modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+#slot-game-root .action-btn {
+  flex: 1;
+  padding: 8px;
+  background: #1e0a3d;
+  border: 1px solid var(--purple-neon-glow);
+  color: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Utility Helper */
+#slot-game-root .hidden {
+  display: none !important;
+}
+
+/* Responsive Adjustments for Smaller Heights */
+@media (max-height: 600px) {
+  #slot-game-root .reel-window {
+    height: 210px; /* 3 x 70px */
+  }
+  #slot-game-root .symbol-cell {
+    height: 70px;
+  }
+  #slot-game-root .symbol-cell img {
+    width: 52px;
+    height: 52px;
+  }
+  #slot-game-root .ctrl-btn {
+    height: 44px;
+  }
+  #slot-game-root .digital-box {
+    height: 28px;
+  }
+}

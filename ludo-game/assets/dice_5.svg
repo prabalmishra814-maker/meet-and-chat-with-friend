@@ -2,22 +2,23 @@
   <defs>
     <linearGradient id="dice_bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="70%" stop-color="#ECEFF1"/>
-      <stop offset="100%" stop-color="#CFD8DC"/>
+      <stop offset="70%" stop-color="#F0F4F8"/>
+      <stop offset="100%" stop-color="#D9E2EC"/>
     </linearGradient>
-    <radialGradient id="pip_black" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#424242"/>
-      <stop offset="100%" stop-color="#212121"/>
+    <radialGradient id="pip_red" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FF5252"/>
+      <stop offset="60%" stop-color="#E53935"/>
+      <stop offset="100%" stop-color="#B71C1C"/>
     </radialGradient>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity="0.4"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
     </filter>
   </defs>
-  <rect x="8" y="8" width="84" height="84" rx="20" fill="url(#dice_bg)" filter="url(#shadow)" stroke="#FFF" stroke-width="2"/>
-  <rect x="12" y="12" width="76" height="76" rx="16" fill="none" stroke="#B0BEC5" stroke-width="1.5" opacity="0.6"/>
-  <circle cx="28" cy="28" r="8" fill="url(#pip_black)"/>
-  <circle cx="72" cy="28" r="8" fill="url(#pip_black)"/>
-  <circle cx="50" cy="50" r="8" fill="url(#pip_black)"/>
-  <circle cx="28" cy="72" r="8" fill="url(#pip_black)"/>
-  <circle cx="72" cy="72" r="8" fill="url(#pip_black)"/>
+  <rect x="6" y="6" width="88" height="88" rx="22" fill="url(#dice_bg)" filter="url(#shadow)" stroke="#FFFFFF" stroke-width="2.5"/>
+  <rect x="10" y="10" width="80" height="80" rx="18" fill="none" stroke="#BCCADC" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="26" cy="26" r="9" fill="url(#pip_red)"/>
+  <circle cx="74" cy="26" r="9" fill="url(#pip_red)"/>
+  <circle cx="50" cy="50" r="9" fill="url(#pip_red)"/>
+  <circle cx="26" cy="74" r="9" fill="url(#pip_red)"/>
+  <circle cx="74" cy="74" r="9" fill="url(#pip_red)"/>
 </svg>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Room Ambient Dark Gradient -->
+    <radialGradient id="bg-radial" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#2e1065"/>
+      <stop offset="45%" stop-color="#1e1b4b"/>
+      <stop offset="80%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+
+    <!-- Top Spotlight Beams -->
+    <linearGradient id="spotlight-left" x1="0%" y1="0%" x2="40%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="spotlight-right" x1="100%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Stage Floor Gradient -->
+    <linearGradient id="floor-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="30%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1080" height="1920" fill="url(#bg-radial)"/>
+
+  <!-- Speaker Silhouettes & Audio Visualizer Bars in Background -->
+  <!-- Left Speaker Stack -->
+  <rect x="20" y="600" width="120" height="700" rx="15" fill="#0f172a" stroke="#334155" stroke-width="4" opacity="0.6"/>
+  <circle cx="80" cy="720" r="40" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <circle cx="80" cy="880" r="45" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <circle cx="80" cy="1060" r="50" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+
+  <!-- Right Speaker Stack -->
+  <rect x="940" y="600" width="120" height="700" rx="15" fill="#0f172a" stroke="#334155" stroke-width="4" opacity="0.6"/>
+  <circle cx="1000" cy="720" r="40" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <circle cx="1000" cy="880" r="45" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <circle cx="1000" cy="1060" r="50" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+
+  <!-- Stage Light Beams -->
+  <polygon points="150,0 350,0 550,1400 0,1400" fill="url(#spotlight-left)"/>
+  <polygon points="930,0 730,0 530,1400 1080,1400" fill="url(#spotlight-right)"/>
+
+  <!-- Stage Floor Perspective Grid -->
+  <path d="M 0 1350 L 1080 1350 L 1080 1920 L 0 1920 Z" fill="url(#floor-grad)"/>
+  <line x1="0" y1="1350" x2="1080" y2="1350" stroke="#a855f7" stroke-width="4" opacity="0.8"/>
+  <line x1="0" y1="1450" x2="1080" y2="1450" stroke="#38bdf8" stroke-width="2" opacity="0.4"/>
+  <line x1="0" y1="1600" x2="1080" y2="1600" stroke="#38bdf8" stroke-width="2" opacity="0.2"/>
+
+  <!-- Vertical Floor Perspective Lines -->
+  <line x1="200" y1="1350" x2="0" y2="1920" stroke="#a855f7" stroke-width="2" opacity="0.3"/>
+  <line x1="400" y1="1350" x2="250" y2="1920" stroke="#a855f7" stroke-width="2" opacity="0.3"/>
+  <line x1="680" y1="1350" x2="830" y2="1920" stroke="#06b6d4" stroke-width="2" opacity="0.3"/>
+  <line x1="880" y1="1350" x2="1080" y2="1920" stroke="#06b6d4" stroke-width="2" opacity="0.3"/>
+
+  <!-- Ambient Sound Waves & Musical Notes floating in room -->
+  <path d="M 100 400 Q 200 350 300 400 T 500 400" fill="none" stroke="#a855f7" stroke-width="3" opacity="0.3"/>
+  <path d="M 580 350 Q 680 300 780 350 T 980 350" fill="none" stroke="#06b6d4" stroke-width="3" opacity="0.3"/>
+
+  <!-- Floating Sparkles -->
+  <circle cx="250" cy="300" r="3" fill="#ffffff" opacity="0.7"/>
+  <circle cx="850" cy="250" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="180" cy="900" r="3" fill="#c084fc" opacity="0.6"/>
+  <circle cx="900" cy="850" r="3" fill="#38bdf8" opacity="0.6"/>
+</svg>

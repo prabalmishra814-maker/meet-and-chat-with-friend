@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Metallic Gold Outer Glow & Shadow -->
+    <filter id="bell-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#fbbf24" flood-opacity="0.3"/>
+    </filter>
+    <!-- Gold Gradient Main -->
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#d97706"/>
+      <stop offset="75%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <!-- Bright Highlight -->
+    <linearGradient id="gold-shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#fef08a" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Dark Inner Rim -->
+    <linearGradient id="gold-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+    <!-- Clapper Gradient -->
+    <radialGradient id="clapper-grad" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </radialGradient>
+  </defs>
+
+  <g filter="url(#bell-shadow)">
+    <!-- Top Loop Handle -->
+    <path d="M 85 32 C 85 18, 115 18, 115 32 Z" fill="none" stroke="url(#gold-grad)" stroke-width="12" stroke-linecap="round"/>
+
+    <!-- Bell Body Base -->
+    <path d="M 100 28
+             C 120 28, 138 45, 142 80
+             C 145 110, 168 135, 172 145
+             C 175 152, 168 158, 155 158
+             L 45 158
+             C 32 158, 25 152, 28 145
+             C 32 135, 55 110, 58 80
+             C 62 45, 80 28, 100 28 Z"
+          fill="url(#gold-grad)"/>
+
+    <!-- Bell Inner Lip Shadow -->
+    <ellipse cx="100" cy="158" rx="63" ry="14" fill="url(#gold-dark)"/>
+    <ellipse cx="100" cy="156" rx="60" ry="11" fill="#290a00"/>
+
+    <!-- Clapper -->
+    <circle cx="100" cy="160" r="18" fill="url(#clapper-grad)"/>
+    <circle cx="96" cy="155" r="5" fill="#ffffff" opacity="0.6"/>
+
+    <!-- Bottom Rim Contour Highlight -->
+    <path d="M 28 145 C 32 135, 55 110, 58 80 C 62 45, 80 28, 100 28 C 120 28, 138 45, 142 80 C 145 110, 168 135, 172 145 C 150 156, 50 156, 28 145 Z" fill="none" stroke="url(#gold-shine)" stroke-width="3" opacity="0.7"/>
+
+    <!-- Glossy 3D Highlight Curve -->
+    <path d="M 72 42 C 85 36, 100 36, 108 45 C 95 55, 80 85, 78 125 C 72 132, 62 138, 52 138 C 50 115, 60 70, 72 42 Z" fill="url(#gold-shine)" opacity="0.65"/>
+    <path d="M 88 45 C 96 45, 102 52, 100 62 C 92 85, 90 110, 88 130 C 84 130, 80 128, 80 120 C 82 95, 85 70, 88 45 Z" fill="#ffffff" opacity="0.4"/>
+
+    <!-- Star Sparkle on Bell Top -->
+    <path d="M 125 55 L 128 65 L 138 68 L 128 71 L 125 81 L 122 71 L 112 68 L 122 65 Z" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>

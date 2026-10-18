@@ -1,19 +1,19 @@
 /**
- * 4v4 Ludo King - HTML5 Mobile Game Script
+ * 4v4 Ludo King - Perfectly Centered Tokens & Moving Dice Edition
  * Isolated IIFE Scope
  */
 (function () {
   'use strict';
 
   // --- GAME CONSTANTS ---
-  const COLORS = ['red', 'green', 'yellow', 'blue'];
+  const COLORS = ['green', 'blue', 'yellow', 'red'];
 
   // Start Indices on the 52-step Main Track
   const START_MAIN_INDEX = {
-    red: 0,
-    green: 13,
+    green: 0,
+    blue: 13,
     yellow: 26,
-    blue: 39
+    red: 39
   };
 
   // Safe Square Indices on the 52-step Main Track
@@ -21,16 +21,16 @@
 
   // 52-Step Main Track Coordinates (Row 1..15, Col 1..15)
   const MAIN_TRACK = [
-    { r: 7, c: 2 },  { r: 7, c: 3 },  { r: 7, c: 4 },  { r: 7, c: 5 },  { r: 7, c: 6 },  // 0-4 (Red Start = 0)
+    { r: 7, c: 2 },  { r: 7, c: 3 },  { r: 7, c: 4 },  { r: 7, c: 5 },  { r: 7, c: 6 },  // 0-4 (Green Start = 0)
     { r: 6, c: 7 },  { r: 5, c: 7 },  { r: 4, c: 7 },  { r: 3, c: 7 },  { r: 2, c: 7 },  { r: 1, c: 7 },  // 5-10 (Star = 8)
     { r: 1, c: 8 },  // 11
-    { r: 1, c: 9 },  { r: 2, c: 9 },  { r: 3, c: 9 },  { r: 4, c: 9 },  { r: 5, c: 9 },  { r: 6, c: 9 },  // 12-17 (Green Start = 13)
+    { r: 1, c: 9 },  { r: 2, c: 9 },  { r: 3, c: 9 },  { r: 4, c: 9 },  { r: 5, c: 9 },  { r: 6, c: 9 },  // 12-17 (Blue Start = 13)
     { r: 7, c: 10 }, { r: 7, c: 11 }, { r: 7, c: 12 }, { r: 7, c: 13 }, { r: 7, c: 14 }, { r: 7, c: 15 }, // 18-23 (Star = 21)
     { r: 8, c: 15 }, // 24
     { r: 9, c: 15 }, { r: 9, c: 14 }, { r: 9, c: 13 }, { r: 9, c: 12 }, { r: 9, c: 11 }, { r: 9, c: 10 }, // 25-30 (Yellow Start = 26)
     { r: 10, c: 9 }, { r: 11, c: 9 }, { r: 12, c: 9 }, { r: 13, c: 9 }, { r: 14, c: 9 }, { r: 15, c: 9 }, // 31-36 (Star = 34)
     { r: 15, c: 8 }, // 37
-    { r: 15, c: 7 }, { r: 14, c: 7 }, { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, // 38-43 (Blue Start = 39)
+    { r: 15, c: 7 }, { r: 14, c: 7 }, { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, // 38-43 (Red Start = 39)
     { r: 9, c: 6 },  { r: 9, c: 5 },  { r: 9, c: 4 },  { r: 9, c: 3 },  { r: 9, c: 2 },  { r: 9, c: 1 },  // 44-49 (Star = 47)
     { r: 8, c: 1 },  // 50
     { r: 7, c: 1 }   // 51
@@ -38,26 +38,26 @@
 
   // Home Paths (5 steps leading to Finish)
   const HOME_PATHS = {
-    red:    [{ r: 8, c: 2 },  { r: 8, c: 3 },  { r: 8, c: 4 },  { r: 8, c: 5 },  { r: 8, c: 6 }],
-    green:  [{ r: 2, c: 8 },  { r: 3, c: 8 },  { r: 4, c: 8 },  { r: 5, c: 8 },  { r: 6, c: 8 }],
+    green:  [{ r: 8, c: 2 },  { r: 8, c: 3 },  { r: 8, c: 4 },  { r: 8, c: 5 },  { r: 8, c: 6 }],
+    blue:   [{ r: 2, c: 8 },  { r: 3, c: 8 },  { r: 4, c: 8 },  { r: 5, c: 8 },  { r: 6, c: 8 }],
     yellow: [{ r: 8, c: 14 }, { r: 8, c: 13 }, { r: 8, c: 12 }, { r: 8, c: 11 }, { r: 8, c: 10 }],
-    blue:   [{ r: 14, c: 8 }, { r: 13, c: 8 }, { r: 12, c: 8 }, { r: 11, c: 8 }, { r: 10, c: 8 }]
+    red:    [{ r: 14, c: 8 }, { r: 13, c: 8 }, { r: 12, c: 8 }, { r: 11, c: 8 }, { r: 10, c: 8 }]
   };
 
   // Center Finish Coordinates (Step 56)
   const FINISH_COORDS = {
-    red:    { r: 8, c: 7 },
-    green:  { r: 7, c: 8 },
+    green:  { r: 8, c: 7 },
+    blue:   { r: 7, c: 8 },
     yellow: { r: 8, c: 9 },
-    blue:   { r: 9, c: 8 }
+    red:    { r: 9, c: 8 }
   };
 
   // Yard Socket Coordinates (Inside Home Bases for 4 tokens)
   const YARD_SOCKETS = {
-    red:    [{ r: 2, c: 2 },  { r: 2, c: 5 },  { r: 5, c: 2 },  { r: 5, c: 5 }],
-    green:  [{ r: 2, c: 11 }, { r: 2, c: 14 }, { r: 5, c: 11 }, { r: 5, c: 14 }],
+    green:  [{ r: 2, c: 2 },  { r: 2, c: 5 },  { r: 5, c: 2 },  { r: 5, c: 5 }],
+    blue:   [{ r: 2, c: 11 }, { r: 2, c: 14 }, { r: 5, c: 11 }, { r: 5, c: 14 }],
     yellow: [{ r: 11, c: 11 },{ r: 11, c: 14 },{ r: 14, c: 11 },{ r: 14, c: 14 }],
-    blue:   [{ r: 11, c: 2 }, { r: 11, c: 5 }, { r: 14, c: 2 }, { r: 14, c: 5 }]
+    red:    [{ r: 11, c: 2 }, { r: 11, c: 5 }, { r: 14, c: 2 }, { r: 14, c: 5 }]
   };
 
   // --- AUDIO SYNTHESIZER ---
@@ -80,8 +80,8 @@
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(200, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(650, this.ctx.currentTime + 0.15);
       gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
       osc.connect(gain);
@@ -97,7 +97,7 @@
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
       gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
       osc.connect(gain);
@@ -114,7 +114,7 @@
       const gain = this.ctx.createGain();
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.3);
+      osc.frequency.exponentialRampToValueAtTime(160, this.ctx.currentTime + 0.3);
       gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
       osc.connect(gain);
@@ -147,7 +147,7 @@
       this.init();
       if (!this.ctx) return;
       const now = this.ctx.currentTime;
-      const notes = [440, 554.37, 659.25, 880];
+      const notes = [523.25, 659.25, 783.99, 1046.50];
       notes.forEach((freq, idx) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -167,8 +167,8 @@
   class LudoGame {
     constructor() {
       this.sound = new SoundManager();
-      this.turnIndex = 0; // 0=red, 1=green, 2=yellow, 3=blue
-      this.diceValue = null;
+      this.turnIndex = 0; // 0=green, 1=blue, 2=yellow, 3=red
+      this.diceValue = 6;
       this.phase = 'WAIT_ROLL'; // 'WAIT_ROLL', 'WAIT_MOVE', 'GAME_OVER'
       this.consecutiveSixes = 0;
       this.grantExtraRoll = false;
@@ -177,19 +177,17 @@
       this.devMode = false;
       this.forcedRoll = null;
 
-      // Player Configurations
+      // Player Configurations: Yellow = YOU (Human), Green/Blue/Red = BOTs
       this.players = {
-        red:    { isAi: false, finishedCount: 0, rank: null },
         green:  { isAi: true,  finishedCount: 0, rank: null },
-        yellow: { isAi: true,  finishedCount: 0, rank: null },
-        blue:   { isAi: true,  finishedCount: 0, rank: null }
+        blue:   { isAi: true,  finishedCount: 0, rank: null },
+        yellow: { isAi: false, finishedCount: 0, rank: null },
+        red:    { isAi: true,  finishedCount: 0, rank: null }
       };
 
-      // Rank tracker
       this.finishedRankList = [];
 
       // Tokens: 16 total (4 per color)
-      // position: -1 (Yard), 0..50 (Track steps), 51..55 (Home Path steps), 56 (Finished)
       this.tokens = {};
       COLORS.forEach(color => {
         this.tokens[color] = [0, 1, 2, 3].map(id => ({
@@ -203,9 +201,24 @@
       this.buildBoardDom();
       this.bindEvents();
       this.updateUiState();
+
+      // Initial position for dynamic floating dice
+      setTimeout(() => {
+        this.positionDice(this.getCurrentColor());
+      }, 80);
+      setTimeout(() => {
+        this.positionDice(this.getCurrentColor());
+      }, 300);
+
+      // Trigger AI roll if player 0 is AI
+      if (this.players[this.getCurrentColor()].isAi) {
+        if (this.btnRoll) this.btnRoll.disabled = true;
+        setTimeout(() => this.rollDice(), 800);
+      }
     }
 
     initDomReferences() {
+      this.viewportEl = document.getElementById('game-viewport');
       this.boardEl = document.getElementById('ludo-board');
       this.turnBanner = document.getElementById('turn-banner');
       this.turnText = document.getElementById('turn-text');
@@ -213,6 +226,7 @@
       this.diceBox = document.getElementById('dice-box');
       this.dice3d = document.getElementById('dice-3d');
       this.btnRoll = document.getElementById('btn-roll');
+      this.btnBack = document.getElementById('btn-back');
       this.statusMsg = document.getElementById('status-message');
       this.toastMsg = document.getElementById('toast-message');
 
@@ -228,11 +242,66 @@
       this.devTestPanel = document.getElementById('dev-test-panel');
     }
 
-    // Render the 15x15 Ludo Board Grid Elements
+    // Dynamic Position Calculator for Active Player Dice with Board Safety
+    positionDice(color) {
+      if (!this.diceBox || !this.viewportEl) return;
+      const activeColor = color || this.getCurrentColor();
+
+      const profileCard = document.getElementById(`profile-${activeColor}`);
+      if (!profileCard) return;
+
+      const boardWrapper = document.querySelector('.wood-frame') || document.querySelector('.board-wrapper');
+      const anchor = profileCard.querySelector('.dice-anchor') || profileCard;
+      const viewportRect = this.viewportEl.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+
+      const diceWidth = this.diceBox.offsetWidth || 48;
+      const diceHeight = this.diceBox.offsetHeight || 48;
+
+      let x = anchorRect.left - viewportRect.left + (anchorRect.width / 2) - (diceWidth / 2);
+      let y = anchorRect.top - viewportRect.top + (anchorRect.height / 2) - (diceHeight / 2);
+
+      // Prevent ANY overlap with Ludo Board Frame
+      if (boardWrapper) {
+        const boardRect = boardWrapper.getBoundingClientRect();
+        const boardTopInViewport = boardRect.top - viewportRect.top;
+        const boardBottomInViewport = boardRect.bottom - viewportRect.top;
+
+        // Bottom players (Red & Yellow): Dice MUST stay strictly below the board
+        if (activeColor === 'red' || activeColor === 'yellow') {
+          const minY = boardBottomInViewport + 4; // 4px safe margin below board
+          if (y < minY) {
+            y = minY;
+          }
+        }
+        // Top players (Green & Blue): Dice MUST stay strictly above the board
+        else if (activeColor === 'green' || activeColor === 'blue') {
+          const maxY = boardTopInViewport - 4 - diceHeight; // 4px safe margin above board
+          if (y > maxY) {
+            y = maxY;
+          }
+        }
+      }
+
+      // Horizontal boundary safety inside viewport
+      const maxViewportX = viewportRect.width - diceWidth - 4;
+      if (x < 4) x = 4;
+      if (x > maxViewportX) x = maxViewportX;
+
+      this.diceBox.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+
+      // Active glow for human player's turn to roll
+      if (!this.players[activeColor].isAi && this.phase === 'WAIT_ROLL') {
+        this.diceBox.classList.add('glow-active');
+      } else {
+        this.diceBox.classList.remove('glow-active');
+      }
+    }
+
+    // Render 15x15 Board Grid
     buildBoardDom() {
       this.boardEl.innerHTML = '';
 
-      // 1. Render Home Bases (Yards)
       COLORS.forEach(color => {
         const yardEl = document.createElement('div');
         yardEl.className = `yard yard-${color}`;
@@ -251,14 +320,11 @@
         this.boardEl.appendChild(yardEl);
       });
 
-      // 2. Render 15x15 Track & Home Cells
       for (let r = 1; r <= 15; r++) {
         for (let c = 1; c <= 15; c++) {
-          // Skip Yard areas (1..6 x 1..6, 1..6 x 10..15, 10..15 x 10..15, 10..15 x 1..6)
           if ((r <= 6 && c <= 6) || (r <= 6 && c >= 10) || (r >= 10 && c >= 10) || (r >= 10 && c <= 6)) {
             continue;
           }
-          // Skip Center Finish area (7..9 x 7..9)
           if (r >= 7 && r <= 9 && c >= 7 && c <= 9) {
             continue;
           }
@@ -269,19 +335,17 @@
           cellEl.dataset.r = r;
           cellEl.dataset.c = c;
 
-          // Color specific path cells
-          if (r === 8 && c >= 2 && c <= 6) cellEl.classList.add('cell-red');
-          else if (c === 8 && r >= 2 && r <= 6) cellEl.classList.add('cell-green');
+          if (r === 8 && c >= 2 && c <= 6) cellEl.classList.add('cell-green');
+          else if (c === 8 && r >= 2 && r <= 6) cellEl.classList.add('cell-blue');
           else if (r === 8 && c >= 10 && c <= 14) cellEl.classList.add('cell-yellow');
-          else if (c === 8 && r >= 10 && r <= 14) cellEl.classList.add('cell-blue');
-          else if (r === 7 && c === 2) cellEl.classList.add('cell-red');
-          else if (r === 2 && c === 9) cellEl.classList.add('cell-green');
-          else if (r === 9 && c === 14) cellEl.classList.add('cell-yellow');
-          else if (r === 14 && c === 7) cellEl.classList.add('cell-blue');
+          else if (c === 8 && r >= 10 && r <= 14) cellEl.classList.add('cell-red');
+          else if (r === 7 && c === 2) { cellEl.classList.add('cell-green', 'cell-arrow'); cellEl.setAttribute('data-arrow', '→'); }
+          else if (r === 2 && c === 9) { cellEl.classList.add('cell-blue', 'cell-arrow'); cellEl.setAttribute('data-arrow', '↓'); }
+          else if (r === 9 && c === 14) { cellEl.classList.add('cell-yellow', 'cell-arrow'); cellEl.setAttribute('data-arrow', '←'); }
+          else if (r === 14 && c === 7) { cellEl.classList.add('cell-red', 'cell-arrow'); cellEl.setAttribute('data-arrow', '↑'); }
           else cellEl.classList.add('path-white');
 
-          // Safe Star Cells
-          const isSafeStar = (r === 3 && c === 7) || (r === 7 && c === 13) || (r === 13 && c === 9) || (r === 9 && c === 3);
+          const isSafeStar = (r === 9 && c === 3) || (r === 3 && c === 7) || (r === 7 && c === 13) || (r === 13 && c === 9);
           if (isSafeStar) {
             cellEl.classList.add('cell-safe');
           }
@@ -290,19 +354,20 @@
         }
       }
 
-      // 3. Render Center Finish Area
       const finishEl = document.createElement('div');
       finishEl.className = 'center-finish';
       finishEl.innerHTML = `
-        <div class="tri-red"></div>
         <div class="tri-green"></div>
-        <div class="tri-yellow"></div>
         <div class="tri-blue"></div>
-        <img src="assets/trophy_center.svg" class="center-trophy" alt="Center Finish">
+        <div class="tri-yellow"></div>
+        <div class="tri-red"></div>
+        <div class="finish-circle circle-green" id="count-green">0</div>
+        <div class="finish-circle circle-blue" id="count-blue">0</div>
+        <div class="finish-circle circle-yellow" id="count-yellow">0</div>
+        <div class="finish-circle circle-red" id="count-red">0</div>
       `;
       this.boardEl.appendChild(finishEl);
 
-      // 4. Render 16 Token Elements
       COLORS.forEach(color => {
         for (let i = 0; i < 4; i++) {
           const tokenEl = document.createElement('div');
@@ -318,39 +383,34 @@
       this.renderTokens();
     }
 
-    // Convert Token Position to {r, c} Grid Coordinates
     getTokenCoordinates(token) {
       if (token.position === -1) {
-        // Yard Socket
         return YARD_SOCKETS[token.color][token.id];
       }
       if (token.position === 56) {
-        // Center Finish
         return FINISH_COORDS[token.color];
       }
       if (token.position >= 51 && token.position <= 55) {
-        // Home Path
         const homeIdx = token.position - 51;
         return HOME_PATHS[token.color][homeIdx];
       }
 
-      // Main Track step (0..50)
       const startIdx = START_MAIN_INDEX[token.color];
       const mainIdx = (startIdx + token.position) % 52;
       return MAIN_TRACK[mainIdx];
     }
 
-    // Position Token DOM Elements on Grid
     renderTokens() {
-      // Map to track occupied tiles for stack count badges
       const tileOccupancy = {};
 
       COLORS.forEach(color => {
         this.tokens[color].forEach(token => {
-          const coords = this.getTokenCoordinates(token);
-          const key = `${coords.r}_${coords.c}`;
-          if (!tileOccupancy[key]) tileOccupancy[key] = [];
-          tileOccupancy[key].push(token);
+          if (token.position !== -1) {
+            const coords = this.getTokenCoordinates(token);
+            const key = `${coords.r}_${coords.c}`;
+            if (!tileOccupancy[key]) tileOccupancy[key] = [];
+            tileOccupancy[key].push(token);
+          }
         });
       });
 
@@ -359,48 +419,72 @@
           const tokenEl = document.getElementById(`token-${color}-${token.id}`);
           if (!tokenEl) return;
 
-          const coords = this.getTokenCoordinates(token);
-          const key = `${coords.r}_${coords.c}`;
-          const stack = tileOccupancy[key];
-
-          tokenEl.style.gridArea = `${coords.r} / ${coords.c} / ${coords.r + 1} / ${coords.c + 1}`;
-
-          // If stacked with multiple tokens on track, apply offset
-          if (stack.length > 1 && token.position !== -1 && token.position !== 56) {
-            const indexInStack = stack.indexOf(token);
-            const offset = (indexInStack - (stack.length - 1) / 2) * 5;
-            tokenEl.style.transform = `translate(${offset}px, ${offset}px) scale(0.9)`;
+          if (token.position === -1) {
+            // Token is in Home Yard Socket: Append directly inside socket circle
+            const socketEl = document.getElementById(`socket-${color}-${token.id}`);
+            if (socketEl && tokenEl.parentElement !== socketEl) {
+              socketEl.appendChild(tokenEl);
+            }
+            tokenEl.style.gridArea = 'none';
+            tokenEl.style.transform = 'translate(-50%, -50%)';
           } else {
-            tokenEl.style.transform = 'none';
-          }
+            // Token is on Main Board Track / Home Path
+            if (tokenEl.parentElement !== this.boardEl) {
+              this.boardEl.appendChild(tokenEl);
+            }
+            const coords = this.getTokenCoordinates(token);
+            const key = `${coords.r}_${coords.c}`;
+            const stack = tileOccupancy[key] || [];
 
-          // Remove stack badge if present
-          const existingBadge = tokenEl.querySelector('.token-stack-badge');
-          if (existingBadge) existingBadge.remove();
+            tokenEl.style.gridArea = `${coords.r} / ${coords.c} / ${coords.r + 1} / ${coords.c + 1}`;
 
-          // Add stack badge to top token if stack > 1
-          if (stack.length > 1 && stack[0] === token && token.position !== -1 && token.position !== 56) {
-            const badge = document.createElement('div');
-            badge.className = 'token-stack-badge';
-            badge.innerText = stack.length;
-            tokenEl.appendChild(badge);
+            if (stack.length > 1 && token.position !== 56) {
+              const indexInStack = stack.indexOf(token);
+              const offset = (indexInStack - (stack.length - 1) / 2) * 5;
+              tokenEl.style.transform = `translate(calc(-50% + ${offset}px), calc(-50% + ${offset}px)) scale(0.9)`;
+            } else {
+              tokenEl.style.transform = 'translate(-50%, -50%)';
+            }
+
+            const existingBadge = tokenEl.querySelector('.token-stack-badge');
+            if (existingBadge) existingBadge.remove();
+
+            if (stack.length > 1 && stack[0] === token && token.position !== 56) {
+              const badge = document.createElement('div');
+              badge.className = 'token-stack-badge';
+              badge.innerText = stack.length;
+              tokenEl.appendChild(badge);
+            }
           }
         });
       });
     }
 
     bindEvents() {
-      // Dice Roll Trigger
       const triggerRoll = () => {
         if (this.phase === 'WAIT_ROLL' && !this.isRolling && !this.players[this.getCurrentColor()].isAi) {
           this.rollDice();
         }
       };
 
-      this.btnRoll.addEventListener('click', triggerRoll);
-      this.diceBox.addEventListener('click', triggerRoll);
+      if (this.btnRoll) this.btnRoll.addEventListener('click', triggerRoll);
+      if (this.diceBox) this.diceBox.addEventListener('click', triggerRoll);
 
-      // Token Click Event
+      if (this.btnBack) {
+        this.btnBack.addEventListener('click', () => {
+          this.showToast("Closing Game...");
+          setTimeout(() => {
+            if (window.history && window.history.length > 1) {
+              window.history.back();
+            }
+          }, 300);
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        this.positionDice(this.getCurrentColor());
+      });
+
       this.boardEl.addEventListener('click', (e) => {
         const tokenEl = e.target.closest('.token');
         if (!tokenEl) return;
@@ -412,29 +496,18 @@
         }
       });
 
-      // Header Actions
       document.getElementById('btn-sound').addEventListener('click', () => {
         this.sound.enabled = !this.sound.enabled;
         const img = document.getElementById('img-sound');
         img.src = this.sound.enabled ? 'assets/icon_sound_on.svg' : 'assets/icon_sound_off.svg';
       });
 
-      document.getElementById('btn-settings').addEventListener('click', () => {
-        this.modalSettings.classList.remove('hidden');
-      });
-
-      document.getElementById('btn-rules').addEventListener('click', () => {
-        this.modalRules.classList.remove('hidden');
-      });
-
-      // Close Modals
       document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.target.closest('.modal-overlay').classList.add('hidden');
         });
       });
 
-      // Restart Game
       document.getElementById('btn-restart-game').addEventListener('click', () => {
         this.modalSettings.classList.add('hidden');
         this.restartGame();
@@ -445,35 +518,25 @@
         this.restartGame();
       });
 
-      // Game Mode Selector
       this.selectGameMode.addEventListener('change', (e) => {
         const mode = e.target.value;
         if (mode === 'vs_ai') {
           this.players = {
-            red:    { isAi: false },
             green:  { isAi: true },
-            yellow: { isAi: true },
-            blue:   { isAi: true }
+            blue:   { isAi: true },
+            yellow: { isAi: false },
+            red:    { isAi: true }
           };
         } else if (mode === 'pass_play') {
           this.players = {
-            red:    { isAi: false },
             green:  { isAi: false },
+            blue:   { isAi: false },
             yellow: { isAi: false },
-            blue:   { isAi: false }
-          };
-        } else if (mode === '2_vs_2') {
-          this.players = {
-            red:    { isAi: false },
-            green:  { isAi: true },
-            yellow: { isAi: false },
-            blue:   { isAi: true }
+            red:    { isAi: false }
           };
         }
-        this.updatePlayerTypeBadges();
       });
 
-      // Dev Mode Checkbox
       this.checkDevMode.addEventListener('change', (e) => {
         this.devMode = e.target.checked;
         if (this.devMode) {
@@ -484,7 +547,6 @@
         }
       });
 
-      // Dev Force Roll Buttons
       document.querySelectorAll('.dev-dice-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           this.forcedRoll = parseInt(e.target.dataset.val, 10);
@@ -501,25 +563,14 @@
       return COLORS[this.turnIndex];
     }
 
-    updatePlayerTypeBadges() {
-      COLORS.forEach(color => {
-        const card = document.getElementById(`card-${color}`);
-        if (!card) return;
-        const badge = card.querySelector('.p-type-badge');
-        if (badge) {
-          badge.innerText = this.players[color].isAi ? 'BOT' : 'HUMAN';
-        }
-      });
-    }
-
-    // Roll Dice Logic
     rollDice() {
       if (this.isRolling || this.phase !== 'WAIT_ROLL') return;
 
       this.isRolling = true;
-      this.btnRoll.disabled = true;
-      this.sound.playRoll();
+      if (this.btnRoll) this.btnRoll.disabled = true;
+      if (this.diceBox) this.diceBox.classList.remove('glow-active');
 
+      this.sound.playRoll();
       this.dice3d.classList.add('dice-rolling');
 
       setTimeout(() => {
@@ -548,7 +599,6 @@
         this.consecutiveSixes = 0;
       }
 
-      // Three consecutive 6s rule: forfeit roll and pass turn
       if (this.consecutiveSixes === 3) {
         this.showToast("3 Sixes in a row! Turn forfeited.");
         this.consecutiveSixes = 0;
@@ -563,16 +613,14 @@
         setTimeout(() => this.nextTurn(), 1000);
       } else {
         this.phase = 'WAIT_MOVE';
-        this.statusMsg.innerText = `Rolled a ${this.diceValue}! Select a token to move.`;
+        this.statusMsg.innerText = `Rolled a ${this.diceValue}! Select a token.`;
 
-        // Highlight valid tokens
         this.clearTokenHighlights();
         validTokens.forEach(t => {
           const el = document.getElementById(`token-${currentColor}-${t.id}`);
           if (el) el.classList.add('token-movable');
         });
 
-        // Auto-move if only 1 valid token and autoMoveSingle enabled or if player is AI
         if (this.players[currentColor].isAi) {
           setTimeout(() => this.makeAiMove(validTokens), 600);
         } else if (validTokens.length === 1 && this.autoMoveSingle) {
@@ -581,20 +629,15 @@
       }
     }
 
-    // Calculate Legal Token Moves
     getValidMoveTokens(color, roll) {
       return this.tokens[color].filter(token => {
-        // Token in Yard: Needs a 6 to get out
         if (token.position === -1) {
           return roll === 6;
         }
-        // Token already Finished
         if (token.position === 56) {
           return false;
         }
-        // Moving on Track / Home Path
         const targetPos = token.position + roll;
-        // Cannot exceed 56 (exact roll required for Finish)
         return targetPos <= 56;
       });
     }
@@ -605,7 +648,6 @@
       });
     }
 
-    // Execute Token Movement
     onTokenSelected(color, tokenId) {
       if (this.phase !== 'WAIT_MOVE' || color !== this.getCurrentColor()) return;
 
@@ -613,26 +655,27 @@
       const validTokens = this.getValidMoveTokens(color, this.diceValue);
 
       if (!validTokens.some(t => t.id === tokenId)) {
-        return; // Invalid token selected
+        return;
       }
 
       this.clearTokenHighlights();
       this.phase = 'ANIMATING';
 
       if (token.position === -1 && this.diceValue === 6) {
-        // Bring token out of Yard to Start cell
         token.position = 0;
         this.sound.playStep();
         this.renderTokens();
-        this.postMoveCheck(token, true); // 6 grants extra roll
+        this.postMoveCheck(token, true);
       } else {
-        // Move step by step
         this.animateStepByStep(token, this.diceValue, () => {
           const captured = this.checkCapture(token);
           const reachedHome = token.position === 56;
 
           if (reachedHome) {
             this.players[color].finishedCount++;
+            const countEl = document.getElementById(`count-${color}`);
+            if (countEl) countEl.innerText = this.players[color].finishedCount;
+
             this.sound.playVictory();
             this.showToast(`${color.toUpperCase()} token reached Home!`);
             this.checkWinCondition(color);
@@ -659,16 +702,14 @@
       }, 180);
     }
 
-    // Capture Check
     checkCapture(movedToken) {
       if (movedToken.position < 0 || movedToken.position > 50) {
-        return false; // Cannot capture in Yard or Home Path
+        return false;
       }
 
       const startIdx = START_MAIN_INDEX[movedToken.color];
       const movedMainIdx = (startIdx + movedToken.position) % 52;
 
-      // Check if square is safe
       if (SAFE_INDICES.includes(movedMainIdx)) {
         return false;
       }
@@ -684,8 +725,7 @@
             const otherMainIdx = (otherStartIdx + otherToken.position) % 52;
 
             if (otherMainIdx === movedMainIdx) {
-              // CAPTURED!
-              otherToken.position = -1; // Send back to Yard
+              otherToken.position = -1;
               capturedAny = true;
               this.sound.playCapture();
               this.showToast(`CAPTURED! ${otherColor.toUpperCase()} sent back to Yard!`);
@@ -705,13 +745,15 @@
       if (grantExtraRoll && this.players[this.getCurrentColor()].finishedCount < 4) {
         this.grantExtraRoll = true;
         this.phase = 'WAIT_ROLL';
-        this.statusMsg.innerText = "EXTRA ROLL granted! Tap ROLL.";
+        this.statusMsg.innerText = "EXTRA ROLL granted! Tap Dice.";
         this.extraRollBadge.classList.remove('hidden');
+
+        this.positionDice(this.getCurrentColor());
 
         if (this.players[this.getCurrentColor()].isAi) {
           setTimeout(() => this.rollDice(), 800);
         } else {
-          this.btnRoll.disabled = false;
+          if (this.btnRoll) this.btnRoll.disabled = false;
         }
       } else {
         this.grantExtraRoll = false;
@@ -720,7 +762,6 @@
       }
     }
 
-    // AI Bot Decision Engine
     makeAiMove(validTokens) {
       if (validTokens.length === 0) return;
 
@@ -731,7 +772,6 @@
         let score = 0;
         const targetPos = token.position === -1 ? 0 : token.position + this.diceValue;
 
-        // 1. Prioritize Capturing Opponent
         if (targetPos <= 50) {
           const startIdx = START_MAIN_INDEX[token.color];
           const targetMainIdx = (startIdx + targetPos) % 52;
@@ -741,7 +781,7 @@
                 this.tokens[oc].forEach(ot => {
                   if (ot.position >= 0 && ot.position <= 50) {
                     const oMain = (START_MAIN_INDEX[oc] + ot.position) % 52;
-                    if (oMain === targetMainIdx) score += 100; // Capture bonus
+                    if (oMain === targetMainIdx) score += 100;
                   }
                 });
               }
@@ -749,19 +789,12 @@
           }
         }
 
-        // 2. Prioritize Reaching Finish
         if (targetPos === 56) score += 80;
-
-        // 3. Prioritize Releasing Token on 6
         if (token.position === -1 && this.diceValue === 6) score += 50;
-
-        // 4. Prioritize Safe Tiles
         if (targetPos <= 50) {
           const mainIdx = (START_MAIN_INDEX[token.color] + targetPos) % 52;
           if (SAFE_INDICES.includes(mainIdx)) score += 30;
         }
-
-        // 5. Advance furthest token
         score += token.position;
 
         if (score > highestScore) {
@@ -773,14 +806,12 @@
       this.onTokenSelected(chosenToken.color, chosenToken.id);
     }
 
-    // Advance to Next Player's Turn
     nextTurn() {
       if (this.phase === 'GAME_OVER') return;
 
       this.extraRollBadge.classList.add('hidden');
       this.consecutiveSixes = 0;
 
-      // Find next active player
       let attempts = 0;
       do {
         this.turnIndex = (this.turnIndex + 1) % 4;
@@ -788,7 +819,6 @@
       } while (this.players[this.getCurrentColor()].finishedCount === 4 && attempts < 4);
 
       if (attempts >= 4) {
-        // All players finished
         this.endGame();
         return;
       }
@@ -796,12 +826,11 @@
       this.phase = 'WAIT_ROLL';
       this.updateUiState();
 
-      // If AI, trigger automated roll
       if (this.players[this.getCurrentColor()].isAi) {
-        this.btnRoll.disabled = true;
+        if (this.btnRoll) this.btnRoll.disabled = true;
         setTimeout(() => this.rollDice(), 800);
       } else {
-        this.btnRoll.disabled = false;
+        if (this.btnRoll) this.btnRoll.disabled = false;
       }
     }
 
@@ -812,8 +841,7 @@
 
         this.showToast(`${color.toUpperCase()} Team Finished #${this.players[color].rank}!`);
 
-        if (this.finishedRankList.length === 3 || (this.players.red.isAi === false && color === 'red')) {
-          // Trigger GameOver/Winner screen if human wins or top 3 finished
+        if (this.finishedRankList.length === 3 || (this.players.yellow.isAi === false && color === 'yellow')) {
           setTimeout(() => this.endGame(), 1000);
         }
       }
@@ -823,7 +851,7 @@
       this.phase = 'GAME_OVER';
       this.sound.playVictory();
 
-      const winnerColor = this.finishedRankList[0] || 'red';
+      const winnerColor = this.finishedRankList[0] || 'yellow';
       document.getElementById('winner-title').innerText = `${winnerColor.toUpperCase()} WINS!`;
       document.getElementById('winner-desc').innerText = `${winnerColor.toUpperCase()} Team has conquered the board!`;
 
@@ -844,7 +872,7 @@
 
     restartGame() {
       this.turnIndex = 0;
-      this.diceValue = null;
+      this.diceValue = 6;
       this.phase = 'WAIT_ROLL';
       this.consecutiveSixes = 0;
       this.grantExtraRoll = false;
@@ -855,12 +883,20 @@
         this.players[color].finishedCount = 0;
         this.players[color].rank = null;
         this.tokens[color].forEach(t => t.position = -1);
+
+        const countEl = document.getElementById(`count-${color}`);
+        if (countEl) countEl.innerText = '0';
       });
 
       this.renderTokens();
       this.updateUiState();
-      this.btnRoll.disabled = false;
+      if (this.btnRoll) this.btnRoll.disabled = false;
       this.showToast("New Game Started!");
+
+      if (this.players[this.getCurrentColor()].isAi) {
+        if (this.btnRoll) this.btnRoll.disabled = true;
+        setTimeout(() => this.rollDice(), 800);
+      }
     }
 
     updateUiState() {
@@ -868,25 +904,25 @@
 
       // Update Turn Banner
       this.turnBanner.className = `turn-banner turn-${activeColor}`;
-      this.turnText.innerText = `${activeColor.toUpperCase()}'S TURN`;
+      const nameText = (activeColor === 'yellow' && !this.players.yellow.isAi) ? "YOUR" : activeColor.toUpperCase();
+      this.turnText.innerText = `${nameText}'S TURN`;
 
-      // Update Player Cards
+      // Update Profile Cards Active Glow
       COLORS.forEach(color => {
-        const card = document.getElementById(`card-${color}`);
+        const card = document.getElementById(`profile-${color}`);
         if (card) {
           if (color === activeColor) {
             card.classList.add('active');
           } else {
             card.classList.remove('active');
           }
-          const homeCountEl = card.querySelector('.p-home-count');
-          if (homeCountEl) {
-            homeCountEl.innerText = `${this.players[color].finishedCount}/4 Home`;
-          }
         }
       });
 
-      this.statusMsg.innerText = this.players[activeColor].isAi ? "BOT thinking..." : "Tap ROLL or the Dice";
+      // Smoothly slide dynamic dice to the active player's profile
+      this.positionDice(activeColor);
+
+      this.statusMsg.innerText = this.players[activeColor].isAi ? "BOT thinking..." : "Tap Dice to Roll";
     }
 
     showToast(msg) {

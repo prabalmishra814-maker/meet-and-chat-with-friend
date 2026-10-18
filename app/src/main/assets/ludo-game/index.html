@@ -2,125 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>4v4 Ludo King</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ludo - Dynamic Dice Edition</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <div class="ludo-game">
-    <div class="game-viewport">
+    <!-- Subtle Animated Background Circles -->
+    <div class="bg-bokeh">
+      <div class="bokeh-dot dot-1"></div>
+      <div class="bokeh-dot dot-2"></div>
+      <div class="bokeh-dot dot-3"></div>
+      <div class="bokeh-dot dot-4"></div>
+      <div class="bokeh-dot dot-5"></div>
+    </div>
 
-      <!-- Compact Header -->
-      <header class="game-header">
-        <div class="header-title-box">
-          <span class="ludo-logo-text">4v4 LUDO KING</span>
-        </div>
-        <div class="header-actions">
-          <button id="btn-rules" class="icon-btn" title="Rules">
-            <img src="assets/icon_info.svg" alt="Rules">
-          </button>
-          <button id="btn-sound" class="icon-btn" title="Sound Toggle">
-            <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
-          </button>
-          <button id="btn-settings" class="icon-btn" title="Settings">
-            <img src="assets/icon_settings.svg" alt="Settings">
-          </button>
-        </div>
-      </header>
+    <div id="game-viewport" class="game-viewport">
 
-      <!-- Active Player Turn Banner -->
-      <div id="turn-banner" class="turn-banner turn-red">
-        <div class="turn-indicator-dot"></div>
-        <span id="turn-text">RED'S TURN</span>
+      <!-- 1. Top Controls Bar -->
+      <div class="top-controls">
+        <button id="btn-back" class="blue-ctrl-btn btn-back" title="Back">
+          <img src="assets/icon_back.svg" alt="Back">
+        </button>
+
+        <div class="header-logo-box">
+          <span class="logo-text">LUDO</span>
+        </div>
+
+        <button id="btn-sound" class="blue-ctrl-btn btn-sound" title="Toggle Sound">
+          <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
+        </button>
+      </div>
+
+      <!-- 2. Top Player Profiles Row (Green & Blue) -->
+      <div class="profiles-row top-profiles">
+        <!-- Top-Left Player: GREEN (MAX - BOT) -->
+        <div id="profile-green" class="profile-card green-profile active">
+          <div class="avatar-wrapper">
+            <img class="avatar-img" src="assets/avatar_p1.svg" alt="Max">
+            <span class="bot-badge">BOT</span>
+          </div>
+          <div class="nameplate green-pill">
+            <span class="player-name">MAX</span>
+          </div>
+          <div class="dice-anchor anchor-right"></div>
+        </div>
+
+        <!-- Top-Right Player: BLUE (ALEX - BOT) -->
+        <div id="profile-blue" class="profile-card blue-profile">
+          <div class="dice-anchor anchor-left"></div>
+          <div class="avatar-wrapper">
+            <img class="avatar-img" src="assets/avatar_p2.svg" alt="Alex">
+            <span class="bot-badge">BOT</span>
+          </div>
+          <div class="nameplate blue-pill">
+            <span class="player-name">ALEX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Turn & Extra Roll Banner (Floating Notification) -->
+      <div id="turn-banner" class="turn-banner turn-green">
+        <span id="turn-text">GREEN'S TURN</span>
         <span id="extra-roll-badge" class="extra-roll-badge hidden">EXTRA ROLL!</span>
       </div>
 
-      <!-- Main Board Container -->
+      <!-- 3. Main Ludo Board Container with Wooden Ledges -->
       <div class="board-wrapper">
-        <div id="ludo-board" class="ludo-board">
-          <!-- Board Grid & SVG Elements will be rendered dynamically by JavaScript -->
-        </div>
-      </div>
+        <div class="wood-frame">
+          <!-- Wooden Corner Ledges -->
+          <div class="wood-corner wood-corner-tl"></div>
+          <div class="wood-corner wood-corner-tr"></div>
+          <div class="wood-corner wood-corner-bl"></div>
+          <div class="wood-corner wood-corner-br"></div>
 
-      <!-- Dice & Player Control Hub -->
-      <div class="control-hub">
-        <div class="dice-section">
-          <div id="dice-box" class="dice-box" title="Tap to Roll">
-            <div id="dice-3d" class="dice-3d show-1">
-              <div class="dice-face face-1"><img src="assets/dice_1.svg" alt="1"></div>
-              <div class="dice-face face-2"><img src="assets/dice_2.svg" alt="2"></div>
-              <div class="dice-face face-3"><img src="assets/dice_3.svg" alt="3"></div>
-              <div class="dice-face face-4"><img src="assets/dice_4.svg" alt="4"></div>
-              <div class="dice-face face-5"><img src="assets/dice_5.svg" alt="5"></div>
-              <div class="dice-face face-6"><img src="assets/dice_6.svg" alt="6"></div>
-            </div>
-          </div>
-
-          <div class="dice-controls">
-            <button id="btn-roll" class="roll-btn">ROLL DICE</button>
-            <div id="status-message" class="status-message">Tap ROLL or the Dice</div>
-          </div>
-        </div>
-
-        <!-- Dev / Test Mode Force Roll Selector (Visible when Test Mode enabled) -->
-        <div id="dev-test-panel" class="dev-test-panel hidden">
-          <span class="dev-label">DEV TEST MODE (Force Dice):</span>
-          <div class="dev-btns">
-            <button class="dev-dice-btn" data-val="1">1</button>
-            <button class="dev-dice-btn" data-val="2">2</button>
-            <button class="dev-dice-btn" data-val="3">3</button>
-            <button class="dev-dice-btn" data-val="4">4</button>
-            <button class="dev-dice-btn" data-val="5">5</button>
-            <button class="dev-dice-btn" data-val="6">6</button>
+          <!-- Ludo Board Grid -->
+          <div id="ludo-board" class="ludo-board">
+            <!-- Rendered dynamically by script.js -->
           </div>
         </div>
       </div>
 
-      <!-- Player Score / Progress Cards -->
-      <div class="players-bar">
-        <div id="card-red" class="player-card active red">
-          <div class="p-header">
-            <span class="p-dot"></span>
-            <span class="p-name">RED</span>
-            <span class="p-type-badge">P1</span>
+      <!-- 4. Bottom Player Profiles Row (Red & Yellow) -->
+      <div class="profiles-row bottom-profiles">
+        <!-- Bottom-Left Player: RED (VIPER - BOT) -->
+        <div id="profile-red" class="profile-card red-profile">
+          <div class="avatar-wrapper">
+            <img class="avatar-img" src="assets/avatar_p3.svg" alt="Viper">
+            <span class="bot-badge">BOT</span>
           </div>
-          <div class="p-progress">
-            <span class="p-home-count">0/4 Home</span>
+          <div class="nameplate red-pill">
+            <span class="player-name">VIPER</span>
           </div>
+          <div class="dice-anchor anchor-right"></div>
         </div>
 
-        <div id="card-green" class="player-card green">
-          <div class="p-header">
-            <span class="p-dot"></span>
-            <span class="p-name">GREEN</span>
-            <span class="p-type-badge">BOT</span>
+        <!-- Bottom-Right Player: YELLOW (YOU - Human Player) -->
+        <div id="profile-yellow" class="profile-card yellow-profile">
+          <div class="dice-anchor anchor-left"></div>
+          <div class="avatar-wrapper">
+            <img class="avatar-img" src="assets/avatar_p4.svg" alt="YOU">
+            <span class="you-badge">YOU</span>
           </div>
-          <div class="p-progress">
-            <span class="p-home-count">0/4 Home</span>
-          </div>
-        </div>
-
-        <div id="card-yellow" class="player-card yellow">
-          <div class="p-header">
-            <span class="p-dot"></span>
-            <span class="p-name">YELLOW</span>
-            <span class="p-type-badge">BOT</span>
-          </div>
-          <div class="p-progress">
-            <span class="p-home-count">0/4 Home</span>
+          <div class="nameplate yellow-pill">
+            <span class="player-name">YOU</span>
           </div>
         </div>
+      </div>
 
-        <div id="card-blue" class="player-card blue">
-          <div class="p-header">
-            <span class="p-dot"></span>
-            <span class="p-name">BLUE</span>
-            <span class="p-type-badge">BOT</span>
-          </div>
-          <div class="p-progress">
-            <span class="p-home-count">0/4 Home</span>
-          </div>
+      <!-- 5. Dynamic Floating 3D Dice Box -->
+      <div id="dice-box" class="floating-dice-wrapper" title="Tap to Roll">
+        <div id="dice-3d" class="dice-3d show-6">
+          <div class="dice-face face-1"><img src="assets/dice_1.svg" alt="1"></div>
+          <div class="dice-face face-2"><img src="assets/dice_2.svg" alt="2"></div>
+          <div class="dice-face face-3"><img src="assets/dice_3.svg" alt="3"></div>
+          <div class="dice-face face-4"><img src="assets/dice_4.svg" alt="4"></div>
+          <div class="dice-face face-5"><img src="assets/dice_5.svg" alt="5"></div>
+          <div class="dice-face face-6"><img src="assets/dice_6.svg" alt="6"></div>
+        </div>
+      </div>
+
+      <!-- Hidden Controls for Accessibility / Dev Mode -->
+      <div class="hidden-controls">
+        <button id="btn-roll" class="hidden-roll-btn">ROLL</button>
+        <div id="status-message" class="hidden-status">Tap Dice to Roll</div>
+      </div>
+
+      <!-- Dev / Test Mode Force Roll Panel (Hidden by default) -->
+      <div id="dev-test-panel" class="dev-test-panel hidden">
+        <span class="dev-label">DEV MODE (Force Roll):</span>
+        <div class="dev-btns">
+          <button class="dev-dice-btn" data-val="1">1</button>
+          <button class="dev-dice-btn" data-val="2">2</button>
+          <button class="dev-dice-btn" data-val="3">3</button>
+          <button class="dev-dice-btn" data-val="4">4</button>
+          <button class="dev-dice-btn" data-val="5">5</button>
+          <button class="dev-dice-btn" data-val="6">6</button>
         </div>
       </div>
 
@@ -140,7 +158,6 @@
               <select id="select-game-mode" class="custom-select">
                 <option value="vs_ai">1 Player vs 3 AI Bots</option>
                 <option value="pass_play">4 Players (Pass & Play)</option>
-                <option value="2_vs_2">2 Players + 2 AI Bots</option>
               </select>
             </div>
 
@@ -170,12 +187,12 @@
           </div>
           <div class="modal-body rules-text">
             <ul>
-              <li><strong>Starting:</strong> Roll a <strong>6</strong> to release a token from your Home Yard onto the starting square.</li>
-              <li><strong>Movement:</strong> Roll the dice to move active tokens clockwise around the board.</li>
-              <li><strong>Capturing:</strong> Landing on an opponent's token sends it back to their Yard! (Except on Safe / Star squares).</li>
-              <li><strong>Safe Squares:</strong> Starting tiles and Star tiles are safe from capture.</li>
-              <li><strong>Extra Turns:</strong> Rolling a 6, capturing an opponent, or bringing a token to the Finish grants an extra roll.</li>
-              <li><strong>Winning:</strong> The first team to get all 4 tokens into the central Finish area wins!</li>
+              <li><strong>Starting:</strong> Roll a <strong>6</strong> to release a token from your Home Yard.</li>
+              <li><strong>Movement:</strong> Move tokens clockwise according to dice rolls.</li>
+              <li><strong>Capturing:</strong> Landing on an opponent's token sends it back to their Yard!</li>
+              <li><strong>Safe Squares:</strong> Star tiles and Starting tiles are safe from capture.</li>
+              <li><strong>Extra Turns:</strong> Rolling a 6, capturing an opponent, or reaching Home grants an extra roll.</li>
+              <li><strong>Winning:</strong> Bring all 4 tokens into the central Finish area to win!</li>
             </ul>
           </div>
         </div>
@@ -186,7 +203,7 @@
         <div class="modal-card winner-card">
           <img src="assets/trophy_center.svg" class="winner-trophy" alt="Trophy">
           <h2 id="winner-title">VICTORY!</h2>
-          <div id="winner-desc" class="winner-desc">Red Team Has Won The Game!</div>
+          <div id="winner-desc" class="winner-desc">Team Has Won The Game!</div>
           <div id="leaderboard-list" class="leaderboard-list">
             <!-- Ranks listed here -->
           </div>

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Shadow & Purple Glow -->
+    <filter id="grape-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#c084fc" flood-opacity="0.4"/>
+    </filter>
+
+    <!-- Berry Radial Gradient -->
+    <radialGradient id="berry-grad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="25%" stop-color="#c084fc"/>
+      <stop offset="60%" stop-color="#7e22ce"/>
+      <stop offset="90%" stop-color="#3b0764"/>
+      <stop offset="100%" stop-color="#1e0236"/>
+    </radialGradient>
+
+    <!-- Leaf Gradient -->
+    <linearGradient id="leaf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="40%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+
+    <!-- Stem Gradient -->
+    <linearGradient id="stem-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a16207"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#grape-shadow)">
+    <!-- Stem -->
+    <path d="M 100 45 C 98 30, 110 20, 120 18 C 122 22, 112 30, 106 45 Z" fill="url(#stem-grad)"/>
+
+    <!-- Green Leaves -->
+    <path d="M 98 42 C 70 25, 45 40, 52 62 C 68 62, 85 55, 98 42 Z" fill="url(#leaf-grad)"/>
+    <path d="M 102 42 C 130 25, 155 40, 148 62 C 132 62, 115 55, 102 42 Z" fill="url(#leaf-grad)"/>
+    <!-- Leaf Veins -->
+    <path d="M 98 42 C 78 45, 62 55, 55 60 M 98 42 C 82 35, 70 32, 60 32" fill="none" stroke="#bbf7d0" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 102 42 C 122 45, 138 55, 145 60 M 102 42 C 118 35, 130 32, 140 32" fill="none" stroke="#bbf7d0" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Grape Cluster Berries (Arranged in 3D overlapping layers) -->
+    <!-- Back / Top Row (3 berries) -->
+    <circle cx="74" cy="72" r="22" fill="url(#berry-grad)"/>
+    <circle cx="126" cy="72" r="22" fill="url(#berry-grad)"/>
+    <circle cx="100" cy="68" r="23" fill="url(#berry-grad)"/>
+
+    <!-- Middle-High Row (4 berries) -->
+    <circle cx="56" cy="98" r="22" fill="url(#berry-grad)"/>
+    <circle cx="144" cy="98" r="22" fill="url(#berry-grad)"/>
+    <circle cx="82" cy="98" r="23" fill="url(#berry-grad)"/>
+    <circle cx="118" cy="98" r="23" fill="url(#berry-grad)"/>
+
+    <!-- Center-Low Row (3 berries) -->
+    <circle cx="72" cy="126" r="22" fill="url(#berry-grad)"/>
+    <circle cx="128" cy="126" r="22" fill="url(#berry-grad)"/>
+    <circle cx="100" cy="128" r="24" fill="url(#berry-grad)"/>
+
+    <!-- Bottom-Mid Row (2 berries) -->
+    <circle cx="85" cy="154" r="21" fill="url(#berry-grad)"/>
+    <circle cx="115" cy="154" r="21" fill="url(#berry-grad)"/>
+
+    <!-- Bottom Tip Berry (1 berry) -->
+    <circle cx="100" cy="174" r="18" fill="url(#berry-grad)"/>
+
+    <!-- Gloss Specular Highlights on key berries -->
+    <ellipse cx="68" cy="64" rx="6" ry="4" fill="#ffffff" opacity="0.75" transform="rotate(-30 68 64)"/>
+    <ellipse cx="94" cy="60" rx="7" ry="4" fill="#ffffff" opacity="0.8" transform="rotate(-30 94 60)"/>
+    <ellipse cx="120" cy="64" rx="6" ry="4" fill="#ffffff" opacity="0.75" transform="rotate(-30 120 64)"/>
+
+    <ellipse cx="50" cy="90" rx="6" ry="4" fill="#ffffff" opacity="0.7" transform="rotate(-30 50 90)"/>
+    <ellipse cx="76" cy="90" rx="7" ry="4" fill="#ffffff" opacity="0.85" transform="rotate(-30 76 90)"/>
+    <ellipse cx="112" cy="90" rx="7" ry="4" fill="#ffffff" opacity="0.85" transform="rotate(-30 112 90)"/>
+    <ellipse cx="138" cy="90" rx="6" ry="4" fill="#ffffff" opacity="0.7" transform="rotate(-30 138 90)"/>
+
+    <ellipse cx="94" cy="120" rx="8" ry="5" fill="#ffffff" opacity="0.9" transform="rotate(-30 94 120)"/>
+    <ellipse cx="94" cy="166" rx="5" ry="3" fill="#ffffff" opacity="0.8" transform="rotate(-30 94 166)"/>
+  </g>
+</svg>

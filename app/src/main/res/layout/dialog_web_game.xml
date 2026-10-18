@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#90000000">
 
-    <!-- Game Dialog Container filling nearly full screen width & height -->
+    <!-- Standard Web Game Dialog Container -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardGameContainer"
         android:layout_width="0dp"
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- Compact Title Bar -->
+            <!-- Title Bar -->
             <LinearLayout
                 android:id="@+id/titleContainer"
                 android:layout_width="wrap_content"
@@ -70,7 +70,7 @@
                 android:background="#20FFFFFF"
                 app:layout_constraintTop_toBottomOf="@id/titleContainer" />
 
-            <!-- Responsive Full-Height WebView -->
+            <!-- WebView -->
             <android.webkit.WebView
                 android:id="@+id/webViewGame"
                 android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/divider" />
 
-            <!-- Progress Bar for Web Loading -->
+            <!-- Progress Bar -->
             <ProgressBar
                 android:id="@+id/progressBarGame"
                 style="?android:attr/progressBarStyleHorizontal"
