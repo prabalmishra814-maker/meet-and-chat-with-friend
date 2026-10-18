@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Fruit Jackpot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Particle Canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Main Game Container -->
+    <div class="game-container">
+        <!-- Header Section -->
+        <header class="game-header">
+            <div class="header-title">
+                <span class="header-title-sparkle">✦</span>
+                <span>Lucky Fruit</span>
+                <span class="header-title-sparkle">✦</span>
+            </div>
+            <div class="header-sub" id="roundCounter">Round 8 of today</div>
+            <button class="menu-btn" id="menuBtn" aria-label="Menu">
+                <span class="menu-grid-icon">❖</span>
+            </button>
+        </header>
+
+        <!-- Jackpot Cabinet Header -->
+        <section class="jackpot-section">
+            <div class="jackpot-header-row">
+                <img src="assets/jackpot_title.svg" alt="JACKPOT" class="jackpot-title-img">
+                <div class="time-limited-badge">
+                    <span class="badge-text">time-limited</span>
+                    <span class="badge-icon">⏰</span>
+                </div>
+            </div>
+
+            <div class="jackpot-display-wrapper">
+                <div class="coin-stack coin-stack-left"><img class="coin-img-icon large-coin" src="assets/gold_coin.svg" alt="Coin"></div>
+                <div class="jackpot-counter-box">
+                    <span id="jackpotValue">20,232,558</span>
+                </div>
+                <div class="coin-stack coin-stack-right"><img class="coin-img-icon large-coin" src="assets/gold_coin.svg" alt="Coin"></div>
+            </div>
+        </section>
+
+        <!-- Announcement Marquee -->
+        <div class="marquee-wrapper">
+            <div class="marquee-content" id="marqueeText">
+                <span class="winner-highlight">shahid</span> for winning the jackpot grand prize of <span class="prize-highlight">10,000,000</span> gold! 🎉
+            </div>
+        </div>
+
+        <!-- Main Arcade Cabinet -->
+        <main class="arcade-cabinet">
+            <!-- Cabinet Border Frame with LEDs -->
+            <div class="cabinet-frame">
+                <div class="led-lights-container" id="ledContainer">
+                    <!-- LED bulbs generated dynamically -->
+                </div>
+
+                <!-- 3x3 Fruit Game Board -->
+                <div class="fruit-grid" id="fruitGrid">
+                    <!-- Tile 0: Orange -->
+                    <div class="tile fruit-tile" data-index="0" data-fruit="orange">
+                        <div class="bet-badge hidden" id="badge-0">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_orange.svg" alt="Orange"></div>
+                    </div>
+
+                    <!-- Tile 1: Lemon -->
+                    <div class="tile fruit-tile" data-index="1" data-fruit="lemon">
+                        <div class="bet-badge hidden" id="badge-1">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_lemon.svg" alt="Lemon"></div>
+                    </div>
+
+                    <!-- Tile 2: Grapes -->
+                    <div class="tile fruit-tile" data-index="2" data-fruit="grapes">
+                        <div class="bet-badge hidden" id="badge-2">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_grapes.svg" alt="Grapes"></div>
+                    </div>
+
+                    <!-- Tile 3: Cherries -->
+                    <div class="tile fruit-tile" data-index="3" data-fruit="cherries">
+                        <div class="bet-badge hidden" id="badge-3">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_cherries.svg" alt="Cherries"></div>
+                    </div>
+
+                    <!-- Tile 4: Center Display Tile -->
+                    <div class="tile center-tile" id="centerTile">
+                        <div class="center-number" id="centerDisplay">30s</div>
+                    </div>
+
+                    <!-- Tile 5: Green Apple -->
+                    <div class="tile fruit-tile" data-index="5" data-fruit="apple">
+                        <div class="bet-badge hidden" id="badge-5">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_apple.svg" alt="Green Apple"></div>
+                    </div>
+
+                    <!-- Tile 6: Watermelon -->
+                    <div class="tile fruit-tile" data-index="6" data-fruit="watermelon">
+                        <div class="bet-badge hidden" id="badge-6">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_watermelon.svg" alt="Watermelon"></div>
+                    </div>
+
+                    <!-- Tile 7: Mango -->
+                    <div class="tile fruit-tile" data-index="7" data-fruit="mango">
+                        <div class="bet-badge hidden" id="badge-7">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_mango.svg" alt="Mango"></div>
+                    </div>
+
+                    <!-- Tile 8: Strawberry -->
+                    <div class="tile fruit-tile" data-index="8" data-fruit="strawberry">
+                        <div class="bet-badge hidden" id="badge-8">0</div>
+                        <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_strawberry.svg" alt="Strawberry"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantity Selection Section -->
+            <div class="quantity-section">
+                <div class="quantity-title">Select the quantity of golds</div>
+
+                <div class="chip-selector-group">
+                    <button class="chip-btn active" data-amount="1000">
+                        <img class="chip-img-icon" src="assets/chip_1k.svg" alt="1K Chip">
+                    </button>
+                    <button class="chip-btn" data-amount="10000">
+                        <img class="chip-img-icon" src="assets/chip_10k.svg" alt="10K Chip">
+                    </button>
+                    <button class="chip-btn" data-amount="100000">
+                        <img class="chip-img-icon" src="assets/chip_100k.svg" alt="100K Chip">
+                    </button>
+                    <button class="chip-btn" data-amount="500000">
+                        <img class="chip-img-icon" src="assets/chip_500k.svg" alt="500K Chip">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Action Bar -->
+            <div class="action-bar">
+                <button class="btn-secondary" id="clearBetsBtn">Clear Bets</button>
+                <div class="timer-display-box" id="timerBox">
+                    <span class="timer-label">NEXT PREDICTION</span>
+                    <span class="timer-value" id="timerValue">30s</span>
+                </div>
+                <button class="btn-secondary" id="testModeBtn">Test: OFF</button>
+            </div>
+
+            <!-- Bottom Stats Panel -->
+            <div class="stats-panel-row">
+                <div class="stat-card balance-card">
+                    <div class="info-badge">!</div>
+                    <div class="stat-label">Balance</div>
+                    <div class="stat-value">
+                        <span class="coin-icon"><img class="coin-img-icon" src="assets/gold_coin.svg" alt="Coin"></span>
+                        <span id="balanceDisplay">35,985</span>
+                        <span class="arrow-symbol">›</span>
+                    </div>
+                </div>
+
+                <div class="stat-card winnings-card">
+                    <div class="stat-label">Today's Winnings</div>
+                    <div class="stat-value">
+                        <span class="coin-icon"><img class="coin-img-icon" src="assets/gold_coin.svg" alt="Coin"></span>
+                        <span id="winningsDisplay">0</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Results Section -->
+        <footer class="results-footer">
+            <span class="results-label">Results:</span>
+            <div class="results-strip" id="resultsStrip">
+                <!-- Loaded dynamically -->
+            </div>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-notification hidden" id="toastNotification">
+        <span id="toastMessage">Not enough gold coins!</span>
+    </div>
+
+    <!-- Win Modal Overlay -->
+    <div class="win-modal-overlay hidden" id="winModal">
+        <div class="win-modal-card">
+            <div class="win-stars">✨ 🌟 ✨</div>
+            <h2 class="win-header">JACKPOT WIN!</h2>
+            <div class="win-fruit-display" id="winFruitIcon">🍋</div>
+            <div class="win-multiplier" id="winMultiplierText">5x Multiplier!</div>
+            <div class="win-amount">+<span id="winAmountText">0</span> Gold</div>
+            <button class="win-close-btn" id="winCloseBtn">CLAIM WIN</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

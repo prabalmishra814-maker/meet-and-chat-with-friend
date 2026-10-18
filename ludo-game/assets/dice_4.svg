@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="dice_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#ECEFF1"/>
+      <stop offset="100%" stop-color="#CFD8DC"/>
+    </linearGradient>
+    <radialGradient id="pip_black" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#424242"/>
+      <stop offset="100%" stop-color="#212121"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <rect x="8" y="8" width="84" height="84" rx="20" fill="url(#dice_bg)" filter="url(#shadow)" stroke="#FFF" stroke-width="2"/>
+  <rect x="12" y="12" width="76" height="76" rx="16" fill="none" stroke="#B0BEC5" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="28" cy="28" r="8.5" fill="url(#pip_black)"/>
+  <circle cx="72" cy="28" r="8.5" fill="url(#pip_black)"/>
+  <circle cx="28" cy="72" r="8.5" fill="url(#pip_black)"/>
+  <circle cx="72" cy="72" r="8.5" fill="url(#pip_black)"/>
+</svg>

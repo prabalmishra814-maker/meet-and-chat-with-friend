@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GreedyPro Fruit & Food Game</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Root Scoped Container -->
+  <div class="greedy-game">
+    <!-- Main Game Viewport Card -->
+    <div class="game-viewport">
+
+      <!-- Top Header -->
+      <header class="game-header">
+        <button id="music-btn" class="music-btn" aria-label="Toggle Sound">
+          <img src="assets/icon_music.svg" alt="Sound Toggle" id="music-icon-img">
+        </button>
+
+        <button id="menu-btn" class="menu-btn" aria-label="Menu">
+          <img src="assets/icon_menu.svg" alt="Menu">
+        </button>
+
+        <div class="jackpot-area">
+          <img src="assets/jackpot_gold.svg" class="jackpot-title" alt="JACKPOT">
+          <div class="jackpot-counter-box">
+            <span id="jackpot-num" class="jackpot-text">21,417,758</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Glowing Game Frame -->
+      <main class="game-board-frame">
+        <!-- Connecting Track Lines -->
+        <svg class="track-svg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="37" fill="none" stroke="#a855f7" stroke-width="0.8" stroke-dasharray="2,1.5" opacity="0.65"/>
+          <line x1="50" y1="32" x2="50" y2="13" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="50" y1="68" x2="50" y2="87" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="32" y1="50" x2="13" y2="50" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="68" y1="50" x2="87" y2="50" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="37" y1="37" x2="24" y2="24" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="63" y1="37" x2="76" y2="24" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="37" y1="63" x2="24" y2="76" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+          <line x1="63" y1="63" x2="76" y2="76" stroke="#a855f7" stroke-width="0.5" opacity="0.4"/>
+        </svg>
+
+        <!-- 8 Outer Food Bubbles -->
+        <div id="bubbles-container" class="bubbles-container">
+          <!-- Top: Tomato x5 -->
+          <div class="food-bubble pos-top" data-food="tomato" data-mult="5">
+            <div class="bubble-orb">
+              <img src="assets/food_tomato.svg" alt="Tomato">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x5</div>
+          </div>
+
+          <!-- Top-Right: Cabbage x5 -->
+          <div class="food-bubble pos-top-right" data-food="cabbage" data-mult="5">
+            <div class="bubble-orb">
+              <img src="assets/food_cabbage.svg" alt="Cabbage">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x5</div>
+          </div>
+
+          <!-- Right: Corn x5 -->
+          <div class="food-bubble pos-right" data-food="corn" data-mult="5">
+            <div class="bubble-orb">
+              <img src="assets/food_corn.svg" alt="Corn">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x5</div>
+          </div>
+
+          <!-- Bottom-Right: Carrot x5 -->
+          <div class="food-bubble pos-bottom-right" data-food="carrot" data-mult="5">
+            <div class="bubble-orb">
+              <img src="assets/food_carrot.svg" alt="Carrot">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x5</div>
+          </div>
+
+          <!-- Bottom: Hotdog x10 -->
+          <div class="food-bubble pos-bottom" data-food="hotdog" data-mult="10">
+            <div class="bubble-orb">
+              <img src="assets/food_hotdog.svg" alt="Hotdog">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x10</div>
+          </div>
+
+          <!-- Bottom-Left: Skewer x15 -->
+          <div class="food-bubble pos-bottom-left" data-food="skewer" data-mult="15">
+            <div class="bubble-orb">
+              <img src="assets/food_skewer.svg" alt="Skewer">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x15</div>
+          </div>
+
+          <!-- Left: Ham x25 -->
+          <div class="food-bubble pos-left" data-food="ham" data-mult="25">
+            <div class="bubble-orb">
+              <img src="assets/food_ham.svg" alt="Ham">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x25</div>
+          </div>
+
+          <!-- Top-Left: Steak x45 -->
+          <div class="food-bubble pos-top-left" data-food="steak" data-mult="45">
+            <div class="bubble-orb">
+              <img src="assets/food_steak.svg" alt="Steak">
+              <div class="bet-badge">0</div>
+            </div>
+            <div class="multiplier-base">x45</div>
+          </div>
+        </div>
+
+        <!-- Center GreedyPro Character & Timer Hub -->
+        <div class="center-hub">
+          <div class="chef-glow-ring"></div>
+          <img src="assets/chef_greedypro.svg" class="chef-avatar" alt="GreedyPro Chef">
+          <div class="select-time-label">Select Time</div>
+          <div id="timer-display" class="timer-oval">28s</div>
+        </div>
+      </main>
+
+      <!-- Instruction Bar -->
+      <div class="instruction-bar">
+        <span>Choose the amount &rarr; Choose food</span>
+      </div>
+
+      <!-- Coin Chips Selection Row -->
+      <section class="chips-row">
+        <button class="chip-btn active" data-amount="1000">
+          <img src="assets/chip_1k.svg" alt="1K Chip">
+        </button>
+        <button class="chip-btn" data-amount="10000">
+          <img src="assets/chip_10k.svg" alt="10K Chip">
+        </button>
+        <button class="chip-btn" data-amount="100000">
+          <img src="assets/chip_100k.svg" alt="100K Chip">
+        </button>
+        <button class="chip-btn" data-amount="500000">
+          <img src="assets/chip_500k.svg" alt="500K Chip">
+        </button>
+        <button class="chip-btn" data-amount="1000000">
+          <img src="assets/chip_1m.svg" alt="1M Chip">
+        </button>
+      </section>
+
+      <!-- Balance & Today's Winnings Status Bar -->
+      <section class="status-bar">
+        <div class="status-box balance-box">
+          <img src="assets/icon_info.svg" class="info-icon" id="info-btn" alt="Info">
+          <div class="status-content">
+            <div class="status-title">Remaining coins</div>
+            <div id="balance-num" class="status-val">36,871</div>
+          </div>
+          <button id="add-coins-btn" class="plus-btn" aria-label="Add Coins">
+            <img src="assets/icon_plus.svg" alt="Plus">
+          </button>
+        </div>
+
+        <div class="status-box winnings-box">
+          <div class="status-content">
+            <div class="status-title">I won today</div>
+            <div id="winnings-num" class="status-val">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Result Strip -->
+      <footer class="result-footer">
+        <div class="result-label">Result</div>
+        <div id="result-history" class="result-history">
+          <!-- Populated dynamically via script.js -->
+        </div>
+      </footer>
+
+      <!-- Toast Notification Message -->
+      <div id="toast-msg" class="toast-msg hidden"></div>
+
+    </div> <!-- End .game-viewport -->
+
+    <!-- Menu & Settings Modal -->
+    <div id="menu-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Game Settings & Rules</h2>
+          <button id="close-menu-btn" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-item">
+            <span>Sound Effects:</span>
+            <button id="sound-toggle-btn" class="action-btn">🔊 ON</button>
+          </div>
+
+          <div class="rules-section">
+            <h3>Multiplier Payouts</h3>
+            <div class="payout-grid">
+              <div><img src="assets/food_tomato.svg"> Tomato: <strong>x5</strong></div>
+              <div><img src="assets/food_cabbage.svg"> Cabbage: <strong>x5</strong></div>
+              <div><img src="assets/food_corn.svg"> Corn: <strong>x5</strong></div>
+              <div><img src="assets/food_carrot.svg"> Carrot: <strong>x5</strong></div>
+              <div><img src="assets/food_hotdog.svg"> Hotdog: <strong>x10</strong></div>
+              <div><img src="assets/food_skewer.svg"> Skewer: <strong>x15</strong></div>
+              <div><img src="assets/food_ham.svg"> Ham: <strong>x25</strong></div>
+              <div><img src="assets/food_steak.svg"> Steak: <strong>x45</strong></div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button id="modal-add-coins" class="action-btn gold-btn">+ Add 50,000 Coins</button>
+            <button id="reset-game-btn" class="action-btn danger-btn">Reset Game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Add Coins Modal -->
+    <div id="coins-modal" class="modal-overlay hidden">
+      <div class="modal-card mini-card">
+        <h2>Free Coins Bank!</h2>
+        <p>Out of coins? Collect free virtual coins to keep playing!</p>
+        <button id="claim-coins-btn" class="action-btn gold-btn large-btn">+ 100,000 COINS</button>
+        <button id="close-coins-btn" class="modal-close-text">Cancel</button>
+      </div>
+    </div>
+
+  </div> <!-- End .greedy-game -->
+
+  <script src="script.js"></script>
+</body>
+</html>

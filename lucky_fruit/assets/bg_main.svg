@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200" width="800" height="1200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Deep Royal Purple & Dark Plum Vignette Gradient -->
+    <radialGradient id="bgBase" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#321054"/>
+      <stop offset="35%" stop-color="#1e0736"/>
+      <stop offset="70%" stop-color="#0e021c"/>
+      <stop offset="100%" stop-color="#05000a"/>
+    </radialGradient>
+
+    <!-- Golden & Purple Ambient Spotlight Glow -->
+    <radialGradient id="goldSpotlight" cx="50%" cy="28%" r="55%">
+      <stop offset="0%" stop-color="#ffd700" stop-opacity="0.22"/>
+      <stop offset="40%" stop-color="#ba55d3" stop-opacity="0.15"/>
+      <stop offset="85%" stop-color="#4b0082" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Golden Light Rays Pattern -->
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#ba55d3" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Diamond Pattern Overlay -->
+    <pattern id="diamondPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 40 20 L 20 40 L 0 20 Z" fill="none" stroke="#ffd700" stroke-width="0.75" opacity="0.08"/>
+      <circle cx="20" cy="20" r="1.5" fill="#e0b0ff" opacity="0.15"/>
+    </pattern>
+
+    <!-- Bottom Deep Shadow -->
+    <linearGradient id="bottomShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base Royal Purple Fill -->
+  <rect width="800" height="1200" fill="url(#bgBase)"/>
+
+  <!-- Diamond Geometric Texture -->
+  <rect width="800" height="1200" fill="url(#diamondPattern)"/>
+
+  <!-- Sunburst Light Rays -->
+  <g fill="url(#rayGrad)">
+    <polygon points="400,280 0,0 100,0"/>
+    <polygon points="400,280 250,0 380,0"/>
+    <polygon points="400,280 520,0 650,0"/>
+    <polygon points="400,280 750,0 800,50"/>
+    <polygon points="400,280 800,200 800,350"/>
+    <polygon points="400,280 800,500 800,650"/>
+    <polygon points="400,280 800,800 800,950"/>
+    <polygon points="400,280 650,1200 500,1200"/>
+    <polygon points="400,280 350,1200 200,1200"/>
+    <polygon points="400,280 0,950 0,800"/>
+    <polygon points="400,280 0,650 0,500"/>
+    <polygon points="400,280 0,350 0,200"/>
+  </g>
+
+  <!-- Top Center Glow -->
+  <circle cx="400" cy="280" r="480" fill="url(#goldSpotlight)"/>
+
+  <!-- Glowing Stars & Gold Dust -->
+  <g fill="#ffee77" opacity="0.65">
+    <circle cx="120" cy="180" r="2.2"/>
+    <circle cx="280" cy="240" r="1.8"/>
+    <circle cx="450" cy="120" r="2.8"/>
+    <circle cx="680" cy="210" r="2"/>
+    <circle cx="150" cy="450" r="2.5"/>
+    <circle cx="720" cy="520" r="1.8"/>
+    <circle cx="340" cy="680" r="2.8"/>
+    <circle cx="580" cy="720" r="2"/>
+    <circle cx="220" cy="890" r="2.2"/>
+    <circle cx="650" cy="940" r="2.6"/>
+  </g>
+
+  <!-- Vignette Bottom Shadow -->
+  <rect width="800" height="1200" fill="url(#bottomShadow)"/>
+</svg>

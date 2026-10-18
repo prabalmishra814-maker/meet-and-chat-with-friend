@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- Cabinet Radial Dark Plum Texture -->
+    <radialGradient id="cabBase" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#2d0c4d"/>
+      <stop offset="55%" stop-color="#18042b"/>
+      <stop offset="100%" stop-color="#0b0114"/>
+    </radialGradient>
+
+    <!-- Metallic Gold Bevel Border Gradient -->
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffea88"/>
+      <stop offset="30%" stop-color="#ffd700"/>
+      <stop offset="65%" stop-color="#d49a24"/>
+      <stop offset="85%" stop-color="#8a5a00"/>
+      <stop offset="100%" stop-color="#f2c852"/>
+    </linearGradient>
+
+    <!-- Subtle Cabinet Grid Overlay -->
+    <pattern id="cabGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="none" stroke="#ba55d3" stroke-width="0.5" opacity="0.08"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="400" height="400" rx="24" fill="url(#cabBase)"/>
+  <rect width="400" height="400" rx="24" fill="url(#cabGrid)"/>
+
+  <!-- Outer Metallic Gold Beveled Frame Rim -->
+  <rect x="3" y="3" width="394" height="394" rx="22" stroke="url(#goldBorder)" stroke-width="5" fill="none"/>
+  <rect x="8" y="8" width="384" height="384" rx="18" stroke="#000000" stroke-width="2" fill="none" opacity="0.85"/>
+
+  <!-- Corner Filigree Accents -->
+  <path d="M 20 40 L 40 20 L 55 20 L 20 55 Z" fill="#ffd700" opacity="0.35"/>
+  <path d="M 380 40 L 360 20 L 345 20 L 380 55 Z" fill="#ffd700" opacity="0.35"/>
+  <path d="M 20 360 L 40 380 L 55 380 L 20 345 Z" fill="#ffd700" opacity="0.35"/>
+  <path d="M 380 360 L 360 380 L 345 380 L 380 345 Z" fill="#ffd700" opacity="0.35"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="bg_10K" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff6666" />
+      <stop offset="60%" stop-color="#d32f2f" />
+      <stop offset="100%" stop-color="#5d0000" />
+    </radialGradient>
+    <filter id="shadow_10K" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <!-- Outer Glow & Ring -->
+  <circle cx="50" cy="50" r="47" fill="#ef9a9a" filter="url(#shadow_10K)" stroke="#FFE66D" stroke-width="2"/>
+  <circle cx="50" cy="50" r="44" fill="#5d0000"/>
+  <!-- Casino Dashed Outer Rim -->
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-dasharray="10 9" opacity="0.9"/>
+  <!-- Inner Ring & Surface -->
+  <circle cx="50" cy="50" r="33" fill="url(#bg_10K)" stroke="#FFD700" stroke-width="2"/>
+  <circle cx="50" cy="50" r="25" fill="#d32f2f" opacity="0.95"/>
+  <!-- Center Text -->
+  <text x="50" y="55" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="20" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" filter="drop-shadow(0px 2px 2px rgba(0,0,0,0.9))">10K</text>
+</svg>

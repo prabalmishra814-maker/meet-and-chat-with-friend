@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="steakGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ff7b7b"/>
+      <stop offset="40%" stop-color="#b91c1c"/>
+      <stop offset="85%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </radialGradient>
+    <filter id="steakDrop">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <ellipse cx="50" cy="85" rx="34" ry="8" fill="#000" opacity="0.25"/>
+  <g transform="rotate(-10 50 50)" filter="url(#steakDrop)">
+    <path d="M 20 40 C 20 25 45 18 70 28 C 85 35 88 60 75 75 C 55 85 30 75 20 62 C 15 52 18 45 20 40 Z" fill="url(#steakGrad)"/>
+    <path d="M 20 40 C 20 25 45 18 70 28 Q 78 32 82 42" fill="none" stroke="#fef08a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 32 38 Q 45 48 62 42 M 35 52 Q 52 62 70 56 M 28 58 Q 42 66 55 64" fill="none" stroke="#fecaca" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 25 42 Q 35 50 28 62" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+</svg>

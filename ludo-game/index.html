@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>4v4 Ludo King</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="ludo-game">
+    <div class="game-viewport">
+
+      <!-- Compact Header -->
+      <header class="game-header">
+        <div class="header-title-box">
+          <span class="ludo-logo-text">4v4 LUDO KING</span>
+        </div>
+        <div class="header-actions">
+          <button id="btn-rules" class="icon-btn" title="Rules">
+            <img src="assets/icon_info.svg" alt="Rules">
+          </button>
+          <button id="btn-sound" class="icon-btn" title="Sound Toggle">
+            <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
+          </button>
+          <button id="btn-settings" class="icon-btn" title="Settings">
+            <img src="assets/icon_settings.svg" alt="Settings">
+          </button>
+        </div>
+      </header>
+
+      <!-- Active Player Turn Banner -->
+      <div id="turn-banner" class="turn-banner turn-red">
+        <div class="turn-indicator-dot"></div>
+        <span id="turn-text">RED'S TURN</span>
+        <span id="extra-roll-badge" class="extra-roll-badge hidden">EXTRA ROLL!</span>
+      </div>
+
+      <!-- Main Board Container -->
+      <div class="board-wrapper">
+        <div id="ludo-board" class="ludo-board">
+          <!-- Board Grid & SVG Elements will be rendered dynamically by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Dice & Player Control Hub -->
+      <div class="control-hub">
+        <div class="dice-section">
+          <div id="dice-box" class="dice-box" title="Tap to Roll">
+            <div id="dice-3d" class="dice-3d show-1">
+              <div class="dice-face face-1"><img src="assets/dice_1.svg" alt="1"></div>
+              <div class="dice-face face-2"><img src="assets/dice_2.svg" alt="2"></div>
+              <div class="dice-face face-3"><img src="assets/dice_3.svg" alt="3"></div>
+              <div class="dice-face face-4"><img src="assets/dice_4.svg" alt="4"></div>
+              <div class="dice-face face-5"><img src="assets/dice_5.svg" alt="5"></div>
+              <div class="dice-face face-6"><img src="assets/dice_6.svg" alt="6"></div>
+            </div>
+          </div>
+
+          <div class="dice-controls">
+            <button id="btn-roll" class="roll-btn">ROLL DICE</button>
+            <div id="status-message" class="status-message">Tap ROLL or the Dice</div>
+          </div>
+        </div>
+
+        <!-- Dev / Test Mode Force Roll Selector (Visible when Test Mode enabled) -->
+        <div id="dev-test-panel" class="dev-test-panel hidden">
+          <span class="dev-label">DEV TEST MODE (Force Dice):</span>
+          <div class="dev-btns">
+            <button class="dev-dice-btn" data-val="1">1</button>
+            <button class="dev-dice-btn" data-val="2">2</button>
+            <button class="dev-dice-btn" data-val="3">3</button>
+            <button class="dev-dice-btn" data-val="4">4</button>
+            <button class="dev-dice-btn" data-val="5">5</button>
+            <button class="dev-dice-btn" data-val="6">6</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Player Score / Progress Cards -->
+      <div class="players-bar">
+        <div id="card-red" class="player-card active red">
+          <div class="p-header">
+            <span class="p-dot"></span>
+            <span class="p-name">RED</span>
+            <span class="p-type-badge">P1</span>
+          </div>
+          <div class="p-progress">
+            <span class="p-home-count">0/4 Home</span>
+          </div>
+        </div>
+
+        <div id="card-green" class="player-card green">
+          <div class="p-header">
+            <span class="p-dot"></span>
+            <span class="p-name">GREEN</span>
+            <span class="p-type-badge">BOT</span>
+          </div>
+          <div class="p-progress">
+            <span class="p-home-count">0/4 Home</span>
+          </div>
+        </div>
+
+        <div id="card-yellow" class="player-card yellow">
+          <div class="p-header">
+            <span class="p-dot"></span>
+            <span class="p-name">YELLOW</span>
+            <span class="p-type-badge">BOT</span>
+          </div>
+          <div class="p-progress">
+            <span class="p-home-count">0/4 Home</span>
+          </div>
+        </div>
+
+        <div id="card-blue" class="player-card blue">
+          <div class="p-header">
+            <span class="p-dot"></span>
+            <span class="p-name">BLUE</span>
+            <span class="p-type-badge">BOT</span>
+          </div>
+          <div class="p-progress">
+            <span class="p-home-count">0/4 Home</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Overlay -->
+      <div id="toast-message" class="toast-message hidden"></div>
+
+      <!-- Settings Modal -->
+      <div id="modal-settings" class="modal-overlay hidden">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h2>Game Settings</h2>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="setting-item">
+              <label for="select-game-mode">Game Mode:</label>
+              <select id="select-game-mode" class="custom-select">
+                <option value="vs_ai">1 Player vs 3 AI Bots</option>
+                <option value="pass_play">4 Players (Pass & Play)</option>
+                <option value="2_vs_2">2 Players + 2 AI Bots</option>
+              </select>
+            </div>
+
+            <div class="setting-item checkbox-item">
+              <label for="check-dev-mode">Enable Dev Test Mode (Force Roll):</label>
+              <input type="checkbox" id="check-dev-mode">
+            </div>
+
+            <div class="setting-item checkbox-item">
+              <label for="check-auto-move">Auto-move if only 1 choice:</label>
+              <input type="checkbox" id="check-auto-move" checked>
+            </div>
+
+            <div class="modal-actions">
+              <button id="btn-restart-game" class="action-btn gold-btn">Restart Game</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules Modal -->
+      <div id="modal-rules" class="modal-overlay hidden">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h2>Ludo Rules</h2>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body rules-text">
+            <ul>
+              <li><strong>Starting:</strong> Roll a <strong>6</strong> to release a token from your Home Yard onto the starting square.</li>
+              <li><strong>Movement:</strong> Roll the dice to move active tokens clockwise around the board.</li>
+              <li><strong>Capturing:</strong> Landing on an opponent's token sends it back to their Yard! (Except on Safe / Star squares).</li>
+              <li><strong>Safe Squares:</strong> Starting tiles and Star tiles are safe from capture.</li>
+              <li><strong>Extra Turns:</strong> Rolling a 6, capturing an opponent, or bringing a token to the Finish grants an extra roll.</li>
+              <li><strong>Winning:</strong> The first team to get all 4 tokens into the central Finish area wins!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Victory / GameOver Modal -->
+      <div id="modal-winner" class="modal-overlay hidden">
+        <div class="modal-card winner-card">
+          <img src="assets/trophy_center.svg" class="winner-trophy" alt="Trophy">
+          <h2 id="winner-title">VICTORY!</h2>
+          <div id="winner-desc" class="winner-desc">Red Team Has Won The Game!</div>
+          <div id="leaderboard-list" class="leaderboard-list">
+            <!-- Ranks listed here -->
+          </div>
+          <div class="modal-actions">
+            <button id="btn-play-again" class="action-btn gold-btn large-btn">PLAY AGAIN</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -45,16 +45,16 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- LOGIN SCREEN (Shown if auth == null) -->
+    <!-- LOGIN / REGISTER SCREEN (Shown if auth == null) -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 px-4">
         <div class="glass-card w-full max-w-md p-8 rounded-2xl shadow-2xl border border-slate-800 text-center">
             <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
                 <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
             </div>
             <h2 class="text-2xl font-bold text-white mb-2">Room Chat Admin Panel</h2>
-            <p class="text-sm text-slate-400 mb-6">Sign in with Firebase Admin Credentials to access system control</p>
+            <p id="login-subtitle" class="text-sm text-slate-400 mb-6">Sign in with Firebase Admin Credentials to access system control</p>
 
-            <div id="login-error" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs text-left"></div>
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs text-left leading-relaxed"></div>
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -75,6 +75,12 @@
                     Sign In as Admin
                 </button>
             </form>
+
+            <div class="mt-4 pt-4 border-t border-slate-800 text-center">
+                <button type="button" onclick="toggleAuthMode()" id="toggle-auth-btn" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition">
+                    Need to create an Admin account? Click here to Register
+                </button>
+            </div>
         </div>
     </div>
 
@@ -698,11 +704,33 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        let isRegisterMode = false;
         let rawUsersData = {};
         let rawAgenciesData = {};
         let rawWithdrawalsData = {};
         let selectedAgencyUid = null;
         let currentAgencyFilter = 'all';
+
+        // Toggle Auth Mode (Sign In vs Register Admin Account)
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            const btn = document.getElementById('login-btn');
+            const toggleBtn = document.getElementById('toggle-auth-btn');
+            const subtitle = document.getElementById('login-subtitle');
+            const errorDiv = document.getElementById('login-error');
+
+            errorDiv.classList.add('hidden');
+
+            if (isRegisterMode) {
+                btn.innerText = "Register & Sign In as Admin";
+                toggleBtn.innerText = "Already registered? Click here to Sign In";
+                subtitle.innerText = "Create new Admin credentials directly in Firebase Authentication";
+            } else {
+                btn.innerText = "Sign In as Admin";
+                toggleBtn.innerText = "Need to create an Admin account? Click here to Register";
+                subtitle.innerText = "Sign in with Firebase Admin Credentials to access system control";
+            }
+        }
 
         // 2. Auth State Observer
         auth.onAuthStateChanged(user => {
@@ -722,29 +750,47 @@
             }
         });
 
-        // 3. Login Handler
+        // 3. Login / Register Handler
         function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
             const errorDiv = document.getElementById('login-error');
             const btn = document.getElementById('login-btn');
 
             btn.disabled = true;
-            btn.innerText = "Authenticating...";
+            btn.innerText = isRegisterMode ? "Registering Admin..." : "Authenticating...";
             errorDiv.classList.add('hidden');
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    btn.disabled = false;
-                    btn.innerText = "Sign In as Admin";
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.innerText = "Sign In as Admin";
-                    errorDiv.innerText = err.message;
-                    errorDiv.classList.remove('hidden');
-                });
+            if (isRegisterMode) {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(() => {
+                        btn.disabled = false;
+                        btn.innerText = "Register & Sign In as Admin";
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerText = "Register & Sign In as Admin";
+                        errorDiv.innerHTML = `<strong>Registration Error:</strong> ${err.message}`;
+                        errorDiv.classList.remove('hidden');
+                    });
+            } else {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        btn.disabled = false;
+                        btn.innerText = "Sign In as Admin";
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerText = "Sign In as Admin";
+                        if (err.code === 'auth/invalid-login-credentials' || err.code === 'auth/user-not-found') {
+                            errorDiv.innerHTML = `<strong>Account Not Found or Invalid Password.</strong><br>If you haven't created this admin account in Firebase yet, click <button type="button" onclick="toggleAuthMode()" class="underline font-bold text-indigo-300">"Click here to Register"</button> below to create it!`;
+                        } else {
+                            errorDiv.innerText = err.message;
+                        }
+                        errorDiv.classList.remove('hidden');
+                    });
+            }
         }
 
         // 4. Logout Handler
@@ -1109,24 +1155,20 @@
         function approveAgencyWithdrawal(wId, ownerUid, amount, method) {
             if (!confirm(`Confirm payout approval of $${amount} via ${method} for Agency Owner ${ownerUid}?`)) return;
 
-            // 1. Update global agency_withdrawals
             db.ref(`agency_withdrawals/${wId}`).update({
                 status: 'APPROVED',
                 adminNote: `Payout of $${amount} processed successfully via ${method}`
             });
 
-            // 2. Update user's agency withdrawals node
             if (ownerUid) {
                 db.ref(`agencies/${ownerUid}/withdrawals/${wId}`).update({
                     status: 'APPROVED',
                     adminNote: `Payout processed via ${method}`
                 });
 
-                // Update wallet balances
                 db.ref(`agencies/${ownerUid}/wallet/pendingWithdrawalUsd`).transaction(curr => Math.max(0, (curr || 0) - amount));
                 db.ref(`agencies/${ownerUid}/wallet/withdrawnBalanceUsd`).transaction(curr => (curr || 0) + amount);
 
-                // Send notification
                 db.ref(`notifications/${ownerUid}`).push({
                     title: "Payout Disbursed! 💸",
                     message: `Your withdrawal request of $${amount.toFixed(2)} via ${method} has been approved and processed!`,
@@ -1140,7 +1182,6 @@
         function rejectAgencyWithdrawal(wId, ownerUid, amount) {
             const reason = prompt("Enter rejection reason for agency owner:") || "Account details invalid";
 
-            // 1. Update global agency_withdrawals
             db.ref(`agency_withdrawals/${wId}`).update({
                 status: 'REJECTED',
                 adminNote: reason
@@ -1152,11 +1193,9 @@
                     adminNote: reason
                 });
 
-                // Refund funds back to available balance
                 db.ref(`agencies/${ownerUid}/wallet/availableBalanceUsd`).transaction(curr => (curr || 0) + amount);
                 db.ref(`agencies/${ownerUid}/wallet/pendingWithdrawalUsd`).transaction(curr => Math.max(0, (curr || 0) - amount));
 
-                // Send notification
                 db.ref(`notifications/${ownerUid}`).push({
                     title: "Withdrawal Request Rejected",
                     message: `Your withdrawal request of $${amount.toFixed(2)} was rejected. Reason: ${reason}. Funds have been refunded to your wallet.`,

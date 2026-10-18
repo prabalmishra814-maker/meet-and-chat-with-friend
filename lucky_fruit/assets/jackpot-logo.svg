@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120" width="500" height="120">
+  <defs>
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF0"/>
+      <stop offset="25%" stop-color="#FFEE55"/>
+      <stop offset="50%" stop-color="#FFB300"/>
+      <stop offset="75%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#FFE082"/>
+    </linearGradient>
+    <filter id="jackpotGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#FFD700" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#FF6F00" flood-opacity="0.9"/>
+    </filter>
+  </defs>
+
+  <!-- Side Gold Coin Piles -->
+  <!-- Left Coins -->
+  <g transform="translate(40, 50)">
+    <circle cx="0" cy="10" r="22" fill="#FFB300" stroke="#FFF" stroke-width="2"/>
+    <circle cx="-15" cy="18" r="20" fill="#FFA000" stroke="#FFF" stroke-width="2"/>
+    <circle cx="15" cy="18" r="20" fill="#FFC107" stroke="#FFF" stroke-width="2"/>
+    <circle cx="0" cy="25" r="18" fill="#FFD54F" stroke="#FFF" stroke-width="2"/>
+  </g>
+
+  <!-- Right Coins -->
+  <g transform="translate(460, 50)">
+    <circle cx="0" cy="10" r="22" fill="#FFB300" stroke="#FFF" stroke-width="2"/>
+    <circle cx="15" cy="18" r="20" fill="#FFA000" stroke="#FFF" stroke-width="2"/>
+    <circle cx="-15" cy="18" r="20" fill="#FFC107" stroke="#FFF" stroke-width="2"/>
+    <circle cx="0" cy="25" r="18" fill="#FFD54F" stroke="#FFF" stroke-width="2"/>
+  </g>
+
+  <!-- JACKPOT Main Text -->
+  <text x="250" y="65" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="64" fill="url(#goldText)" text-anchor="middle" filter="url(#jackpotGlow)" stroke="#5D4037" stroke-width="3" letter-spacing="4">JACKPOT</text>
+</svg>

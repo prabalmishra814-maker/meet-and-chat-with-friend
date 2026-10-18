@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+
+    <radialGradient id="pulpGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ff6680"/>
+      <stop offset="30%" stop-color="#ff1a40"/>
+      <stop offset="75%" stop-color="#cc0022"/>
+      <stop offset="100%" stop-color="#800015"/>
+    </radialGradient>
+
+    <linearGradient id="rindOuter" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#145214"/>
+      <stop offset="50%" stop-color="#2eb82e"/>
+      <stop offset="100%" stop-color="#0f3d0f"/>
+    </linearGradient>
+
+    <linearGradient id="rindInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e6ffe6"/>
+      <stop offset="100%" stop-color="#b3ffb3"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <g transform="rotate(-15 60 60)">
+      <!-- Outer Green Rind Arc -->
+      <path d="M 12 50 C 20 95, 100 95, 108 50 C 98 102, 22 102, 12 50 Z" fill="url(#rindOuter)"/>
+
+      <!-- Inner White Rind Layer -->
+      <path d="M 16 52 C 24 90, 96 90, 104 52 C 98 96, 22 96, 16 52 Z" fill="url(#rindInner)"/>
+
+      <!-- Red Juicy Pulp Triangle Slice -->
+      <path d="M 60 18 L 102 54 C 94 88, 26 88, 18 54 Z" fill="url(#pulpGrad)"/>
+
+      <!-- Black Seeds -->
+      <!-- Top seed -->
+      <ellipse cx="60" cy="42" rx="2" ry="4" transform="rotate(10 60 42)" fill="#1a0005"/>
+      <circle cx="59.5" cy="41" r="0.8" fill="#fff" opacity="0.6"/>
+
+      <!-- Left seed -->
+      <ellipse cx="42" cy="58" rx="2" ry="4" transform="rotate(-20 42 58)" fill="#1a0005"/>
+      <circle cx="41.5" cy="57" r="0.8" fill="#fff" opacity="0.6"/>
+
+      <!-- Right seed -->
+      <ellipse cx="78" cy="58" rx="2" ry="4" transform="rotate(20 78 58)" fill="#1a0005"/>
+      <circle cx="77.5" cy="57" r="0.8" fill="#fff" opacity="0.6"/>
+
+      <!-- Bottom middle seed -->
+      <ellipse cx="60" cy="68" rx="2" ry="4" transform="rotate(-5 60 68)" fill="#1a0005"/>
+      <circle cx="59.5" cy="67" r="0.8" fill="#fff" opacity="0.6"/>
+
+      <!-- Pulp Sheen Highlight -->
+      <path d="M 60 22 L 80 42 C 72 40, 64 36, 60 22 Z" fill="#ffffff" opacity="0.3"/>
+    </g>
+  </g>
+</svg>

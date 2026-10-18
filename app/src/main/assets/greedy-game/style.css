@@ -1,0 +1,791 @@
+/* ==========================================================================
+   GreedyPro Fruit & Food Game Stylesheet
+   Strictly Scoped under .greedy-game container
+   Responsive Layout & Aspect Ratio Management
+   ========================================================================== */
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #0a0014;
+}
+
+/* Root Variables scoped to .greedy-game */
+.greedy-game {
+  --bg-dark: #0a0014;
+  --purple-main: #2a084c;
+  --purple-glow: #a855f7;
+  --pink-glow: #ff2a85;
+  --gold-main: #ffd700;
+  --gold-dark: #d48806;
+  --blue-glow: #00f0ff;
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Fredoka', 'Impact', sans-serif;
+
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  box-sizing: border-box;
+  font-family: var(--font-main);
+  color: #ffffff;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+/* Ensure all internal elements use border-box */
+.greedy-game * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Game Viewport Card (Portrait Phone Frame) */
+.greedy-game .game-viewport {
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  max-height: 100%;
+  background: url('assets/bg_game.svg') center/cover no-repeat, var(--purple-main);
+  border-radius: 18px;
+  border: 2.5px solid #a855f7;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   1. Header Area
+   -------------------------------------------------------------------------- */
+.greedy-game .game-header {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.greedy-game .music-btn {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+  z-index: 20;
+}
+
+.greedy-game .music-btn:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 6px #ffd700);
+}
+
+.greedy-game .music-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+
+.greedy-game .music-btn.muted {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.greedy-game .menu-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  z-index: 20;
+}
+
+.greedy-game .menu-btn:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 6px #ffd700);
+}
+
+.greedy-game .menu-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+
+.greedy-game .jackpot-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -2px;
+}
+
+.greedy-game .jackpot-title {
+  width: 195px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.greedy-game .jackpot-counter-box {
+  margin-top: -10px;
+  background: linear-gradient(180deg, #510a7a 0%, #2e004a 100%);
+  border: 2px solid #ffd700;
+  border-radius: 18px;
+  padding: 2px 18px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6), inset 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.greedy-game .jackpot-text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #fff2a1;
+  text-shadow: 0 0 8px #ffb700, 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* --------------------------------------------------------------------------
+   2. Main Game Frame / Wheel & Board
+   -------------------------------------------------------------------------- */
+.greedy-game .game-board-frame {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1 / 1;
+  margin: 2px auto;
+  border-radius: 18px;
+  background: rgba(30, 8, 58, 0.55);
+  border: 2px solid rgba(216, 119, 255, 0.5);
+  backdrop-filter: blur(4px);
+  box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+/* SVG Track Ring */
+.greedy-game .track-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Outer Food Bubbles Container */
+.greedy-game .bubbles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+/* Individual Food Bubble */
+.greedy-game .food-bubble {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 5;
+}
+
+.greedy-game .food-bubble:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+}
+
+.greedy-game .food-bubble.active-spin {
+  transform: translate(-50%, -50%) scale(1.18) !important;
+  z-index: 15;
+}
+
+.greedy-game .food-bubble.winner {
+  animation: winnerPulse 0.6s infinite alternate;
+  z-index: 20;
+}
+
+@keyframes winnerPulse {
+  0% { transform: translate(-50%, -50%) scale(1.15); filter: drop-shadow(0 0 10px #ffd700); }
+  100% { transform: translate(-50%, -50%) scale(1.28); filter: drop-shadow(0 0 22px #ffd700) drop-shadow(0 0 35px #ff0055); }
+}
+
+/* 8 Symmetrical Relative Positions around 1:1 Center (50%, 50%) */
+.greedy-game .pos-top          { top: 12%; left: 50%; transform: translate(-50%, -50%); }
+.greedy-game .pos-top-right    { top: 23%; left: 78%; transform: translate(-50%, -50%); }
+.greedy-game .pos-right        { top: 50%; left: 88%; transform: translate(-50%, -50%); }
+.greedy-game .pos-bottom-right { top: 77%; left: 78%; transform: translate(-50%, -50%); }
+.greedy-game .pos-bottom       { top: 88%; left: 50%; transform: translate(-50%, -50%); }
+.greedy-game .pos-bottom-left  { top: 77%; left: 22%; transform: translate(-50%, -50%); }
+.greedy-game .pos-left         { top: 50%; left: 12%; transform: translate(-50%, -50%); }
+.greedy-game .pos-top-left     { top: 23%; left: 22%; transform: translate(-50%, -50%); }
+
+/* Glass Orb styling - Enlarged 25-35% for Prominent Fruit Visibility */
+.greedy-game .bubble-orb {
+  width: clamp(50px, 14vw, 60px);
+  height: clamp(50px, 14vw, 60px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.45) 0%, rgba(138, 43, 226, 0.35) 50%, rgba(30, 0, 60, 0.85) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 0 10px rgba(255, 255, 255, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.greedy-game .food-bubble.active-spin .bubble-orb,
+.greedy-game .food-bubble.has-bet .bubble-orb {
+  border-color: #ffd700;
+  box-shadow: 0 0 18px #ffd700, inset 0 0 12px #ffd700;
+}
+
+/* Fruit Image inside Bubble - Sharp & Large */
+.greedy-game .bubble-orb img {
+  width: clamp(36px, 10.5vw, 44px);
+  height: clamp(36px, 10.5vw, 44px);
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.45));
+}
+
+/* Multiplier Base Badge */
+.greedy-game .multiplier-base {
+  margin-top: -8px;
+  background: linear-gradient(180deg, #3a86ff 0%, #03045e 100%);
+  border: 1.5px solid #00f0ff;
+  border-radius: 10px;
+  padding: 2px 9px;
+  font-family: var(--font-display);
+  font-size: clamp(10px, 2.8vw, 12px);
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 2px #000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  z-index: 6;
+}
+
+/* Bet Notification Badge */
+.greedy-game .bet-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: linear-gradient(180deg, #ff0055 0%, #990033 100%);
+  border: 1.5px solid #ffffff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 10;
+}
+
+.greedy-game .food-bubble.has-bet .bet-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Center Hub (GreedyPro Chef & Timer) */
+.greedy-game .center-hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(80px, 24vw, 98px);
+  height: clamp(80px, 24vw, 98px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.greedy-game .chef-avatar {
+  width: clamp(65px, 20vw, 82px);
+  height: clamp(65px, 20vw, 82px);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+}
+
+.greedy-game .select-time-label {
+  margin-top: -16px;
+  background: linear-gradient(180deg, #fff5a5 0%, #ffb703 100%);
+  border: 1px solid #7a5200;
+  border-radius: 8px;
+  padding: 1px 8px;
+  font-size: clamp(8px, 2.2vw, 10px);
+  font-weight: 800;
+  color: #3a1c00;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  z-index: 12;
+}
+
+.greedy-game .timer-oval {
+  margin-top: 1px;
+  background: linear-gradient(180deg, #3c096c 0%, #10002b 100%);
+  border: 1.5px solid #d877ff;
+  border-radius: 12px;
+  padding: 1px 14px;
+  font-family: var(--font-display);
+  font-size: clamp(12px, 3.2vw, 14px);
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 8px #a855f7;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+  z-index: 12;
+}
+
+/* --------------------------------------------------------------------------
+   3. Instruction Bar
+   -------------------------------------------------------------------------- */
+.greedy-game .instruction-bar {
+  width: 100%;
+  background: linear-gradient(90deg, rgba(88,28,135,0.85) 0%, rgba(126,34,206,0.95) 50%, rgba(88,28,135,0.85) 100%);
+  border: 1px solid rgba(216, 119, 255, 0.5);
+  border-radius: 8px;
+  padding: 4px 8px;
+  text-align: center;
+  font-size: clamp(11px, 2.9vw, 13px);
+  font-weight: 700;
+  color: #e9d5ff;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  margin: 3px 0;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. Coin Chips Selection Row
+   -------------------------------------------------------------------------- */
+.greedy-game .chips-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 3px 0;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.greedy-game .chip-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
+}
+
+.greedy-game .chip-btn img {
+  width: clamp(42px, 12vw, 52px);
+  height: clamp(42px, 12vw, 52px);
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+}
+
+.greedy-game .chip-btn:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+
+.greedy-game .chip-btn.active {
+  transform: translateY(-5px) scale(1.15);
+  filter: drop-shadow(0 0 12px #ffd700);
+}
+
+.greedy-game .chip-btn.active img {
+  animation: chipGlow 1.5s infinite alternate;
+}
+
+@keyframes chipGlow {
+  0% { filter: drop-shadow(0 0 6px #ffd700); }
+  100% { filter: drop-shadow(0 0 16px #ffd700) drop-shadow(0 0 22px #ff0055); }
+}
+
+/* --------------------------------------------------------------------------
+   5. Balance & Today's Winnings Status Bar
+   -------------------------------------------------------------------------- */
+.greedy-game .status-bar {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin: 3px 0;
+  flex-shrink: 0;
+}
+
+.greedy-game .status-box {
+  flex: 1;
+  background: linear-gradient(180deg, #3c096c 0%, #1a0038 100%);
+  border: 1.5px solid #a855f7;
+  border-radius: 12px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2), 0 3px 8px rgba(0,0,0,0.5);
+}
+
+.greedy-game .info-icon {
+  width: 17px;
+  height: 17px;
+  margin-right: 5px;
+  cursor: pointer;
+  object-fit: contain;
+}
+
+.greedy-game .status-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.greedy-game .status-title {
+  font-size: clamp(9px, 2.4vw, 11px);
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.greedy-game .status-val {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 3.8vw, 16px);
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.greedy-game .plus-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  margin-left: 4px;
+  transition: transform 0.2s;
+}
+
+.greedy-game .plus-btn:hover {
+  transform: scale(1.15);
+}
+
+.greedy-game .plus-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.greedy-game .winnings-box .status-content {
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   6. Bottom Result Strip
+   -------------------------------------------------------------------------- */
+.greedy-game .result-footer {
+  width: 100%;
+  background: linear-gradient(90deg, #581c87 0%, #3b0764 100%);
+  border: 1.5px solid #a855f7;
+  border-radius: 12px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.greedy-game .result-label {
+  font-family: var(--font-display);
+  font-size: clamp(11px, 3vw, 13px);
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px #000;
+}
+
+.greedy-game .result-history {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+  flex: 1;
+}
+
+.greedy-game .result-history::-webkit-scrollbar {
+  display: none;
+}
+
+.greedy-game .result-item {
+  position: relative;
+  width: clamp(30px, 8.5vw, 36px);
+  height: clamp(30px, 8.5vw, 36px);
+  min-width: clamp(30px, 8.5vw, 36px);
+  background: linear-gradient(180deg, #7e22ce 0%, #3b0764 100%);
+  border: 1px solid #c084fc;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.greedy-game .result-item img {
+  width: clamp(22px, 6.5vw, 26px);
+  height: clamp(22px, 6.5vw, 26px);
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.greedy-game .result-item .new-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #ffea00 0%, #ff9100 100%);
+  border: 1px solid #7a5200;
+  border-radius: 6px;
+  padding: 0 4px;
+  font-size: 7px;
+  font-weight: 900;
+  color: #3a1c00;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* --------------------------------------------------------------------------
+   7. Toast Notification & Modals
+   -------------------------------------------------------------------------- */
+.greedy-game .toast-msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 0, 30, 0.92);
+  border: 2px solid #ffd700;
+  border-radius: 16px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 0 25px #ffd700, 0 10px 30px rgba(0,0,0,0.9);
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.greedy-game .hidden {
+  display: none !important;
+  opacity: 0;
+}
+
+/* Modal Styling */
+.greedy-game .modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 0, 20, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.greedy-game .modal-card {
+  width: 100%;
+  max-width: 340px;
+  background: linear-gradient(180deg, #2e004a 0%, #120024 100%);
+  border: 2.5px solid #a855f7;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.greedy-game .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(216, 119, 255, 0.3);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.greedy-game .modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: #ffd700;
+}
+
+.greedy-game .modal-close {
+  background: none;
+  border: none;
+  color: #ff4d6d;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.greedy-game .setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.greedy-game .action-btn {
+  background: linear-gradient(180deg, #7e22ce 0%, #581c87 100%);
+  border: 1.5px solid #c084fc;
+  border-radius: 10px;
+  padding: 6px 14px;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.greedy-game .action-btn:hover {
+  transform: scale(1.05);
+}
+
+.greedy-game .gold-btn {
+  background: linear-gradient(180deg, #ffea00 0%, #d48806 100%);
+  border-color: #ffd700;
+  color: #3a1c00;
+}
+
+.greedy-game .danger-btn {
+  background: linear-gradient(180deg, #ff4d6d 0%, #800020 100%);
+  border-color: #ff758f;
+  color: #fff;
+}
+
+.greedy-game .rules-section h3 {
+  font-size: 13px;
+  color: #c084fc;
+  margin-bottom: 6px;
+}
+
+.greedy-game .payout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 14px;
+}
+
+.greedy-game .payout-grid div {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.greedy-game .payout-grid img {
+  width: 18px;
+  height: 18px;
+}
+
+.greedy-game .modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.greedy-game .mini-card {
+  text-align: center;
+  gap: 10px;
+}
+
+.greedy-game .mini-card h2 {
+  font-family: var(--font-display);
+  color: #ffd700;
+}
+
+.greedy-game .large-btn {
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.greedy-game .modal-close-text {
+  background: none;
+  border: none;
+  color: #a855f7;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Responsive Scaling Media Queries for Short & Small Screens
+   -------------------------------------------------------------------------- */
+@media (max-height: 720px) {
+  .greedy-game .game-board-frame {
+    max-width: 310px;
+  }
+  .greedy-game .jackpot-title {
+    width: 160px;
+    height: 40px;
+  }
+  .greedy-game .jackpot-counter-box {
+    margin-top: -8px;
+    padding: 2px 14px;
+  }
+  .greedy-game .jackpot-text {
+    font-size: 15px;
+  }
+  .greedy-game .chip-btn img {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (max-height: 620px) {
+  .greedy-game .game-board-frame {
+    max-width: 270px;
+  }
+  .greedy-game .chip-btn img {
+    width: 36px;
+    height: 36px;
+  }
+  .greedy-game .instruction-bar {
+    padding: 2px 4px;
+    font-size: 10px;
+  }
+}

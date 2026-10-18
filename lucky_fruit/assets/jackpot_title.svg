@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
+  <defs>
+    <!-- Drop Shadow & Glow Filter -->
+    <filter id="jackpotShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.85"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ffcc00" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Golden Text Gradient -->
+    <linearGradient id="goldTextGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#fff7c2"/>
+      <stop offset="50%" stop-color="#ffcc00"/>
+      <stop offset="80%" stop-color="#e68a00"/>
+      <stop offset="100%" stop-color="#804d00"/>
+    </linearGradient>
+
+    <!-- Text Bevel Stroke Gradient -->
+    <linearGradient id="goldStrokeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffee77"/>
+      <stop offset="50%" stop-color="#996600"/>
+      <stop offset="100%" stop-color="#331100"/>
+    </linearGradient>
+
+    <!-- Metallic Ribbon Gradient -->
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#593300"/>
+      <stop offset="25%" stop-color="#e6b800"/>
+      <stop offset="50%" stop-color="#fff5cc"/>
+      <stop offset="75%" stop-color="#e6b800"/>
+      <stop offset="100%" stop-color="#593300"/>
+    </linearGradient>
+
+    <!-- Crown Gradient -->
+    <radialGradient id="crownGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#ffea77"/>
+      <stop offset="70%" stop-color="#f2b000"/>
+      <stop offset="100%" stop-color="#804d00"/>
+    </radialGradient>
+
+    <!-- Gem Gradient -->
+    <radialGradient id="gemGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#ff9999"/>
+      <stop offset="40%" stop-color="#ff0022"/>
+      <stop offset="85%" stop-color="#800011"/>
+      <stop offset="100%" stop-color="#330007"/>
+    </radialGradient>
+  </defs>
+
+  <g filter="url(#jackpotShadow)">
+    <!-- Metallic Gold Curved Banner Base -->
+    <path d="M 30 54 Q 160 40 290 54 Q 270 82 160 86 Q 50 82 30 54 Z" fill="url(#ribbonGrad)" stroke="#ffeeaa" stroke-width="1.5"/>
+
+    <!-- Royal Crown Sitting Perfectly Above JACKPOT Text -->
+    <g transform="translate(160, 24)">
+      <!-- Crown Body -->
+      <path d="M -20 10 L -28 -12 L -12 -4 L 0 -20 L 12 -4 L 28 -12 L 20 10 Z" fill="url(#crownGrad)" stroke="#ffee77" stroke-width="1.2"/>
+      <!-- Crown Base Ring -->
+      <rect x="-20" y="10" width="40" height="6" rx="3" fill="#804d00" stroke="#ffd700" stroke-width="1"/>
+      <!-- Crown Tips Jewels -->
+      <circle cx="-28" cy="-12" r="3.5" fill="url(#gemGrad)"/>
+      <circle cx="0" cy="-20" r="4" fill="url(#gemGrad)"/>
+      <circle cx="28" cy="-12" r="3.5" fill="url(#gemGrad)"/>
+      <!-- Inner Crown Jewels -->
+      <circle cx="-10" cy="2" r="2.5" fill="url(#gemGrad)"/>
+      <circle cx="0" cy="4" r="3" fill="url(#gemGrad)"/>
+      <circle cx="10" cy="2" r="2.5" fill="url(#gemGrad)"/>
+    </g>
+
+    <!-- 3D Text Extrusion Shadow -->
+    <text x="160" y="80" font-family="Impact, 'Arial Black', sans-serif" font-size="44" font-weight="900" text-anchor="middle" letter-spacing="3" fill="#260b00">JACKPOT</text>
+    <text x="160" y="79" font-family="Impact, 'Arial Black', sans-serif" font-size="44" font-weight="900" text-anchor="middle" letter-spacing="3" fill="#4d1600">JACKPOT</text>
+    <text x="160" y="78" font-family="Impact, 'Arial Black', sans-serif" font-size="44" font-weight="900" text-anchor="middle" letter-spacing="3" fill="#802b00">JACKPOT</text>
+
+    <!-- Front 3D Gold Gradient Text -->
+    <text x="160" y="76" font-family="Impact, 'Arial Black', sans-serif" font-size="44" font-weight="900" text-anchor="middle" letter-spacing="3" fill="url(#goldTextGrad)" stroke="url(#goldStrokeGrad)" stroke-width="2">JACKPOT</text>
+
+    <!-- Sparkling Diamond Stars -->
+    <g fill="#ffffff">
+      <!-- Left Star -->
+      <path d="M 28 38 L 31 46 L 39 49 L 31 52 L 28 60 L 25 52 L 17 49 L 25 46 Z"/>
+      <circle cx="28" cy="49" r="1.5" fill="#ffeeaa"/>
+
+      <!-- Right Star -->
+      <path d="M 292 38 L 295 46 L 303 49 L 295 52 L 292 60 L 289 52 L 281 49 L 289 46 Z"/>
+      <circle cx="292" cy="49" r="1.5" fill="#ffeeaa"/>
+
+      <!-- Top Right Text Glare Sparkle -->
+      <path d="M 230 42 L 232 46 L 236 48 L 232 50 L 230 54 L 228 50 L 224 48 L 228 46 Z" opacity="0.9"/>
+    </g>
+  </g>
+</svg>

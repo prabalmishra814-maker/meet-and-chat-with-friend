@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="cheeseGrad" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fff3b0"/>
+      <stop offset="60%" stop-color="#ffc300"/>
+      <stop offset="100%" stop-color="#ff9f1c"/>
+    </radialGradient>
+    <radialGradient id="crustGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#e76f51"/>
+      <stop offset="100%" stop-color="#9c4127"/>
+    </radialGradient>
+    <filter id="pizDrop">
+      <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Shadow -->
+  <ellipse cx="50" cy="85" rx="30" ry="6" fill="#000" opacity="0.25"/>
+  <g filter="url(#pizDrop)">
+    <!-- Pizza Slice Crust -->
+    <path d="M 50 15 L 82 72 A 38 38 0 0 1 18 72 Z" fill="url(#cheeseGrad)" stroke="#e76f51" stroke-width="2"/>
+    <path d="M 16 70 Q 50 88 84 70 C 88 78 80 84 50 86 C 20 84 12 78 16 70 Z" fill="url(#crustGrad)"/>
+    <!-- Pepperoni Slices -->
+    <circle cx="42" cy="45" r="7" fill="#d90429" stroke="#900020" stroke-width="1"/>
+    <circle cx="58" cy="55" r="7.5" fill="#d90429" stroke="#900020" stroke-width="1"/>
+    <circle cx="36" cy="62" r="6" fill="#d90429" stroke="#900020" stroke-width="1"/>
+    <!-- Basil Leaves -->
+    <ellipse cx="52" cy="35" rx="3" ry="5" transform="rotate(30 52 35)" fill="#38b000"/>
+  </g>
+</svg>

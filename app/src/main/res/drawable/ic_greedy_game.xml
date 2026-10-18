@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Outer Circular Gold Frame -->
+    <path
+        android:pathData="M50,4 C75.4,4 96,24.6 96,50 C96,75.4 75.4,96 50,96 C24.6,96 4,75.4 4,50 C4,24.6 24.6,4 50,4 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="35"
+                android:centerY="30"
+                android:gradientRadius="70"
+                android:type="radial">
+                <item android:color="#FF581C87" android:offset="0.0"/>
+                <item android:color="#FF3B0764" android:offset="0.6"/>
+                <item android:color="#FF1E0238" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Golden Rim -->
+    <path
+        android:pathData="M50,6 C74.3,6 94,25.7 94,50 C94,74.3 74.3,94 50,94 C25.7,94 6,74.3 6,50 C6,25.7 25.7,6 50,6 Z"
+        android:strokeWidth="3.5">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="100"
+                android:endY="100"
+                android:type="linear">
+                <item android:color="#FFF5A5" android:offset="0.0"/>
+                <item android:color="#FFB703" android:offset="0.5"/>
+                <item android:color="#FFD48806" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Chef Hat Base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,42 C28,34 25,18 38,15 C41,8 58,8 63,14 C70,9 82,20 73,40 Z" />
+
+    <!-- Hat Band -->
+    <path
+        android:fillColor="#FF3366"
+        android:pathData="M36,44 L64,44 L62,49 L38,49 Z" />
+
+    <!-- Chef Face -->
+    <path
+        android:fillColor="#FFF0E6"
+        android:pathData="M38,49 C38,49 32,65 50,68 C68,65 62,49 62,49 Z" />
+
+    <!-- Rosy Cheeks -->
+    <path
+        android:fillColor="#FF70A6"
+        android:pathData="M40,56 C40,58 38,60 36,58 C34,56 36,54 38,56 Z" />
+    <path
+        android:fillColor="#FF70A6"
+        android:pathData="M64,56 C64,58 62,60 60,58 C58,56 60,54 64,56 Z" />
+
+    <!-- Smile -->
+    <path
+        android:fillColor="#9E2A2B"
+        android:pathData="M42,59 Q50,67 58,59 Z" />
+
+    <!-- Gold Banner "GREEDY" -->
+    <path
+        android:pathData="M22,70 L78,70 L73,83 L27,83 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="70"
+                android:endX="0"
+                android:endY="83"
+                android:type="linear">
+                <item android:color="#FFFFE0" android:offset="0.0"/>
+                <item android:color="#FFFFC300" android:offset="0.5"/>
+                <item android:color="#FFD48806" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Gold Coin Orbs on Left & Right -->
+    <path
+        android:fillColor="#FFEA00"
+        android:pathData="M18,48 C18,52 14,52 14,48 C14,44 18,44 18,48 Z" />
+    <path
+        android:fillColor="#FFEA00"
+        android:pathData="M86,48 C86,52 82,52 82,48 C82,44 86,44 86,48 Z" />
+
+    <!-- Sparkles -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22,25 L24,28 L27,28 L24,31 L25,34 L22,32 L19,34 L20,31 L17,28 L20,28 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,25 L80,28 L83,28 L80,31 L81,34 L78,32 L75,34 L76,31 L73,28 L76,28 Z" />
+</vector>

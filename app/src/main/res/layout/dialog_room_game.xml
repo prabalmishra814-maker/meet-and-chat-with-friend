@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="24dp"
     android:background="@drawable/bg_dialog_comment_sheet">
 
     <!-- Handle Bar for BottomSheet -->
@@ -10,12 +12,13 @@
         android:id="@+id/dragHandle"
         android:layout_width="40dp"
         android:layout_height="4dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:background="#40FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Title Container -->
     <LinearLayout
         android:id="@+id/titleContainer"
         android:layout_width="wrap_content"
@@ -31,7 +34,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Games"
+            android:text="Room Games"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -39,10 +42,11 @@
 
     <ImageButton
         android:id="@+id/btnClose"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="12dp"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Close"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         app:layout_constraintBottom_toBottomOf="@id/titleContainer"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,20 +61,140 @@
         android:background="#20FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/titleContainer" />
 
-    <android.webkit.WebView
-        android:id="@+id/webViewPoki"
+    <!-- Games Container Grid / Row -->
+    <LinearLayout
+        android:id="@+id/layoutGamesGrid"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:paddingHorizontal="20dp"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/divider">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:indeterminate="true"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/divider" />
+        <!-- 1. Lucky Spin Game Item -->
+        <LinearLayout
+            android:id="@+id/cardLuckySpin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- CardView for Icon -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="#2A203F">
+
+                <ImageView
+                    android:id="@+id/ivLuckySpinIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="0dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Lucky Spin"
+                    android:src="@drawable/lucky_fruit" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Game Name below CardView -->
+            <TextView
+                android:id="@+id/tvLuckySpinName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Lucky Fruit"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 2. Greedy Game Item -->
+        <LinearLayout
+            android:id="@+id/cardGreedyGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- CardView for Icon -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="#2A203F">
+
+                <ImageView
+                    android:id="@+id/ivGreedyGameIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="0dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Greedy Game"
+                    android:src="@drawable/greedy_pro_icon" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Game Name below CardView -->
+            <TextView
+                android:id="@+id/tvGreedyGameName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Greedy Game"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 3. Ludo Game Item -->
+        <LinearLayout
+            android:id="@+id/cardLudoGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- CardView for Icon -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="#2A203F">
+
+                <ImageView
+                    android:id="@+id/ivLudoGameIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="0dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="4v4 Ludo Game"
+                    android:src="@drawable/ic_ludo_game" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Game Name below CardView -->
+            <TextView
+                android:id="@+id/tvLudoGameName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="4v4 Ludo"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

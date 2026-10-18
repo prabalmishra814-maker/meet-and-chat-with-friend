@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Background Base -->
+    <path
+        android:pathData="M50,4 C75.4,4 96,24.6 96,50 C96,75.4 75.4,96 50,96 C24.6,96 4,75.4 4,50 C4,24.6 24.6,4 50,4 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="35"
+                android:centerY="30"
+                android:gradientRadius="70"
+                android:type="radial">
+                <item android:color="#FF2A1B4E" android:offset="0.0"/>
+                <item android:color="#FF150A2A" android:offset="0.6"/>
+                <item android:color="#FF0A0314" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Golden Rim -->
+    <path
+        android:pathData="M50,6 C74.3,6 94,25.7 94,50 C94,74.3 74.3,94 50,94 C25.7,94 6,74.3 6,50 C6,25.7 25.7,6 50,6 Z"
+        android:strokeWidth="3.5">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="100"
+                android:endY="100"
+                android:type="linear">
+                <item android:color="#FFF5A5" android:offset="0.0"/>
+                <item android:color="#FFB703" android:offset="0.5"/>
+                <item android:color="#FFD48806" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 4 Colored Ludo Quadrants -->
+    <!-- Red Top-Left -->
+    <path
+        android:fillColor="#FFE53935"
+        android:pathData="M24,24 L48,24 L48,48 L24,48 Z" />
+    <!-- Green Top-Right -->
+    <path
+        android:fillColor="#FF43A047"
+        android:pathData="M52,24 L76,24 L76,48 L52,48 Z" />
+    <!-- Yellow Bottom-Right -->
+    <path
+        android:fillColor="#FFFDD835"
+        android:pathData="M52,52 L76,52 L76,76 L52,76 Z" />
+    <!-- Blue Bottom-Left -->
+    <path
+        android:fillColor="#FF1E88E5"
+        android:pathData="M24,52 L48,52 L48,76 L24,76 Z" />
+
+    <!-- Center Gold Star / Cross Lines -->
+    <path
+        android:pathData="M20,20 L80,20 L80,80 L20,80 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFFD54F" />
+
+    <path
+        android:fillColor="#FFFFD54F"
+        android:pathData="M50,42 L53,47 L58,47 L54,50 L56,55 L50,52 L44,55 L46,50 L42,47 L47,47 Z" />
+
+</vector>

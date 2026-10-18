@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900" width="100%" height="100%">
+  <defs>
+    <!-- Background Radial Purple & Magenta Glow -->
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="35%" stop-color="#3b0764"/>
+      <stop offset="70%" stop-color="#1e0238"/>
+      <stop offset="100%" stop-color="#0a0014"/>
+    </radialGradient>
+
+    <!-- Top Neon Light Curtain -->
+    <linearGradient id="neonLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#e879f9" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#1e0238" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Golden Coin Gradient -->
+    <radialGradient id="bgCoinGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fff5a5"/>
+      <stop offset="60%" stop-color="#ffb703"/>
+      <stop offset="100%" stop-color="#d48806"/>
+    </radialGradient>
+
+    <filter id="blurGlow">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- Base Background Fill -->
+  <rect width="500" height="900" fill="url(#bgGlow)"/>
+
+  <!-- Top Ambient Glow -->
+  <rect width="500" height="450" fill="url(#neonLight)"/>
+
+  <!-- Floating Glowing Orbs in Background -->
+  <circle cx="100" cy="180" r="80" fill="#a855f7" opacity="0.15" filter="url(#blurGlow)"/>
+  <circle cx="400" cy="220" r="100" fill="#ec4899" opacity="0.15" filter="url(#blurGlow)"/>
+  <circle cx="250" cy="400" r="120" fill="#3b82f6" opacity="0.12" filter="url(#blurGlow)"/>
+
+  <!-- Starfield Points -->
+  <g fill="#ffffff">
+    <circle cx="40" cy="70" r="1.5" opacity="0.9"/>
+    <circle cx="130" cy="40" r="1.2" opacity="0.8"/>
+    <circle cx="220" cy="90" r="2" opacity="0.95"/>
+    <circle cx="310" cy="50" r="1" opacity="0.7"/>
+    <circle cx="420" cy="80" r="2.2" opacity="0.9"/>
+    <circle cx="470" cy="140" r="1.5" opacity="0.8"/>
+    <circle cx="70" cy="210" r="1.8" opacity="0.85"/>
+    <circle cx="430" cy="260" r="1.2" opacity="0.75"/>
+    <circle cx="30" cy="380" r="2" opacity="0.9"/>
+    <circle cx="460" cy="420" r="1.5" opacity="0.85"/>
+    <circle cx="90" cy="530" r="1.2" opacity="0.7"/>
+    <circle cx="420" cy="580" r="2" opacity="0.9"/>
+  </g>
+
+  <!-- Sparkling 4-point Stars -->
+  <path d="M 80 120 Q 80 128 88 128 Q 80 128 80 136 Q 80 128 72 128 Q 80 128 80 120 Z" fill="#ffd700" opacity="0.85"/>
+  <path d="M 410 100 Q 410 110 420 110 Q 410 110 410 120 Q 410 110 400 110 Q 410 110 410 100 Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M 440 320 Q 440 326 446 326 Q 440 326 440 332 Q 440 326 434 326 Q 440 326 440 320 Z" fill="#e879f9" opacity="0.8"/>
+  <path d="M 60 450 Q 60 456 66 456 Q 60 456 60 462 Q 60 456 54 456 Q 60 456 60 450 Z" fill="#38bdf8" opacity="0.85"/>
+
+  <!-- Out of focus ambient background gold coins -->
+  <g opacity="0.25" filter="url(#blurGlow)">
+    <circle cx="50" cy="280" r="18" fill="url(#bgCoinGrad)"/>
+    <circle cx="450" cy="340" r="22" fill="url(#bgCoinGrad)"/>
+    <circle cx="80" cy="620" r="15" fill="url(#bgCoinGrad)"/>
+    <circle cx="420" cy="680" r="20" fill="url(#bgCoinGrad)"/>
+  </g>
+
+  <!-- City Silhouette / Horizon Lights at Bottom -->
+  <path d="M 0 740 L 40 740 L 40 710 L 70 710 L 70 750 L 120 750 L 120 680 L 160 680 L 160 750 L 210 750 L 210 720 L 250 720 L 250 755 L 300 755 L 300 690 L 340 690 L 340 755 L 390 755 L 390 715 L 430 715 L 430 750 L 500 750 L 500 900 L 0 900 Z" fill="#140026" opacity="0.8"/>
+
+  <g fill="#ffea00" opacity="0.3">
+    <rect x="130" y="695" width="4" height="6"/>
+    <rect x="145" y="710" width="4" height="6"/>
+    <rect x="310" y="705" width="4" height="6"/>
+    <rect x="325" y="720" width="4" height="6"/>
+  </g>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="600" height="1000">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d0428"/>
+      <stop offset="30%" stop-color="#1a0b40"/>
+      <stop offset="60%" stop-color="#2d0b5a"/>
+      <stop offset="85%" stop-color="#4a1270"/>
+      <stop offset="100%" stop-color="#1d0638"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" stop-color="#8a2be2" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#4b0082" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="600" height="1000" fill="url(#bgGrad)"/>
+  <rect width="600" height="1000" fill="url(#centerGlow)"/>
+
+  <!-- Stars -->
+  <g fill="#FFFFFF" opacity="0.8">
+    <circle cx="80" cy="120" r="1.5"/>
+    <circle cx="150" cy="80" r="2"/>
+    <circle cx="220" cy="180" r="1.2"/>
+    <circle cx="380" cy="90" r="1.8"/>
+    <circle cx="480" cy="140" r="2.5"/>
+    <circle cx="520" cy="220" r="1.5"/>
+    <circle cx="60" cy="300" r="2"/>
+    <circle cx="540" cy="380" r="1.8"/>
+    <circle cx="100" cy="500" r="1.2"/>
+    <circle cx="500" cy="600" r="2"/>
+  </g>
+
+  <!-- Fireworks graphic bursts -->
+  <g stroke="#FF4081" stroke-width="1.5" opacity="0.6" stroke-dasharray="4,4">
+    <path d="M 70 150 L 110 150 M 90 130 L 90 170 M 76 136 L 104 164 M 104 136 L 76 164" />
+    <path d="M 490 160 L 530 160 M 510 140 L 510 180 M 496 146 L 524 174 M 524 146 L 496 174" stroke="#FFD700" />
+  </g>
+
+  <!-- Horizon City Silhouette -->
+  <path d="M 0 880 L 40 880 L 40 850 L 70 850 L 70 880 L 120 880 L 120 830 L 150 830 L 150 880 L 220 880 L 220 860 L 260 860 L 260 880 L 320 880 L 320 840 L 370 840 L 370 880 L 440 880 L 440 820 L 480 820 L 480 880 L 550 880 L 550 850 L 600 850 L 600 1000 L 0 1000 Z" fill="#120224" opacity="0.75"/>
+</svg>

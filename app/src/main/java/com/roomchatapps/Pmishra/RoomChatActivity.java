@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.graphics.Typeface;
@@ -58,6 +59,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -986,10 +988,14 @@ public class RoomChatActivity extends AppCompatActivity {
             btnMore.setVisibility(View.GONE);
         }
 
-        findViewById(R.id.btnGame).setOnClickListener(v -> {
-            if (isFastClick(v)) return;
-            showRoomGameDialog();
-        });
+        View btnGame = findViewById(R.id.btnGame);
+        if (btnGame != null) {
+            AnimationHelper.applyClickAnimation(btnGame);
+            btnGame.setOnClickListener(v -> {
+                if (isFastClick(v)) return;
+                showRoomGameDialog();
+            });
+        }
 
         findViewById(R.id.btnGift).setOnClickListener(v -> {
             if (isFastClick(v)) return;
@@ -3266,6 +3272,7 @@ public class RoomChatActivity extends AppCompatActivity {
     }
 
     private BottomSheetDialog roomGameDialog;
+    private Dialog activeWebGameDialog;
 
     private void showRoomGameDialog() {
         if (roomGameDialog != null && roomGameDialog.isShowing()) return;
@@ -3278,22 +3285,132 @@ public class RoomChatActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_room_game, null, false);
         if (dialogView != null) {
             dialog.setContentView(dialogView);
-            View parent = (View) dialogView.getParent();
-            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(parent);
-            parent.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
-            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            behavior.setSkipCollapsed(true);
-            WebView webView = dialogView.findViewById(R.id.webViewPoki);
-            ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
-            if (webView != null) {
-                WebSettings settings = webView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                webView.setWebViewClient(new WebViewClient());
-                webView.loadUrl("https://poki.com/");
+
+            View btnClose = dialogView.findViewById(R.id.btnClose);
+            if (btnClose != null) {
+                btnClose.setOnClickListener(v -> dialog.dismiss());
             }
+
+            View cardLuckySpin = dialogView.findViewById(R.id.cardLuckySpin);
+            if (cardLuckySpin != null) {
+                AnimationHelper.applyClickAnimation(cardLuckySpin);
+                cardLuckySpin.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    showWebGameDialog("Lucky Fruit", "file:///android_asset/lucky_fruit/index.html");
+                });
+            }
+
+            View cardGreedyGame = dialogView.findViewById(R.id.cardGreedyGame);
+            if (cardGreedyGame != null) {
+                AnimationHelper.applyClickAnimation(cardGreedyGame);
+                cardGreedyGame.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    showWebGameDialog("Greedy Game", "file:///android_asset/greedy-game/index.html");
+                });
+            }
+
+            View cardLudoGame = dialogView.findViewById(R.id.cardLudoGame);
+            if (cardLudoGame != null) {
+                AnimationHelper.applyClickAnimation(cardLudoGame);
+                cardLudoGame.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    showWebGameDialog("4v4 Ludo King", "file:///android_asset/ludo-game/index.html");
+                });
+            }
+
             dialog.show();
         }
+    }
+
+    private void showWebGameDialog(String gameTitle, String gameUrl) {
+        if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
+            activeWebGameDialog.dismiss();
+        }
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        activeWebGameDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (activeWebGameDialog == d) activeWebGameDialog = null;
+        });
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_web_game, null, false);
+        if (dialogView == null) return;
+
+        dialog.setContentView(dialogView);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+
+        dialogView.setOnClickListener(v -> dialog.dismiss());
+
+        View cardContainer = dialogView.findViewById(R.id.cardGameContainer);
+        if (cardContainer != null) {
+            cardContainer.setOnClickListener(v -> {}); // Consume click on game card
+        }
+
+        TextView tvGameTitle = dialogView.findViewById(R.id.tvGameTitle);
+        if (tvGameTitle != null && gameTitle != null) {
+            tvGameTitle.setText(gameTitle);
+        }
+
+        View btnCloseGame = dialogView.findViewById(R.id.btnCloseGame);
+        if (btnCloseGame != null) {
+            btnCloseGame.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        WebView webView = dialogView.findViewById(R.id.webViewGame);
+        ProgressBar progressBar = dialogView.findViewById(R.id.progressBarGame);
+        if (webView != null) {
+            webView.setBackgroundColor(Color.TRANSPARENT);
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
+            WebSettings settings = webView.getSettings();
+            settings.setJavaScriptEnabled(true);
+            settings.setDomStorageEnabled(true);
+            settings.setAllowFileAccess(true);
+            settings.setAllowContentAccess(true);
+            settings.setLoadWithOverviewMode(true);
+            settings.setUseWideViewPort(true);
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+            settings.setBuiltInZoomControls(false);
+            settings.setDisplayZoomControls(false);
+            settings.setSupportZoom(false);
+
+            webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+            webView.setHorizontalScrollBarEnabled(false);
+            webView.setVerticalScrollBarEnabled(false);
+
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                    if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                }
+            });
+
+            webView.loadUrl(gameUrl);
+        }
+
+        dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                if (webView != null && webView.canGoBack()) {
+                    webView.goBack();
+                    return true;
+                } else {
+                    dialog.dismiss();
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        dialog.show();
     }
 
     private void showCoinExchangeDialog() {
