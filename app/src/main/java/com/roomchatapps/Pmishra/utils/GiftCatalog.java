@@ -58,9 +58,7 @@ public class GiftCatalog {
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Lucky Cat", "gift/lucky_cat_crow.svga", R.drawable.gift_lucky_cat, 500000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Hope Candy", "gift/love_gift_box.svga", R.drawable.gift_hope_candy, 100000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Ice Cool", "gift/cosmic_float.svga", R.drawable.gift_ice_cool, 150000, "Gift"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Magic Deer", "gift/magic_gift.svga", R.drawable.gift_magic_deer, 1200000, "Gift"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Summer Girl", "gift/blue_princess_gown.svga", R.drawable.gift_summer_girl, 800000, "Gift"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Unicorn", "gift/cosmic_float.svga", R.drawable.gift_unicorn, 1500000, "Gift"));
 
         // 2. Relationship Category (रिलेशनशिप)
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Blue Love Ring", "gift/blue_love_ring.svga", R.drawable.gift_blue_ring, 1000000, "Relationship"));
@@ -80,7 +78,6 @@ public class GiftCatalog {
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Rabbit Moon", "gift/rabbit_of_the_star_and_moon.svga", R.drawable.gift_rabbit_star_moon_icon, 1200000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Diamond Ring", "gift/diamond_ring_gift.svga", R.drawable.crystal_ring, 1500000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Golden Rings", "gift/golden_rings.svga", R.drawable.gift_golden_rings, 2000000, "Relationship"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Rose Ship", "gift/a_luxury_yacht.svga", R.drawable.gift_rose_ship, 3000000, "Relationship"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Wedding Anniversary", "gift/wedding_proposal.svga", R.drawable.gift_wedding_anniversary, 2500000, "Relationship"));
 
         // 3. Nation Flag Category (नेशन फ्लैग)
@@ -93,16 +90,13 @@ public class GiftCatalog {
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Floating Castle", "gift/floating_castle.svga", R.drawable.gift_floating_castle, 8000000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("LV Bag", "gift/LVbag.svga", R.drawable.lvbag, 2200000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Purple Castle", "gift/Purple Castle.svga", R.drawable.purple_castle, 3500000, "Luxury"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Airplane", "gift/airplane.svga", R.drawable.gift_airplane_icon, 2500000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Starship", "gift/starship.svga", R.drawable.gift_starship_icon, 3800000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Star Craft", "gift/Star_craft.svga", R.drawable.gift_star_craft_icon, 4500000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Space Rocket", "gift/Rocket.svga", R.drawable.gift_space_rocket_icon, 3000000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Mini Rocket", "gift/mini_rocket.svga", R.drawable.gift_mini_rocket_icon, 1800000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Amusement Park", "gift/amusementpark.svga", R.drawable.gift_amusementpark_icon, 5000000, "Luxury"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Luxury Yacht", "gift/a_luxury_yacht.svga", R.drawable.gift_luxury_yacht_icon, 6500000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Dream Castle", "gift/fantasy_castle.svga", R.drawable.gift_dream_castle, 6000000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Golden Castle", "gift/floating_castle.svga", R.drawable.gift_golden_castle, 7000000, "Luxury"));
-        giftList.add(new GiftStoreAdapter.GiftStoreItem("Luxury Jet", "gift/airplane.svga", R.drawable.gift_luxury_jet, 9000000, "Luxury"));
         giftList.add(new GiftStoreAdapter.GiftStoreItem("Magic Castle", "gift/Purple Castle.svga", R.drawable.gift_magic_castle, 7500000, "Luxury"));
 
         // 5. Customization Category (कस्टमाइजेशन)

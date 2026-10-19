@@ -32,9 +32,31 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
     private final OnStoreItemClickListener listener;
     private int lastAnimatedPosition = -1;
 
+    private final android.os.Handler timerHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable timerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            notifyDataSetChanged();
+            timerHandler.postDelayed(this, 1000L);
+        }
+    };
+
     public StoreAdapter(List<StoreItemModel> itemList, OnStoreItemClickListener listener) {
         this.itemList = itemList;
         this.listener = listener;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        timerHandler.removeCallbacks(timerRunnable);
+        timerHandler.postDelayed(timerRunnable, 1000L);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        timerHandler.removeCallbacks(timerRunnable);
     }
 
     @NonNull
@@ -57,10 +79,42 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.ViewHolder> 
             holder.tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FEATURED");
         }
 
-        // Format Price & Duration e.g. 20000000 /7 days
-        if (holder.tvItemPriceDuration != null) {
+        // Format Price & Reverse Live Countdown Timer
+        long now = System.currentTimeMillis();
+        long exp = item.getExpiryTimestamp();
+
+        if (item.isOwned() && exp > now) {
+            long diff = exp - now;
+            long days = diff / (86400000L);
+            long hours = (diff / 3600000L) % 24;
+            long mins = (diff / 60000L) % 60;
+            long secs = (diff / 1000L) % 60;
+
+            String timerStr;
+            if (days > 0) {
+                timerStr = String.format(java.util.Locale.US, "⏱️ %dd %02dh %02dm %02ds", days, hours, mins, secs);
+            } else {
+                timerStr = String.format(java.util.Locale.US, "⏱️ %02dh %02dm %02ds", hours, mins, secs);
+            }
+            if (holder.tvItemPriceDuration != null) {
+                holder.tvItemPriceDuration.setText(timerStr);
+                holder.tvItemPriceDuration.setTextColor(Color.parseColor("#40E0D0")); // Cyan accent for ticking timer
+            }
+        } else if (item.isOwned() && exp <= now && exp > 0) {
+            // Expired right now -> Reset state
+            item.setOwned(false);
+            item.setEquipped(false);
             int validity = item.getValidityDays() > 0 ? item.getValidityDays() : 7;
-            holder.tvItemPriceDuration.setText(CoinUtils.formatCoins(item.getPriceCoins()) + " /" + validity + " days");
+            if (holder.tvItemPriceDuration != null) {
+                holder.tvItemPriceDuration.setText(CoinUtils.formatCoins(item.getPriceCoins()) + " /" + validity + " days");
+                holder.tvItemPriceDuration.setTextColor(Color.parseColor("#FFFFFF"));
+            }
+        } else {
+            int validity = item.getValidityDays() > 0 ? item.getValidityDays() : 7;
+            if (holder.tvItemPriceDuration != null) {
+                holder.tvItemPriceDuration.setText(CoinUtils.formatCoins(item.getPriceCoins()) + " /" + validity + " days");
+                holder.tvItemPriceDuration.setTextColor(Color.parseColor("#FFFFFF"));
+            }
         }
 
         boolean isEntrance = "ENTRANCE".equalsIgnoreCase(item.getCategory());

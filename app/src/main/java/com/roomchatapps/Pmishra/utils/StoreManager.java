@@ -511,6 +511,14 @@ public class StoreManager {
         // DAILY CHECK-IN STORE REWARD
         items.add(new StoreItemModel("entrance_golden_super_car", "Golden Super Car 🏎️", "ENTRANCE", 12000000L, "Arrive like royalty in Golden Super Car", "ic_entrance_golden_car", "LEGENDARY 👑", "Entry/golden_super_car.svga"));
 
+        // Additional Entrance Rides Moved From Gifts
+        items.add(new StoreItemModel("entrance_magic_deer", "Magic Deer 🦌", "ENTRANCE", 1200000L, "Ride into rooms on Magic Deer", "gift_magic_deer", "RIDE 🦌", "gift/magic_gift.svga"));
+        items.add(new StoreItemModel("entrance_unicorn", "Unicorn 🦄", "ENTRANCE", 1500000L, "Majestic Unicorn Entry Ride", "gift_unicorn", "MAGIC 🦄", "gift/cosmic_float.svga"));
+        items.add(new StoreItemModel("entrance_rose_ship", "Rose Ship 🛳️", "ENTRANCE", 3000000L, "Sail into rooms with Rose Ship", "gift_rose_ship", "ROMANTIC 🌹", "gift/a_luxury_yacht.svga"));
+        items.add(new StoreItemModel("entrance_airplane", "Airplane ✈️", "ENTRANCE", 2500000L, "Fly into rooms in Airplane", "gift_airplane_icon", "FLY ✈️", "gift/airplane.svga"));
+        items.add(new StoreItemModel("entrance_luxury_yacht", "Luxury Yacht 🛥️", "ENTRANCE", 6500000L, "Grand Entrance with Luxury Yacht", "gift_luxury_yacht_icon", "LUXURY 🛥️", "gift/a_luxury_yacht.svga"));
+        items.add(new StoreItemModel("entrance_luxury_jet", "Luxury Jet 🛩️", "ENTRANCE", 9000000L, "VIP Entrance with Luxury Jet", "gift_luxury_jet", "VIP 🛩️", "gift/airplane.svga"));
+
         return items;
     }
 }
