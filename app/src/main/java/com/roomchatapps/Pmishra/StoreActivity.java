@@ -268,7 +268,24 @@ public class StoreActivity extends AppCompatActivity {
 
         if (tvFrameName != null) tvFrameName.setText(item.getName());
         if (tvBadge != null) tvBadge.setText(item.getBadgeText() != null ? item.getBadgeText() : "FRAME");
-        if (tvDescription != null) tvDescription.setText(item.getDescription() != null ? item.getDescription() : "Avatar Frame Preview");
+
+        if (tvDescription != null) {
+            long now = System.currentTimeMillis();
+            long exp = item.getExpiryTimestamp();
+            if (item.isOwned() && exp > now) {
+                long diff = exp - now;
+                long days = diff / (86400000L);
+                long hours = (diff / 3600000L) % 24;
+                long mins = (diff / 60000L) % 60;
+                long secs = (diff / 1000L) % 60;
+                String timerStr = days > 0 ?
+                        String.format(java.util.Locale.US, "⏱️ Remaining: %dd %02dh %02dm %02ds", days, hours, mins, secs) :
+                        String.format(java.util.Locale.US, "⏱️ Remaining: %02dh %02dm %02ds", hours, mins, secs);
+                tvDescription.setText((item.getDescription() != null ? item.getDescription() : "") + "\n" + timerStr);
+            } else {
+                tvDescription.setText(item.getDescription() != null ? item.getDescription() : "7 Days Validity");
+            }
+        }
 
         if (btnAction != null) {
             if (item.isEquipped()) {

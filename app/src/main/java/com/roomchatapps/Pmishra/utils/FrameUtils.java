@@ -282,6 +282,24 @@ public class FrameUtils {
             case "entrance_golden_car":
             case "ic_entrance_golden_car":
                 return R.drawable.ic_entrance_golden_car;
+            case "entrance_magic_deer":
+            case "gift_magic_deer":
+                return R.drawable.gift_magic_deer;
+            case "entrance_unicorn":
+            case "gift_unicorn":
+                return R.drawable.gift_unicorn;
+            case "entrance_rose_ship":
+            case "gift_rose_ship":
+                return R.drawable.gift_rose_ship;
+            case "entrance_airplane":
+            case "gift_airplane_icon":
+                return R.drawable.gift_airplane_icon;
+            case "entrance_luxury_yacht":
+            case "gift_luxury_yacht_icon":
+                return R.drawable.gift_luxury_yacht_icon;
+            case "entrance_luxury_jet":
+            case "gift_luxury_jet":
+                return R.drawable.gift_luxury_jet;
 
             case "frame_royal_gold_banner":
                 return R.drawable._1000092461_removebg_preview;
@@ -448,6 +466,12 @@ public class FrameUtils {
             case "entrance_golden_car": return "Entry/golden_super_car.svga";
             case "entrance_red_car": return "Entry/red_super_car.svga";
             case "entrance_toyota_car": return "Entry/toyota_car_entry.svga";
+            case "entrance_magic_deer": return "gift/magic_gift.svga";
+            case "entrance_unicorn": return "gift/cosmic_float.svga";
+            case "entrance_rose_ship": return "gift/a_luxury_yacht.svga";
+            case "entrance_airplane": return "gift/airplane.svga";
+            case "entrance_luxury_yacht": return "gift/a_luxury_yacht.svga";
+            case "entrance_luxury_jet": return "gift/airplane.svga";
         }
         return null;
     }
