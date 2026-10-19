@@ -45,8 +45,8 @@
         <!-- User Avatar Placeholder -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivPreviewAvatar"
-            android:layout_width="160dp"
-            android:layout_height="160dp"
+            android:layout_width="175dp"
+            android:layout_height="175dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_placeholder"

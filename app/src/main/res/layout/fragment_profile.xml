@@ -92,8 +92,8 @@
                         <!-- Profile Image -->
                         <com.google.android.material.imageview.ShapeableImageView
                             android:id="@+id/profileImage"
-                            android:layout_width="84dp"
-                            android:layout_height="84dp"
+                            android:layout_width="68dp"
+                            android:layout_height="68dp"
                             android:layout_gravity="center"
                             android:scaleType="centerCrop"
                             android:src="@drawable/ic_person"
