@@ -19,6 +19,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.adapters.FollowAdapter;
 import com.roomchatapps.Pmishra.databinding.ActivitySearchBinding;
 import com.roomchatapps.Pmishra.models.User;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,7 +109,9 @@ public class SearchActivity extends AppCompatActivity {
                             }
 
                             String name = user.getUserName() != null ? user.getUserName().toLowerCase() : "";
-                            String profileId = user.getProfileId() != null ? user.getProfileId().toLowerCase() : "";
+                            String numericPid = UserProfileCache.getDisplayNumericId(user.getUserId(), user.getProfileId());
+                            user.setProfileId(numericPid);
+                            String profileId = numericPid.toLowerCase();
                             String uid = user.getUserId() != null ? user.getUserId().toLowerCase() : "";
 
                             boolean matches = false;

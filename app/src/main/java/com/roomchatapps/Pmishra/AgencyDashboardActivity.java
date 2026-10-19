@@ -32,6 +32,7 @@ import com.roomchatapps.Pmishra.models.AgencyModel;
 import com.roomchatapps.Pmishra.utils.EconomyConfig;
 import com.roomchatapps.Pmishra.utils.LoadingDialog;
 import com.roomchatapps.Pmishra.utils.StatusBarUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -406,7 +407,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
         String hostAvatar = userSnap.child("avtar").getValue(String.class);
         String profileId = userSnap.child("profileId").getValue(String.class);
-        if (profileId == null) profileId = hostUid.substring(0, 6);
+        profileId = UserProfileCache.getDisplayNumericId(hostUid, profileId);
 
         long coins = 0;
         if (userSnap.child("coins").exists()) {

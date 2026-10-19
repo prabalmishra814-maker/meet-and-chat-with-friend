@@ -1,209 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_comment_sheet"
     android:orientation="vertical"
-    android:paddingHorizontal="20dp"
+    android:paddingHorizontal="22dp"
     android:paddingTop="12dp"
-    android:paddingBottom="24dp">
+    android:paddingBottom="28dp">
 
     <!-- Top Drag Handle -->
     <View
         android:layout_width="36dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/bg_indicator_gradient" />
 
-    <!-- Header Row (Title & Rescan/Refresh Button) -->
-    <RelativeLayout
+    <!-- Title & Track Count Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
+            android:layout_weight="1"
             android:text="Room Music Player"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- Refresh / Rescan Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRefreshMusic"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="68dp"
-            android:layout_height="36dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="0dp"
-            android:text="↺"
-            android:textColor="#00FFC6"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </RelativeLayout>
-
-    <!-- Currently Playing Song Banner -->
-    <TextView
-        android:id="@+id/tvMusicDialogSongTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_room_top_user_info"
-        android:ellipsize="marquee"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center"
-        android:marqueeRepeatLimit="marquee_forever"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp"
-        android:singleLine="true"
-        android:text="No Song Playing"
-        android:textColor="#00FFC6"
-        android:textSize="14.5sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvMusicTrackCount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="6dp"
-        android:gravity="center"
-        android:text="Device Music (Scanning...)"
-        android:textColor="#B0B0B0"
-        android:textSize="11.5sp" />
-
-    <!-- Loading Indicator -->
-    <ProgressBar
-        android:id="@+id/progressBarMusicLoading"
-        style="?android:attr/progressBarStyleSmall"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginVertical="12dp"
-        android:indeterminateTint="#FF007A"
-        android:visibility="gone" />
-
-    <!-- Empty State / Permission Container -->
-    <LinearLayout
-        android:id="@+id/llMusicEmptyState"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="8dp"
-        android:background="@drawable/bg_glass_card"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-
         <TextView
-            android:id="@+id/tvMusicEmptyMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Permission required to access audio files on your device."
-            android:textColor="#D0D0D0"
-            android:textSize="12.5sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGrantMusicPermission"
+            android:id="@+id/tvMusicTrackCount"
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:layout_marginTop="10dp"
-            android:text="Grant Storage Permission"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            app:backgroundTint="#FF007A"
-            app:cornerRadius="19dp" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_level_badge_purple"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="0 Tracks"
+            android:textColor="#00FFC6"
+            android:textSize="11.5sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Scrollable Device Track List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMusicList"
+    <!-- Device Music Dropdown Selector (Top Banner) -->
+    <LinearLayout
+        android:id="@+id/layoutSongDropdownContainer"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:paddingVertical="2dp"
-        tools:listitem="@layout/item_device_music_track" />
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_glass_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="Music"
+            android:src="@drawable/ic_music"
+            app:tint="#FF007A" />
+
+        <Spinner
+            android:id="@+id/spinnerDeviceSongs"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:spinnerMode="dropdown" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Dropdown Arrow"
+            android:rotation="90"
+            android:src="@drawable/ic_chevron_right"
+            app:tint="#00FFC6" />
+    </LinearLayout>
 
     <!-- Main Player Controls (Previous, Play/Pause, Next) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="22dp"
         android:gravity="center"
         android:orientation="horizontal">
 
-        <!-- Previous Button -->
+        <!-- Previous Track Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMusicPrev"
             style="@style/Widget.MaterialComponents.Button.Icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="Previous Song"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="20dp"
             android:padding="0dp"
-            app:backgroundTint="#2A223D"
-            app:cornerRadius="25dp"
+            app:backgroundTint="#251A38"
+            app:cornerRadius="26dp"
             app:icon="@drawable/ic_skip_previous"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="26dp"
+            app:iconSize="28dp"
             app:iconTint="#FFFFFF"
             app:strokeColor="#FF007A"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="1.5dp" />
 
-        <!-- Play / Pause Button -->
+        <!-- Main Play / Pause Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMusicPlayPause"
             style="@style/Widget.MaterialComponents.Button.Icon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:contentDescription="Play/Pause"
+            android:layout_width="66dp"
+            android:layout_height="66dp"
+            android:elevation="6dp"
             android:padding="0dp"
             app:backgroundTint="#FF007A"
-            app:cornerRadius="30dp"
+            app:cornerRadius="33dp"
             app:icon="@drawable/ic_play"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="30dp"
-            app:iconTint="#FFFFFF" />
+            app:iconSize="34dp"
+            app:iconTint="#FFFFFF"
+            app:strokeColor="#00FFC6"
+            app:strokeWidth="1.5dp" />
 
-        <!-- Next Button -->
+        <!-- Next Track Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMusicNext"
             style="@style/Widget.MaterialComponents.Button.Icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginStart="16dp"
-            android:contentDescription="Next Song"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="20dp"
             android:padding="0dp"
-            app:backgroundTint="#2A223D"
-            app:cornerRadius="25dp"
+            app:backgroundTint="#251A38"
+            app:cornerRadius="26dp"
             app:icon="@drawable/ic_skip_next"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="26dp"
+            app:iconSize="28dp"
             app:iconTint="#FFFFFF"
             app:strokeColor="#FF007A"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="1.5dp" />
 
     </LinearLayout>
 
-    <!-- Volume Control Section -->
+    <!-- Professional Glassmorphism Volume Control Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:orientation="vertical">
+        android:layout_marginTop="22dp"
+        android:background="@drawable/bg_glass_card"
+        android:orientation="vertical"
+        android:padding="14dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -213,7 +164,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
-                android:text="Music Volume"
+                android:text="Volume Control"
                 android:textColor="#FFFFFF"
                 android:textSize="13.5sp"
                 android:textStyle="bold" />
@@ -223,61 +174,51 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
+                android:background="@drawable/bg_level_badge_pink"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
                 android:text="80%"
-                android:textColor="#FFB703"
-                android:textSize="13.5sp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </RelativeLayout>
 
-        <SeekBar
-            android:id="@+id/seekBarMusicVolume"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:max="100"
-            android:progress="80"
-            android:progressTint="#00FFC6"
-            android:thumbTint="#FF007A" />
-    </LinearLayout>
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-    <!-- Action Buttons (Select Custom Song & Stop) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="Volume Low"
+                android:src="@drawable/ic_speaker_off"
+                app:tint="#B0FFFFFF" />
 
-        <!-- Custom Audio Picker -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDialogSelectSong"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            android:text="Pick File"
-            android:textColor="#FFFFFF"
-            android:textSize="12.5sp"
-            app:backgroundTint="#2A223D"
-            app:cornerRadius="21dp"
-            app:strokeColor="#00FFC6"
-            app:strokeWidth="1dp" />
+            <SeekBar
+                android:id="@+id/seekBarMusicVolume"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:minHeight="6dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:progress="80"
+                android:progressTint="#00FFC6"
+                android:thumbTint="#FF007A" />
 
-        <!-- Stop Music Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDialogStopMusic"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            android:text="Stop Music"
-            android:textColor="#FFFFFF"
-            android:textSize="12.5sp"
-            app:backgroundTint="#2A223D"
-            app:cornerRadius="21dp"
-            app:strokeColor="#FF007A"
-            app:strokeWidth="1dp" />
-
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="Volume High"
+                android:src="@drawable/ic_speaker_on"
+                app:tint="#00FFC6" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

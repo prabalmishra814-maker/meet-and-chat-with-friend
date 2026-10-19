@@ -38,6 +38,7 @@ import com.roomchatapps.Pmishra.models.UserCheckInState;
 import com.roomchatapps.Pmishra.services.AppNotificationService;
 import com.roomchatapps.Pmishra.utils.DailyCheckInManager;
 import com.roomchatapps.Pmishra.utils.SystemNotificationManager;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -403,7 +404,8 @@ public class MainActivity extends AppCompatActivity {
                 String gift = gName.trim();
                 String target = "";
                 if (rName != null && !rName.trim().isEmpty()) {
-                    target = " to <font color='#00FFC6'><b>" + rName.trim() + (rUid != null && !rUid.isEmpty() ? " (ID: " + rUid + ")" : "") + "</b></font>";
+                    String targetNumericId = (rUid != null && !rUid.isEmpty()) ? UserProfileCache.getDisplayNumericId(rUid, null) : "";
+                    target = " to <font color='#00FFC6'><b>" + rName.trim() + (!targetNumericId.isEmpty() ? " (ID: " + targetNumericId + ")" : "") + "</b></font>";
                 }
                 String room = (roomName != null && !roomName.trim().isEmpty()) ? (" in " + roomName.trim()) : "";
 
