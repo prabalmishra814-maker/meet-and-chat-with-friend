@@ -24,8 +24,18 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.databinding.ActivityEditProfileBinding;
 import com.roomchatapps.Pmishra.dialogs.ImageCropDialog;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.roomchatapps.Pmishra.adapters.GiftGridAdapter;
+import com.roomchatapps.Pmishra.adapters.GiftStoreAdapter;
+import com.roomchatapps.Pmishra.adapters.HorizontalCollectionAdapter;
+import com.roomchatapps.Pmishra.models.CollectionItemModel;
+import com.roomchatapps.Pmishra.models.StoreItemModel;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.GiftCatalog;
 import com.roomchatapps.Pmishra.utils.SessionManager;
+import com.roomchatapps.Pmishra.utils.StoreManager;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import org.json.JSONObject;
@@ -33,7 +43,9 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -52,6 +64,14 @@ public class EditProfileActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private Uri imageUri;
     private String currentAvatarUrl;
+
+    private final List<CollectionItemModel> frameList = new ArrayList<>();
+    private final List<CollectionItemModel> vehicleList = new ArrayList<>();
+    private final List<CollectionItemModel> giftList = new ArrayList<>();
+
+    private HorizontalCollectionAdapter frameAdapter;
+    private HorizontalCollectionAdapter vehicleAdapter;
+    private GiftGridAdapter giftAdapter;
 
     private static final String IMGBB_API_KEY = "d909717479f29f4de1b6efc62ec33528";
 
@@ -100,7 +120,9 @@ public class EditProfileActivity extends AppCompatActivity {
         userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
         loadUserData();
+        setupRecyclerViews();
         setupClickListeners();
+        loadCollectionSections(uid);
     }
 
     private void loadUserData() {
@@ -145,7 +167,8 @@ public class EditProfileActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (userRef != null) {
+        String uid = mAuth != null ? mAuth.getUid() : null;
+        if (uid != null && userRef != null) {
             userRef.child("equipped_frame").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -158,6 +181,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
                 @Override public void onCancelled(@NonNull DatabaseError error) {}
             });
+            loadCollectionSections(uid);
         }
     }
 
@@ -176,12 +200,216 @@ public class EditProfileActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        if (binding.btnViewAllFrames != null) {
+            binding.btnViewAllFrames.setOnClickListener(v -> startActivity(new Intent(EditProfileActivity.this, StoreActivity.class)));
+        }
+        if (binding.btnViewAllVehicles != null) {
+            binding.btnViewAllVehicles.setOnClickListener(v -> startActivity(new Intent(EditProfileActivity.this, StoreActivity.class)));
+        }
+
         // Preset Avatars Click Listeners
         binding.presetAvatar1.setOnClickListener(v -> selectPresetAvatar(R.drawable._1000092458_removebg_preview));
         binding.presetAvatar2.setOnClickListener(v -> selectPresetAvatar(R.drawable._1000092459_removebg_preview));
         binding.presetAvatar3.setOnClickListener(v -> selectPresetAvatar(R.drawable._1000092460_removebg_preview));
 
         binding.btnSave.setOnClickListener(v -> saveProfile());
+    }
+
+    private void setupRecyclerViews() {
+        if (binding.rvFrames != null) {
+            binding.rvFrames.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            frameAdapter = new HorizontalCollectionAdapter(frameList, item -> {
+                if (item != null && item.getStoreItem() != null) {
+                    StoreItemModel storeItem = item.getStoreItem();
+                    if (storeItem.isEquipped()) {
+                        Toast.makeText(this, storeItem.getName() + " is already equipped ✨", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Equipping " + storeItem.getName() + "...", Toast.LENGTH_SHORT).show();
+                        String uid = mAuth != null ? mAuth.getUid() : null;
+                        StoreManager.equipItem(uid, storeItem, new StoreManager.ActionCallback() {
+                            @Override
+                            public void onSuccess(String msg) {
+                                Toast.makeText(EditProfileActivity.this, msg, Toast.LENGTH_SHORT).show();
+                                selectedFrameId = storeItem.getId();
+                                FrameUtils.displayFrame(EditProfileActivity.this, storeItem.getId(), binding.ivProfileFrame, binding.svgaProfileFrame);
+                                loadCollectionSections(uid);
+                            }
+                            @Override
+                            public void onError(String err) {
+                                Toast.makeText(EditProfileActivity.this, err, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            });
+            binding.rvFrames.setAdapter(frameAdapter);
+        }
+
+        if (binding.rvVehicles != null) {
+            binding.rvVehicles.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            vehicleAdapter = new HorizontalCollectionAdapter(vehicleList, item -> {
+                if (item != null && item.getStoreItem() != null) {
+                    StoreItemModel storeItem = item.getStoreItem();
+                    if (storeItem.isEquipped()) {
+                        Toast.makeText(this, storeItem.getName() + " is already equipped 🚗", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Equipping " + storeItem.getName() + "...", Toast.LENGTH_SHORT).show();
+                        String uid = mAuth != null ? mAuth.getUid() : null;
+                        StoreManager.equipItem(uid, storeItem, new StoreManager.ActionCallback() {
+                            @Override
+                            public void onSuccess(String msg) {
+                                Toast.makeText(EditProfileActivity.this, msg, Toast.LENGTH_SHORT).show();
+                                loadCollectionSections(uid);
+                            }
+                            @Override
+                            public void onError(String err) {
+                                Toast.makeText(EditProfileActivity.this, err, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            });
+            binding.rvVehicles.setAdapter(vehicleAdapter);
+        }
+
+        if (binding.rvGiftsReceived != null) {
+            binding.rvGiftsReceived.setLayoutManager(new GridLayoutManager(this, 4));
+            binding.rvGiftsReceived.setNestedScrollingEnabled(false);
+            giftAdapter = new GiftGridAdapter(giftList, item ->
+                    Toast.makeText(this, item.getItemName() + " (Received x" + item.getReceivedCount() + ")", Toast.LENGTH_SHORT).show());
+            binding.rvGiftsReceived.setAdapter(giftAdapter);
+        }
+    }
+
+    private void loadCollectionSections(String uid) {
+        if (uid == null) return;
+
+        StoreManager.getStoreCatalog(uid, "ALL", new StoreManager.CatalogCallback() {
+            @Override
+            public void onCatalogLoaded(List<StoreItemModel> catalog) {
+                frameList.clear();
+                vehicleList.clear();
+
+                for (StoreItemModel item : catalog) {
+                    if (item.isOwned()) {
+                        if ("ENTRANCE".equalsIgnoreCase(item.getCategory())) {
+                            vehicleList.add(new CollectionItemModel(CollectionItemModel.ItemType.ENTRY_EFFECT, item));
+                        } else if ("FRAME".equalsIgnoreCase(item.getCategory())) {
+                            frameList.add(new CollectionItemModel(CollectionItemModel.ItemType.FRAME, item));
+                        }
+                    }
+                }
+
+                if (frameAdapter != null) frameAdapter.notifyDataSetChanged();
+                if (vehicleAdapter != null) vehicleAdapter.notifyDataSetChanged();
+
+                loadReceivedGifts(uid);
+            }
+
+            @Override
+            public void onError(String error) {
+                loadReceivedGifts(uid);
+            }
+        });
+    }
+
+    private void loadReceivedGifts(String uid) {
+        DatabaseReference txRef = FirebaseDatabase.getInstance().getReference("wallet_transactions").child(uid);
+        DatabaseReference userGiftsRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("received_gifts");
+
+        txRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Map<String, Integer> giftCountMap = new HashMap<>();
+
+                if (snapshot.exists()) {
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String type = ds.child("type").getValue(String.class);
+                        if (type == null) type = "";
+
+                        String giftName = ds.child("giftName").getValue(String.class);
+                        if (giftName == null || giftName.trim().isEmpty()) {
+                            String title = ds.child("title").getValue(String.class);
+                            if (title != null && title.startsWith("Received Gift: ")) {
+                                giftName = title.substring("Received Gift: ".length()).trim();
+                            }
+                        }
+                        if ("GIFT_RECEIVED".equalsIgnoreCase(type) || "RECEIVED_GIFT".equalsIgnoreCase(type)) {
+                            if (giftName != null && !giftName.trim().isEmpty()) {
+                                String cleanName = giftName.replaceAll("\\s*\\(.*?\\)", "").trim();
+                                int qty = 1;
+                                Long qObj = ds.child("quantity").getValue(Long.class);
+                                if (qObj != null && qObj > 0) qty = qObj.intValue();
+
+                                int currentCount = giftCountMap.containsKey(cleanName) ? giftCountMap.get(cleanName) : 0;
+                                giftCountMap.put(cleanName, currentCount + qty);
+                            }
+                        }
+                    }
+                }
+
+                userGiftsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot giftsSnapshot) {
+                        if (giftsSnapshot.exists()) {
+                            for (DataSnapshot ds : giftsSnapshot.getChildren()) {
+                                String gKey = ds.getKey();
+                                Object val = ds.getValue();
+                                long countVal = 0;
+                                if (val instanceof Long) countVal = (Long) val;
+                                else if (val instanceof Integer) countVal = (Integer) val;
+                                else if (val instanceof String) {
+                                    try { countVal = Long.parseLong((String) val); } catch (Exception ignored) {}
+                                }
+
+                                if (gKey != null && countVal > 0) {
+                                    String cleanKey = gKey.replaceAll("\\s*\\(.*?\\)", "").trim();
+                                    int existing = giftCountMap.containsKey(cleanKey) ? giftCountMap.get(cleanKey) : 0;
+                                    giftCountMap.put(cleanKey, Math.max(existing, (int) countVal));
+                                }
+                            }
+                        }
+
+                        bindGifts(giftCountMap);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        bindGifts(giftCountMap);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                bindGifts(new HashMap<>());
+            }
+        });
+    }
+
+    private void bindGifts(Map<String, Integer> giftCountMap) {
+        giftList.clear();
+        int totalGifts = 0;
+
+        for (Map.Entry<String, Integer> entry : giftCountMap.entrySet()) {
+            String giftName = entry.getKey();
+            int count = entry.getValue();
+
+            if (count > 0) {
+                totalGifts += count;
+                GiftStoreAdapter.GiftStoreItem catalogGift = GiftCatalog.findGiftByName(giftName);
+                if (catalogGift != null) {
+                    giftList.add(new CollectionItemModel(catalogGift, count));
+                } else {
+                    giftList.add(new CollectionItemModel(giftName, R.drawable.gift_icon, 100000L, count));
+                }
+            }
+        }
+
+        if (giftAdapter != null) giftAdapter.notifyDataSetChanged();
+        if (binding.tvGiftCount != null) {
+            binding.tvGiftCount.setText(totalGifts + " Items");
+        }
     }
 
     private void selectPresetAvatar(int resId) {

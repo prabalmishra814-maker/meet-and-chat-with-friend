@@ -39,8 +39,8 @@
             <!-- Circular User Avatar (Drawn First - Inside Frame Hole) -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/profileImage"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="78dp"
+                android:layout_height="78dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@drawable/app_create_room_ic"
