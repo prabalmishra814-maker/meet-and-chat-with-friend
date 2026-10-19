@@ -177,6 +177,9 @@
       this.devMode = false;
       this.forcedRoll = null;
 
+      this.isOnlineActive = false;
+      this.lastProcessedTimestamp = 0;
+
       // Player Configurations: Yellow = YOU (Human), Green/Blue/Red = BOTs
       this.players = {
         green:  { isAi: true,  finishedCount: 0, rank: null },
@@ -200,6 +203,7 @@
       this.initDomReferences();
       this.buildBoardDom();
       this.bindEvents();
+      this.onlineManager = new LudoOnlineManager(this);
       this.updateUiState();
 
       // Initial position for dynamic floating dice
@@ -508,6 +512,13 @@
         });
       });
 
+      const btnFind = document.getElementById('btn-find-friends');
+      if (btnFind) {
+        btnFind.addEventListener('click', () => {
+          if (this.onlineManager) this.onlineManager.startMatchmaking();
+        });
+      }
+
       document.getElementById('btn-restart-game').addEventListener('click', () => {
         this.modalSettings.classList.add('hidden');
         this.restartGame();
@@ -520,7 +531,11 @@
 
       this.selectGameMode.addEventListener('change', (e) => {
         const mode = e.target.value;
-        if (mode === 'vs_ai') {
+        if (mode === 'online_4p') {
+          this.modalSettings.classList.add('hidden');
+          if (this.onlineManager) this.onlineManager.startMatchmaking();
+        } else if (mode === 'vs_ai') {
+          this.isOnlineActive = false;
           this.players = {
             green:  { isAi: true },
             blue:   { isAi: true },
@@ -528,6 +543,7 @@
             red:    { isAi: true }
           };
         } else if (mode === 'pass_play') {
+          this.isOnlineActive = false;
           this.players = {
             green:  { isAi: false },
             blue:   { isAi: false },
@@ -584,6 +600,10 @@
 
         this.dice3d.className = `dice-3d show-${this.diceValue}`;
         this.isRolling = false;
+
+        if (this.isOnlineActive && this.onlineManager) {
+          this.onlineManager.sendAction('ROLL', { diceVal: this.diceValue, color: this.getCurrentColor() });
+        }
 
         this.handleDiceResult();
       }, 500);
@@ -656,6 +676,10 @@
 
       if (!validTokens.some(t => t.id === tokenId)) {
         return;
+      }
+
+      if (this.isOnlineActive && this.onlineManager) {
+        this.onlineManager.sendAction('MOVE', { color: color, tokenId: tokenId });
       }
 
       this.clearTokenHighlights();
@@ -931,6 +955,277 @@
       setTimeout(() => {
         this.toastMsg.classList.add('hidden');
       }, 1800);
+    }
+
+    startOnlineGame(roomData, mySlot, userInfo) {
+      this.isOnlineActive = true;
+      this.mySlot = mySlot;
+      this.myColor = COLORS[mySlot];
+
+      if (roomData && roomData.players) {
+        roomData.players.forEach((p, idx) => {
+          const color = COLORS[idx];
+          const isMe = (idx === mySlot);
+          this.players[color] = {
+            isAi: p.isBot,
+            isRemote: !isMe && !p.isBot,
+            name: p.name || color.toUpperCase(),
+            avatar: p.avatar || `assets/avatar_p${idx + 1}.svg`,
+            finishedCount: 0
+          };
+
+          const card = document.getElementById(`profile-${color}`);
+          if (card) {
+            const nameEl = card.querySelector('.player-name');
+            const avatarEl = card.querySelector('.avatar-img');
+            const botBadge = card.querySelector('.bot-badge');
+            const youBadge = card.querySelector('.you-badge');
+
+            if (nameEl) nameEl.innerText = p.name ? p.name.toUpperCase() : color.toUpperCase();
+            if (avatarEl && p.avatar && p.avatar.length > 0) avatarEl.src = p.avatar;
+            if (botBadge) botBadge.classList.toggle('hidden', !p.isBot);
+            if (youBadge) youBadge.classList.toggle('hidden', !isMe);
+          }
+        });
+      }
+
+      this.restartGame(false);
+      this.showToast("⚡ Online 4-Player Match Connected!");
+    }
+
+    handleRemoteAction(action) {
+      if (!action || !action.timestamp || action.timestamp <= this.lastProcessedTimestamp) return;
+      this.lastProcessedTimestamp = action.timestamp;
+
+      if (action.slot === this.mySlot) return; // Local action
+
+      if (action.type === 'ROLL') {
+        this.forcedRoll = action.diceVal;
+        this.rollDice();
+        this.forcedRoll = null;
+      } else if (action.type === 'MOVE') {
+        this.onTokenSelected(action.color, action.tokenId);
+      }
+    }
+  }
+
+  // --- ONLINE MULTIPLAYER & MATCHMAKING MANAGER ---
+  class LudoOnlineManager {
+    constructor(game) {
+      this.game = game;
+      this.isOnline = false;
+      this.mySlot = 0;
+      this.roomId = null;
+      this.timerSeconds = 12;
+      this.timerInterval = null;
+
+      this.initUiReferences();
+      this.bindEvents();
+      this.checkBridge();
+    }
+
+    initUiReferences() {
+      this.btnFindFriends = document.getElementById('btn-find-friends');
+      this.modalMatchmaking = document.getElementById('modal-matchmaking');
+      this.btnCancelMatchmaking = document.getElementById('btn-cancel-matchmaking');
+      this.statusText = document.getElementById('matchmaking-status-text');
+      this.timerBadge = document.getElementById('matchmaking-timer');
+    }
+
+    checkBridge() {
+      if (window.AndroidLudo) {
+        try {
+          const userInfoStr = window.AndroidLudo.getUserInfo();
+          if (userInfoStr) {
+            this.userInfo = JSON.parse(userInfoStr);
+          }
+        } catch (e) {
+          console.error("Error reading userInfo from AndroidLudo", e);
+        }
+      }
+      if (!this.userInfo) {
+        this.userInfo = {
+          uid: "guest_" + Math.floor(Math.random() * 8999 + 1000),
+          name: "YOU",
+          avatar: "assets/avatar_p4.svg"
+        };
+      }
+    }
+
+    bindEvents() {
+      if (this.btnFindFriends) {
+        this.btnFindFriends.addEventListener('click', () => {
+          this.startMatchmaking();
+        });
+      }
+
+      if (this.btnCancelMatchmaking) {
+        this.btnCancelMatchmaking.addEventListener('click', () => {
+          this.cancelMatchmaking();
+        });
+      }
+
+      window.onLudoRoomUpdated = (roomData) => {
+        this.onRoomUpdated(roomData);
+      };
+    }
+
+    startMatchmaking() {
+      this.isOnline = true;
+      if (this.modalMatchmaking) this.modalMatchmaking.classList.remove('hidden');
+      this.resetSlotCards();
+      if (this.statusText) this.statusText.innerText = "Finding online players... (1/4)";
+
+      this.timerSeconds = 12;
+      if (this.timerBadge) this.timerBadge.innerText = `${this.timerSeconds}s`;
+
+      if (this.timerInterval) clearInterval(this.timerInterval);
+      this.timerInterval = setInterval(() => {
+        this.timerSeconds--;
+        if (this.timerSeconds <= 0) {
+          clearInterval(this.timerInterval);
+        } else {
+          if (this.timerBadge) this.timerBadge.innerText = `${this.timerSeconds}s`;
+        }
+      }, 1000);
+
+      if (window.AndroidLudo) {
+        window.AndroidLudo.findMatch("online_4p");
+      } else {
+        this.simulateWebMatchmaking();
+      }
+    }
+
+    simulateWebMatchmaking() {
+      let found = 1;
+      const names = ["Aarav", "Neha", "Rohan", "Priya"];
+      const interval = setInterval(() => {
+        found++;
+        const slotCard = document.getElementById(`slot-card-${found - 1}`);
+        const slotName = document.getElementById(`slot-name-${found - 1}`);
+        const slotStatus = document.getElementById(`slot-status-${found - 1}`);
+
+        if (slotCard) {
+          slotCard.className = 'match-slot-card slot-found';
+          if (slotName) slotName.innerText = names[found - 1] || "Player";
+          if (slotStatus) {
+            slotStatus.className = 'slot-status status-ready';
+            slotStatus.innerText = 'CONNECTED';
+          }
+        }
+
+        if (this.statusText) this.statusText.innerText = `Finding online players... (${found}/4)`;
+
+        if (found >= 4 || this.timerSeconds <= 0) {
+          clearInterval(interval);
+          setTimeout(() => {
+            if (this.modalMatchmaking) this.modalMatchmaking.classList.add('hidden');
+            const mockRoom = {
+              roomId: "web_room_1",
+              state: "PLAYING",
+              mySlot: 2,
+              players: [
+                { slot: 0, uid: "p1", name: names[0], avatar: "assets/avatar_p1.svg", isBot: false },
+                { slot: 1, uid: "p2", name: names[1], avatar: "assets/avatar_p2.svg", isBot: false },
+                { slot: 2, uid: this.userInfo.uid, name: this.userInfo.name || "YOU", avatar: this.userInfo.avatar || "assets/avatar_p4.svg", isBot: false },
+                { slot: 3, uid: "p3", name: names[3], avatar: "assets/avatar_p3.svg", isBot: false }
+              ]
+            };
+            this.onRoomUpdated(mockRoom);
+          }, 800);
+        }
+      }, 1200);
+    }
+
+    resetSlotCards() {
+      for (let i = 0; i < 4; i++) {
+        const slotCard = document.getElementById(`slot-card-${i}`);
+        const slotName = document.getElementById(`slot-name-${i}`);
+        const slotStatus = document.getElementById(`slot-status-${i}`);
+        const slotAvatar = document.getElementById(`slot-avatar-${i}`);
+
+        if (i === 0) {
+          if (slotCard) slotCard.className = 'match-slot-card slot-found';
+          if (slotName) slotName.innerText = this.userInfo ? this.userInfo.name : "YOU";
+          if (slotStatus) {
+            slotStatus.className = 'slot-status status-ready';
+            slotStatus.innerText = 'CONNECTED';
+          }
+          if (slotAvatar && this.userInfo && this.userInfo.avatar && this.userInfo.avatar.length > 0) {
+            slotAvatar.src = this.userInfo.avatar;
+          }
+        } else {
+          if (slotCard) slotCard.className = 'match-slot-card slot-searching';
+          if (slotName) slotName.innerText = "Searching...";
+          if (slotStatus) {
+            slotStatus.className = 'slot-status status-wait';
+            slotStatus.innerText = 'SEARCHING';
+          }
+        }
+      }
+    }
+
+    cancelMatchmaking() {
+      if (this.timerInterval) clearInterval(this.timerInterval);
+      if (this.modalMatchmaking) this.modalMatchmaking.classList.add('hidden');
+      this.isOnline = false;
+
+      if (window.AndroidLudo) {
+        window.AndroidLudo.leaveMatch();
+      }
+    }
+
+    onRoomUpdated(roomData) {
+      if (!roomData) return;
+
+      this.roomId = roomData.roomId;
+
+      if (roomData.mySlot !== undefined) {
+        this.mySlot = roomData.mySlot;
+      }
+
+      if (roomData.players && Array.isArray(roomData.players)) {
+        let connectedCount = 0;
+        roomData.players.forEach((p, idx) => {
+          const slotCard = document.getElementById(`slot-card-${idx}`);
+          const slotName = document.getElementById(`slot-name-${idx}`);
+          const slotStatus = document.getElementById(`slot-status-${idx}`);
+          const slotAvatar = document.getElementById(`slot-avatar-${idx}`);
+
+          if (p && p.uid && p.uid.length > 0) {
+            connectedCount++;
+            if (slotCard) slotCard.className = 'match-slot-card slot-found';
+            if (slotName) slotName.innerText = p.name || `Player ${idx + 1}`;
+            if (slotStatus) {
+              slotStatus.className = 'slot-status status-ready';
+              slotStatus.innerText = p.isBot ? 'BOT' : 'CONNECTED';
+            }
+            if (slotAvatar && p.avatar && p.avatar.length > 0) {
+              slotAvatar.src = p.avatar;
+            }
+          }
+        });
+
+        if (this.statusText) this.statusText.innerText = `Finding online players... (${connectedCount}/4)`;
+      }
+
+      if (roomData.state === "PLAYING" && !this.game.isOnlineActive) {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        if (this.modalMatchmaking) this.modalMatchmaking.classList.add('hidden');
+
+        this.game.startOnlineGame(roomData, this.mySlot, this.userInfo);
+      }
+
+      if (roomData.lastAction && this.game.isOnlineActive) {
+        this.game.handleRemoteAction(roomData.lastAction);
+      }
+    }
+
+    sendAction(actionType, actionData) {
+      if (!this.isOnline) return;
+      if (window.AndroidLudo) {
+        window.AndroidLudo.sendGameAction(actionType, JSON.stringify(actionData));
+      }
     }
   }
 

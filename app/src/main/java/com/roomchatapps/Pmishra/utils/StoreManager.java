@@ -212,7 +212,6 @@ public class StoreManager {
     private static void filterAndReturn(List<StoreItemModel> catalog, String categoryFilter, CatalogCallback callback) {
         List<StoreItemModel> filtered = new ArrayList<>();
         Set<String> seenIds = new HashSet<>();
-        Set<String> seenSvgaPaths = new HashSet<>();
 
         for (StoreItemModel item : catalog) {
             if (item == null || item.getId() == null) continue;
@@ -228,17 +227,15 @@ public class StoreManager {
                 continue;
             }
 
-            // Strict Deduplication by ID and SVGA path
+            // Strict Deduplication by ID
             String normalizedId = item.getId().toLowerCase().trim();
-            String normalizedPath = svgaPath.toLowerCase().trim();
 
-            if (seenIds.contains(normalizedId) || seenSvgaPaths.contains(normalizedPath)) {
+            if (seenIds.contains(normalizedId)) {
                 continue;
             }
 
             if (categoryFilter == null || categoryFilter.equalsIgnoreCase("ALL") || categoryFilter.equalsIgnoreCase(item.getCategory())) {
                 seenIds.add(normalizedId);
-                seenSvgaPaths.add(normalizedPath);
                 filtered.add(item);
             }
         }

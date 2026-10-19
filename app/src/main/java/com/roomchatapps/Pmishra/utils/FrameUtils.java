@@ -292,6 +292,7 @@ public class FrameUtils {
             case "gift_rose_ship":
                 return R.drawable.gift_rose_ship;
             case "entrance_airplane":
+            case "entrance_aeroplane":
             case "gift_airplane_icon":
                 return R.drawable.gift_airplane_icon;
             case "entrance_luxury_yacht":
@@ -463,13 +464,15 @@ public class FrameUtils {
 
         switch (entranceId.trim()) {
             case "entrance_anime_man": return "Entry/anime_man_entry.svga";
-            case "entrance_golden_car": return "Entry/golden_super_car.svga";
+            case "entrance_golden_car":
+            case "entrance_golden_super_car": return "Entry/golden_super_car.svga";
             case "entrance_red_car": return "Entry/red_super_car.svga";
             case "entrance_toyota_car": return "Entry/toyota_car_entry.svga";
             case "entrance_magic_deer": return "gift/magic_gift.svga";
             case "entrance_unicorn": return "gift/cosmic_float.svga";
             case "entrance_rose_ship": return "gift/a_luxury_yacht.svga";
-            case "entrance_airplane": return "gift/airplane.svga";
+            case "entrance_airplane":
+            case "entrance_aeroplane": return "gift/airplane.svga";
             case "entrance_luxury_yacht": return "gift/a_luxury_yacht.svga";
             case "entrance_luxury_jet": return "gift/airplane.svga";
         }

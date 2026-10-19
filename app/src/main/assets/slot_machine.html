@@ -270,6 +270,26 @@ fit();
 (function(){const b=$('bok');for(let i=0;i<46;i++){const e=document.createElement('i'),z=14+Math.random()*60,c=Math.random()<.4?'255,190,230':'255,255,255';e.style.cssText='width:'+z+'px;height:'+z+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;opacity:'+(.25+Math.random()*.5)+';background:radial-gradient(circle,rgba('+c+',.95),rgba('+c+',.15) 70%,transparent)';b.appendChild(e)}})();
 for(let i=0;i<9;i++){const b=document.createElement('div');b.className='bulb';b.style.left=(204+i*30)+'px';b.style.top='-98px';face.appendChild(b)}
 draw();paint();
+// Wall-Clock Synchronized Timer (15s cycle)
+const SLOT_CYCLE = 15;
+setInterval(() => {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cyclePos = nowSec % SLOT_CYCLE;
+  const rem = SLOT_CYCLE - cyclePos;
+
+  const btn = $('spin');
+  if (btn) {
+    if (!busy) {
+      btn.textContent = 'SPIN (' + rem + 's)';
+    } else {
+      btn.textContent = 'SPIN';
+    }
+  }
+
+  if (cyclePos === 0 && !busy && E.credit >= E.total()) {
+    spin();
+  }
+}, 1000);
 </script>
 </body>
 </html>

@@ -91,22 +91,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let timerInterval = null;
 
-// START CONTINUOUS 30-SECOND COUNTDOWN TIMER
+// START CONTINUOUS WALL-CLOCK SYNCHRONIZED COUNTDOWN TIMER
+const CYCLE_DURATION = 35; // 30s betting + 5s spin/result
+const BETTING_DURATION = 30;
+
 function startCountdownTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    state.countdownSeconds = CONFIG.countdownDuration || 30;
-    updateTimerUI();
+
+    syncTimer();
 
     timerInterval = setInterval(() => {
-        state.countdownSeconds--;
+        syncTimer();
+    }, 1000);
+}
 
-        if (state.countdownSeconds <= 0) {
-            triggerSpin();
-            state.countdownSeconds = CONFIG.countdownDuration || 30;
+function syncTimer() {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cyclePos = nowSec % CYCLE_DURATION; // 0 to 34
+
+    if (cyclePos < BETTING_DURATION) {
+        state.countdownSeconds = BETTING_DURATION - cyclePos; // 30 down to 1
+
+        if (state.isSpinning) {
+            state.isSpinning = false;
         }
 
         updateTimerUI();
-    }, 1000);
+    } else {
+        state.countdownSeconds = 0;
+
+        if (!state.isSpinning) {
+            triggerSpin();
+        }
+    }
 }
 
 // UPDATE COUNTDOWN TIMER DISPLAY

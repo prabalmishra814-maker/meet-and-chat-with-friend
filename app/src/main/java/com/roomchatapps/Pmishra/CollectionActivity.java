@@ -370,6 +370,16 @@ public class CollectionActivity extends AppCompatActivity {
     private void setupClickListeners() {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
+        if (btnMoreOptions != null) {
+            btnMoreOptions.setText("Edit");
+            btnMoreOptions.setTextColor(Color.parseColor("#00FFC6"));
+            btnMoreOptions.setTextSize(14);
+            btnMoreOptions.setOnClickListener(v -> {
+                Intent intent = new Intent(CollectionActivity.this, EditProfileActivity.class);
+                startActivity(intent);
+            });
+        }
+
         if (btnGoLoveStore != null) {
             btnGoLoveStore.setOnClickListener(v -> {
                 Intent intent = new Intent(CollectionActivity.this, StoreActivity.class);

@@ -278,6 +278,34 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        View.OnClickListener openMyCollection = v -> {
+            if (binding != null && binding.profileImageContainer != null) {
+                AnimationHelper.bounceAnimation(binding.profileImageContainer);
+            }
+            FirebaseUser user = mAuth != null ? mAuth.getCurrentUser() : FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null && getActivity() != null) {
+                Intent intent = new Intent(getActivity(), OtherCollectionActivity.class);
+                intent.putExtra("selectedUserId", user.getUid());
+                intent.putExtra("uid", user.getUid());
+                String name = (binding != null && binding.userName != null) ? binding.userName.getText().toString() : "";
+                intent.putExtra("selectedUserName", name);
+                startActivity(intent);
+            }
+        };
+
+        if (binding.profileImageContainer != null) {
+            binding.profileImageContainer.setOnClickListener(openMyCollection);
+        }
+        if (binding.profileImage != null) {
+            binding.profileImage.setOnClickListener(openMyCollection);
+        }
+        if (binding.ivProfileFrame != null) {
+            binding.ivProfileFrame.setOnClickListener(openMyCollection);
+        }
+        if (binding.svgaProfileFrame != null) {
+            binding.svgaProfileFrame.setOnClickListener(openMyCollection);
+        }
+
         binding.layoutFollowers.setOnClickListener(v -> {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {

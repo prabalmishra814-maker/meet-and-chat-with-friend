@@ -17,6 +17,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <queries>
         <package android:name="com.snapchat.android" />
@@ -141,6 +143,13 @@
             android:name=".services.AppNotificationService"
             android:enabled="true"
             android:exported="false" />
+
+        <!-- Background Audio Room Service -->
+        <service
+            android:name=".services.RoomAudioService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="microphone|mediaPlayback" />
 
         <!-- Firebase Cloud Messaging Push Service -->
         <service

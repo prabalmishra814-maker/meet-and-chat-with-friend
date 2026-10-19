@@ -30,6 +30,10 @@
           <span class="logo-text">LUDO</span>
         </div>
 
+        <button id="btn-find-friends" class="find-friends-btn" title="Find Online Friends">
+          ⚡ FIND FRIENDS
+        </button>
+
         <button id="btn-sound" class="blue-ctrl-btn btn-sound" title="Toggle Sound">
           <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
         </button>
@@ -145,6 +149,77 @@
       <!-- Toast Overlay -->
       <div id="toast-message" class="toast-message hidden"></div>
 
+      <!-- Online 4-Player Matchmaking / Finding Friends Modal -->
+      <div id="modal-matchmaking" class="modal-overlay hidden">
+        <div class="modal-card matchmaking-card">
+          <div class="matchmaking-header">
+            <h2>FINDING FRIENDS</h2>
+            <span class="matchmaking-subtitle">Searching 4 Online Players Across Rooms</span>
+          </div>
+
+          <!-- Radar Pulse Animation -->
+          <div class="radar-box">
+            <div class="radar-ring ring-1"></div>
+            <div class="radar-ring ring-2"></div>
+            <div class="radar-ring ring-3"></div>
+            <div class="radar-center-icon">🎲</div>
+          </div>
+
+          <!-- 4 Player Slots Grid -->
+          <div class="match-slots-grid">
+            <!-- Player 1 (Yellow / You) -->
+            <div id="slot-card-0" class="match-slot-card slot-found">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-0" class="slot-avatar" src="assets/avatar_p4.svg" alt="P1">
+                <span class="slot-badge badge-you">YOU</span>
+              </div>
+              <span id="slot-name-0" class="slot-name">YOU</span>
+              <span id="slot-status-0" class="slot-status status-ready">CONNECTED</span>
+            </div>
+
+            <!-- Player 2 (Green) -->
+            <div id="slot-card-1" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-1" class="slot-avatar" src="assets/avatar_p1.svg" alt="P2">
+                <span class="slot-badge">P2</span>
+              </div>
+              <span id="slot-name-1" class="slot-name">Searching...</span>
+              <span id="slot-status-1" class="slot-status status-wait">SEARCHING</span>
+            </div>
+
+            <!-- Player 3 (Blue) -->
+            <div id="slot-card-2" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-2" class="slot-avatar" src="assets/avatar_p2.svg" alt="P3">
+                <span class="slot-badge">P3</span>
+              </div>
+              <span id="slot-name-2" class="slot-name">Searching...</span>
+              <span id="slot-status-2" class="slot-status status-wait">SEARCHING</span>
+            </div>
+
+            <!-- Player 4 (Red) -->
+            <div id="slot-card-3" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-3" class="slot-avatar" src="assets/avatar_p3.svg" alt="P4">
+                <span class="slot-badge">P4</span>
+              </div>
+              <span id="slot-name-3" class="slot-name">Searching...</span>
+              <span id="slot-status-3" class="slot-status status-wait">SEARCHING</span>
+            </div>
+          </div>
+
+          <!-- Timer and Status Text -->
+          <div class="matchmaking-footer">
+            <div id="matchmaking-status-text" class="status-progress-text">Finding online players... (1/4)</div>
+            <div id="matchmaking-timer" class="countdown-badge">12s</div>
+          </div>
+
+          <div class="modal-actions">
+            <button id="btn-cancel-matchmaking" class="action-btn cancel-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Settings Modal -->
       <div id="modal-settings" class="modal-overlay hidden">
         <div class="modal-card">
@@ -156,6 +231,7 @@
             <div class="setting-item">
               <label for="select-game-mode">Game Mode:</label>
               <select id="select-game-mode" class="custom-select">
+                <option value="online_4p" selected>Finding Friends (Online 4 Players)</option>
                 <option value="vs_ai">1 Player vs 3 AI Bots</option>
                 <option value="pass_play">4 Players (Pass & Play)</option>
               </select>

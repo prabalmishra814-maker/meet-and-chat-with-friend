@@ -28,7 +28,7 @@
     jackpot: 21417758,
     selectedChip: 1000,
     bets: {},
-    timerSec: 28,
+    timerSec: 30,
     gameState: 'BETTING', // 'BETTING' | 'SPINNING'
     soundEnabled: true,
     resultHistory: ['corn', 'corn', 'cabbage', 'tomato', 'hotdog', 'tomato']
@@ -115,6 +115,7 @@
     winningsNum: document.getElementById('winnings-num'),
     jackpotNum: document.getElementById('jackpot-num'),
     timerDisplay: document.getElementById('timer-display'),
+    selectTimeLabel: document.querySelector('.select-time-label'),
     chipBtns: document.querySelectorAll('.chip-btn'),
     foodBubbles: document.querySelectorAll('.food-bubble'),
     resultHistory: document.getElementById('result-history'),
@@ -238,18 +239,36 @@
     });
   });
 
-  // --- Game Loop Timer ---
+  // --- Wall-Clock Synchronized Game Loop Timer ---
+  const CYCLE_DURATION = 40; // 30s betting + 10s spin
+  const BETTING_DURATION = 30;
+
   let timerInterval = setInterval(() => {
-    if (state.gameState === 'BETTING') {
-      state.timerSec--;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
+
+    if (cyclePos < BETTING_DURATION) {
+      const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
+      state.timerSec = remainingBet;
+
+      if (state.gameState !== 'BETTING') {
+        resetBets();
+        state.gameState = 'BETTING';
+        if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
+        updateUI();
+      }
+
+      el.timerDisplay.textContent = state.timerSec + 's';
+
       if (state.timerSec <= 5 && state.timerSec > 0) {
         playSound('tick');
       }
+    } else {
+      const remainingSpin = CYCLE_DURATION - cyclePos; // 10 down to 1
+      state.timerSec = remainingSpin;
 
-      if (state.timerSec <= 0) {
+      if (state.gameState === 'BETTING') {
         startSpinRound();
-      } else {
-        el.timerDisplay.textContent = state.timerSec + 's';
       }
     }
   }, 1000);
@@ -275,15 +294,36 @@
 
   function startSpinRound() {
     state.gameState = 'SPINNING';
-    el.timerDisplay.textContent = 'Spin...';
+    if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+
+    let spinSec = 10;
+    el.timerDisplay.textContent = spinSec + 's';
+    let spinCountdown = setInterval(() => {
+      spinSec--;
+      if (spinSec > 0) {
+        el.timerDisplay.textContent = spinSec + 's';
+      } else {
+        clearInterval(spinCountdown);
+      }
+    }, 1000);
 
     const winnerFood = pickOutcome();
     let winnerIndex = WHEEL_ITEMS.indexOf(winnerFood);
 
+    // Deceleration step delays for the final landing phase
+    const decelDelays = [100, 130, 170, 220, 290, 380, 500, 700];
+    const decelSteps = decelDelays.length; // 8 steps
+
+    // Calculate fastSteps so totalSteps lands precisely on winnerIndex after ~10s
+    let targetFast = 100;
+    let reqRemainder = (winnerIndex + 1 - decelSteps) % WHEEL_ITEMS.length;
+    if (reqRemainder < 0) reqRemainder += WHEEL_ITEMS.length;
+
+    let fastSteps = targetFast - (targetFast % WHEEL_ITEMS.length) + reqRemainder;
+    let totalSteps = fastSteps + decelSteps;
+
     let currentIdx = 0;
-    let totalSteps = WHEEL_ITEMS.length * 3 + winnerIndex;
     let stepCount = 0;
-    let delay = 60;
 
     function spinStep() {
       // Clear previous spin highlights
@@ -294,16 +334,18 @@
 
       const bubbleEl = document.querySelector(`.food-bubble[data-food="${WHEEL_ITEMS[currentIdx]}"]`);
       if (bubbleEl) bubbleEl.classList.add('active-spin');
-      currentIdx = (currentIdx + 1) % WHEEL_ITEMS.length;
 
       stepCount++;
       if (stepCount < totalSteps) {
-        if (stepCount > totalSteps - 8) {
-          delay += 45; // Slow down near the end
+        currentIdx = (currentIdx + 1) % WHEEL_ITEMS.length;
+        let nextDelay = 75; // Fast spin delay
+        if (stepCount >= fastSteps) {
+          let decelIndex = stepCount - fastSteps;
+          nextDelay = decelDelays[decelIndex] || 500;
         }
-        setTimeout(spinStep, delay);
+        setTimeout(spinStep, nextDelay);
       } else {
-        // Final Winner Landing
+        clearInterval(spinCountdown);
         finishSpinRound(winnerFood);
       }
     }
@@ -350,9 +392,10 @@
     // Reset for next round after delay
     setTimeout(() => {
       resetBets();
-      state.timerSec = 28;
+      state.timerSec = 30;
       state.gameState = 'BETTING';
-      el.timerDisplay.textContent = '28s';
+      if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
+      el.timerDisplay.textContent = '30s';
       updateUI();
     }, 3000);
   }
@@ -400,6 +443,10 @@
   el.resetGameBtn.addEventListener('click', () => {
     state.balance = 36871;
     state.todayWinnings = 0;
+    state.timerSec = 30;
+    state.gameState = 'BETTING';
+    if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
+    el.timerDisplay.textContent = '30s';
     resetBets();
     updateUI();
     showToast('Game Reset!');
