@@ -33,6 +33,7 @@ import com.roomchatapps.Pmishra.databinding.FragmentLoveHouseUnboundBinding;
 import com.roomchatapps.Pmishra.models.User;
 import com.roomchatapps.Pmishra.utils.CpBindingManager;
 import com.roomchatapps.Pmishra.utils.FrameUtils;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -492,9 +493,7 @@ public class LoveHouseUnboundFragment extends Fragment {
         if (uid == null || (currentUid != null && currentUid.equals(uid))) return false;
 
         String profileId = ds.child("profileId").getValue(String.class);
-        if (TextUtils.isEmpty(profileId)) {
-            profileId = String.valueOf(100000 + Math.abs(uid.hashCode()) % 900000);
-        }
+        profileId = UserProfileCache.getDisplayNumericId(uid, profileId);
 
         for (User u : candidateList) {
             if (uid.equals(u.getUserId()) || (profileId != null && profileId.equals(u.getProfileId()))) {
@@ -582,9 +581,7 @@ public class LoveHouseUnboundFragment extends Fragment {
                         }
 
                         String profileId = ds.child("profileId").getValue(String.class);
-                        if (TextUtils.isEmpty(profileId) && uid != null) {
-                            profileId = String.valueOf(100000 + Math.abs(uid.hashCode()) % 900000);
-                        }
+                        profileId = UserProfileCache.getDisplayNumericId(uid, profileId);
 
                         boolean exists = false;
                         for (User u : candidateList) {
@@ -627,44 +624,44 @@ public class LoveHouseUnboundFragment extends Fragment {
     private List<User> getSuggestedCandidates() {
         List<User> list = new ArrayList<>();
 
-        User u1 = new User("zeenu_100098180", "🌸 i am ZeenU 🌸", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200", false);
-        u1.setProfileId("100098180");
+        User u1 = new User("zeenu_109180", "🌸 i am ZeenU 🌸", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200", false);
+        u1.setProfileId("109180");
         list.add(u1);
 
-        User u2 = new User("user_100098181", "✨ Angel Queen ✨", "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200", false);
-        u2.setProfileId("100098181");
+        User u2 = new User("user_109181", "✨ Angel Queen ✨", "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200", false);
+        u2.setProfileId("109181");
         list.add(u2);
 
-        User u3 = new User("user_100098182", "👑 Royal Prince 👑", "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200", false);
-        u3.setProfileId("100098182");
+        User u3 = new User("user_109182", "👑 Royal Prince 👑", "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200", false);
+        u3.setProfileId("109182");
         list.add(u3);
 
-        User u4 = new User("user_100098183", "💖 Cute Angel 💖", "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200", false);
-        u4.setProfileId("100098183");
+        User u4 = new User("user_109183", "💖 Cute Angel 💖", "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200", false);
+        u4.setProfileId("109183");
         list.add(u4);
 
-        User u5 = new User("user_100098184", "🎀 Sweet Girl 🎀", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200", false);
-        u5.setProfileId("100098184");
+        User u5 = new User("user_109184", "🎀 Sweet Girl 🎀", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200", false);
+        u5.setProfileId("109184");
         list.add(u5);
 
-        User u6 = new User("user_100098185", "🔥 Handsome Boy 🔥", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200", false);
-        u6.setProfileId("100098185");
+        User u6 = new User("user_109185", "🔥 Handsome Boy 🔥", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200", false);
+        u6.setProfileId("109185");
         list.add(u6);
 
-        User u7 = new User("user_100098186", "🌟 Star Girl 🌟", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=200", false);
-        u7.setProfileId("100098186");
+        User u7 = new User("user_109186", "🌟 Star Girl 🌟", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=200", false);
+        u7.setProfileId("109186");
         list.add(u7);
 
-        User u8 = new User("user_100098187", "🌺 Princess Rose 🌺", "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=200", false);
-        u8.setProfileId("100098187");
+        User u8 = new User("user_109187", "🌺 Princess Rose 🌺", "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=200", false);
+        u8.setProfileId("109187");
         list.add(u8);
 
-        User u9 = new User("user_100098188", "🌙 Moon Knight 🌙", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200", false);
-        u9.setProfileId("100098188");
+        User u9 = new User("user_109188", "🌙 Moon Knight 🌙", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200", false);
+        u9.setProfileId("109188");
         list.add(u9);
 
-        User u10 = new User("user_100098189", "💎 Diamond Girl 💎", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200", false);
-        u10.setProfileId("100098189");
+        User u10 = new User("user_109189", "💎 Diamond Girl 💎", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200", false);
+        u10.setProfileId("109189");
         list.add(u10);
 
         return list;

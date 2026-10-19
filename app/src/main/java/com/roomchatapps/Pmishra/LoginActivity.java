@@ -38,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.utils.LoadingDialog;
 import com.roomchatapps.Pmishra.utils.SessionManager;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
 public class LoginActivity extends AppCompatActivity {
@@ -305,12 +306,13 @@ public class LoginActivity extends AppCompatActivity {
 
                         if (!snapshot.exists()) {
                             // New User Registration
-                            generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                            generatedProfileId = UserProfileCache.getDisplayNumericId(user.getUid(), null);
 
                             userRef.child("name").setValue(name);
                             userRef.child("email").setValue(email);
                             userRef.child("uid").setValue(user.getUid());
                             userRef.child("profileId").setValue(generatedProfileId);
+                            userRef.child("userId").setValue(generatedProfileId);
                             userRef.child("premium").setValue("no");
                             userRef.child("Followers").setValue("0");
                             userRef.child("Following").setValue("0");
@@ -331,7 +333,11 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             // Existing User
                             String dbProfileId = snapshot.child("profileId").getValue(String.class);
-                            generatedProfileId = dbProfileId != null ? dbProfileId : String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                            generatedProfileId = UserProfileCache.getDisplayNumericId(user.getUid(), dbProfileId);
+                            if (dbProfileId == null || !dbProfileId.equals(generatedProfileId)) {
+                                userRef.child("profileId").setValue(generatedProfileId);
+                                userRef.child("userId").setValue(generatedProfileId);
+                            }
 
                             String dbName = snapshot.child("name").getValue(String.class);
                             if (dbName != null && !dbName.isEmpty()) {

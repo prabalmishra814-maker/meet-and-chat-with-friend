@@ -255,7 +255,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                     LeaderboardModel model = new LeaderboardModel(
                             uid,
                             name != null ? name : "User",
-                            profileId != null ? profileId : "100000",
+                            UserProfileCache.getDisplayNumericId(uid, profileId),
                             avatar,
                             0,
                             0

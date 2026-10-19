@@ -151,7 +151,7 @@ public class AgencyManager {
 
                 String hostAvatar = snapshot.child("avtar").getValue(String.class);
                 String profileId = snapshot.child("profileId").getValue(String.class);
-                if (profileId == null) profileId = userId.substring(0, 6);
+                profileId = UserProfileCache.getDisplayNumericId(userId, profileId);
 
                 long coins = 0;
                 if (snapshot.child("coins").exists()) {

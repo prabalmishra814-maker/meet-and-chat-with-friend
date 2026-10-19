@@ -83,6 +83,9 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -298,7 +301,6 @@ public class RoomChatActivity extends AppCompatActivity {
             isGranted -> {
                 if (isGranted) {
                     loadDeviceAudioTracks();
-                    Toast.makeText(this, "Loaded " + deviceAudioTracks.size() + " device music tracks!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Permission required to access device music", Toast.LENGTH_SHORT).show();
                 }
@@ -410,7 +412,6 @@ public class RoomChatActivity extends AppCompatActivity {
             currentPlayingSongName = track.title;
             ZegoManager.getInstance().playMusicResource(audioPath, track.title);
             syncMusicStateToFirebase(track.title, true);
-            Toast.makeText(this, "🎵 Playing: " + track.title, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Unable to play track: " + track.title, Toast.LENGTH_SHORT).show();
         }
@@ -3070,16 +3071,14 @@ public class RoomChatActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_music_control, null, false);
         if (dialogView == null) return;
 
-        TextView tvSongTitle = dialogView.findViewById(R.id.tvMusicDialogSongTitle);
         TextView tvTrackCount = dialogView.findViewById(R.id.tvMusicTrackCount);
         TextView tvVolumeText = dialogView.findViewById(R.id.tvMusicVolumeText);
         SeekBar seekBarVolume = dialogView.findViewById(R.id.seekBarMusicVolume);
+        Spinner spinnerDeviceSongs = dialogView.findViewById(R.id.spinnerDeviceSongs);
 
         MaterialButton btnPrev = dialogView.findViewById(R.id.btnMusicPrev);
         MaterialButton btnPlayPause = dialogView.findViewById(R.id.btnMusicPlayPause);
         MaterialButton btnNext = dialogView.findViewById(R.id.btnMusicNext);
-        View btnSelectSong = dialogView.findViewById(R.id.btnDialogSelectSong);
-        View btnStopMusic = dialogView.findViewById(R.id.btnDialogStopMusic);
 
         String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
                 Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -3089,40 +3088,152 @@ public class RoomChatActivity extends AppCompatActivity {
             }
         }
 
-        if (tvSongTitle != null) {
-            tvSongTitle.setSelected(true);
-        }
+        final boolean[] isCurrentlyPlaying = {ZegoManager.getInstance().isMusicPlaying()};
 
         Runnable updateUiState = () -> {
-            boolean isPlaying = ZegoManager.getInstance().isMusicPlaying();
-            boolean isPaused = ZegoManager.getInstance().isMusicPaused();
-
-            if (tvSongTitle != null) {
-                if (isPlaying || isPaused) {
-                    tvSongTitle.setText((isPlaying ? "🎵 Playing: " : "⏸ Paused: ") + (currentPlayingSongName.isEmpty() ? "Device Song" : currentPlayingSongName));
-                } else {
-                    tvSongTitle.setText("No Song Playing");
-                }
-            }
-
             if (tvTrackCount != null) {
                 if (deviceAudioTracks.isEmpty()) {
-                    tvTrackCount.setText("Tap Play or Next to load device tracks");
+                    tvTrackCount.setText("0 Tracks");
                 } else if (currentDeviceTrackIndex >= 0 && currentDeviceTrackIndex < deviceAudioTracks.size()) {
-                    tvTrackCount.setText("Track " + (currentDeviceTrackIndex + 1) + " of " + deviceAudioTracks.size() + " • Device Playlist");
+                    tvTrackCount.setText((currentDeviceTrackIndex + 1) + " / " + deviceAudioTracks.size() + " Tracks");
                 } else {
-                    tvTrackCount.setText("Device Music (" + deviceAudioTracks.size() + " songs loaded)");
+                    tvTrackCount.setText(deviceAudioTracks.size() + " Tracks");
                 }
             }
 
             if (btnPlayPause != null) {
-                if (isPlaying) {
+                if (isCurrentlyPlaying[0]) {
+                    // Song is playing -> Show Pause icon so user can tap to pause
                     btnPlayPause.setIconResource(R.drawable.ic_pause);
                 } else {
+                    // Song is paused or stopped -> Show Play icon so user can tap to play/resume
                     btnPlayPause.setIconResource(R.drawable.ic_play);
                 }
             }
+
+            if (spinnerDeviceSongs != null && currentDeviceTrackIndex >= 0 && currentDeviceTrackIndex < deviceAudioTracks.size()) {
+                try {
+                    spinnerDeviceSongs.setSelection(currentDeviceTrackIndex + 1, false);
+                } catch (Exception ignored) {}
+            }
         };
+
+        View layoutSongDropdownContainer = dialogView.findViewById(R.id.layoutSongDropdownContainer);
+        if (layoutSongDropdownContainer != null && spinnerDeviceSongs != null) {
+            layoutSongDropdownContainer.setOnClickListener(v -> spinnerDeviceSongs.performClick());
+        }
+
+        if (spinnerDeviceSongs != null) {
+            List<String> songNames = new ArrayList<>();
+            if (deviceAudioTracks.isEmpty()) {
+                songNames.add("No device songs found");
+            } else {
+                songNames.add("Select Song (" + deviceAudioTracks.size() + " tracks on device)");
+                for (int i = 0; i < deviceAudioTracks.size(); i++) {
+                    songNames.add((i + 1) + ". " + deviceAudioTracks.get(i).title);
+                }
+            }
+
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.item_music_dropdown, songNames) {
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View v = convertView;
+                    if (v == null) {
+                        v = getLayoutInflater().inflate(R.layout.item_music_dropdown, parent, false);
+                    }
+                    TextView tvTitle = v.findViewById(R.id.tvDropdownSongTitle);
+                    ImageView ivIcon = v.findViewById(R.id.ivDropdownMusicIcon);
+                    ImageView ivPlay = v.findViewById(R.id.ivDropdownPlayIcon);
+
+                    if (tvTitle != null) {
+                        tvTitle.setText(getItem(position));
+                        tvTitle.setTextColor(Color.parseColor("#00FFC6"));
+                    }
+                    if (ivIcon != null) {
+                        ivIcon.setColorFilter(Color.parseColor("#FF007A"));
+                    }
+                    if (ivPlay != null) {
+                        ivPlay.setVisibility(View.GONE);
+                    }
+                    v.setBackgroundColor(Color.TRANSPARENT);
+                    return v;
+                }
+
+                @Override
+                public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                    View v = convertView;
+                    if (v == null) {
+                        v = getLayoutInflater().inflate(R.layout.item_music_dropdown, parent, false);
+                    }
+                    TextView tvTitle = v.findViewById(R.id.tvDropdownSongTitle);
+                    ImageView ivIcon = v.findViewById(R.id.ivDropdownMusicIcon);
+                    ImageView ivPlay = v.findViewById(R.id.ivDropdownPlayIcon);
+
+                    boolean isCurrentPlaying = (position > 0 && position - 1 == currentDeviceTrackIndex);
+
+                    if (tvTitle != null) {
+                        tvTitle.setText(getItem(position));
+                        if (position == 0) {
+                            tvTitle.setTextColor(Color.parseColor("#00FFC6"));
+                            tvTitle.setTypeface(null, Typeface.BOLD);
+                        } else if (isCurrentPlaying) {
+                            tvTitle.setTextColor(Color.parseColor("#00FFC6"));
+                            tvTitle.setTypeface(null, Typeface.BOLD);
+                        } else {
+                            tvTitle.setTextColor(Color.WHITE);
+                            tvTitle.setTypeface(null, Typeface.NORMAL);
+                        }
+                    }
+
+                    if (ivIcon != null) {
+                        ivIcon.setImageResource(R.drawable.ic_music);
+                        ivIcon.setColorFilter(isCurrentPlaying ? Color.parseColor("#00FFC6") : Color.parseColor("#FF007A"));
+                    }
+
+                    if (ivPlay != null) {
+                        if (position == 0) {
+                            ivPlay.setVisibility(View.GONE);
+                        } else {
+                            ivPlay.setVisibility(View.VISIBLE);
+                            ivPlay.setImageResource(isCurrentPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
+                            ivPlay.setColorFilter(isCurrentPlaying ? Color.parseColor("#00FFC6") : Color.parseColor("#80FFFFFF"));
+                        }
+                    }
+
+                    if (isCurrentPlaying) {
+                        v.setBackgroundColor(Color.parseColor("#352055"));
+                    } else {
+                        v.setBackgroundColor(Color.parseColor("#1A102A"));
+                    }
+
+                    return v;
+                }
+            };
+            spinnerDeviceSongs.setAdapter(spinnerAdapter);
+
+            final boolean[] isFirstSpinnerCall = {true};
+            spinnerDeviceSongs.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (isFirstSpinnerCall[0]) {
+                        isFirstSpinnerCall[0] = false;
+                        return;
+                    }
+                    if (!isAdminOrHost()) {
+                        Toast.makeText(RoomChatActivity.this, "Only Room Host or Administrators can play music!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (position > 0 && position - 1 < deviceAudioTracks.size()) {
+                        isCurrentlyPlaying[0] = true;
+                        playDeviceTrack(position - 1);
+                        updateUiState.run();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
 
         updateUiState.run();
 
@@ -3152,13 +3263,16 @@ public class RoomChatActivity extends AppCompatActivity {
                     Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (ZegoManager.getInstance().isMusicPlaying()) {
+                if (isCurrentlyPlaying[0]) {
                     ZegoManager.getInstance().pauseMusic();
+                    isCurrentlyPlaying[0] = false;
                     syncMusicStateToFirebase(currentPlayingSongName, false);
-                } else if (ZegoManager.getInstance().isMusicPaused()) {
+                } else if (ZegoManager.getInstance().isMusicPaused() || !currentPlayingSongName.isEmpty()) {
                     ZegoManager.getInstance().resumeMusic();
+                    isCurrentlyPlaying[0] = true;
                     syncMusicStateToFirebase(currentPlayingSongName, true);
                 } else {
+                    isCurrentlyPlaying[0] = true;
                     playNextDeviceTrack();
                 }
                 updateUiState.run();
@@ -3171,6 +3285,7 @@ public class RoomChatActivity extends AppCompatActivity {
                     Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                isCurrentlyPlaying[0] = true;
                 playPrevDeviceTrack();
                 updateUiState.run();
             });
@@ -3182,26 +3297,9 @@ public class RoomChatActivity extends AppCompatActivity {
                     Toast.makeText(this, "Only Room Host or Administrators can control music!", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                isCurrentlyPlaying[0] = true;
                 playNextDeviceTrack();
                 updateUiState.run();
-            });
-        }
-
-        if (btnSelectSong != null) {
-            btnSelectSong.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
-            btnSelectSong.setOnClickListener(v -> {
-                dialog.dismiss();
-                openAudioFilePicker();
-            });
-        }
-
-        if (btnStopMusic != null) {
-            btnStopMusic.setVisibility(isAdminOrHost() ? View.VISIBLE : View.GONE);
-            btnStopMusic.setOnClickListener(v -> {
-                ZegoManager.getInstance().stopMusic();
-                syncMusicStateToFirebase("", false);
-                updateUiState.run();
-                dialog.dismiss();
             });
         }
 
@@ -3238,7 +3336,6 @@ public class RoomChatActivity extends AppCompatActivity {
                 String audioPath = cacheFile.getAbsolutePath();
                 ZegoManager.getInstance().playMusicResource(audioPath, fileName);
                 syncMusicStateToFirebase(fileName, true);
-                Toast.makeText(this, "🎵 Playing: " + fileName + " (Live to room)", Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             Log.e("RoomChatActivity", "Error loading audio file", e);
@@ -3488,9 +3585,15 @@ public class RoomChatActivity extends AppCompatActivity {
             if (activeWebGameDialog == d) activeWebGameDialog = null;
         });
 
-        int layoutId = (gameUrl != null && gameUrl.contains("ludo-game"))
-                ? R.layout.dialog_ludo_game
-                : R.layout.dialog_web_game;
+        boolean isSlotMachine = gameUrl != null && (gameUrl.contains("slot_machine") || gameUrl.contains("slot-game") || (gameTitle != null && gameTitle.toLowerCase().contains("slot")));
+        int layoutId;
+        if (isSlotMachine) {
+            layoutId = R.layout.dialog_slot_machine;
+        } else if (gameUrl != null && gameUrl.contains("ludo-game")) {
+            layoutId = R.layout.dialog_ludo_game;
+        } else {
+            layoutId = R.layout.dialog_web_game;
+        }
 
         View dialogView = getLayoutInflater().inflate(layoutId, null, false);
         if (dialogView == null) return;
@@ -3521,6 +3624,19 @@ public class RoomChatActivity extends AppCompatActivity {
 
         WebView webView = dialogView.findViewById(R.id.webViewGame);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBarGame);
+
+        if (webView != null && isSlotMachine) {
+            int displayWidth = getResources().getDisplayMetrics().widthPixels;
+            int containerWidth = displayWidth - (int) (8 * getResources().getDisplayMetrics().density);
+            if (containerWidth > 0) {
+                int targetHeight = (int) (containerWidth * (650.0 / 830.0));
+                ViewGroup.LayoutParams params = webView.getLayoutParams();
+                if (params != null) {
+                    params.height = targetHeight;
+                    webView.setLayoutParams(params);
+                }
+            }
+        }
         if (webView != null) {
             webView.setBackgroundColor(Color.TRANSPARENT);
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);

@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -557,7 +558,7 @@ public class CoinRechargeActivity extends AppCompatActivity {
                     String name = snapshot.child("name").getValue(String.class);
                     String pid = snapshot.child("profileId").getValue(String.class);
                     if (name != null) currentUserName = name;
-                    if (pid != null) currentUserProfileId = pid;
+                    currentUserProfileId = UserProfileCache.getDisplayNumericId(currentUid, pid);
 
                     Object coinsObj = snapshot.child("coins").getValue();
                     long coinsVal = 0;

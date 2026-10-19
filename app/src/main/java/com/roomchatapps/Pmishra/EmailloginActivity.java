@@ -42,6 +42,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.utils.LoadingDialog;
 import com.roomchatapps.Pmishra.utils.SessionManager;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
 
 import org.json.JSONObject;
@@ -400,7 +401,7 @@ public class EmailloginActivity extends AppCompatActivity {
                 String avatar = snapshot.child("avtar").getValue(String.class);
 
                 if (name == null) name = user.getDisplayName() != null ? user.getDisplayName() : "User";
-                if (profileId == null) profileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+                profileId = UserProfileCache.getDisplayNumericId(user.getUid(), profileId);
 
                 sessionManager.createLoginSession(user.getUid(), name, user.getEmail(), profileId, avatar, "email");
                 navigateToMainActivity();
@@ -509,13 +510,14 @@ public class EmailloginActivity extends AppCompatActivity {
                     .getReference("users")
                     .child(user.getUid());
 
-            String generatedProfileId = String.valueOf(100000 + Math.abs((long) user.getUid().hashCode()) % 900000);
+            String generatedProfileId = UserProfileCache.getDisplayNumericId(user.getUid(), null);
 
             HashMap<String, Object> map = new HashMap<>();
             map.put("name", name);
             map.put("email", user.getEmail() != null ? user.getEmail() : "");
             map.put("uid", user.getUid());
             map.put("profileId", generatedProfileId);
+            map.put("userId", generatedProfileId);
             map.put("level", "0");
             map.put("coinsSpent", 0);
             map.put("xp", 0);

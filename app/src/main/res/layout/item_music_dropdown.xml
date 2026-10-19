@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#1A102A"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
+
+    <!-- Music Icon -->
+    <ImageView
+        android:id="@+id/ivDropdownMusicIcon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="Music Icon"
+        android:src="@drawable/ic_music"
+        app:tint="#FF007A" />
+
+    <!-- Song Title Text -->
+    <TextView
+        android:id="@+id/tvDropdownSongTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="Song Title"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp"
+        android:textStyle="bold" />
+
+    <!-- Play Icon Indicator -->
+    <ImageView
+        android:id="@+id/ivDropdownPlayIcon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Play Status"
+        android:src="@drawable/ic_play"
+        app:tint="#00FFC6" />
+
+</LinearLayout>

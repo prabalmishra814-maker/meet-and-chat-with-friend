@@ -60,11 +60,12 @@ public class UserProfileCache {
                 profile.uid = cleanUid;
                 if (snapshot.exists()) {
                     String pid = snapshot.child("profileId").getValue(String.class);
-                    if (pid == null || pid.trim().isEmpty() || !pid.matches("\\d+")) {
+                    if (pid == null || pid.trim().isEmpty() || !pid.matches("\\d{6}")) {
                         pid = snapshot.child("userId").getValue(String.class);
                     }
-                    if (pid == null || pid.trim().isEmpty() || !pid.matches("\\d+")) {
-                        pid = String.valueOf(100000 + Math.abs((long) cleanUid.hashCode()) % 900000);
+                    String numericPid = getDisplayNumericId(cleanUid, pid);
+                    if (pid == null || !pid.equals(numericPid)) {
+                        pid = numericPid;
                         userRef.child("profileId").setValue(pid);
                         userRef.child("userId").setValue(pid);
                     }
@@ -134,11 +135,27 @@ public class UserProfileCache {
     }
 
     public static String getDisplayNumericId(String uid, String profileId) {
-        if (profileId != null && !profileId.trim().isEmpty() && profileId.matches("\\d+")) {
-            return profileId.trim();
+        if (profileId != null && !profileId.trim().isEmpty()) {
+            String clean = profileId.trim();
+            if (clean.matches("\\d{6}")) {
+                return clean;
+            }
+            if (clean.matches("\\d+")) {
+                try {
+                    long val = Long.parseLong(clean);
+                    return String.valueOf(100000L + Math.abs(val % 900000L));
+                } catch (Exception ignored) {}
+            }
         }
         if (uid == null || uid.trim().isEmpty()) return "100000";
-        return String.valueOf(100000 + Math.abs((long) uid.trim().hashCode()) % 900000);
+        String cleanUid = uid.trim();
+        long hash = 2166136261L;
+        for (int i = 0; i < cleanUid.length(); i++) {
+            hash ^= cleanUid.charAt(i);
+            hash *= 16777619L;
+        }
+        long num = 100000L + Math.abs(hash % 900000L);
+        return String.valueOf(num);
     }
 
     public static UserProfile getDirectCachedProfile(String uid) {

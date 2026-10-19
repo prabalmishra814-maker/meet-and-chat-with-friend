@@ -490,7 +490,8 @@ public class CollectionActivity extends AppCompatActivity {
                         tvTitle.setText(profile.name);
                     }
                     if (tvUserMeta != null) {
-                        tvUserMeta.setText("ID: " + currentUid + "  |  1 followers  |  📍 India");
+                        String displayId = UserProfileCache.getDisplayNumericId(currentUid, profile.profileId);
+                        tvUserMeta.setText("ID: " + displayId + "  |  1 followers  |  📍 India");
                     }
                     if (tvCoupleLeftName != null && profile.name != null) {
                         tvCoupleLeftName.setText(profile.name);

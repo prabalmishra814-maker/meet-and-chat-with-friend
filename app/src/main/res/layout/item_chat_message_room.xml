@@ -85,7 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:lineSpacingExtra="2dp"
-            android:maxWidth="270dp"
+            android:maxWidth="210dp"
             android:text="User : Hello!"
             android:textColor="#FFFFFF"
             android:textSize="12.5sp" />
