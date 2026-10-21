@@ -1,8 +1,6 @@
 package com.roomchatapps.Pmishra;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -23,12 +21,11 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * JavaScript Interface for Ludo Online 4-Player Matchmaking & Multiplayer Synchronization.
- * Uses Firebase Realtime Database for zero-latency real-time state sync across all online users.
+ * JavaScript Interface for Ludo Online Matchmaking & Game Server Integration.
+ * Realtime synchronization via Firebase Realtime Database for 1v1, 2v2, and 4v4 modes.
  */
 public class LudoBridge {
     private static final String TAG = "LudoBridge";
-    private final Context context;
     private final WebView webView;
     private final String userId;
     private final String userName;
@@ -37,16 +34,14 @@ public class LudoBridge {
     private final DatabaseReference ludoRef;
     private DatabaseReference activeRoomRef;
     private ValueEventListener roomEventListener;
-    private String activeRoomId = null;
-    private int myPlayerSlot = -1; // 0=Green, 1=Blue, 2=Yellow, 3=Red
+    private int myPlayerSlot = -1; // 0=Green, 1=Blue/Yellow, etc.
     private boolean isSearching = false;
-    private Handler timerHandler = new Handler(Looper.getMainLooper());
-    private Runnable timeoutRunnable = null;
 
     public LudoBridge(Context context, WebView webView, String userId, String userName, String userAvatar) {
-        this.context = context;
         this.webView = webView;
-        this.userId = (userId != null && !userId.trim().isEmpty()) ? userId : "user_" + System.currentTimeMillis();
+        String rawUid = (userId != null && !userId.trim().isEmpty()) ? userId.trim() : "user_" + System.currentTimeMillis();
+        // Append a session-unique identifier so two test instances (e.g. 2 devices logged into the same account) are treated as distinct players
+        this.userId = rawUid + "_" + (new Random().nextInt(9000) + 1000);
         this.userName = (userName != null && !userName.trim().isEmpty()) ? userName : "Player_" + new Random().nextInt(9000 + 1000);
         this.userAvatar = userAvatar != null ? userAvatar : "";
         this.ludoRef = FirebaseDatabase.getInstance().getReference("ludo_online");
@@ -68,22 +63,53 @@ public class LudoBridge {
 
     @JavascriptInterface
     public void findMatch(String mode) {
-        if (isSearching) return;
+        leaveMatch(); // Ensure clean state before starting search
+
         isSearching = true;
 
-        Log.d(TAG, "findMatch requested by user: " + userId + " (" + userName + ")");
+        final String requestedMode = (mode != null && !mode.trim().isEmpty()) ? mode.trim() : "auto";
+        final int maxPlayers = ("1v1".equalsIgnoreCase(requestedMode)) ? 2 : ("1v2".equalsIgnoreCase(requestedMode)) ? 3 : 4;
 
-        // Step 1: Query open rooms
+        Log.d(TAG, "findMatch requested by user: " + userId + " (" + userName + "), mode=" + requestedMode + ", maxPlayers=" + maxPlayers);
+
+        // Query open rooms with state WAITING and actual player count < maxPlayers
         ludoRef.child("rooms").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String foundRoomId = null;
                 DataSnapshot foundRoomSnap = null;
+                long now = System.currentTimeMillis();
 
                 for (DataSnapshot roomSnap : snapshot.getChildren()) {
                     String state = roomSnap.child("state").getValue(String.class);
-                    Long count = roomSnap.child("playerCount").getValue(Long.class);
-                    if ("WAITING".equals(state) && count != null && count < 4) {
+                    String hostUid = roomSnap.child("hostUid").getValue(String.class);
+                    Long createdAt = roomSnap.child("createdAt").getValue(Long.class);
+                    DataSnapshot playersSnap = roomSnap.child("players");
+                    long actualCount = playersSnap.exists() ? playersSnap.getChildrenCount() : 0;
+                    Long roomMax = roomSnap.child("maxPlayers").getValue(Long.class);
+
+                    int targetMax = (roomMax != null) ? roomMax.intValue() : 4;
+
+                    // Ignore abandoned rooms older than 3 minutes
+                    if (createdAt != null && (now - createdAt > 180000)) {
+                        continue;
+                    }
+
+                    // Ensure user does NOT join a room if they are already host or in players list
+                    boolean containsMe = false;
+                    if (userId.equals(hostUid)) {
+                        containsMe = true;
+                    } else if (playersSnap.exists()) {
+                        for (DataSnapshot pSnap : playersSnap.getChildren()) {
+                            String pUid = pSnap.child("uid").getValue(String.class);
+                            if (userId.equals(pUid)) {
+                                containsMe = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ("WAITING".equals(state) && !containsMe && actualCount < targetMax) {
                         foundRoomId = roomSnap.getKey();
                         foundRoomSnap = roomSnap;
                         break;
@@ -91,9 +117,9 @@ public class LudoBridge {
                 }
 
                 if (foundRoomId != null && foundRoomSnap != null) {
-                    joinExistingRoom(foundRoomId, foundRoomSnap);
+                    joinExistingRoom(foundRoomId, foundRoomSnap, requestedMode, maxPlayers);
                 } else {
-                    createNewRoom();
+                    createNewRoom(requestedMode, maxPlayers);
                 }
             }
 
@@ -105,10 +131,10 @@ public class LudoBridge {
         });
     }
 
-    private void createNewRoom() {
-        String roomId = "ludo_room_" + System.currentTimeMillis() + "_" + new Random().nextInt(1000);
-        activeRoomId = roomId;
-        myPlayerSlot = 0; // Host is Slot 0 (Green or Yellow based on JS setup)
+    private void createNewRoom(String mode, int maxPlayers) {
+        final long now = System.currentTimeMillis();
+        final String roomId = "ludo_room_" + now + "_" + new Random().nextInt(1000);
+        myPlayerSlot = 0; // Host is Slot 0
 
         DatabaseReference roomRef = ludoRef.child("rooms").child(roomId);
         activeRoomRef = roomRef;
@@ -123,63 +149,129 @@ public class LudoBridge {
         Map<String, Object> initialRoom = new HashMap<>();
         initialRoom.put("roomId", roomId);
         initialRoom.put("hostUid", userId);
+        initialRoom.put("mode", mode);
+        initialRoom.put("maxPlayers", maxPlayers);
         initialRoom.put("state", "WAITING");
         initialRoom.put("playerCount", 1);
-        initialRoom.put("createdAt", System.currentTimeMillis());
+        initialRoom.put("createdAt", now);
 
         Map<String, Object> players = new HashMap<>();
         players.put("p0", player0);
         initialRoom.put("players", players);
 
         roomRef.setValue(initialRoom).addOnSuccessListener(aVoid -> {
-            Log.d(TAG, "Created room: " + roomId);
+            Log.d(TAG, "Created waiting room for " + maxPlayers + " players (" + mode + "): " + roomId);
             attachRoomListener();
-            startMatchmakingTimer();
         }).addOnFailureListener(e -> {
             Log.e(TAG, "Failed to create room", e);
             isSearching = false;
+            activeRoomRef = null;
         });
     }
 
-    private void joinExistingRoom(String roomId, DataSnapshot roomSnap) {
-        activeRoomId = roomId;
-        activeRoomRef = ludoRef.child("rooms").child(roomId);
+    private void joinExistingRoom(String roomId, DataSnapshot roomSnap, String mode, int maxPlayers) {
+        DatabaseReference targetRoomRef = ludoRef.child("rooms").child(roomId);
+        activeRoomRef = targetRoomRef;
 
-        DataSnapshot playersSnap = roomSnap.child("players");
-        int nextSlot = -1;
-        for (int i = 0; i < 4; i++) {
-            if (!playersSnap.hasChild("p" + i)) {
-                nextSlot = i;
-                break;
+        // Fetch fresh players snapshot to avoid race conditions
+        targetRoomRef.child("players").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot freshPlayersSnap) {
+                // Verify user is not already in this room
+                if (freshPlayersSnap.exists()) {
+                    for (DataSnapshot pSnap : freshPlayersSnap.getChildren()) {
+                        String pUid = pSnap.child("uid").getValue(String.class);
+                        if (userId.equals(pUid)) {
+                            Log.w(TAG, "User " + userId + " is already in room " + roomId + ", creating a new room instead.");
+                            createNewRoom(mode, maxPlayers);
+                            return;
+                        }
+                    }
+                }
+
+                int nextSlot = -1;
+                for (int i = 0; i < maxPlayers; i++) {
+                    if (!freshPlayersSnap.hasChild("p" + i)) {
+                        nextSlot = i;
+                        break;
+                    }
+                }
+
+                if (nextSlot == -1) {
+                    createNewRoom(mode, maxPlayers);
+                    return;
+                }
+
+                myPlayerSlot = nextSlot;
+
+                Map<String, Object> myPlayerData = new HashMap<>();
+                myPlayerData.put("uid", userId);
+                myPlayerData.put("name", userName);
+                myPlayerData.put("avatar", userAvatar);
+                myPlayerData.put("slot", nextSlot);
+                myPlayerData.put("isBot", false);
+
+                final int slotToJoin = nextSlot;
+                targetRoomRef.child("players").child("p" + slotToJoin).setValue(myPlayerData).addOnSuccessListener(aVoid -> {
+                    targetRoomRef.child("players").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot updatedPlayersSnap) {
+                            long newCount = updatedPlayersSnap.getChildrenCount();
+                            targetRoomRef.child("playerCount").setValue(newCount);
+
+                            Log.d(TAG, "Joined room " + roomId + " at slot p" + slotToJoin + " (" + newCount + "/" + maxPlayers + ")");
+                            attachRoomListener();
+
+                            if (newCount >= maxPlayers) {
+                                targetRoomRef.child("mode").setValue(maxPlayers == 2 ? "1v1" : maxPlayers == 3 ? "1v2" : "4v4");
+                                targetRoomRef.child("state").setValue("PLAYING");
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            attachRoomListener();
+                        }
+                    });
+                }).addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to join room " + roomId, e);
+                    createNewRoom(mode, maxPlayers);
+                });
             }
-        }
 
-        if (nextSlot == -1) {
-            // Room filled concurrently, try creating a new one
-            createNewRoom();
-            return;
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                createNewRoom(mode, maxPlayers);
+            }
+        });
+    }
 
-        myPlayerSlot = nextSlot;
+    @JavascriptInterface
+    public void forceStartMatch() {
+        if (activeRoomRef == null) return;
 
-        Map<String, Object> myPlayerData = new HashMap<>();
-        myPlayerData.put("uid", userId);
-        myPlayerData.put("name", userName);
-        myPlayerData.put("avatar", userAvatar);
-        myPlayerData.put("slot", nextSlot);
-        myPlayerData.put("isBot", false);
+        activeRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+                String state = snapshot.child("state").getValue(String.class);
+                if (!"WAITING".equals(state)) return;
 
-        final int slotToJoin = nextSlot;
-        activeRoomRef.child("players").child("p" + slotToJoin).setValue(myPlayerData).addOnSuccessListener(aVoid -> {
-            long currentCount = playersSnap.getChildrenCount();
-            long newCount = currentCount + 1;
-            activeRoomRef.child("playerCount").setValue(newCount);
+                DataSnapshot playersSnap = snapshot.child("players");
+                long count = playersSnap.getChildrenCount();
 
-            Log.d(TAG, "Joined room " + roomId + " at slot p" + slotToJoin);
-            attachRoomListener();
+                if (count >= 2) {
+                    String finalMode = (count == 2) ? "1v1" : (count == 3) ? "1v2" : "4v4";
+                    activeRoomRef.child("mode").setValue(finalMode);
+                    activeRoomRef.child("maxPlayers").setValue(count);
+                    activeRoomRef.child("state").setValue("PLAYING");
+                    Log.d(TAG, "forceStartMatch triggered with " + count + " players -> mode: " + finalMode);
+                }
+            }
 
-            if (newCount >= 4) {
-                activeRoomRef.child("state").setValue("PLAYING");
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error in forceStartMatch", error.toException());
             }
         });
     }
@@ -200,12 +292,18 @@ public class LudoBridge {
                     JSONObject roomJson = new JSONObject();
                     roomJson.put("roomId", snapshot.child("roomId").getValue(String.class));
                     roomJson.put("state", snapshot.child("state").getValue(String.class));
+                    String roomMode = snapshot.child("mode").getValue(String.class);
+                    Long maxP = snapshot.child("maxPlayers").getValue(Long.class);
+
+                    int maxPlayers = (maxP != null) ? maxP.intValue() : 4;
+                    roomJson.put("subMode", roomMode != null ? roomMode : "4v4");
+                    roomJson.put("maxPlayers", maxPlayers);
                     roomJson.put("mySlot", myPlayerSlot);
                     roomJson.put("myUid", userId);
 
                     JSONArray playersArr = new JSONArray();
                     DataSnapshot playersSnap = snapshot.child("players");
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < maxPlayers; i++) {
                         DataSnapshot pSnap = playersSnap.child("p" + i);
                         JSONObject pObj = new JSONObject();
                         if (pSnap.exists()) {
@@ -213,7 +311,7 @@ public class LudoBridge {
                             pObj.put("uid", pSnap.child("uid").getValue(String.class));
                             pObj.put("name", pSnap.child("name").getValue(String.class));
                             pObj.put("avatar", pSnap.child("avatar").getValue(String.class));
-                            pObj.put("isBot", pSnap.child("isBot").getValue(Boolean.class) == Boolean.TRUE);
+                            pObj.put("isBot", false);
                         } else {
                             pObj.put("slot", i);
                             pObj.put("uid", "");
@@ -225,7 +323,7 @@ public class LudoBridge {
                     }
                     roomJson.put("players", playersArr);
 
-                    // Game state action
+                    // Game action
                     DataSnapshot lastActionSnap = snapshot.child("lastAction");
                     if (lastActionSnap.exists()) {
                         JSONObject actionObj = new JSONObject();
@@ -255,50 +353,6 @@ public class LudoBridge {
         activeRoomRef.addValueEventListener(roomEventListener);
     }
 
-    private void startMatchmakingTimer() {
-        if (timeoutRunnable != null) {
-            timerHandler.removeCallbacks(timeoutRunnable);
-        }
-
-        // 12-second countdown: Fill remaining slots with Bots if 4 players haven't joined
-        timeoutRunnable = () -> {
-            if (activeRoomRef != null && myPlayerSlot == 0) {
-                activeRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!snapshot.exists()) return;
-                        String state = snapshot.child("state").getValue(String.class);
-                        if ("WAITING".equals(state)) {
-                            // Fill missing slots with Bots
-                            DataSnapshot playersSnap = snapshot.child("players");
-                            String[] botNames = {"SPEEDY_BOT", "LUDO_KING_BOT", "VIPER_BOT"};
-                            int botIdx = 0;
-                            for (int i = 0; i < 4; i++) {
-                                if (!playersSnap.hasChild("p" + i)) {
-                                    Map<String, Object> bot = new HashMap<>();
-                                    bot.put("uid", "bot_" + i);
-                                    bot.put("name", botNames[botIdx % botNames.length]);
-                                    bot.put("avatar", "assets/avatar_p" + (i + 1) + ".svg");
-                                    bot.put("slot", i);
-                                    bot.put("isBot", true);
-                                    activeRoomRef.child("players").child("p" + i).setValue(bot);
-                                    botIdx++;
-                                }
-                            }
-                            activeRoomRef.child("playerCount").setValue(4);
-                            activeRoomRef.child("state").setValue("PLAYING");
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
-            }
-        };
-
-        timerHandler.postDelayed(timeoutRunnable, 12000);
-    }
-
     @JavascriptInterface
     public void sendGameAction(String actionType, String actionDataJson) {
         if (activeRoomRef == null) return;
@@ -323,27 +377,28 @@ public class LudoBridge {
     @JavascriptInterface
     public void leaveMatch() {
         isSearching = false;
-        if (timeoutRunnable != null) {
-            timerHandler.removeCallbacks(timeoutRunnable);
-            timeoutRunnable = null;
-        }
 
         if (activeRoomRef != null && roomEventListener != null) {
             activeRoomRef.removeEventListener(roomEventListener);
+            roomEventListener = null;
         }
 
         if (activeRoomRef != null && myPlayerSlot >= 0) {
-            activeRoomRef.child("players").child("p" + myPlayerSlot).removeValue();
-            activeRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            DatabaseReference refToClean = activeRoomRef;
+            int slotToClean = myPlayerSlot;
+
+            refToClean.child("players").child("p" + slotToClean).removeValue();
+            refToClean.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         DataSnapshot playersSnap = snapshot.child("players");
                         long count = playersSnap.getChildrenCount();
                         if (count == 0) {
-                            activeRoomRef.removeValue();
+                            refToClean.removeValue();
                         } else {
-                            activeRoomRef.child("playerCount").setValue(count);
+                            refToClean.child("playerCount").setValue(count);
+                            refToClean.child("state").setValue("WAITING");
                         }
                     }
                 }
@@ -354,7 +409,6 @@ public class LudoBridge {
         }
 
         activeRoomRef = null;
-        activeRoomId = null;
         myPlayerSlot = -1;
     }
 

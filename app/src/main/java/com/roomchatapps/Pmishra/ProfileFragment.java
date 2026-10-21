@@ -394,6 +394,14 @@ public class ProfileFragment extends Fragment {
             });
         }
 
+        if (binding.btnEditProfileHint != null) {
+            binding.btnEditProfileHint.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(binding.btnEditProfileHint);
+                Intent intent = new Intent(getActivity(), EditProfileActivity.class);
+                startActivity(intent);
+            });
+        }
+
         binding.headerLayout.setOnClickListener(v -> {
             AnimationHelper.bounceAnimation(binding.headerLayout);
             Intent intent = new Intent(getActivity(), EditProfileActivity.class);

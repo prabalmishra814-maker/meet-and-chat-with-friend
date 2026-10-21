@@ -327,10 +327,10 @@ html, body {
 }
 
 .tile.highlighted {
-    background: radial-gradient(circle, #7e2dbd 0%, #2e084d 100%), url('assets/bg_tile.svg') center center / cover no-repeat;
-    border-color: #ffffff;
-    box-shadow: 0 0 22px #ffeb3b, 0 0 35px #ba55d3, inset 0 0 18px #ffea00;
-    transform: scale(1.05);
+    background: radial-gradient(circle, #ffe600 0%, #3a085c 100%), url('assets/bg_tile.svg') center center / cover no-repeat;
+    border: 2px solid #ffff00;
+    box-shadow: 0 0 25px #ffff00, 0 0 40px #ffea00, inset 0 0 20px #ffff00;
+    transform: scale(1.06);
     z-index: 10;
 }
 

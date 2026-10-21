@@ -468,6 +468,9 @@ public class RoomChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Keep screen awake while room activity is open
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -1017,6 +1020,14 @@ public class RoomChatActivity extends AppCompatActivity {
             if (isFastClick(v)) return;
             showGiftDialog();
         });
+
+        View btnMenuIcon = findViewById(R.id.btnMenuIcon);
+        if (btnMenuIcon != null) {
+            AnimationHelper.applyClickAnimation(btnMenuIcon);
+            btnMenuIcon.setOnClickListener(v -> {
+                // Do nothing on click
+            });
+        }
 
         View btnEmoji = findViewById(R.id.btnEmoji);
         if (btnEmoji != null) {
@@ -3738,15 +3749,32 @@ public class RoomChatActivity extends AppCompatActivity {
             webView.loadUrl(gameUrl);
         }
 
+        final long[] lastBackPressTime = new long[1];
+
         dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
             if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                if (webView != null && webView.canGoBack()) {
-                    webView.goBack();
-                    return true;
-                } else {
+                long currentTime = System.currentTimeMillis();
+
+                // Double back press (within 2 seconds) closes the game dialog
+                if (currentTime - lastBackPressTime[0] < 2000) {
                     dialog.dismiss();
                     return true;
                 }
+
+                lastBackPressTime[0] = currentTime;
+
+                if (webView != null) {
+                    if (webView.canGoBack()) {
+                        webView.goBack();
+                    } else {
+                        webView.evaluateJavascript(
+                            "typeof window.handleAndroidBack === 'function' ? window.handleAndroidBack() : false;",
+                            null
+                        );
+                    }
+                }
+                Toast.makeText(this, "Press back again to exit game", Toast.LENGTH_SHORT).show();
+                return true;
             }
             return false;
         });

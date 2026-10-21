@@ -118,6 +118,7 @@
     selectTimeLabel: document.querySelector('.select-time-label'),
     chipBtns: document.querySelectorAll('.chip-btn'),
     foodBubbles: document.querySelectorAll('.food-bubble'),
+    cornerBtns: document.querySelectorAll('.corner-btn'),
     resultHistory: document.getElementById('result-history'),
     toastMsg: document.getElementById('toast-msg'),
     musicBtn: document.getElementById('music-btn'),
@@ -146,11 +147,10 @@
 
   // --- UI Update Functions ---
   function updateUI() {
-    el.balanceNum.textContent = formatNum(state.balance);
-    el.winningsNum.textContent = formatNum(state.todayWinnings);
-    el.jackpotNum.textContent = formatNum(state.jackpot);
+    if (el.balanceNum) el.balanceNum.textContent = formatNum(state.balance);
+    if (el.winningsNum) el.winningsNum.textContent = formatNum(state.todayWinnings);
+    if (el.jackpotNum) el.jackpotNum.textContent = formatNum(state.jackpot);
 
-    // Update food bubble bet badges
     el.foodBubbles.forEach(bubble => {
       const food = bubble.getAttribute('data-food');
       const betAmt = state.bets[food] || 0;
@@ -168,6 +168,7 @@
   }
 
   function renderResultHistory() {
+    if (!el.resultHistory) return;
     el.resultHistory.innerHTML = '';
     state.resultHistory.forEach((foodKey, idx) => {
       const food = FOOD_DATA[foodKey] || FOOD_DATA.tomato;
@@ -191,6 +192,7 @@
   }
 
   function showToast(msg, duration = 2500) {
+    if (!el.toastMsg) return;
     el.toastMsg.textContent = msg;
     el.toastMsg.classList.remove('hidden');
     setTimeout(() => {
@@ -210,7 +212,7 @@
     if (state.balance < betAmount) {
       playSound('tick');
       showToast('Insufficient Coins! Click + to add coins!');
-      el.coinsModal.classList.remove('hidden');
+      if (el.coinsModal) el.coinsModal.classList.remove('hidden');
       return;
     }
 
@@ -220,7 +222,6 @@
     updateUI();
   }
 
-  // Attach click handlers to chips
   el.chipBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       initAudio();
@@ -231,7 +232,6 @@
     });
   });
 
-  // Attach click handlers to food bubbles
   el.foodBubbles.forEach(bubble => {
     bubble.addEventListener('click', () => {
       const food = bubble.getAttribute('data-food');
@@ -239,26 +239,58 @@
     });
   });
 
-  // --- Wall-Clock Synchronized Game Loop Timer ---
+  // --- Wall-Clock Synchronized Game Loop Timer & Outcome PRNG ---
   const CYCLE_DURATION = 40; // 30s betting + 10s spin
   const BETTING_DURATION = 30;
 
-  let timerInterval = setInterval(() => {
+  let timerInterval = null;
+  let currentRoundIdx = -1;
+  let spinTriggeredRound = -1;
+
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function getGreedyOutcome(roundIndex) {
+    const seed = roundIndex * 7919 + 20011;
+    const prng1 = mulberry32(seed);
+    const prng2 = mulberry32(seed + 100);
+    const rand = prng1();
+    if (rand < 0.65) {
+      const x5s = ['tomato', 'cabbage', 'corn', 'carrot'];
+      return x5s[Math.floor(prng2() * x5s.length)];
+    } else if (rand < 0.88) {
+      const x10s = ['hotdog', 'skewer'];
+      return x10s[Math.floor(prng2() * x10s.length)];
+    } else {
+      const x25s = ['ham', 'steak'];
+      return x25s[Math.floor(prng2() * x25s.length)];
+    }
+  }
+
+  function syncTimer() {
     const nowSec = Math.floor(Date.now() / 1000);
     const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
+    const roundIdx = Math.floor(nowSec / CYCLE_DURATION);
 
     if (cyclePos < BETTING_DURATION) {
       const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
       state.timerSec = remainingBet;
 
-      if (state.gameState !== 'BETTING') {
+      if (state.gameState !== 'BETTING' || roundIdx !== currentRoundIdx) {
+        currentRoundIdx = roundIdx;
         resetBets();
         state.gameState = 'BETTING';
         if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
         updateUI();
       }
 
-      el.timerDisplay.textContent = state.timerSec + 's';
+      if (el.timerDisplay) el.timerDisplay.textContent = state.timerSec + 's';
 
       if (state.timerSec <= 5 && state.timerSec > 0) {
         playSound('tick');
@@ -267,56 +299,45 @@
       const remainingSpin = CYCLE_DURATION - cyclePos; // 10 down to 1
       state.timerSec = remainingSpin;
 
-      if (state.gameState === 'BETTING') {
-        startSpinRound();
-      }
-    }
-  }, 1000);
+      if (el.timerDisplay) el.timerDisplay.textContent = state.timerSec + 's';
 
-  // --- Spin & Winner Outcome Generation ---
-  function pickOutcome() {
-    // Weighted selection logic
-    const rand = Math.random();
-    if (rand < 0.65) {
-      // 65% chance: x5 items (tomato, cabbage, corn, carrot)
-      const x5s = ['tomato', 'cabbage', 'corn', 'carrot'];
-      return x5s[Math.floor(Math.random() * x5s.length)];
-    } else if (rand < 0.88) {
-      // 23% chance: x10/x15 items (hotdog, skewer)
-      const x10s = ['hotdog', 'skewer'];
-      return x10s[Math.floor(Math.random() * x10s.length)];
-    } else {
-      // 12% chance: x25/x45 items (ham, steak)
-      const x25s = ['ham', 'steak'];
-      return x25s[Math.floor(Math.random() * x25s.length)];
+      if (spinTriggeredRound !== roundIdx) {
+        currentRoundIdx = roundIdx;
+        startSpinRound(roundIdx, remainingSpin);
+      }
     }
   }
 
-  function startSpinRound() {
+  syncTimer();
+  timerInterval = setInterval(syncTimer, 1000);
+
+  function startSpinRound(roundIdx, remainingSpinSec) {
+    spinTriggeredRound = roundIdx;
     state.gameState = 'SPINNING';
     if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
-    el.timerDisplay.textContent = 'Spin...';
 
-    const winnerFood = pickOutcome();
+    const winnerFood = getGreedyOutcome(roundIdx);
     let winnerIndex = WHEEL_ITEMS.indexOf(winnerFood);
 
-    // Deceleration step delays for the final landing phase
     const decelDelays = [100, 130, 170, 220, 290, 380, 500, 700];
-    const decelSteps = decelDelays.length; // 8 steps
+    const decelSteps = decelDelays.length;
 
-    // Calculate fastSteps so totalSteps lands precisely on winnerIndex after ~10s
-    let targetFast = 100;
+    const targetDurationMs = Math.max(1500, Math.min(7500, (remainingSpinSec - 2) * 1000));
+    const fastDuration = Math.max(500, targetDurationMs - 2490);
+    const fastDelay = Math.max(35, Math.floor(fastDuration / 60));
+
     let reqRemainder = (winnerIndex + 1 - decelSteps) % WHEEL_ITEMS.length;
     if (reqRemainder < 0) reqRemainder += WHEEL_ITEMS.length;
 
-    let fastSteps = targetFast - (targetFast % WHEEL_ITEMS.length) + reqRemainder;
-    let totalSteps = fastSteps + decelSteps;
+    let fastSteps = Math.floor(fastDuration / fastDelay);
+    fastSteps = fastSteps - (fastSteps % WHEEL_ITEMS.length) + reqRemainder;
+    if (fastSteps < WHEEL_ITEMS.length) fastSteps += WHEEL_ITEMS.length;
 
+    let totalSteps = fastSteps + decelSteps;
     let currentIdx = 0;
     let stepCount = 0;
 
     function spinStep() {
-      // Clear previous spin highlights
       el.foodBubbles.forEach(b => b.classList.remove('active-spin'));
       if (el.cornerBtns) el.cornerBtns.forEach(b => b.classList.remove('active-spin'));
 
@@ -328,7 +349,7 @@
       stepCount++;
       if (stepCount < totalSteps) {
         currentIdx = (currentIdx + 1) % WHEEL_ITEMS.length;
-        let nextDelay = 75; // Fast spin delay
+        let nextDelay = fastDelay;
         if (stepCount >= fastSteps) {
           let decelIndex = stepCount - fastSteps;
           nextDelay = decelDelays[decelIndex] || 500;
@@ -346,7 +367,6 @@
     el.foodBubbles.forEach(b => b.classList.remove('active-spin'));
     if (el.cornerBtns) el.cornerBtns.forEach(b => b.classList.remove('active-spin'));
 
-    // Highlight winning element
     let winningEl = document.querySelector(`.food-bubble[data-food="${winnerFood}"]`) ||
                     document.querySelector(`.corner-btn[data-food="${winnerFood}"]`);
 
@@ -355,8 +375,7 @@
       setTimeout(() => winningEl.classList.remove('winner'), 3000);
     }
 
-    // Payout Calculation
-    const foodInfo = FOOD_DATA[winnerFood];
+    const foodInfo = FOOD_DATA[winnerFood] || FOOD_DATA.tomato;
     const userBet = state.bets[winnerFood] || 0;
 
     if (userBet > 0) {
@@ -369,24 +388,12 @@
       showToast(`Round Winner: ${foodInfo.name} (x${foodInfo.mult})`);
     }
 
-    // Add outcome to history
     state.resultHistory.unshift(winnerFood);
     if (state.resultHistory.length > 8) state.resultHistory.pop();
 
-    // Increment Jackpot slightly
     state.jackpot += Math.floor(Math.random() * 400) + 100;
 
     updateUI();
-
-    // Reset for next round after delay
-    setTimeout(() => {
-      resetBets();
-      state.timerSec = 30;
-      state.gameState = 'BETTING';
-      if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
-      el.timerDisplay.textContent = '30s';
-      updateUI();
-    }, 3000);
   }
 
   // --- Modals & Settings Handlers ---
@@ -408,56 +415,68 @@
     });
   }
 
-  el.menuBtn.addEventListener('click', () => {
-    initAudio();
-    el.menuModal.classList.remove('hidden');
-  });
+  if (el.menuBtn) {
+    el.menuBtn.addEventListener('click', () => {
+      initAudio();
+      if (el.menuModal) el.menuModal.classList.remove('hidden');
+    });
+  }
 
-  el.closeMenuBtn.addEventListener('click', () => {
-    el.menuModal.classList.add('hidden');
-  });
+  if (el.closeMenuBtn) {
+    el.closeMenuBtn.addEventListener('click', () => {
+      if (el.menuModal) el.menuModal.classList.add('hidden');
+    });
+  }
 
-  el.soundToggleBtn.addEventListener('click', () => {
-    state.soundEnabled = !state.soundEnabled;
-    el.soundToggleBtn.textContent = state.soundEnabled ? '🔊 ON' : '🔇 OFF';
-  });
+  if (el.soundToggleBtn) {
+    el.soundToggleBtn.addEventListener('click', () => {
+      state.soundEnabled = !state.soundEnabled;
+      el.soundToggleBtn.textContent = state.soundEnabled ? '🔊 ON' : '🔇 OFF';
+    });
+  }
 
-  el.modalAddCoins.addEventListener('click', () => {
-    state.balance += 50000;
-    playSound('win');
-    updateUI();
-    showToast('+50,000 Coins Added!');
-  });
+  if (el.modalAddCoins) {
+    el.modalAddCoins.addEventListener('click', () => {
+      state.balance += 50000;
+      playSound('win');
+      updateUI();
+      showToast('+50,000 Coins Added!');
+    });
+  }
 
-  el.resetGameBtn.addEventListener('click', () => {
-    state.balance = 36871;
-    state.todayWinnings = 0;
-    state.timerSec = 30;
-    state.gameState = 'BETTING';
-    if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
-    el.timerDisplay.textContent = '30s';
-    resetBets();
-    updateUI();
-    showToast('Game Reset!');
-    el.menuModal.classList.add('hidden');
-  });
+  if (el.resetGameBtn) {
+    el.resetGameBtn.addEventListener('click', () => {
+      state.balance = 36871;
+      state.todayWinnings = 0;
+      resetBets();
+      updateUI();
+      showToast('Game Reset!');
+      if (el.menuModal) el.menuModal.classList.add('hidden');
+    });
+  }
 
-  el.addCoinsBtn.addEventListener('click', () => {
-    initAudio();
-    el.coinsModal.classList.remove('hidden');
-  });
+  if (el.addCoinsBtn) {
+    el.addCoinsBtn.addEventListener('click', () => {
+      initAudio();
+      if (el.coinsModal) el.coinsModal.classList.remove('hidden');
+    });
+  }
 
-  el.claimCoinsBtn.addEventListener('click', () => {
-    state.balance += 100000;
-    playSound('win');
-    updateUI();
-    showToast('🎉 100,000 Free Coins Claimed!');
-    el.coinsModal.classList.add('hidden');
-  });
+  if (el.claimCoinsBtn) {
+    el.claimCoinsBtn.addEventListener('click', () => {
+      state.balance += 100000;
+      playSound('win');
+      updateUI();
+      showToast('🎉 100,000 Free Coins Claimed!');
+      if (el.coinsModal) el.coinsModal.classList.add('hidden');
+    });
+  }
 
-  el.closeCoinsBtn.addEventListener('click', () => {
-    el.coinsModal.classList.add('hidden');
-  });
+  if (el.closeCoinsBtn) {
+    el.closeCoinsBtn.addEventListener('click', () => {
+      if (el.coinsModal) el.coinsModal.classList.add('hidden');
+    });
+  }
 
   // Initial Render
   updateUI();

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     android:background="@drawable/bg_room_gradient">
 
     <!-- Custom Background View (Ambient bubbles, background, etc.) -->
@@ -378,22 +379,34 @@
         android:elevation="10dp"
         android:gravity="bottom"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
+        android:paddingHorizontal="8dp"
         android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 1. Input Box Pill ("Say Hi..." + Emoji Icon) -->
+        <!-- 1. Speaker Button -->
+        <ImageView
+            android:id="@+id/btnSpeaker"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_control_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="9dp"
+            android:src="@drawable/ic_speaker_on" />
+
+        <!-- 2. Input Box Pill ("Say Hi..." + Emoji Icon) - Expands to fill line -->
         <LinearLayout
             android:id="@+id/btnChat"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="6dp"
             android:background="@drawable/bg_chat_input_pill"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="14dp"
             android:paddingEnd="10dp">
 
             <TextView
@@ -402,13 +415,13 @@
                 android:layout_weight="1"
                 android:text="Say Hi..."
                 android:textColor="#A0FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="13.5sp" />
 
             <!-- Emoji Button inside Chat Pill -->
             <ImageView
                 android:id="@+id/btnEmoji"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:contentDescription="Emoji"
@@ -417,41 +430,29 @@
                 android:src="@drawable/ic_privilege_cp_emoji" />
         </LinearLayout>
 
-        <!-- 2. Mic Button -->
+        <!-- 3. Mic Button -->
         <ImageView
             android:id="@+id/btnMic"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
             android:background="@drawable/bg_control_button"
             android:clickable="true"
             android:focusable="true"
-            android:padding="10dp"
+            android:padding="9dp"
             android:src="@drawable/ic_mic_on" />
 
-        <!-- 3. Speaker Button -->
-        <ImageView
-            android:id="@+id/btnSpeaker"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/bg_control_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="10dp"
-            android:src="@drawable/ic_speaker_on" />
-
-        <!-- 4. Main Game Button (Between Speaker and Gift) -->
+        <!-- 4. Main Game Button -->
         <ImageView
             android:id="@+id/btnGame"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
             android:background="@drawable/bg_control_button"
             android:clickable="true"
             android:contentDescription="@string/games"
             android:focusable="true"
-            android:padding="8dp"
+            android:padding="7dp"
             android:src="@drawable/game_icon" />
 
         <!-- 5. Spin Wheel Icon (Retained for Activity reference) -->
@@ -464,14 +465,27 @@
         <!-- 6. Gift Button -->
         <ImageView
             android:id="@+id/btnGift"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
             android:background="@drawable/bg_control_button"
             android:clickable="true"
             android:contentDescription="Gift"
             android:focusable="true"
-            android:padding="8dp"
+            android:padding="7dp"
             android:src="@drawable/gift_icon" />
+
+        <!-- 7. Menu Button (No action on click) -->
+        <ImageView
+            android:id="@+id/btnMenuIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_control_button"
+            android:clickable="true"
+            android:contentDescription="Menu"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_menu_hamburger" />
 
         <!-- Retained hidden view for Activity reference -->
         <ImageView
