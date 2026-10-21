@@ -131,7 +131,13 @@
     addCoinsBtn: document.getElementById('add-coins-btn'),
     coinsModal: document.getElementById('coins-modal'),
     claimCoinsBtn: document.getElementById('claim-coins-btn'),
-    closeCoinsBtn: document.getElementById('close-coins-btn')
+    closeCoinsBtn: document.getElementById('close-coins-btn'),
+    leaderboardBtn: document.getElementById('leaderboard-btn'),
+    leaderboardModal: document.getElementById('leaderboard-modal'),
+    closeLeaderboardBtn: document.getElementById('close-leaderboard-btn'),
+    lbTabCurrent: document.getElementById('lb-tab-current'),
+    lbTabPrev: document.getElementById('lb-tab-prev'),
+    leaderboardList: document.getElementById('leaderboard-list')
   };
 
   // --- Formatting Helpers ---
@@ -313,9 +319,41 @@
 
   function startSpinRound(roundIdx, remainingSpinSec) {
     spinTriggeredRound = roundIdx;
+
+    let totalBet = 0;
+    for (let k in state.bets) {
+      totalBet += state.bets[k] || 0;
+    }
+
+    if (totalBet > 0 && window.AndroidGreedy) {
+      const callbackName = '_cb_greedy_bet_' + roundIdx + '_' + Date.now();
+      window[callbackName] = function(success, newBalance, errorMsg) {
+        delete window[callbackName];
+        if (success) {
+          if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+            state.balance = newBalance;
+          }
+          state.gameState = 'SPINNING';
+          if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+          updateUI();
+          executeSpinAnimation(roundIdx, remainingSpinSec);
+        } else {
+          showToast(errorMsg || "Bet deduction failed!");
+          resetBets();
+          state.gameState = 'BETTING';
+          updateUI();
+        }
+      };
+      window.AndroidGreedy.deductBetCoins(totalBet, roundIdx, callbackName);
+      return;
+    }
+
     state.gameState = 'SPINNING';
     if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+    executeSpinAnimation(roundIdx, remainingSpinSec);
+  }
 
+  function executeSpinAnimation(roundIdx, remainingSpinSec) {
     const winnerFood = getGreedyOutcome(roundIdx);
     let winnerIndex = WHEEL_ITEMS.indexOf(winnerFood);
 
@@ -356,14 +394,14 @@
         }
         setTimeout(spinStep, nextDelay);
       } else {
-        finishSpinRound(winnerFood);
+        finishSpinRound(winnerFood, roundIdx);
       }
     }
 
     spinStep();
   }
 
-  function finishSpinRound(winnerFood) {
+  function finishSpinRound(winnerFood, roundIdx) {
     el.foodBubbles.forEach(b => b.classList.remove('active-spin'));
     if (el.cornerBtns) el.cornerBtns.forEach(b => b.classList.remove('active-spin'));
 
@@ -380,20 +418,40 @@
 
     if (userBet > 0) {
       const winAmount = userBet * foodInfo.mult;
-      state.balance += winAmount;
-      state.todayWinnings += winAmount;
-      playSound('win');
-      showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+      if (window.AndroidGreedy) {
+        const callbackName = '_cb_greedy_win_' + (roundIdx || Date.now()) + '_' + Date.now();
+        window[callbackName] = function(success, newBalance, errorMsg) {
+          delete window[callbackName];
+          if (success && typeof newBalance === 'number' && !isNaN(newBalance)) {
+            state.balance = newBalance;
+          } else {
+            state.balance += winAmount;
+          }
+          state.todayWinnings += winAmount;
+          playSound('win');
+          showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+          resetBets();
+          updateUI();
+        };
+        window.AndroidGreedy.addWinPayout(winAmount, roundIdx, callbackName);
+      } else {
+        state.balance += winAmount;
+        state.todayWinnings += winAmount;
+        playSound('win');
+        showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+        resetBets();
+        updateUI();
+      }
     } else {
       showToast(`Round Winner: ${foodInfo.name} (x${foodInfo.mult})`);
+      resetBets();
+      updateUI();
     }
 
     state.resultHistory.unshift(winnerFood);
     if (state.resultHistory.length > 8) state.resultHistory.pop();
 
     state.jackpot += Math.floor(Math.random() * 400) + 100;
-
-    updateUI();
   }
 
   // --- Modals & Settings Handlers ---
@@ -478,7 +536,123 @@
     });
   }
 
+  // --- Leaderboard Dialog Handlers ---
+  if (el.leaderboardBtn) {
+    el.leaderboardBtn.addEventListener('click', openLeaderboard);
+  }
+  if (el.closeLeaderboardBtn) {
+    el.closeLeaderboardBtn.addEventListener('click', () => {
+      if (el.leaderboardModal) el.leaderboardModal.classList.add('hidden');
+    });
+  }
+  if (el.lbTabCurrent) {
+    el.lbTabCurrent.addEventListener('click', () => {
+      el.lbTabCurrent.classList.add('active');
+      if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
+      loadLeaderboardForRound(currentRoundIdx);
+    });
+  }
+  if (el.lbTabPrev) {
+    el.lbTabPrev.addEventListener('click', () => {
+      el.lbTabPrev.classList.add('active');
+      if (el.lbTabCurrent) el.lbTabCurrent.classList.remove('active');
+      loadLeaderboardForRound(currentRoundIdx - 1);
+    });
+  }
+
+  function openLeaderboard() {
+    initAudio();
+    if (!el.leaderboardModal) return;
+    el.leaderboardModal.classList.remove('hidden');
+    if (el.lbTabCurrent) el.lbTabCurrent.classList.add('active');
+    if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
+    loadLeaderboardForRound(currentRoundIdx);
+  }
+
+  function loadLeaderboardForRound(roundIdx) {
+    if (!el.leaderboardList) return;
+    el.leaderboardList.innerHTML = '<div class="lb-empty">Loading leaderboard...</div>';
+
+    if (window.AndroidGreedy && typeof window.AndroidGreedy.getRoundLeaderboard === 'function') {
+      const callbackName = '_cb_greedy_lb_' + Date.now();
+      window[callbackName] = function(jsonStr) {
+        delete window[callbackName];
+        renderLeaderboardItems(jsonStr);
+      };
+      window.AndroidGreedy.getRoundLeaderboard(roundIdx, callbackName);
+    } else {
+      renderLeaderboardItems('[]');
+    }
+  }
+
+  function renderLeaderboardItems(jsonStr) {
+    if (!el.leaderboardList) return;
+    let list = [];
+    try {
+      list = JSON.parse(jsonStr || '[]');
+    } catch(e) {
+      list = [];
+    }
+
+    if (!list || list.length === 0) {
+      el.leaderboardList.innerHTML = '<div class="lb-empty">No participants in this round!</div>';
+      return;
+    }
+
+    el.leaderboardList.innerHTML = '';
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'lb-item';
+
+      let rankDisplay = `#${item.rank}`;
+      if (item.rank === 1) rankDisplay = '🥇';
+      else if (item.rank === 2) rankDisplay = '🥈';
+      else if (item.rank === 3) rankDisplay = '🥉';
+
+      const avatarUrl = (item.userAvatar && item.userAvatar.trim() !== '')
+        ? item.userAvatar
+        : 'assets/chip_1k.svg';
+
+      const betFormatted = (item.betAmount || 0).toLocaleString();
+      const winVal = item.winAmount || 0;
+      const winFormatted = winVal > 0 ? `+${winVal.toLocaleString()}` : '0';
+      const winClass = winVal > 0 ? 'lb-win' : 'lb-win zero';
+
+      row.innerHTML = `
+        <div class="lb-left">
+          <div class="lb-rank">${rankDisplay}</div>
+          <img class="lb-avatar" src="${avatarUrl}" onerror="this.src='assets/chip_1k.svg'" alt="Avatar">
+          <div class="lb-name">${escapeHtml(item.userName || 'Player')}</div>
+        </div>
+        <div class="lb-right">
+          <div class="lb-win ${winClass}">Win: ${winFormatted}</div>
+          <div class="lb-bet">Bet: ${betFormatted}</div>
+        </div>
+      `;
+      el.leaderboardList.appendChild(row);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   // Initial Render
   updateUI();
+
+  // Connect with Android Bridge if present
+  if (window.AndroidGreedy) {
+    window.updateGreedyBalance = function(newBalance) {
+      if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+        state.balance = newBalance;
+        updateUI();
+      }
+    };
+    try {
+      window.AndroidGreedy.requestUserCoins();
+    } catch(e) {
+      console.error("Error requesting user coins:", e);
+    }
+  }
 
 })();

@@ -180,6 +180,12 @@
       this.isOnlineActive = false;
       this.lastProcessedTimestamp = 0;
 
+      // Online Authoritative State Fields
+      this.actionSeq = 0;
+      this.isSyncingState = false;
+      this.myColor = null;
+      this.mySlot = 0;
+
       // Game Type & Mode State
       this.gameType = 'pass_play'; // 'pass_play', 'vs_ai', 'online'
       this.subMode = '4v4'; // '1v1', '2v2', '4v4'
@@ -258,6 +264,109 @@
       this.devTestPanel = document.getElementById('dev-test-panel');
     }
 
+    getProfileElementForColor(color) {
+      if (!this.isOnlineActive || !this.myColor) {
+        return document.getElementById(`profile-${color}`);
+      }
+
+      // Online Player Layout: Local player always mapped to bottom profile panel (profile-yellow position)
+      if (color === this.myColor) {
+        return document.getElementById('profile-yellow');
+      }
+
+      const oppColors = this.activeColors.filter(c => c !== this.myColor);
+      const idx = oppColors.indexOf(color);
+
+      if (idx === 0) {
+        return document.getElementById('profile-green'); // Top Left
+      } else if (idx === 1) {
+        return document.getElementById('profile-blue');  // Top Right
+      } else if (idx === 2) {
+        return document.getElementById('profile-red');   // Bottom Left
+      }
+
+      return document.getElementById(`profile-${color}`);
+    }
+
+    syncOnlineState(lastActionObj = null) {
+      if (!this.isOnlineActive || this.isSyncingState) return;
+
+      this.actionSeq = (this.actionSeq || 0) + 1;
+      const boardState = {};
+      COLORS.forEach(c => {
+        boardState[c] = this.tokens[c].map(t => t.position);
+      });
+
+      const stateObj = {
+        turnSlot: this.turnIndex,
+        phase: this.phase,
+        diceVal: this.diceValue,
+        consecutiveSixes: this.consecutiveSixes,
+        actionSeq: this.actionSeq,
+        turnDeadline: Date.now() + (this.phase === 'WAIT_ROLL' ? 10000 : 30000),
+        boardState: boardState
+      };
+
+      if (lastActionObj) {
+        lastActionObj.actionSeq = this.actionSeq;
+        stateObj.lastAction = lastActionObj;
+      }
+
+      if (window.AndroidLudo && window.AndroidLudo.sendGameState) {
+        window.AndroidLudo.sendGameState(JSON.stringify(stateObj));
+      }
+    }
+
+    applyRemoteGameState(gameState) {
+      if (!gameState || !this.isOnlineActive) return;
+      if (gameState.actionSeq !== undefined && gameState.actionSeq <= (this.actionSeq || 0)) {
+        return; // Ignore stale or duplicate state update
+      }
+
+      this.isSyncingState = true;
+      this.actionSeq = gameState.actionSeq || (this.actionSeq || 0) + 1;
+
+      if (gameState.turnSlot !== undefined) {
+        this.turnIndex = gameState.turnSlot;
+      }
+
+      // Only update phase and diceVal if not currently rolling dice or animating token
+      if (!this.isRolling && this.phase !== 'ANIMATING') {
+        if (gameState.phase !== undefined) {
+          this.phase = gameState.phase;
+        }
+        if (gameState.diceVal !== undefined) {
+          this.diceValue = gameState.diceVal;
+          if (this.dice3d) {
+            this.dice3d.className = `dice-3d show-${this.diceValue}`;
+          }
+        }
+      }
+
+      if (gameState.consecutiveSixes !== undefined) {
+        this.consecutiveSixes = gameState.consecutiveSixes;
+      }
+      if (gameState.turnDeadline !== undefined) {
+        this.turnDeadline = gameState.turnDeadline;
+      }
+
+      if (gameState.boardState) {
+        COLORS.forEach(color => {
+          if (gameState.boardState[color] && Array.isArray(gameState.boardState[color])) {
+            gameState.boardState[color].forEach((pos, idx) => {
+              if (this.tokens[color] && this.tokens[color][idx]) {
+                this.tokens[color][idx].position = pos;
+              }
+            });
+          }
+        });
+        this.renderTokens();
+      }
+
+      this.updateUiState();
+      this.isSyncingState = false;
+    }
+
     stopTurnTimer() {
       if (this.turnTimerInterval) {
         clearInterval(this.turnTimerInterval);
@@ -278,43 +387,53 @@
       const pData = this.players[currentColor];
       const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
 
-      // Private Turns: Active player sees countdown timer.
-      // Opponent sees "Opponent's turn" and private timer controls are hidden.
-      if (!isMyTurn) {
-        if (this.turnTimerEl) this.turnTimerEl.classList.add('hidden');
-        return;
-      }
-
       this.turnTimerSeconds = seconds;
 
-      if (this.turnTimerEl) {
-        this.turnTimerEl.classList.remove('hidden');
-        this.turnTimerEl.innerText = `${this.turnTimerSeconds}s`;
+      // Private Countdown Presentation (Phase 7):
+      // Active player sees countdown timer ("10s", "9s"...).
+      // Opponent sees "Opponent's turn" and private timer badge is hidden.
+      if (!isMyTurn) {
+        if (this.turnTimerEl) this.turnTimerEl.classList.add('hidden');
+      } else {
+        if (this.turnTimerEl) {
+          this.turnTimerEl.classList.remove('hidden');
+          this.turnTimerEl.innerText = `${this.turnTimerSeconds}s`;
+        }
       }
 
       const activePhaseAtStart = this.phase;
       const activeColorAtStart = currentColor;
 
       this.turnTimerInterval = setInterval(() => {
-        this.turnTimerSeconds--;
-
         if (this.phase !== activePhaseAtStart || this.getCurrentColor() !== activeColorAtStart) {
           this.stopTurnTimer();
           return;
         }
 
-        if (this.turnTimerEl) {
-          this.turnTimerEl.innerText = `${this.turnTimerSeconds}s`;
-          if (this.turnTimerSeconds <= 3) {
-            this.turnTimerEl.classList.add('urgent');
-          } else {
-            this.turnTimerEl.classList.remove('urgent');
+        if (isMyTurn) {
+          this.turnTimerSeconds--;
+          if (this.turnTimerEl) {
+            this.turnTimerEl.innerText = `${this.turnTimerSeconds}s`;
+            if (this.turnTimerSeconds <= 3) {
+              this.turnTimerEl.classList.add('urgent');
+            } else {
+              this.turnTimerEl.classList.remove('urgent');
+            }
           }
-        }
 
-        if (this.turnTimerSeconds <= 0) {
-          this.stopTurnTimer();
-          this.handleTurnTimeout(activePhaseAtStart, activeColorAtStart);
+          if (this.turnTimerSeconds <= 0) {
+            this.stopTurnTimer();
+            this.handleTurnTimeout(activePhaseAtStart, activeColorAtStart);
+          }
+        } else if (this.isOnlineActive) {
+          // Fallback check on non-active client if active player disconnected / timed out
+          if (this.turnDeadline && Date.now() > this.turnDeadline + 3000) {
+            this.stopTurnTimer();
+            const isHost = (this.mySlot === 0);
+            if (isHost) {
+              this.handleTurnTimeout(activePhaseAtStart, activeColorAtStart);
+            }
+          }
         }
       }, 1000);
     }
@@ -472,7 +591,7 @@
 
     updateProfileCardsAndBoardVisibility() {
       COLORS.forEach(color => {
-        const card = document.getElementById(`profile-${color}`);
+        const card = this.getProfileElementForColor(color);
         const isActive = this.activeColors.includes(color);
 
         if (card) {
@@ -480,6 +599,7 @@
           const nameEl = card.querySelector('.player-name');
           const botBadge = card.querySelector('.bot-badge');
           const youBadge = card.querySelector('.you-badge');
+          const avatarImg = card.querySelector('.avatar-img');
 
           const pData = this.players[color];
           if (nameEl && pData) {
@@ -490,8 +610,15 @@
             nameEl.innerText = label;
           }
 
+          if (avatarImg && pData && pData.avatar) {
+            avatarImg.src = pData.avatar;
+          }
+
           if (botBadge && pData) botBadge.classList.toggle('hidden', !pData.isAi);
-          if (youBadge && pData) youBadge.classList.toggle('hidden', pData.isAi || this.gameType === 'pass_play');
+          if (youBadge && pData) {
+            const isMe = this.isOnlineActive ? (color === this.myColor) : !pData.isAi;
+            youBadge.classList.toggle('hidden', !isMe || this.gameType === 'pass_play');
+          }
 
           if (this.gameType === 'pass_play' && isActive) {
             card.classList.add('nameplate-editable');
@@ -521,46 +648,70 @@
       if (!this.diceBox || !this.viewportEl) return;
       const activeColor = color || this.getCurrentColor();
 
-      const profileCard = document.getElementById(`profile-${activeColor}`);
+      const profileCard = this.getProfileElementForColor(activeColor);
       if (!profileCard) return;
 
-      const boardWrapper = document.querySelector('.wood-frame') || document.querySelector('.board-wrapper');
-      const anchor = profileCard.querySelector('.dice-anchor') || profileCard;
       const viewportRect = this.viewportEl.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
+      const cardRect = profileCard.getBoundingClientRect();
 
-      const diceWidth = this.diceBox.offsetWidth || 48;
-      const diceHeight = this.diceBox.offsetHeight || 48;
-
-      let x = anchorRect.left - viewportRect.left + (anchorRect.width / 2) - (diceWidth / 2);
-      let y = anchorRect.top - viewportRect.top + (anchorRect.height / 2) - (diceHeight / 2);
-
-      // Prevent ANY overlap with Ludo Board Frame
-      if (boardWrapper) {
-        const boardRect = boardWrapper.getBoundingClientRect();
-        const boardTopInViewport = boardRect.top - viewportRect.top;
-        const boardBottomInViewport = boardRect.bottom - viewportRect.top;
-
-        if (activeColor === 'red' || activeColor === 'yellow') {
-          const minY = boardBottomInViewport + 4;
-          if (y < minY) y = minY;
-        } else if (activeColor === 'green' || activeColor === 'blue') {
-          const maxY = boardTopInViewport - 4 - diceHeight;
-          if (y > maxY) y = maxY;
+      // If DOM element is not measured yet (e.g. initial load or hidden modal), retry once rendered
+      if (!cardRect || cardRect.width === 0 || cardRect.height === 0) {
+        if (!this._retryPositionTimer) {
+          this._retryPositionTimer = setTimeout(() => {
+            this._retryPositionTimer = null;
+            this.positionDice(color);
+          }, 60);
         }
+        return;
+      }
+
+      const nameplateEl = profileCard.querySelector('.nameplate');
+      const nameplateRect = nameplateEl ? nameplateEl.getBoundingClientRect() : cardRect;
+
+      const diceWidth = this.diceBox.offsetWidth || 42;
+      const diceHeight = this.diceBox.offsetHeight || 42;
+
+      let x = 0;
+      // Vertically center the dice box with the active player's profile card
+      let y = cardRect.top - viewportRect.top + (cardRect.height / 2) - (diceHeight / 2);
+
+      const isLeft = (cardRect.left - viewportRect.left) < (viewportRect.width / 2);
+
+      if (isLeft) {
+        // Left Profiles (Green & Red): Position dice directly to the RIGHT of the nameplate pill
+        x = nameplateRect.right - viewportRect.left + 4;
+      } else {
+        // Right Profiles (Blue & Yellow): Position dice directly to the LEFT of the nameplate pill
+        x = nameplateRect.left - viewportRect.left - diceWidth - 4;
       }
 
       const maxViewportX = viewportRect.width - diceWidth - 4;
+      const maxViewportY = viewportRect.height - diceHeight - 4;
+
       if (x < 4) x = 4;
       if (x > maxViewportX) x = maxViewportX;
+      if (y < 2) y = 2;
+      if (y > maxViewportY) y = maxViewportY;
 
-      this.diceBox.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+      const roundX = Math.round(x);
+      const roundY = Math.round(y);
+      this.diceBox.style.setProperty('--dice-x', `${roundX}px`);
+      this.diceBox.style.setProperty('--dice-y', `${roundY}px`);
+      this.diceBox.style.transform = `translate3d(${roundX}px, ${roundY}px, 0)`;
 
       const isMyTurn = !this.isOnlineActive || (activeColor === this.myColor);
-      if (!this.players[activeColor].isAi && isMyTurn && this.phase === 'WAIT_ROLL') {
+      const canRoll = !this.players[activeColor].isAi && isMyTurn && this.phase === 'WAIT_ROLL' && !this.isRolling;
+
+      if (canRoll) {
         this.diceBox.classList.add('glow-active');
+        this.diceBox.classList.remove('dice-disabled');
+        this.diceBox.style.pointerEvents = 'auto';
       } else {
         this.diceBox.classList.remove('glow-active');
+        this.diceBox.classList.add('dice-disabled');
+        this.diceBox.style.pointerEvents = 'none';
+      }
+        this.diceBox.style.pointerEvents = 'none';
       }
     }
 
@@ -918,11 +1069,21 @@
     rollDice() {
       if (this.isRolling || this.phase !== 'WAIT_ROLL') return;
 
+      const currentColor = this.getCurrentColor();
+      const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
+
+      // Security & Turn Control (Phase 4):
+      if (this.isOnlineActive && !isMyTurn && (this.forcedRoll === null || this.forcedRoll === undefined)) return;
+
       this.stopTurnTimer();
 
       this.isRolling = true;
       if (this.btnRoll) this.btnRoll.disabled = true;
-      if (this.diceBox) this.diceBox.classList.remove('glow-active');
+      if (this.diceBox) {
+        this.diceBox.classList.remove('glow-active');
+        this.diceBox.classList.add('dice-disabled');
+        this.diceBox.style.pointerEvents = 'none';
+      }
 
       this.sound.playRoll();
       this.dice3d.classList.add('dice-rolling');
@@ -930,8 +1091,9 @@
       setTimeout(() => {
         this.dice3d.classList.remove('dice-rolling');
 
-        if (this.forcedRoll) {
+        if (this.forcedRoll !== null && this.forcedRoll !== undefined) {
           this.diceValue = this.forcedRoll;
+          this.forcedRoll = null; // Consume remote roll
         } else {
           this.diceValue = Math.floor(Math.random() * 6) + 1;
         }
@@ -939,12 +1101,13 @@
         this.dice3d.className = `dice-3d show-${this.diceValue}`;
         this.isRolling = false;
 
-        const isMyTurn = !this.isOnlineActive || (this.getCurrentColor() === this.myColor);
-        if (this.isOnlineActive && this.onlineManager && isMyTurn) {
-          this.onlineManager.sendAction('ROLL', { diceVal: this.diceValue, color: this.getCurrentColor() });
-        }
-
+        // Process dice result and update phase (e.g. WAIT_MOVE or nextTurn)
         this.handleDiceResult();
+
+        // Broadcast updated state and last action after handleDiceResult
+        if (this.isOnlineActive && isMyTurn && !this.isSyncingState) {
+          this.syncOnlineState({ type: 'ROLL', slot: this.mySlot, diceVal: this.diceValue, color: currentColor });
+        }
       }, 500);
     }
 
@@ -1028,15 +1191,14 @@
     onTokenSelected(color, tokenId) {
       if (this.phase !== 'WAIT_MOVE' || color !== this.getCurrentColor()) return;
 
+      const isMyTurn = !this.isOnlineActive || (color === this.myColor);
+      if (this.isOnlineActive && !isMyTurn && !this.isSyncingState) return;
+
       const token = this.tokens[color][tokenId];
       const validTokens = this.getValidMoveTokens(color, this.diceValue);
 
       if (!validTokens.some(t => t.id === tokenId)) {
         return;
-      }
-
-      if (this.isOnlineActive && this.onlineManager) {
-        this.onlineManager.sendAction('MOVE', { color: color, tokenId: tokenId });
       }
 
       this.clearTokenHighlights();
@@ -1129,17 +1291,24 @@
     }
 
     postMoveCheck(token, grantExtraRoll) {
-      if (grantExtraRoll && this.players[this.getCurrentColor()].finishedCount < 4) {
+      const currentColor = this.getCurrentColor();
+      const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
+
+      if (grantExtraRoll && this.players[currentColor].finishedCount < 4) {
         this.grantExtraRoll = true;
         this.phase = 'WAIT_ROLL';
         this.statusMsg.innerText = "EXTRA ROLL granted! Tap Dice.";
         this.extraRollBadge.classList.remove('hidden');
 
-        this.positionDice(this.getCurrentColor());
+        this.positionDice(currentColor);
+
+        if (this.isOnlineActive && isMyTurn && !this.isSyncingState) {
+          this.syncOnlineState({ type: 'MOVE', slot: this.mySlot, color: token.color, tokenId: token.id });
+        }
 
         this.startTurnTimer(10);
 
-        if (this.players[this.getCurrentColor()].isAi) {
+        if (this.players[currentColor].isAi) {
           const isHost = !this.isOnlineActive || (this.mySlot === 0);
           if (isHost) {
             setTimeout(() => this.rollDice(), 800);
@@ -1150,6 +1319,11 @@
       } else {
         this.grantExtraRoll = false;
         this.extraRollBadge.classList.add('hidden');
+
+        if (this.isOnlineActive && isMyTurn && !this.isSyncingState) {
+          this.syncOnlineState({ type: 'MOVE', slot: this.mySlot, color: token.color, tokenId: token.id });
+        }
+
         this.nextTurn();
       }
     }
@@ -1361,7 +1535,7 @@
 
       // Update Profile Cards Active Glow
       COLORS.forEach(color => {
-        const card = document.getElementById(`profile-${color}`);
+        const card = this.getProfileElementForColor(color);
         if (card) {
           if (color === activeColor && this.activeColors.includes(color)) {
             card.classList.add('active');
@@ -1372,6 +1546,7 @@
       });
 
       this.positionDice(activeColor);
+      setTimeout(() => this.positionDice(activeColor), 120);
 
       if (this.phase === 'WAIT_ROLL') {
         if (isMyTurn) {
@@ -1395,6 +1570,7 @@
     startOnlineGame(roomData, mySlot, userInfo) {
       this.isOnlineActive = true;
       this.mySlot = mySlot;
+      this.actionSeq = 0;
 
       if (this.subMode === '1v1') {
         this.myColor = (mySlot === 0 ? 'green' : 'yellow');
@@ -1436,7 +1612,7 @@
             rank: null
           };
 
-          const card = document.getElementById(`profile-${color}`);
+          const card = this.getProfileElementForColor(color);
           if (card) {
             const nameEl = card.querySelector('.player-name');
             const avatarEl = card.querySelector('.avatar-img');
@@ -1453,6 +1629,11 @@
 
       this.updateProfileCardsAndBoardVisibility();
       this.restartGame(false);
+
+      if (mySlot === 0) {
+        this.syncOnlineState();
+      }
+
       this.showToast(`⚡ Online Match Connected (${this.subMode})!`);
     }
 
@@ -1465,11 +1646,17 @@
       this.stopTurnTimer();
 
       if (action.type === 'ROLL') {
-        this.forcedRoll = action.diceVal;
-        this.rollDice();
-        this.forcedRoll = null;
+        if (action.diceVal && action.diceVal >= 1 && action.diceVal <= 6) {
+          this.forcedRoll = action.diceVal;
+          if (this.phase !== 'WAIT_ROLL') {
+            this.phase = 'WAIT_ROLL';
+          }
+          this.rollDice();
+        }
       } else if (action.type === 'MOVE') {
-        this.onTokenSelected(action.color, action.tokenId);
+        if (action.color && action.tokenId !== undefined && action.tokenId >= 0) {
+          this.onTokenSelected(action.color, action.tokenId);
+        }
       }
     }
   }
@@ -1844,8 +2031,13 @@
         this.game.startOnlineGame(roomData, this.mySlot, this.userInfo);
       }
 
-      if (roomData.lastAction && this.game.isOnlineActive) {
-        this.game.handleRemoteAction(roomData.lastAction);
+      if (this.game.isOnlineActive) {
+        if (roomData.lastAction) {
+          this.game.handleRemoteAction(roomData.lastAction);
+        }
+        if (roomData.gameState) {
+          this.game.applyRemoteGameState(roomData.gameState);
+        }
       }
     }
 

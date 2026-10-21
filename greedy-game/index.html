@@ -16,6 +16,16 @@
     <!-- Main Game Viewport Card -->
     <div class="game-viewport">
 
+      <!-- Top Action Bar -->
+      <header class="game-header">
+        <div class="header-left">
+          <span class="game-title">Greedy Game</span>
+        </div>
+        <div class="header-right">
+          <button id="leaderboard-btn" class="icon-btn leaderboard-btn" aria-label="Leaderboard">🏆 Leaderboard</button>
+        </div>
+      </header>
+
       <!-- Main Glowing Game Frame -->
       <main class="game-board-frame">
         <!-- Connecting Track Lines -->
@@ -215,6 +225,23 @@
         <p>Out of coins? Collect free virtual coins to keep playing!</p>
         <button id="claim-coins-btn" class="action-btn gold-btn large-btn">+ 100,000 COINS</button>
         <button id="close-coins-btn" class="modal-close-text">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+      <div class="modal-card leaderboard-card">
+        <div class="modal-header">
+          <h2>🏆 Round Leaderboard</h2>
+          <button id="close-leaderboard-btn" class="modal-close">&times;</button>
+        </div>
+        <div class="leaderboard-tabs">
+          <button class="lb-tab-btn active" id="lb-tab-current">Current Round</button>
+          <button class="lb-tab-btn" id="lb-tab-prev">Previous Round</button>
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+          <div class="lb-empty">Loading leaderboard...</div>
+        </div>
       </div>
     </div>
 

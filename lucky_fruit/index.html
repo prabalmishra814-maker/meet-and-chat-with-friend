@@ -20,9 +20,12 @@
                 <span class="header-title-sparkle">✦</span>
             </div>
             <div class="header-sub" id="roundCounter">Round 8 of today</div>
-            <button class="menu-btn" id="menuBtn" aria-label="Menu">
-                <span class="menu-grid-icon">❖</span>
-            </button>
+            <div style="display: flex; gap: 6px;">
+                <button class="menu-btn" id="leaderboardBtn" aria-label="Leaderboard" style="font-size: 16px;">🏆</button>
+                <button class="menu-btn" id="menuBtn" aria-label="Menu">
+                    <span class="menu-grid-icon">❖</span>
+                </button>
+            </div>
         </header>
 
         <!-- Jackpot Cabinet Header -->
@@ -191,6 +194,23 @@
             <div class="win-multiplier" id="winMultiplierText">5x Multiplier!</div>
             <div class="win-amount">+<span id="winAmountText">0</span> Gold</div>
             <button class="win-close-btn" id="winCloseBtn">CLAIM WIN</button>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="leaderboard-modal-overlay hidden" id="leaderboardModal">
+        <div class="leaderboard-modal-card">
+            <div class="leaderboard-header">
+                <h2>🏆 Round Leaderboard</h2>
+                <button class="modal-close-btn" id="closeLeaderboardBtn">✕</button>
+            </div>
+            <div class="leaderboard-tabs">
+                <button class="lb-tab-btn active" id="lbTabCurrent">Current Round</button>
+                <button class="lb-tab-btn" id="lbTabPrev">Previous Round</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <div class="lb-empty">Loading leaderboard...</div>
+            </div>
         </div>
     </div>
 

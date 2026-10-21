@@ -77,7 +77,13 @@ const DOM = {
     winAmountText: document.getElementById('winAmountText'),
     winCloseBtn: document.getElementById('winCloseBtn'),
     ledContainer: document.getElementById('ledContainer'),
-    chipBtns: document.querySelectorAll('.chip-btn')
+    chipBtns: document.querySelectorAll('.chip-btn'),
+    leaderboardBtn: document.getElementById('leaderboardBtn'),
+    leaderboardModal: document.getElementById('leaderboardModal'),
+    closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
+    lbTabCurrent: document.getElementById('lbTabCurrent'),
+    lbTabPrev: document.getElementById('lbTabPrev'),
+    leaderboardList: document.getElementById('leaderboardList')
 };
 
 // INITIALIZATION
@@ -88,6 +94,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRecentResults();
     attachEventListeners();
     startCountdownTimer();
+
+    // Check for Android Bridge to load real user coin balance
+    if (window.AndroidLuckyFruit) {
+        window.updateLuckyFruitBalance = function(newBalance) {
+            if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+                state.balance = newBalance;
+                updateUI();
+            }
+        };
+        try {
+            window.AndroidLuckyFruit.requestUserCoins();
+        } catch(e) {
+            console.error("Error requesting user coins:", e);
+        }
+    }
 });
 
 let timerInterval = null;
@@ -232,6 +253,105 @@ function attachEventListeners() {
             DOM.winModal.classList.add('hidden');
         });
     }
+
+    if (DOM.leaderboardBtn) {
+        DOM.leaderboardBtn.addEventListener('click', openLeaderboard);
+    }
+    if (DOM.closeLeaderboardBtn) {
+        DOM.closeLeaderboardBtn.addEventListener('click', () => {
+            if (DOM.leaderboardModal) DOM.leaderboardModal.classList.add('hidden');
+        });
+    }
+    if (DOM.lbTabCurrent) {
+        DOM.lbTabCurrent.addEventListener('click', () => {
+            DOM.lbTabCurrent.classList.add('active');
+            if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
+            loadLeaderboardForRound(currentRoundIdx);
+        });
+    }
+    if (DOM.lbTabPrev) {
+        DOM.lbTabPrev.addEventListener('click', () => {
+            DOM.lbTabPrev.classList.add('active');
+            if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.remove('active');
+            loadLeaderboardForRound(currentRoundIdx - 1);
+        });
+    }
+}
+
+function openLeaderboard() {
+    if (!DOM.leaderboardModal) return;
+    DOM.leaderboardModal.classList.remove('hidden');
+    if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.add('active');
+    if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
+    loadLeaderboardForRound(currentRoundIdx);
+}
+
+function loadLeaderboardForRound(roundIdx) {
+    if (!DOM.leaderboardList) return;
+    DOM.leaderboardList.innerHTML = '<div class="lb-empty">Loading leaderboard...</div>';
+
+    if (window.AndroidLuckyFruit && typeof window.AndroidLuckyFruit.getRoundLeaderboard === 'function') {
+        const callbackName = '_cb_lf_lb_' + Date.now();
+        window[callbackName] = function(jsonStr) {
+            delete window[callbackName];
+            renderLeaderboardItems(jsonStr);
+        };
+        window.AndroidLuckyFruit.getRoundLeaderboard(roundIdx, callbackName);
+    } else {
+        renderLeaderboardItems('[]');
+    }
+}
+
+function renderLeaderboardItems(jsonStr) {
+    if (!DOM.leaderboardList) return;
+    let list = [];
+    try {
+        list = JSON.parse(jsonStr || '[]');
+    } catch(e) {
+        list = [];
+    }
+
+    if (!list || list.length === 0) {
+        DOM.leaderboardList.innerHTML = '<div class="lb-empty">No participants in this round!</div>';
+        return;
+    }
+
+    DOM.leaderboardList.innerHTML = '';
+    list.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'lb-item';
+
+        let rankDisplay = `#${item.rank}`;
+        if (item.rank === 1) rankDisplay = '🥇';
+        else if (item.rank === 2) rankDisplay = '🥈';
+        else if (item.rank === 3) rankDisplay = '🥉';
+
+        const avatarUrl = (item.userAvatar && item.userAvatar.trim() !== '')
+            ? item.userAvatar
+            : 'assets/gold_coin.svg';
+
+        const betFormatted = (item.betAmount || 0).toLocaleString();
+        const winVal = item.winAmount || 0;
+        const winFormatted = winVal > 0 ? `+${winVal.toLocaleString()}` : '0';
+        const winClass = winVal > 0 ? 'lb-win' : 'lb-win zero';
+
+        row.innerHTML = `
+            <div class="lb-left">
+                <div class="lb-rank">${rankDisplay}</div>
+                <img class="lb-avatar" src="${avatarUrl}" onerror="this.src='assets/gold_coin.svg'" alt="Avatar">
+                <div class="lb-name">${escapeHtml(item.userName || 'Player')}</div>
+            </div>
+            <div class="lb-right">
+                <div class="lb-win ${winClass}">Win: ${winFormatted}</div>
+                <div class="lb-bet">Bet: ${betFormatted}</div>
+            </div>
+        `;
+        DOM.leaderboardList.appendChild(row);
+    });
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // SET SELECTED BET QUANTITY
@@ -308,9 +428,36 @@ function triggerSpin(roundIdx, remainingSpinSec) {
     if (userPlacedBet) {
         if (state.balance < totalBet) {
             showToast("Not enough gold coins!");
+            clearAllBets();
             return;
         }
-        state.balance -= totalBet;
+
+        if (window.AndroidLuckyFruit) {
+            const callbackName = '_cb_bet_' + roundIdx + '_' + Date.now();
+            window[callbackName] = function(success, newBalance, errorMsg) {
+                delete window[callbackName];
+                if (success) {
+                    if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+                        state.balance = newBalance;
+                    }
+                    state.gameState = 'SPINNING';
+                    state.isSpinning = true;
+                    updateUI();
+                    const winIndex = getLuckyFruitOutcome(roundIdx);
+                    animateSpin(winIndex, totalBet, true, remainingSpinSec);
+                } else {
+                    showToast(errorMsg || "Bet deduction failed!");
+                    clearAllBets();
+                    state.gameState = 'BETTING';
+                    state.isSpinning = false;
+                    updateUI();
+                }
+            };
+            window.AndroidLuckyFruit.deductBetCoins(totalBet, roundIdx, callbackName);
+            return;
+        } else {
+            state.balance -= totalBet;
+        }
     }
 
     state.gameState = 'SPINNING';
@@ -423,12 +570,37 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
         const payout = betOnWinTile * winMultiplier;
 
         if (payout > 0) {
-            state.balance += payout;
-            state.todaysWinnings += payout;
-            showWinModal(winningFruit, winMultiplier, payout);
+            if (window.AndroidLuckyFruit) {
+                const targetRound = spinTriggeredRound || (state.currentRound - 1);
+                const callbackName = '_cb_win_' + state.currentRound + '_' + Date.now();
+                window[callbackName] = function(success, newBalance, errorMsg) {
+                    delete window[callbackName];
+                    if (success && typeof newBalance === 'number' && !isNaN(newBalance)) {
+                        state.balance = newBalance;
+                    } else {
+                        state.balance += payout;
+                    }
+                    state.todaysWinnings += payout;
+                    showWinModal(winningFruit, winMultiplier, payout);
+                    clearAllBets();
+                    updateUI();
+                };
+                window.AndroidLuckyFruit.addWinPayout(payout, targetRound, callbackName);
+            } else {
+                state.balance += payout;
+                state.todaysWinnings += payout;
+                showWinModal(winningFruit, winMultiplier, payout);
+                clearAllBets();
+                updateUI();
+            }
         } else {
             showToast(`Result: ${winningFruit.name}. Better luck next time!`);
+            clearAllBets();
+            updateUI();
         }
+    } else {
+        clearAllBets();
+        updateUI();
     }
 
     clearAllBets();

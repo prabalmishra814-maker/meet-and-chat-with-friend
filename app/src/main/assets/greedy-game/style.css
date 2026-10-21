@@ -862,3 +862,142 @@ html, body {
     font-size: 10px;
   }
 }
+
+/* Leaderboard Modal Scoped to .greedy-game */
+.greedy-game .leaderboard-card {
+  max-width: 380px;
+  width: 90%;
+  background: linear-gradient(145deg, #1f0836 0%, #3a0d5c 100%);
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+}
+
+.greedy-game .game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.greedy-game .game-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.greedy-game .leaderboard-btn {
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+  color: #2a004f;
+  border: 1px solid #ffffff;
+  border-radius: 12px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.greedy-game .leaderboard-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.greedy-game .lb-tab-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #e0d0f5;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.greedy-game .lb-tab-btn.active {
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+  color: #2a004f;
+  border-color: #ffffff;
+  font-weight: 900;
+}
+
+.greedy-game .leaderboard-list {
+  overflow-y: auto;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.greedy-game .lb-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.greedy-game .lb-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.greedy-game .lb-rank {
+  font-size: 14px;
+  font-weight: 900;
+  width: 24px;
+  text-align: center;
+  color: #ffd700;
+}
+
+.greedy-game .lb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #ffd700;
+}
+
+.greedy-game .lb-name {
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 700;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.greedy-game .lb-right {
+  text-align: right;
+}
+
+.greedy-game .lb-bet {
+  font-size: 11px;
+  color: #bfa8e6;
+}
+
+.greedy-game .lb-win {
+  font-size: 12px;
+  font-weight: 800;
+  color: #00ff88;
+}
+
+.greedy-game .lb-win.zero {
+  color: #ff6b6b;
+}
+
+.greedy-game .lb-empty {
+  text-align: center;
+  color: #cbb8e3;
+  font-size: 13px;
+  padding: 24px 12px;
+}

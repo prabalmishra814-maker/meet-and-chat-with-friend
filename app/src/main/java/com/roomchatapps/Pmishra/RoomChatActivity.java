@@ -3652,8 +3652,18 @@ public class RoomChatActivity extends AppCompatActivity {
 
         WebView webView = dialogView.findViewById(R.id.webViewGame);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBarGame);
+        final LuckyFruitBridge[] luckyFruitBridgeHolder = new LuckyFruitBridge[1];
+        final GreedyBridge[] greedyBridgeHolder = new GreedyBridge[1];
 
         dialog.setOnDismissListener(d -> {
+            if (luckyFruitBridgeHolder[0] != null) {
+                luckyFruitBridgeHolder[0].cleanup();
+                luckyFruitBridgeHolder[0] = null;
+            }
+            if (greedyBridgeHolder[0] != null) {
+                greedyBridgeHolder[0].cleanup();
+                greedyBridgeHolder[0] = null;
+            }
             if (webView != null) {
                 try {
                     webView.onPause();
@@ -3744,6 +3754,12 @@ public class RoomChatActivity extends AppCompatActivity {
                 String myAvatar = SessionManager.getInstance(this).getAvatar();
                 LudoBridge ludoBridge = new LudoBridge(this, webView, userID, userName, myAvatar);
                 webView.addJavascriptInterface(ludoBridge, "AndroidLudo");
+            } else if (gameUrl != null && (gameUrl.contains("lucky_fruit") || gameUrl.contains("lucky-fruit"))) {
+                luckyFruitBridgeHolder[0] = new LuckyFruitBridge(this, webView, userID);
+                webView.addJavascriptInterface(luckyFruitBridgeHolder[0], "AndroidLuckyFruit");
+            } else if (gameUrl != null && (gameUrl.contains("greedy-game") || gameUrl.contains("greedy_game"))) {
+                greedyBridgeHolder[0] = new GreedyBridge(this, webView, userID);
+                webView.addJavascriptInterface(greedyBridgeHolder[0], "AndroidGreedy");
             }
 
             webView.loadUrl(gameUrl);

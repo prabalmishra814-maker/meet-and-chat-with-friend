@@ -16,7 +16,9 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -40,9 +42,8 @@ public class LudoBridge {
     public LudoBridge(Context context, WebView webView, String userId, String userName, String userAvatar) {
         this.webView = webView;
         String rawUid = (userId != null && !userId.trim().isEmpty()) ? userId.trim() : "user_" + System.currentTimeMillis();
-        // Append a session-unique identifier so two test instances (e.g. 2 devices logged into the same account) are treated as distinct players
-        this.userId = rawUid + "_" + (new Random().nextInt(9000) + 1000);
-        this.userName = (userName != null && !userName.trim().isEmpty()) ? userName : "Player_" + new Random().nextInt(9000 + 1000);
+        this.userId = rawUid;
+        this.userName = (userName != null && !userName.trim().isEmpty()) ? userName : "Player_" + new Random().nextInt(9000) + 1000;
         this.userAvatar = userAvatar != null ? userAvatar : "";
         this.ludoRef = FirebaseDatabase.getInstance().getReference("ludo_online");
     }
@@ -333,7 +334,37 @@ public class LudoBridge {
                         actionObj.put("color", lastActionSnap.child("color").getValue(String.class));
                         actionObj.put("tokenId", lastActionSnap.child("tokenId").getValue(Integer.class));
                         actionObj.put("timestamp", lastActionSnap.child("timestamp").getValue(Long.class));
+                        if (lastActionSnap.hasChild("actionSeq")) {
+                            actionObj.put("actionSeq", lastActionSnap.child("actionSeq").getValue(Integer.class));
+                        }
                         roomJson.put("lastAction", actionObj);
+                    }
+
+                    // Authoritative Game State Sync
+                    DataSnapshot gameStateSnap = snapshot.child("gameState");
+                    if (gameStateSnap.exists()) {
+                        JSONObject stateObj = new JSONObject();
+                        if (gameStateSnap.hasChild("turnSlot")) stateObj.put("turnSlot", gameStateSnap.child("turnSlot").getValue(Integer.class));
+                        if (gameStateSnap.hasChild("phase")) stateObj.put("phase", gameStateSnap.child("phase").getValue(String.class));
+                        if (gameStateSnap.hasChild("diceVal")) stateObj.put("diceVal", gameStateSnap.child("diceVal").getValue(Integer.class));
+                        if (gameStateSnap.hasChild("consecutiveSixes")) stateObj.put("consecutiveSixes", gameStateSnap.child("consecutiveSixes").getValue(Integer.class));
+                        if (gameStateSnap.hasChild("actionSeq")) stateObj.put("actionSeq", gameStateSnap.child("actionSeq").getValue(Integer.class));
+                        if (gameStateSnap.hasChild("turnDeadline")) stateObj.put("turnDeadline", gameStateSnap.child("turnDeadline").getValue(Long.class));
+
+                        DataSnapshot boardSnap = gameStateSnap.child("boardState");
+                        if (boardSnap.exists()) {
+                            JSONObject boardObj = new JSONObject();
+                            for (DataSnapshot colorSnap : boardSnap.getChildren()) {
+                                JSONArray posArr = new JSONArray();
+                                for (DataSnapshot posSnap : colorSnap.getChildren()) {
+                                    Long posVal = posSnap.getValue(Long.class);
+                                    if (posVal != null) posArr.put(posVal.intValue());
+                                }
+                                boardObj.put(colorSnap.getKey(), posArr);
+                            }
+                            stateObj.put("boardState", boardObj);
+                        }
+                        roomJson.put("gameState", stateObj);
                     }
 
                     String jsonString = roomJson.toString();
@@ -354,6 +385,57 @@ public class LudoBridge {
     }
 
     @JavascriptInterface
+    public void sendGameState(String gameStateJson) {
+        if (activeRoomRef == null) return;
+
+        try {
+            JSONObject json = new JSONObject(gameStateJson);
+            Map<String, Object> stateMap = new HashMap<>();
+
+            if (json.has("turnSlot")) stateMap.put("turnSlot", json.getInt("turnSlot"));
+            if (json.has("phase")) stateMap.put("phase", json.getString("phase"));
+            if (json.has("diceVal")) stateMap.put("diceVal", json.getInt("diceVal"));
+            if (json.has("consecutiveSixes")) stateMap.put("consecutiveSixes", json.getInt("consecutiveSixes"));
+            if (json.has("actionSeq")) stateMap.put("actionSeq", json.getInt("actionSeq"));
+            if (json.has("turnDeadline")) stateMap.put("turnDeadline", json.getLong("turnDeadline"));
+
+            if (json.has("boardState")) {
+                JSONObject boardObj = json.getJSONObject("boardState");
+                Map<String, Object> boardMap = new HashMap<>();
+                for (String color : new String[]{"green", "blue", "yellow", "red"}) {
+                    if (boardObj.has(color)) {
+                        JSONArray arr = boardObj.getJSONArray(color);
+                        List<Integer> list = new ArrayList<>();
+                        for (int i = 0; i < arr.length(); i++) {
+                            list.add(arr.getInt(i));
+                        }
+                        boardMap.put(color, list);
+                    }
+                }
+                stateMap.put("boardState", boardMap);
+            }
+
+            if (json.has("lastAction")) {
+                JSONObject actionObj = json.getJSONObject("lastAction");
+                Map<String, Object> actionMap = new HashMap<>();
+                actionMap.put("type", actionObj.optString("type", ""));
+                actionMap.put("slot", actionObj.optInt("slot", myPlayerSlot));
+                actionMap.put("diceVal", actionObj.optInt("diceVal", 0));
+                actionMap.put("color", actionObj.optString("color", ""));
+                actionMap.put("tokenId", actionObj.optInt("tokenId", -1));
+                actionMap.put("actionSeq", actionObj.optInt("actionSeq", 0));
+                actionMap.put("timestamp", System.currentTimeMillis());
+                stateMap.put("lastAction", actionMap);
+                activeRoomRef.child("lastAction").setValue(actionMap);
+            }
+
+            activeRoomRef.child("gameState").setValue(stateMap);
+        } catch (Exception e) {
+            Log.e(TAG, "Error sending game state", e);
+        }
+    }
+
+    @JavascriptInterface
     public void sendGameAction(String actionType, String actionDataJson) {
         if (activeRoomRef == null) return;
 
@@ -367,6 +449,7 @@ public class LudoBridge {
             if (data.has("diceVal")) action.put("diceVal", data.getInt("diceVal"));
             if (data.has("color")) action.put("color", data.getString("color"));
             if (data.has("tokenId")) action.put("tokenId", data.getInt("tokenId"));
+            if (data.has("actionSeq")) action.put("actionSeq", data.getInt("actionSeq"));
 
             activeRoomRef.child("lastAction").setValue(action);
         } catch (Exception e) {
