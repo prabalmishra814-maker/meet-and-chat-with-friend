@@ -159,7 +159,7 @@
 
             <div class="gametype-options-list">
               <!-- Pass & Play Card -->
-              <button id="btn-select-passplay" class="type-option-card card-passplay">
+              <button id="btn-select-passplay" class="type-option-card card-passplay" onclick="window.selectLudoType('pass_play')">
                 <div class="card-icon-wrap">🤝</div>
                 <div class="card-text-wrap">
                   <span class="card-main-title">PASS & PLAY</span>
@@ -169,7 +169,7 @@
               </button>
 
               <!-- VS Computer Card -->
-              <button id="btn-select-vscomputer" class="type-option-card card-vscomputer">
+              <button id="btn-select-vscomputer" class="type-option-card card-vscomputer" onclick="window.selectLudoType('vs_ai')">
                 <div class="card-icon-wrap">🤖</div>
                 <div class="card-text-wrap">
                   <span class="card-main-title">VS COMPUTER</span>
@@ -179,7 +179,7 @@
               </button>
 
               <!-- Online Play Card -->
-              <button id="btn-select-online" class="type-option-card card-online">
+              <button id="btn-select-online" class="type-option-card card-online" onclick="window.selectLudoType('online')">
                 <div class="card-icon-wrap">🌐</div>
                 <div class="card-text-wrap">
                   <span class="card-main-title">ONLINE PLAY</span>
@@ -193,14 +193,14 @@
           <!-- Step 2: Select Sub-Mode (1v1, 1v2, 1v4) -->
           <div id="menu-step-2" class="menu-step-container hidden">
             <div class="menu-header">
-              <button id="btn-back-step1" class="step-back-btn">‹ Back</button>
+              <button id="btn-back-step1" class="step-back-btn" onclick="window.backLudoStep(1)">‹ Back</button>
               <h2 id="step2-title" class="menu-title">SELECT MODE</h2>
               <p class="menu-subtitle">Choose number of players</p>
             </div>
 
             <div class="mode-options-grid">
               <!-- 1 v 1 Mode -->
-              <button id="btn-mode-1v1" class="mode-option-card">
+              <button id="btn-mode-1v1" class="mode-option-card" onclick="window.selectLudoMode('1v1')">
                 <div class="mode-badge">2 PLAYERS</div>
                 <div class="mode-icon">⚡</div>
                 <span class="mode-title">1 v 1</span>
@@ -208,7 +208,7 @@
               </button>
 
               <!-- 1 v 2 Mode -->
-              <button id="btn-mode-1v2" class="mode-option-card">
+              <button id="btn-mode-1v2" class="mode-option-card" onclick="window.selectLudoMode('1v2')">
                 <div class="mode-badge">3 PLAYERS</div>
                 <div class="mode-icon">⚔️</div>
                 <span class="mode-title">1 v 2</span>
@@ -216,7 +216,7 @@
               </button>
 
               <!-- 1 v 4 Mode -->
-              <button id="btn-mode-1v4" class="mode-option-card">
+              <button id="btn-mode-1v4" class="mode-option-card" onclick="window.selectLudoMode('1v4')">
                 <div class="mode-badge">4 PLAYERS</div>
                 <div class="mode-icon">🎲</div>
                 <span class="mode-title">1 v 4</span>
@@ -228,7 +228,7 @@
           <!-- Step 3: Pass & Play Player Names Setup -->
           <div id="menu-step-3" class="menu-step-container hidden">
             <div class="menu-header">
-              <button id="btn-back-step2" class="step-back-btn">‹ Back</button>
+              <button id="btn-back-step2" class="step-back-btn" onclick="window.backLudoStep(2)">‹ Back</button>
               <h2 class="menu-title">EDIT PLAYER NAMES</h2>
               <p class="menu-subtitle">Customize names before starting</p>
             </div>
@@ -256,7 +256,7 @@
             </div>
 
             <div class="menu-actions">
-              <button id="btn-start-game" class="action-btn gold-btn start-game-btn">▶ START GAME</button>
+              <button id="btn-start-game" class="action-btn gold-btn start-game-btn" onclick="window.startLudoGame()">▶ START GAME</button>
             </div>
           </div>
 

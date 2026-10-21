@@ -456,16 +456,21 @@
     }
 
     showMainMenu() {
-      if (this.modalMainMenu) {
-        this.modalMainMenu.classList.remove('hidden');
+      const modalMenu = this.modalMainMenu || document.getElementById('modal-main-menu');
+      if (modalMenu) {
+        modalMenu.classList.remove('hidden');
         this.showMenuStep(1);
       }
     }
 
     showMenuStep(stepNum) {
-      if (this.menuStep1) this.menuStep1.classList.toggle('hidden', stepNum !== 1);
-      if (this.menuStep2) this.menuStep2.classList.toggle('hidden', stepNum !== 2);
-      if (this.menuStep3) this.menuStep3.classList.toggle('hidden', stepNum !== 3);
+      const step1 = this.menuStep1 || document.getElementById('menu-step-1');
+      const step2 = this.menuStep2 || document.getElementById('menu-step-2');
+      const step3 = this.menuStep3 || document.getElementById('menu-step-3');
+
+      if (step1) step1.classList.toggle('hidden', stepNum !== 1);
+      if (step2) step2.classList.toggle('hidden', stepNum !== 2);
+      if (step3) step3.classList.toggle('hidden', stepNum !== 3);
 
       if (stepNum === 2) {
         const typeLabels = {
@@ -653,57 +658,36 @@
 
       const viewportRect = this.viewportEl.getBoundingClientRect();
       const cardRect = profileCard.getBoundingClientRect();
+
+      // If DOM element is not measured yet (e.g. initial load or hidden modal), retry once rendered
+      if (!cardRect || cardRect.width === 0 || cardRect.height === 0) {
+        if (!this._retryPositionTimer) {
+          this._retryPositionTimer = setTimeout(() => {
+            this._retryPositionTimer = null;
+            this.positionDice(color);
+          }, 60);
+        }
+        return;
+      }
+
       const nameplateEl = profileCard.querySelector('.nameplate');
       const nameplateRect = nameplateEl ? nameplateEl.getBoundingClientRect() : cardRect;
-      const boardWrapper = document.querySelector('.wood-frame') || document.querySelector('.board-wrapper');
-      const boardRect = boardWrapper ? boardWrapper.getBoundingClientRect() : null;
 
       const diceWidth = this.diceBox.offsetWidth || 42;
       const diceHeight = this.diceBox.offsetHeight || 42;
 
       let x = 0;
-      let y = 0;
+      // Vertically center the dice box with the active player's profile card
+      let y = cardRect.top - viewportRect.top + (cardRect.height / 2) - (diceHeight / 2);
 
-      const isTopRow = (cardRect.top - viewportRect.top) < (viewportRect.height / 2);
       const isLeft = (cardRect.left - viewportRect.left) < (viewportRect.width / 2);
 
-      if (isTopRow) {
-        // Top Row Profiles (Top-Left Green or Top-Right Blue)
-        // Position dice cleanly underneath profile card so it never overlaps nameplate pill or LUDO logo
-        x = cardRect.left - viewportRect.left + (cardRect.width / 2) - (diceWidth / 2);
-        y = cardRect.bottom - viewportRect.top + 2;
-
-        if (boardRect) {
-          const boardTopInViewport = boardRect.top - viewportRect.top;
-          if (y + diceHeight > boardTopInViewport - 1) {
-            y = boardTopInViewport - diceHeight - 1;
-          }
-        }
+      if (isLeft) {
+        // Left Profiles (Green & Red): Position dice directly to the RIGHT of the nameplate pill
+        x = nameplateRect.right - viewportRect.left + 4;
       } else {
-        // Bottom Row Profiles (Bottom-Left Red or Bottom-Right Yellow/YOU)
-        if (isLeft) {
-          // Bottom-Left (Red): Position dice directly above profile card
-          x = cardRect.left - viewportRect.left + (cardRect.width / 2) - (diceWidth / 2);
-          y = cardRect.top - viewportRect.top - diceHeight - 2;
-
-          if (boardRect) {
-            const boardBottomInViewport = boardRect.bottom - viewportRect.top;
-            if (y < boardBottomInViewport + 1) {
-              y = boardBottomInViewport + 1;
-            }
-          }
-        } else {
-          // Bottom-Right Local Player ("YOU" / Yellow): Position dice to the LEFT of profile card
-          x = cardRect.left - viewportRect.left - diceWidth - 6;
-          y = cardRect.top - viewportRect.top + (cardRect.height / 2) - (diceHeight / 2);
-
-          if (boardRect) {
-            const boardBottomInViewport = boardRect.bottom - viewportRect.top;
-            if (y < boardBottomInViewport + 1) {
-              y = boardBottomInViewport + 1;
-            }
-          }
-        }
+        // Right Profiles (Blue & Yellow): Position dice directly to the LEFT of the nameplate pill
+        x = nameplateRect.left - viewportRect.left - diceWidth - 4;
       }
 
       const maxViewportX = viewportRect.width - diceWidth - 4;
@@ -711,7 +695,7 @@
 
       if (x < 4) x = 4;
       if (x > maxViewportX) x = maxViewportX;
-      if (y < 4) y = 4;
+      if (y < 2) y = 2;
       if (y > maxViewportY) y = maxViewportY;
 
       const roundX = Math.round(x);
@@ -736,6 +720,8 @@
 
     // Render 15x15 Board Grid
     buildBoardDom() {
+      this.boardEl = this.boardEl || document.getElementById('ludo-board');
+      if (!this.boardEl) return;
       this.boardEl.innerHTML = '';
 
       COLORS.forEach(color => {
@@ -903,6 +889,25 @@
       });
     }
 
+    bindClick(elementOrId, handler) {
+      const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+      if (!el) return;
+
+      let lastExec = 0;
+      const safeHandler = (e) => {
+        const now = Date.now();
+        if (now - lastExec < 250) return;
+        lastExec = now;
+        try {
+          handler(e);
+        } catch (err) {
+          console.error("Error executing click handler:", err);
+        }
+      };
+
+      el.addEventListener('click', safeHandler);
+    }
+
     bindEvents() {
       const triggerRoll = () => {
         if (this.phase === 'WAIT_ROLL' && !this.isRolling) {
@@ -916,11 +921,11 @@
         }
       };
 
-      if (this.btnRoll) this.btnRoll.addEventListener('click', triggerRoll);
-      if (this.diceBox) this.diceBox.addEventListener('click', triggerRoll);
+      if (this.btnRoll) this.bindClick(this.btnRoll, triggerRoll);
+      if (this.diceBox) this.bindClick(this.diceBox, triggerRoll);
 
       if (this.btnBack) {
-        this.btnBack.addEventListener('click', () => {
+        this.bindClick(this.btnBack, () => {
           this.showMainMenu();
         });
       }
@@ -929,82 +934,77 @@
         this.positionDice(this.getCurrentColor());
       });
 
-      this.boardEl.addEventListener('click', (e) => {
-        const tokenEl = e.target.closest('.token');
-        if (!tokenEl) return;
-        const color = tokenEl.dataset.color;
-        const id = parseInt(tokenEl.dataset.id, 10);
+      if (this.boardEl) {
+        this.boardEl.addEventListener('click', (e) => {
+          const tokenEl = e.target.closest('.token');
+          if (!tokenEl) return;
+          const color = tokenEl.dataset.color;
+          const id = parseInt(tokenEl.dataset.id, 10);
 
-        if (color === this.getCurrentColor() && this.phase === 'WAIT_MOVE') {
-          const isMyTurn = !this.isOnlineActive || (color === this.myColor);
-          if (isMyTurn) {
-            this.onTokenSelected(color, id);
+          if (color === this.getCurrentColor() && this.phase === 'WAIT_MOVE') {
+            const isMyTurn = !this.isOnlineActive || (color === this.myColor);
+            if (isMyTurn) {
+              this.onTokenSelected(color, id);
+            }
           }
+        });
+      }
+
+      this.bindClick('btn-sound', () => {
+        this.sound.enabled = !this.sound.enabled;
+        const img = document.getElementById('img-sound');
+        if (img) {
+          img.src = this.sound.enabled ? 'assets/icon_sound_on.svg' : 'assets/icon_sound_off.svg';
         }
       });
 
-      document.getElementById('btn-sound').addEventListener('click', () => {
-        this.sound.enabled = !this.sound.enabled;
-        const img = document.getElementById('img-sound');
-        img.src = this.sound.enabled ? 'assets/icon_sound_on.svg' : 'assets/icon_sound_off.svg';
-      });
-
       document.querySelectorAll('.modal-close').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.target.closest('.modal-overlay').classList.add('hidden');
+        this.bindClick(btn, (e) => {
+          const modal = e.target ? e.target.closest('.modal-overlay') : null;
+          if (modal) modal.classList.add('hidden');
         });
       });
 
-      const btnFind = document.getElementById('btn-find-friends');
-      if (btnFind) {
-        btnFind.addEventListener('click', () => {
-          this.gameType = 'online';
-          this.subMode = 'auto';
-          this.applyAndStartGame();
-        });
-      }
-
-      document.getElementById('btn-restart-game').addEventListener('click', () => {
-        this.modalSettings.classList.add('hidden');
-        this.restartGame();
-      });
-
-      const btnOpenMenu = document.getElementById('btn-open-main-menu');
-      if (btnOpenMenu) {
-        btnOpenMenu.addEventListener('click', () => {
-          this.modalSettings.classList.add('hidden');
-          this.showMainMenu();
-        });
-      }
-
-      document.getElementById('btn-play-again').addEventListener('click', () => {
-        this.modalWinner.classList.add('hidden');
-        this.showMainMenu();
-      });
-
-      // Step 1 Game Type Selection
-      document.getElementById('btn-select-passplay')?.addEventListener('click', () => {
-        this.gameType = 'pass_play';
-        this.showMenuStep(2);
-      });
-
-      document.getElementById('btn-select-vscomputer')?.addEventListener('click', () => {
-        this.gameType = 'vs_ai';
-        this.showMenuStep(2);
-      });
-
-      document.getElementById('btn-select-online')?.addEventListener('click', () => {
+      this.bindClick('btn-find-friends', () => {
         this.gameType = 'online';
         this.subMode = 'auto';
         this.applyAndStartGame();
       });
 
+      this.bindClick('btn-restart-game', () => {
+        if (this.modalSettings) this.modalSettings.classList.add('hidden');
+        this.restartGame();
+      });
+
+      this.bindClick('btn-open-main-menu', () => {
+        if (this.modalSettings) this.modalSettings.classList.add('hidden');
+        this.showMainMenu();
+      });
+
+      this.bindClick('btn-play-again', () => {
+        if (this.modalWinner) this.modalWinner.classList.add('hidden');
+        this.showMainMenu();
+      });
+
+      // Step 1 Game Type Selection
+      this.bindClick('btn-select-passplay', () => {
+        window.selectLudoType('pass_play');
+      });
+
+      this.bindClick('btn-select-vscomputer', () => {
+        window.selectLudoType('vs_ai');
+      });
+
+      this.bindClick('btn-select-online', () => {
+        window.selectLudoType('online');
+      });
+
       // Step 2 Sub-Mode Selection
-      document.getElementById('btn-back-step1')?.addEventListener('click', () => {
+      this.bindClick('btn-back-step1', () => {
         this.showMenuStep(1);
       });
 
-      document.getElementById('btn-mode-1v1')?.addEventListener('click', () => {
+      this.bindClick('btn-mode-1v1', () => {
         this.subMode = '1v1';
         if (this.gameType === 'pass_play') {
           this.showMenuStep(3);
@@ -1013,7 +1013,7 @@
         }
       });
 
-      document.getElementById('btn-mode-1v2')?.addEventListener('click', () => {
+      this.bindClick('btn-mode-1v2', () => {
         this.subMode = '1v2';
         if (this.gameType === 'pass_play') {
           this.showMenuStep(3);
@@ -1022,7 +1022,7 @@
         }
       });
 
-      document.getElementById('btn-mode-1v4')?.addEventListener('click', () => {
+      this.bindClick('btn-mode-1v4', () => {
         this.subMode = '1v4';
         if (this.gameType === 'pass_play') {
           this.showMenuStep(3);
@@ -1032,11 +1032,11 @@
       });
 
       // Step 3 Player Names Back & Start
-      document.getElementById('btn-back-step2')?.addEventListener('click', () => {
+      this.bindClick('btn-back-step2', () => {
         this.showMenuStep(2);
       });
 
-      document.getElementById('btn-start-game')?.addEventListener('click', () => {
+      this.bindClick('btn-start-game', () => {
         this.applyAndStartGame();
       });
 
@@ -1044,7 +1044,7 @@
       COLORS.forEach(color => {
         const card = document.getElementById(`profile-${color}`);
         if (card) {
-          card.addEventListener('click', () => {
+          this.bindClick(card, () => {
             if (this.gameType === 'pass_play' && this.activeColors.includes(color)) {
               const oldName = this.players[color].name;
               const newName = prompt(`Edit name for ${color.toUpperCase()}:`, oldName);
@@ -1059,26 +1059,33 @@
         }
       });
 
-      this.checkDevMode.addEventListener('change', (e) => {
-        this.devMode = e.target.checked;
-        if (this.devMode) {
-          this.devTestPanel.classList.remove('hidden');
-        } else {
-          this.devTestPanel.classList.add('hidden');
-          this.forcedRoll = null;
-        }
-      });
+      if (this.checkDevMode) {
+        this.checkDevMode.addEventListener('change', (e) => {
+          this.devMode = e.target.checked;
+          if (this.devMode) {
+            if (this.devTestPanel) this.devTestPanel.classList.remove('hidden');
+          } else {
+            if (this.devTestPanel) this.devTestPanel.classList.add('hidden');
+            this.forcedRoll = null;
+          }
+        });
+      }
 
       document.querySelectorAll('.dev-dice-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          this.forcedRoll = parseInt(e.target.dataset.val, 10);
-          this.showToast(`Dev Force Roll set to: ${this.forcedRoll}`);
+        this.bindClick(btn, (e) => {
+          const target = e.target || e.currentTarget;
+          if (target && target.dataset) {
+            this.forcedRoll = parseInt(target.dataset.val, 10);
+            this.showToast(`Dev Force Roll set to: ${this.forcedRoll}`);
+          }
         });
       });
 
-      this.checkAutoMove.addEventListener('change', (e) => {
-        this.autoMoveSingle = e.target.checked;
-      });
+      if (this.checkAutoMove) {
+        this.checkAutoMove.addEventListener('change', (e) => {
+          this.autoMoveSingle = e.target.checked;
+        });
+      }
     }
 
     getCurrentColor() {
@@ -1565,6 +1572,7 @@
       });
 
       this.positionDice(activeColor);
+      setTimeout(() => this.positionDice(activeColor), 120);
 
       if (this.phase === 'WAIT_ROLL') {
         if (isMyTurn) {
@@ -1727,13 +1735,13 @@
 
     bindEvents() {
       if (this.btnCancelMatchmaking) {
-        this.btnCancelMatchmaking.addEventListener('click', () => {
+        this.game.bindClick(this.btnCancelMatchmaking, () => {
           this.cancelMatchmaking(true);
         });
       }
 
       if (this.btnStartNow) {
-        this.btnStartNow.addEventListener('click', () => {
+        this.game.bindClick(this.btnStartNow, () => {
           if (window.AndroidLudo) {
             window.AndroidLudo.forceStartMatch();
           } else {
@@ -2067,15 +2075,68 @@
     }
   }
 
-  // Initialize Game on DOM Load
-  document.addEventListener('DOMContentLoaded', () => {
-    window.ludoGameInstance = new LudoGame();
-  });
+  function initLudoGame() {
+    if (!window.ludoGameInstance) {
+      try {
+        window.ludoGameInstance = new LudoGame();
+      } catch (e) {
+        console.error("Failed to initialize LudoGame:", e);
+      }
+    }
+    return window.ludoGameInstance;
+  }
+
+  // Global UI Trigger Handlers for Direct OnClick Attributes
+  window.selectLudoType = function (gameType) {
+    const game = window.ludoGameInstance || initLudoGame();
+    if (!game) return;
+    game.gameType = gameType;
+
+    if (gameType === 'pass_play' || gameType === 'vs_ai') {
+      game.showMenuStep(2);
+    } else if (gameType === 'online') {
+      game.subMode = 'auto';
+      game.applyAndStartGame();
+    }
+  };
+
+  window.selectLudoMode = function (subMode) {
+    const game = window.ludoGameInstance || initLudoGame();
+    if (!game) return;
+    game.subMode = subMode;
+
+    if (game.gameType === 'pass_play') {
+      game.showMenuStep(3);
+    } else {
+      game.applyAndStartGame();
+    }
+  };
+
+  window.startLudoGame = function () {
+    const game = window.ludoGameInstance || initLudoGame();
+    if (!game) return;
+    game.applyAndStartGame();
+  };
+
+  window.backLudoStep = function (stepNum) {
+    const game = window.ludoGameInstance || initLudoGame();
+    if (!game) return;
+    game.showMenuStep(stepNum);
+  };
+
+  // Initialize Game on DOM Load or immediately if DOM is already ready
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initLudoGame();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      initLudoGame();
+    });
+  }
 
   // Handle Android Native Back Button
   window.handleAndroidBack = function() {
-    if (!window.ludoGameInstance) return false;
-    const game = window.ludoGameInstance;
+    const game = window.ludoGameInstance || initLudoGame();
+    if (!game) return false;
 
     // 1. If any overlay modal is open (Settings, Rules, Winner)
     if (game.modalSettings && !game.modalSettings.classList.contains('hidden')) {

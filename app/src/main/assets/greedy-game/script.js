@@ -279,10 +279,18 @@
     }
   }
 
+  let isFirstSync = true;
+
   function syncTimer() {
     const nowSec = Math.floor(Date.now() / 1000);
     const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
     const roundIdx = Math.floor(nowSec / CYCLE_DURATION);
+
+    if (isFirstSync) {
+      isFirstSync = false;
+      currentRoundIdx = roundIdx;
+      spinTriggeredRound = roundIdx;
+    }
 
     if (cyclePos < BETTING_DURATION) {
       const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
@@ -308,6 +316,7 @@
       if (el.timerDisplay) el.timerDisplay.textContent = state.timerSec + 's';
 
       if (spinTriggeredRound !== roundIdx) {
+        spinTriggeredRound = roundIdx;
         currentRoundIdx = roundIdx;
         startSpinRound(roundIdx, remainingSpin);
       }
@@ -452,6 +461,12 @@
     if (state.resultHistory.length > 8) state.resultHistory.pop();
 
     state.jackpot += Math.floor(Math.random() * 400) + 100;
+
+    // Auto-open Round Leaderboard when result arrives
+    const finishedRound = roundIdx || currentRoundIdx;
+    setTimeout(() => {
+      openLeaderboardForRound(finishedRound);
+    }, 1200);
   }
 
   // --- Modals & Settings Handlers ---
@@ -562,11 +577,20 @@
 
   function openLeaderboard() {
     initAudio();
+    openLeaderboardForRound(currentRoundIdx);
+  }
+
+  function openLeaderboardForRound(roundIdx) {
     if (!el.leaderboardModal) return;
     el.leaderboardModal.classList.remove('hidden');
-    if (el.lbTabCurrent) el.lbTabCurrent.classList.add('active');
-    if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
-    loadLeaderboardForRound(currentRoundIdx);
+    if (roundIdx === currentRoundIdx) {
+      if (el.lbTabCurrent) el.lbTabCurrent.classList.add('active');
+      if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
+    } else {
+      if (el.lbTabPrev) el.lbTabPrev.classList.add('active');
+      if (el.lbTabCurrent) el.lbTabCurrent.classList.remove('active');
+    }
+    loadLeaderboardForRound(roundIdx);
   }
 
   function loadLeaderboardForRound(roundIdx) {

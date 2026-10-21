@@ -262,28 +262,13 @@ html, body {
   100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg); }
 }
 
-.ludo-game .show-1 { transform: rotateX(0deg) rotateY(0deg); }
-.ludo-game .show-2 { transform: rotateY(-90deg); }
-.ludo-game .show-3 { transform: rotateY(90deg); }
-.ludo-game .show-4 { transform: rotateX(-90deg); }
-.ludo-game .show-5 { transform: rotateX(90deg); }
-.ludo-game .show-6 { transform: rotateY(180deg); }
-
-.ludo-game .face-1 { transform: translateZ(clamp(14px, 3.5vw, 17px)); }
-.ludo-game .face-6 { transform: rotateY(180deg) translateZ(clamp(14px, 3.5vw, 17px)); }
-.ludo-game .face-2 { transform: rotateY(90deg) translateZ(clamp(14px, 3.5vw, 17px)); }
-.ludo-game .face-3 { transform: rotateY(-90deg) translateZ(clamp(14px, 3.5vw, 17px)); }
-.ludo-game .face-5 { transform: rotateX(-90deg) translateZ(clamp(14px, 3.5vw, 17px)); }
-.ludo-game .face-4 { transform: rotateX(90deg) translateZ(clamp(14px, 3.5vw, 17px)); }
-
-/* 3. Player Profiles Row */
+/* 3. Player Profiles Rows (Top & Bottom) */
 .ludo-game .profiles-row {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  z-index: 10;
 }
 
 .ludo-game .top-profiles {
@@ -292,6 +277,7 @@ html, body {
 
 .ludo-game .bottom-profiles {
   margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* Ensure player profile cards stay anchored in their respective corners even if an adjacent profile is hidden */
@@ -307,29 +293,24 @@ html, body {
   flex-direction: row-reverse;
 }
 
-/* Individual Profile Card */
+/* Player Profile Cards */
 .ludo-game .profile-card {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.28);
-  padding: 3px 5px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  gap: clamp(2px, 0.8vw, 5px);
   position: relative;
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .ludo-game .profile-card.active {
-  border-color: #FFD600;
-  box-shadow: 0 0 12px rgba(255, 214, 0, 0.8);
-  transform: scale(1.03);
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
 }
 
 .ludo-game .avatar-wrapper {
   position: relative;
-  width: clamp(28px, 7vw, 34px);
-  height: clamp(28px, 7vw, 34px);
+  width: clamp(36px, 8.5vw, 42px);
+  height: clamp(36px, 8.5vw, 42px);
   flex-shrink: 0;
 }
 
@@ -337,8 +318,9 @@ html, body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  background: #FFF;
   object-fit: cover;
-  background: #111;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
   display: block;
 }
 
@@ -349,87 +331,90 @@ html, body {
 
 .ludo-game .you-badge {
   position: absolute;
-  bottom: -2px;
+  bottom: -3px;
   left: 50%;
   transform: translateX(-50%);
-  background: #00E676;
-  color: #000;
-  font-size: clamp(7px, 1.8vw, 8px);
+  background: #FFD600;
+  color: #000000;
+  font-size: 8px;
   font-weight: 900;
   padding: 1px 4px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  border-radius: 5px;
+  border: 1px solid #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   white-space: nowrap;
 }
 
 .ludo-game .bot-badge {
   position: absolute;
-  bottom: -2px;
+  bottom: -3px;
   left: 50%;
   transform: translateX(-50%);
-  background: #757575;
-  color: #FFF;
-  font-size: clamp(7px, 1.8vw, 8px);
-  font-weight: 900;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ECEFF1;
+  font-size: 8px;
+  font-weight: 800;
   padding: 1px 4px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   white-space: nowrap;
 }
 
+/* Nameplate Pills */
 .ludo-game .nameplate {
-  padding: clamp(2px, 0.5vh, 3px) clamp(6px, 1.8vw, 8px);
+  height: clamp(20px, 5vw, 24px);
+  padding: 0 clamp(6px, 1.8vw, 10px);
   border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-}
-
-.ludo-game .player-name {
-  font-size: clamp(9px, 2.3vw, 11px);
-  font-weight: 900;
-  color: #FFFFFF;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.ludo-game .green-pill  { background: linear-gradient(180deg, #00C853 0%, #008D38 100%); border: 1.5px solid #69F0AE; }
-.ludo-game .blue-pill   { background: linear-gradient(180deg, #0088FF 0%, #0055D4 100%); border: 1.5px solid #80D8FF; }
-.ludo-game .red-pill    { background: linear-gradient(180deg, #FF1744 0%, #B71C1C 100%); border: 1.5px solid #FF8A80; }
-.ludo-game .yellow-pill { background: linear-gradient(180deg, #FFC400 0%, #E65100 100%); border: 1.5px solid #FFE082; }
-
-/* Anchor for floating 3D dice landing */
-.ludo-game .dice-anchor {
-  width: 1px;
-  height: 1px;
-  position: absolute;
-  pointer-events: none;
-}
-
-.ludo-game .anchor-right { right: -12px; top: 50%; }
-.ludo-game .anchor-left  { left: -12px; top: 50%; }
-
-/* Turn & Extra Roll Banner */
-.ludo-game .turn-banner {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: clamp(2px, 0.5vh, 4px) clamp(10px, 3vw, 16px);
-  border-radius: 20px;
-  font-size: clamp(10px, 2.6vw, 12px);
-  font-weight: 900;
-  letter-spacing: 0.8px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
-  flex-shrink: 0;
-  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
-.ludo-game .turn-green  { background: linear-gradient(180deg, #00C853, #008D38); border: 1px solid #69F0AE; color: #FFF; }
-.ludo-game .turn-blue   { background: linear-gradient(180deg, #0088FF, #0055D4); border: 1px solid #80D8FF; color: #FFF; }
-.ludo-game .turn-red    { background: linear-gradient(180deg, #FF1744, #B71C1C); border: 1px solid #FF8A80; color: #FFF; }
-.ludo-game .turn-yellow { background: linear-gradient(180deg, #FFC400, #E65100); border: 1px solid #FFE082; color: #FFF; }
+.ludo-game .player-name {
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: clamp(9px, 2.4vw, 11px);
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.ludo-game .green-pill  { background: linear-gradient(180deg, #00C853 0%, #008D38 100%); border: 1.5px solid #69F0AE; }
+.ludo-game .blue-pill   { background: linear-gradient(180deg, #0088FF 0%, #0055D4 100%); border: 1.5px solid #82B1FF; }
+.ludo-game .red-pill    { background: linear-gradient(180deg, #FF1744 0%, #B71C1C 100%); border: 1.5px solid #FF8A80; }
+.ludo-game .yellow-pill { background: linear-gradient(180deg, #FFC400 0%, #E65100 100%); border: 1.5px solid #FFE082; }
+
+/* Dice Placeholder Anchor */
+.ludo-game .dice-anchor {
+  width: clamp(38px, 9vw, 44px);
+  height: clamp(38px, 9vw, 44px);
+  flex-shrink: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* Turn Floating Banner */
+.ludo-game .turn-banner {
+  padding: clamp(2px, 0.4vh, 4px) clamp(8px, 2.5vw, 12px);
+  border-radius: 9px;
+  font-weight: 900;
+  font-size: clamp(9px, 2.4vw, 11px);
+  letter-spacing: 0.5px;
+  margin-bottom: 0;
+  color: #FFF;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  flex-shrink: 0;
+}
+
+.ludo-game .turn-green  { background: linear-gradient(180deg, #00C853, #008D38); border: 1px solid #69F0AE; }
+.ludo-game .turn-blue   { background: linear-gradient(180deg, #0088FF, #0055D4); border: 1px solid #82B1FF; }
+.ludo-game .turn-red    { background: linear-gradient(180deg, #FF1744, #B71C1C); border: 1px solid #FF8A80; }
+.ludo-game .turn-yellow { background: linear-gradient(180deg, #FFC400, #E65100); border: 1px solid #FFE082; }
 
 .ludo-game .turn-timer-badge {
   background: rgba(0, 0, 0, 0.45);
@@ -455,52 +440,53 @@ html, body {
 .ludo-game .extra-roll-badge {
   background: #FFD600;
   color: #000;
-  font-size: clamp(8px, 2vw, 9px);
-  padding: 1px 6px;
-  border-radius: 8px;
-  animation: pulseBadge 0.8s infinite alternate;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 900;
+  animation: pulseBadge 0.6s infinite alternate;
 }
 
 @keyframes pulseBadge {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
+  0% { transform: scale(0.92); }
+  100% { transform: scale(1.08); }
 }
 
-/* 4. Main Ludo Board Container with Wooden Frame */
+/* 4. Board Wrapper - Tight Fit to Board Size */
 .ludo-game .board-wrapper {
+  flex: 0 1 auto; /* Tight fit without pushing elements far away */
   width: 100%;
-  aspect-ratio: 1 / 1;
-  max-width: clamp(280px, 86vw, 400px);
-  max-height: clamp(280px, 86vw, 400px);
-  margin: 0 auto;
   display: flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  position: relative;
+  align-items: center;
+  margin: 0;
+  overflow: hidden;
 }
 
 .ludo-game .wood-frame {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #5D2E0C 0%, #3D1C05 100%);
-  border-radius: clamp(10px, 2.5vw, 14px);
-  padding: clamp(4px, 1.2vw, 6px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.2);
   position: relative;
+  width: 96%; /* Fills 96% of available width */
+  height: auto;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  background: linear-gradient(135deg, #D49A6A 0%, #B37848 50%, #7F4B23 100%);
+  padding: clamp(5px, 1.5vw, 9px);
+  border-radius: clamp(12px, 3.5vw, 18px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.4);
   box-sizing: border-box;
 }
 
-/* Wooden Corner Ledges */
+/* 3D Wooden Corner Ledges */
 .ludo-game .wood-corner {
   position: absolute;
-  width: clamp(12px, 3.5vw, 18px);
-  height: clamp(12px, 3.5vw, 18px);
-  background: #8B4513;
-  border: 1px solid #3D1C05;
-  border-radius: 3px;
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
-  z-index: 2;
+  width: clamp(22px, 6vw, 32px);
+  height: clamp(22px, 6vw, 32px);
+  background: linear-gradient(135deg, #E2A878 0%, #9E6334 100%);
+  border-radius: clamp(5px, 1.5vw, 8px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  border: 1px solid #6F3E15;
+  z-index: 10;
 }
 
 .ludo-game .wood-corner-tl { top: -3px; left: -3px; }
@@ -508,51 +494,50 @@ html, body {
 .ludo-game .wood-corner-bl { bottom: -3px; left: -3px; }
 .ludo-game .wood-corner-br { bottom: -3px; right: -3px; }
 
-/* 15x15 CSS Grid Board */
+/* Ludo Board Grid (15x15) */
 .ludo-game .ludo-board {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
+  background: #FFFFFF;
+  border-radius: clamp(6px, 2vw, 10px);
   display: grid;
   grid-template-columns: repeat(15, 1fr);
   grid-template-rows: repeat(15, 1fr);
-  background: #FFFFFF;
-  border-radius: clamp(6px, 1.8vw, 8px);
-  overflow: hidden;
   position: relative;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Individual Cell Tiles */
+/* Track & Path Cells */
 .ludo-game .cell {
   width: 100%;
   height: 100%;
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border: 0.5px solid #D0D7DE;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   box-sizing: border-box;
 }
 
+/* Directional Start Arrows */
 .ludo-game .cell-arrow::after {
   content: attr(data-arrow);
-  font-size: clamp(8px, 2.2vw, 12px);
+  font-size: clamp(11px, 3vw, 16px);
   font-weight: 900;
   color: #FFFFFF;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Home Yards (6x6 Areas) */
+/* Home Yards (6x6 Quadrants) */
 .ludo-game .yard {
-  width: 100%;
-  height: 100%;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8%;
-  box-sizing: border-box;
+  padding: 6%;
   position: relative;
-  z-index: 1;
 }
 
 .ludo-game .yard-green  { grid-area: 1 / 1 / 7 / 7; background: #00C853; }
@@ -564,21 +549,19 @@ html, body {
   width: 100%;
   height: 100%;
   background: #FFFFFF;
-  border-radius: 12%;
+  border-radius: clamp(10px, 3.5vw, 18px);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.2);
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   padding: 8%;
-  gap: 8%;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
-  box-sizing: border-box;
+  gap: 10%;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
 }
 
 .ludo-game .yard-socket {
-  width: 100%;
-  height: 100%;
   border-radius: 50%;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -590,6 +573,7 @@ html, body {
 .ludo-game .socket-red    { background: #FFEBEE; border: 1.5px solid #FF1744; }
 .ludo-game .socket-yellow { background: #FFFDE7; border: 1.5px solid #FFD600; }
 
+/* Colored Paths */
 .ludo-game .cell-green  { background: #00C853 !important; }
 .ludo-game .cell-blue   { background: #0066FF !important; }
 .ludo-game .cell-red    { background: #FF1744 !important; }
@@ -598,63 +582,64 @@ html, body {
 
 /* Safe Star Tiles */
 .ludo-game .cell-safe {
-  background-image: url('assets/star_safe.svg') !important;
-  background-size: 70% 70% !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
+  background-image: url('assets/star_safe.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 72%;
 }
 
-/* Center Finish Triangles */
+/* Center Finish Area (3x3 grid) */
 .ludo-game .center-finish {
   grid-area: 7 / 7 / 10 / 10;
   position: relative;
-  width: 100%;
-  height: 100%;
   background: #FFFFFF;
   overflow: hidden;
+  border: 1px solid #D0D7DE;
 }
 
 .ludo-game .tri-green {
   position: absolute;
-  inset: 0;
-  clip-path: polygon(0% 0%, 50% 50%, 0% 100%);
+  top: 0; left: 0; bottom: 0; right: 0;
+  clip-path: polygon(0 0, 0 100%, 50% 50%);
   background: #00C853;
 }
 
 .ludo-game .tri-blue {
   position: absolute;
-  inset: 0;
-  clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
+  top: 0; left: 0; bottom: 0; right: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 50%);
   background: #0066FF;
 }
 
 .ludo-game .tri-yellow {
   position: absolute;
-  inset: 0;
-  clip-path: polygon(100% 0%, 100% 100%, 50% 50%);
+  top: 0; left: 0; bottom: 0; right: 0;
+  clip-path: polygon(100% 0, 100% 100%, 50% 50%);
   background: #FFD600;
 }
 
 .ludo-game .tri-red {
   position: absolute;
-  inset: 0;
-  clip-path: polygon(0% 100%, 100% 100%, 50% 50%);
+  top: 0; left: 0; bottom: 0; right: 0;
+  clip-path: polygon(0 100%, 100% 100%, 50% 50%);
   background: #FF1744;
 }
 
+/* Finish Counts in Center Triangles */
 .ludo-game .finish-circle {
   position: absolute;
-  width: clamp(14px, 3.8vw, 18px);
-  height: clamp(14px, 3.8vw, 18px);
-  border-radius: 50%;
+  width: clamp(16px, 4.5vw, 22px);
+  height: clamp(16px, 4.5vw, 22px);
   background: #FFFFFF;
-  font-size: clamp(8px, 2.2vw, 10px);
-  font-weight: 900;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  z-index: 5;
+  font-weight: 900;
+  font-size: clamp(10px, 2.8vw, 13px);
+  color: #212121;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  z-index: 6;
 }
 
 .ludo-game .circle-green  { left: 10%; top: 50%; transform: translateY(-50%); color: #008D38; }
@@ -662,79 +647,89 @@ html, body {
 .ludo-game .circle-yellow { right: 10%; top: 50%; transform: translateY(-50%); color: #E65100; }
 .ludo-game .circle-red    { bottom: 10%; left: 50%; transform: translateX(-50%); color: #B71C1C; }
 
-/* 5. Game Tokens */
+/* 3D Pawns / Tokens */
 .ludo-game .token {
+  width: 85%;
+  height: 85%;
   position: absolute;
-  width: clamp(18px, 4.8vw, 24px);
-  height: clamp(18px, 4.8vw, 24px);
-  left: 50%;
   top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 20;
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.45));
-  will-change: transform;
+  transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .ludo-game .token img {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: contain;
 }
 
+/* Movable Pawn Highlight Animation */
 .ludo-game .token-movable {
-  animation: bounceToken 0.6s infinite alternate ease-in-out;
+  animation: bouncePawn 0.55s infinite alternate ease-in-out;
   z-index: 30 !important;
 }
 
-@keyframes bounceToken {
-  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); }
-  100% { transform: translate(-50%, -75%) scale(1.18); filter: drop-shadow(0 8px 12px rgba(255, 214, 0, 0.8)); }
+@keyframes bouncePawn {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -75%) scale(1.15); }
 }
 
+/* Multi-token Stacking Badges */
 .ludo-game .token-stack-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #FF1744;
-  color: #FFFFFF;
-  font-size: 9px;
+  top: 0px; right: 0px;
+  background: #FFD600;
+  color: #000;
+  font-size: 8px;
   font-weight: 900;
-  width: 14px;
-  height: 14px;
+  width: 14px; height: 14px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  border: 1px solid #FFF;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  border: 1px solid #000;
+  z-index: 35;
 }
 
-/* Hidden elements */
+/* Hidden Controls & Modals */
 .ludo-game .hidden-controls {
   display: none;
 }
 
+/* Toast Message Overlay */
 .ludo-game .toast-message {
   position: absolute;
-  top: 15%;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.88);
-  border: 1px solid #FFD600;
-  color: #FFD600;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 11px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #FFDD00;
+  border: 1px solid #FFDD00;
+  padding: 5px 14px;
+  border-radius: 16px;
   font-weight: 800;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-  z-index: 90;
+  font-size: 11px;
+  z-index: 80;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   pointer-events: none;
-  white-space: nowrap;
+  animation: fadeInOut 1.8s forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
 }
 
 /* Modals */
@@ -1145,7 +1140,6 @@ html, body {
   text-overflow: ellipsis;
   max-width: 100%;
 }
-}
 
 .ludo-game .menu-subtitle {
   font-size: 11px;
@@ -1170,6 +1164,14 @@ html, body {
   text-align: left;
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ludo-game .type-option-card * {
+  pointer-events: none;
 }
 
 .ludo-game .type-option-card:active {
@@ -1244,6 +1246,14 @@ html, body {
   cursor: pointer;
   color: #FFF;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ludo-game .mode-option-card * {
+  pointer-events: none;
 }
 
 .ludo-game .mode-option-card:active {

@@ -7,10 +7,8 @@
     </radialGradient>
   </defs>
   <circle cx="50" cy="50" r="46" fill="url(#emoji_bg)" stroke="#FFF" stroke-width="3"/>
-  <!-- Eyes -->
   <ellipse cx="35" cy="38" rx="6" ry="9" fill="#212121"/>
   <ellipse cx="65" cy="38" rx="6" ry="9" fill="#212121"/>
-  <!-- Mouth / Open Smile -->
   <path d="M 28 56 C 28 80, 72 80, 72 56 Z" fill="#212121"/>
   <path d="M 36 68 C 42 76, 58 76, 64 68 Z" fill="#FF5252"/>
 </svg>

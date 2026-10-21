@@ -83,8 +83,67 @@ const DOM = {
     closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
     lbTabCurrent: document.getElementById('lbTabCurrent'),
     lbTabPrev: document.getElementById('lbTabPrev'),
-    leaderboardList: document.getElementById('leaderboardList')
+    leaderboardList: document.getElementById('leaderboardList'),
+    timerLabel: document.querySelector('.timer-label')
 };
+
+// WEB AUDIO API SYNTHESIZER
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            audioCtx = new AudioContext();
+        }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSound(type) {
+    initAudio();
+    if (!audioCtx) return;
+
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'chip') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } else if (type === 'spinTick') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(900, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'win') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.1);
+            osc.frequency.setValueAtTime(783.99, now + 0.2);
+            osc.frequency.setValueAtTime(1046.50, now + 0.3);
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        }
+    } catch (e) {
+        console.warn('Audio play error:', e);
+    }
+}
 
 // INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
@@ -144,10 +203,18 @@ function startCountdownTimer() {
     timerInterval = setInterval(syncTimer, 1000);
 }
 
+let isFirstSync = true;
+
 function syncTimer() {
     const nowSec = Math.floor(Date.now() / 1000);
     const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
     const roundIdx = Math.floor(nowSec / CYCLE_DURATION);
+
+    if (isFirstSync) {
+        isFirstSync = false;
+        currentRoundIdx = roundIdx;
+        spinTriggeredRound = roundIdx;
+    }
 
     if (cyclePos < BETTING_DURATION) {
         const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
@@ -161,14 +228,17 @@ function syncTimer() {
             updateUI();
         }
 
+        if (DOM.timerLabel) DOM.timerLabel.textContent = "NEXT PREDICTION";
         updateTimerUI();
     } else {
         const remainingSpin = CYCLE_DURATION - cyclePos; // 10 down to 1
         state.countdownSeconds = remainingSpin;
 
+        if (DOM.timerLabel) DOM.timerLabel.textContent = "PREDICTING...";
         updateTimerUI();
 
         if (spinTriggeredRound !== roundIdx) {
+            spinTriggeredRound = roundIdx;
             currentRoundIdx = roundIdx;
             triggerSpin(roundIdx, remainingSpin);
         }
@@ -279,11 +349,20 @@ function attachEventListeners() {
 }
 
 function openLeaderboard() {
+    openLeaderboardForRound(currentRoundIdx);
+}
+
+function openLeaderboardForRound(roundIdx) {
     if (!DOM.leaderboardModal) return;
     DOM.leaderboardModal.classList.remove('hidden');
-    if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.add('active');
-    if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
-    loadLeaderboardForRound(currentRoundIdx);
+    if (roundIdx === currentRoundIdx) {
+        if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.add('active');
+        if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
+    } else {
+        if (DOM.lbTabPrev) DOM.lbTabPrev.classList.add('active');
+        if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.remove('active');
+    }
+    loadLeaderboardForRound(roundIdx);
 }
 
 function loadLeaderboardForRound(roundIdx) {
@@ -378,6 +457,7 @@ function placeBetOnTile(index) {
         return;
     }
     state.tileBets[index] = (state.tileBets[index] || 0) + state.selectedQuantity;
+    playSound('chip');
     updateBetBadges();
 }
 
@@ -496,6 +576,8 @@ function animateSpin(targetIndex, totalBet, userPlacedBet, remainingSpinSec) {
     function spinStep() {
         const tileIndex = seq[currentStep % seq.length];
 
+        playSound('spinTick');
+
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
         const currentTile = document.querySelector(`.tile[data-index="${tileIndex}"]`);
         if (currentTile) {
@@ -605,10 +687,17 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
 
     clearAllBets();
     updateUI();
+
+    // Auto-open Round Leaderboard when result arrives
+    const finishedRound = spinTriggeredRound > 0 ? spinTriggeredRound : (state.currentRound - 1);
+    setTimeout(() => {
+        openLeaderboardForRound(finishedRound);
+    }, 1200);
 }
 
 // SHOW WIN MODAL
 function showWinModal(fruit, multiplier, amount) {
+    playSound('win');
     if (DOM.winFruitIcon) DOM.winFruitIcon.innerHTML = getFruitIconHtml(fruit, 'modal-win-img');
     if (DOM.winMultiplierText) DOM.winMultiplierText.textContent = `${multiplier}x Multiplier! (${fruit.name})`;
     if (DOM.winAmountText) DOM.winAmountText.textContent = amount.toLocaleString();

@@ -1140,7 +1140,6 @@ html, body {
   text-overflow: ellipsis;
   max-width: 100%;
 }
-}
 
 .ludo-game .menu-subtitle {
   font-size: 11px;
@@ -1165,6 +1164,14 @@ html, body {
   text-align: left;
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ludo-game .type-option-card * {
+  pointer-events: none;
 }
 
 .ludo-game .type-option-card:active {
@@ -1239,6 +1246,14 @@ html, body {
   cursor: pointer;
   color: #FFF;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ludo-game .mode-option-card * {
+  pointer-events: none;
 }
 
 .ludo-game .mode-option-card:active {

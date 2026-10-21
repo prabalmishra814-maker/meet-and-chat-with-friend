@@ -52,6 +52,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.Html;
@@ -3719,7 +3720,16 @@ public class RoomChatActivity extends AppCompatActivity {
             webView.resumeTimers();
             webView.onResume();
             webView.setBackgroundColor(Color.TRANSPARENT);
-            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
+            // Ensure WebView in Dialog receives touch events and focus without parent interception
+            webView.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    v.requestFocus();
+                    v.requestFocusFromTouch();
+                }
+                return false;
+            });
 
             WebSettings settings = webView.getSettings();
             settings.setJavaScriptEnabled(true);
@@ -3728,6 +3738,7 @@ public class RoomChatActivity extends AppCompatActivity {
             settings.setAllowContentAccess(true);
             settings.setLoadWithOverviewMode(false);
             settings.setUseWideViewPort(false);
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
             settings.setBuiltInZoomControls(false);
@@ -3738,6 +3749,13 @@ public class RoomChatActivity extends AppCompatActivity {
             webView.setHorizontalScrollBarEnabled(false);
             webView.setVerticalScrollBarEnabled(false);
 
+            webView.setClickable(true);
+            webView.setFocusable(true);
+            webView.setFocusableInTouchMode(true);
+            webView.requestFocus();
+            webView.requestFocusFromTouch();
+
+            webView.setWebChromeClient(new WebChromeClient());
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageStarted(WebView view, String url, Bitmap favicon) {
