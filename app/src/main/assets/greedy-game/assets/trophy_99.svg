@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="trophyAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe600" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#ff9100" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#d000ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="gold3d" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#fff5a5"/>
+      <stop offset="50%" stop-color="#ffc107"/>
+      <stop offset="80%" stop-color="#ff8f00"/>
+      <stop offset="100%" stop-color="#a45d00"/>
+    </linearGradient>
+
+    <linearGradient id="goldDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffb300"/>
+      <stop offset="100%" stop-color="#6d3c00"/>
+    </linearGradient>
+
+    <linearGradient id="coinGleam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#ffe082"/>
+      <stop offset="100%" stop-color="#ff8f00"/>
+    </linearGradient>
+
+    <linearGradient id="pedestal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#801020"/>
+      <stop offset="50%" stop-color="#4a000b"/>
+      <stop offset="100%" stop-color="#200004"/>
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <circle cx="60" cy="52" r="50" fill="url(#trophyAura)"/>
+
+  <g opacity="0.35">
+    <path d="M60 5 L64 35 L95 20 L72 45 L108 55 L74 65 L95 90 L65 72 L60 108 L55 72 L25 90 L46 65 L12 55 L48 45 L25 20 L56 35 Z" fill="#fff59d"/>
+  </g>
+
+  <path d="M42 96 L78 96 L72 84 L48 84 Z" fill="url(#gold3d)"/>
+  <rect x="38" y="96" width="44" height="10" rx="3" fill="url(#pedestal)" stroke="url(#gold3d)" stroke-width="1.5"/>
+  <rect x="36" y="104" width="48" height="6" rx="2" fill="url(#gold3d)"/>
+
+  <path d="M54 68 L66 68 L63 84 L57 84 Z" fill="url(#goldDark)"/>
+  <circle cx="60" cy="70" r="7" fill="url(#gold3d)"/>
+
+  <path d="M30 28 C12 28 12 60 38 60 C38 60 35 52 35 48 C22 48 22 36 34 36 Z" fill="url(#gold3d)"/>
+  <path d="M90 28 C108 28 108 60 82 60 C82 60 85 52 85 48 C98 48 98 36 86 36 Z" fill="url(#gold3d)"/>
+
+  <path d="M32 22 L88 22 C88 22 85 58 60 64 C35 58 32 22 32 22 Z" fill="url(#gold3d)"/>
+  <path d="M36 24 L84 24 C84 24 81 54 60 60 C39 54 36 24 36 24 Z" fill="url(#goldDark)" opacity="0.25"/>
+  <ellipse cx="60" cy="22" rx="28" ry="7" fill="url(#gold3d)"/>
+
+  <ellipse cx="60" cy="20" rx="22" ry="7" fill="#ff8f00"/>
+  <circle cx="48" cy="18" r="7" fill="url(#coinGleam)" stroke="#ff6f00" stroke-width="1"/>
+  <circle cx="60" cy="15" r="8" fill="url(#coinGleam)" stroke="#ff6f00" stroke-width="1"/>
+  <circle cx="72" cy="18" r="7" fill="url(#coinGleam)" stroke="#ff6f00" stroke-width="1"/>
+  <circle cx="54" cy="11" r="6.5" fill="url(#coinGleam)" stroke="#ff6f00" stroke-width="1"/>
+  <circle cx="66" cy="10" r="7" fill="url(#coinGleam)" stroke="#ff6f00" stroke-width="1"/>
+
+  <path d="M38 12 L41 17 L46 19 L41 21 L38 26 L35 21 L30 19 L35 17 Z" fill="#ffffff" filter="url(#glow)"/>
+  <path d="M82 10 L84 14 L88 16 L84 18 L82 22 L80 18 L76 16 L80 14 Z" fill="#ffffff" filter="url(#glow)"/>
+  <path d="M60 2 L62 6 L66 8 L62 10 L60 14 L58 10 L54 8 L58 6 Z" fill="#ffffff" filter="url(#glow)"/>
+</svg>

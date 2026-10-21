@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="avatarBg3" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#281e4a"/>
+      <stop offset="100%" stop-color="#090614"/>
+    </radialGradient>
+    <linearGradient id="jacket3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1f2b"/>
+      <stop offset="100%" stop-color="#08090d"/>
+    </linearGradient>
+    <linearGradient id="skin3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f7d5b8"/>
+      <stop offset="100%" stop-color="#c99873"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="50" cy="50" r="50" fill="url(#avatarBg3)"/>
+
+  <path d="M12 100 Q30 65 50 66 Q70 65 88 100 Z" fill="url(#jacket3)"/>
+
+  <path d="M33 42 C33 24 67 24 67 42 C67 56 60 65 50 65 C40 65 33 56 33 42 Z" fill="url(#skin3)"/>
+
+  <path d="M27 36 C27 16 42 10 58 12 C74 14 74 34 68 40 C58 24 42 18 30 32 Z" fill="#08090c"/>
+
+  <text x="50" y="86" font-family="sans-serif" font-weight="900" font-size="8.5" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">BIÑD</text>
+</svg>

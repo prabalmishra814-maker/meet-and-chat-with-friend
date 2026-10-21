@@ -1,6 +1,7 @@
 package com.roomchatapps.Pmishra;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -41,6 +42,8 @@ import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -84,7 +87,16 @@ public class EditProfileActivity extends AppCompatActivity {
                             imageUri = croppedUri;
                             binding.profileImage.setImageURI(croppedUri);
                         } else if (croppedBitmap != null) {
-                            binding.profileImage.setImageBitmap(croppedBitmap);
+                            try {
+                                File file = new File(getCacheDir(), "cropped_avatar_" + System.currentTimeMillis() + ".jpg");
+                                try (FileOutputStream out = new FileOutputStream(file)) {
+                                    croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 92, out);
+                                    imageUri = Uri.fromFile(file);
+                                    binding.profileImage.setImageURI(imageUri);
+                                }
+                            } catch (Exception e) {
+                                binding.profileImage.setImageBitmap(croppedBitmap);
+                            }
                         }
                     });
                     cropDialog.show();
@@ -133,6 +145,10 @@ public class EditProfileActivity extends AppCompatActivity {
                     String name = snapshot.child("name").getValue(String.class);
                     String bio = snapshot.child("bio").getValue(String.class);
                     String avatar = snapshot.child("avtar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("avatar").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("photoUrl").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("image").getValue(String.class);
+                    if (avatar == null || avatar.trim().isEmpty()) avatar = snapshot.child("userIcon").getValue(String.class);
                     String gender = snapshot.child("gender").getValue(String.class);
 
                     currentAvatarUrl = avatar;

@@ -50,6 +50,7 @@ let state = {
     },
     recentResults: [0, 5, 1, 0, 2, 1, 2],
     isSpinning: false,
+    gameState: 'BETTING', // 'BETTING' | 'SPINNING'
     testMode: false,
     testNextWinIndex: 1, // Default Lemon win for test mode
     countdownSeconds: 30,
@@ -76,7 +77,13 @@ const DOM = {
     winAmountText: document.getElementById('winAmountText'),
     winCloseBtn: document.getElementById('winCloseBtn'),
     ledContainer: document.getElementById('ledContainer'),
-    chipBtns: document.querySelectorAll('.chip-btn')
+    chipBtns: document.querySelectorAll('.chip-btn'),
+    leaderboardBtn: document.getElementById('leaderboardBtn'),
+    leaderboardModal: document.getElementById('leaderboardModal'),
+    closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
+    lbTabCurrent: document.getElementById('lbTabCurrent'),
+    lbTabPrev: document.getElementById('lbTabPrev'),
+    leaderboardList: document.getElementById('leaderboardList')
 };
 
 // INITIALIZATION
@@ -87,26 +94,85 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRecentResults();
     attachEventListeners();
     startCountdownTimer();
+
+    // Check for Android Bridge to load real user coin balance
+    if (window.AndroidLuckyFruit) {
+        window.updateLuckyFruitBalance = function(newBalance) {
+            if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+                state.balance = newBalance;
+                updateUI();
+            }
+        };
+        try {
+            window.AndroidLuckyFruit.requestUserCoins();
+        } catch(e) {
+            console.error("Error requesting user coins:", e);
+        }
+    }
 });
 
 let timerInterval = null;
+let currentRoundIdx = -1;
+let spinTriggeredRound = -1;
 
-// START CONTINUOUS 30-SECOND COUNTDOWN TIMER
+// WALL-CLOCK SYNCHRONIZED COUNTDOWN TIMER & OUTCOME SEEDING
+const CYCLE_DURATION = 40; // 30s betting + 10s spin
+const BETTING_DURATION = 30;
+
+function mulberry32(a) {
+    return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function getLuckyFruitOutcome(roundIndex) {
+    if (state.testMode) {
+        return state.testNextWinIndex;
+    }
+    const prng = mulberry32(roundIndex * 7919 + 10007);
+    const seq = CONFIG.perimeterSequence;
+    const pos = Math.floor(prng() * seq.length);
+    return seq[pos];
+}
+
 function startCountdownTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    state.countdownSeconds = CONFIG.countdownDuration || 30;
-    updateTimerUI();
+    syncTimer();
+    timerInterval = setInterval(syncTimer, 1000);
+}
 
-    timerInterval = setInterval(() => {
-        state.countdownSeconds--;
+function syncTimer() {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
+    const roundIdx = Math.floor(nowSec / CYCLE_DURATION);
 
-        if (state.countdownSeconds <= 0) {
-            triggerSpin();
-            state.countdownSeconds = CONFIG.countdownDuration || 30;
+    if (cyclePos < BETTING_DURATION) {
+        const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
+        state.countdownSeconds = remainingBet;
+
+        if (state.gameState !== 'BETTING' || roundIdx !== currentRoundIdx) {
+            currentRoundIdx = roundIdx;
+            state.gameState = 'BETTING';
+            state.isSpinning = false;
+            clearAllBets();
+            updateUI();
         }
 
         updateTimerUI();
-    }, 1000);
+    } else {
+        const remainingSpin = CYCLE_DURATION - cyclePos; // 10 down to 1
+        state.countdownSeconds = remainingSpin;
+
+        updateTimerUI();
+
+        if (spinTriggeredRound !== roundIdx) {
+            currentRoundIdx = roundIdx;
+            triggerSpin(roundIdx, remainingSpin);
+        }
+    }
 }
 
 // UPDATE COUNTDOWN TIMER DISPLAY
@@ -115,7 +181,7 @@ function updateTimerUI() {
     if (DOM.timerValue) {
         DOM.timerValue.textContent = text;
     }
-    if (!state.isSpinning && !state.showResultInCenter && DOM.centerDisplay) {
+    if (!state.showResultInCenter && DOM.centerDisplay) {
         DOM.centerDisplay.textContent = text;
     }
 }
@@ -123,11 +189,11 @@ function updateTimerUI() {
 // INITIALIZE LED BULBS AROUND CABINET
 function initLEDs() {
     const totalLEDs = 20;
+    if (!DOM.ledContainer) return;
     DOM.ledContainer.innerHTML = '';
     for (let i = 0; i < totalLEDs; i++) {
         const led = document.createElement('div');
         led.className = 'led-bulb';
-        // Position LEDs around border perimeter
         if (i < 6) { // Top row
             led.style.top = '2px';
             led.style.left = `${(i / 5) * 94 + 3}%`;
@@ -147,17 +213,15 @@ function initLEDs() {
 
 // ATTACH EVENT LISTENERS
 function attachEventListeners() {
-    // Tile betting click
     const fruitTiles = document.querySelectorAll('.fruit-tile');
     fruitTiles.forEach(tile => {
         tile.addEventListener('click', () => {
-            if (state.isSpinning) return;
+            if (state.isSpinning || state.gameState === 'SPINNING') return;
             const index = parseInt(tile.getAttribute('data-index'));
             placeBetOnTile(index);
         });
     });
 
-    // Quantity Chip Selection
     DOM.chipBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const amount = parseInt(btn.getAttribute('data-amount'));
@@ -165,34 +229,134 @@ function attachEventListeners() {
         });
     });
 
-    // Clear Bets
-    DOM.clearBetsBtn.addEventListener('click', () => {
-        if (state.isSpinning) return;
-        for (let idx in state.tileBets) {
-            state.tileBets[idx] = 0;
-        }
-        updateBetBadges();
-    });
+    if (DOM.clearBetsBtn) {
+        DOM.clearBetsBtn.addEventListener('click', () => {
+            if (state.isSpinning || state.gameState === 'SPINNING') return;
+            for (let idx in state.tileBets) {
+                state.tileBets[idx] = 0;
+            }
+            updateBetBadges();
+        });
+    }
 
-    // Test Mode Toggle
-    DOM.testModeBtn.addEventListener('click', () => {
-        state.testMode = !state.testMode;
-        DOM.testModeBtn.textContent = `Test: ${state.testMode ? 'ON' : 'OFF'}`;
-        DOM.testModeBtn.style.color = state.testMode ? '#00ff88' : '#f3d6ff';
-        showToast(state.testMode ? "Test Mode: Wins forced to Lemon (🍋)" : "Standard Mode Active");
-    });
+    if (DOM.testModeBtn) {
+        DOM.testModeBtn.addEventListener('click', () => {
+            state.testMode = !state.testMode;
+            DOM.testModeBtn.textContent = `Test: ${state.testMode ? 'ON' : 'OFF'}`;
+            DOM.testModeBtn.style.color = state.testMode ? '#00ff88' : '#f3d6ff';
+            showToast(state.testMode ? "Test Mode: Wins forced to Lemon (🍋)" : "Standard Mode Active");
+        });
+    }
 
-    // Close Win Modal
-    DOM.winCloseBtn.addEventListener('click', () => {
-        DOM.winModal.classList.add('hidden');
+    if (DOM.winCloseBtn) {
+        DOM.winCloseBtn.addEventListener('click', () => {
+            DOM.winModal.classList.add('hidden');
+        });
+    }
+
+    if (DOM.leaderboardBtn) {
+        DOM.leaderboardBtn.addEventListener('click', openLeaderboard);
+    }
+    if (DOM.closeLeaderboardBtn) {
+        DOM.closeLeaderboardBtn.addEventListener('click', () => {
+            if (DOM.leaderboardModal) DOM.leaderboardModal.classList.add('hidden');
+        });
+    }
+    if (DOM.lbTabCurrent) {
+        DOM.lbTabCurrent.addEventListener('click', () => {
+            DOM.lbTabCurrent.classList.add('active');
+            if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
+            loadLeaderboardForRound(currentRoundIdx);
+        });
+    }
+    if (DOM.lbTabPrev) {
+        DOM.lbTabPrev.addEventListener('click', () => {
+            DOM.lbTabPrev.classList.add('active');
+            if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.remove('active');
+            loadLeaderboardForRound(currentRoundIdx - 1);
+        });
+    }
+}
+
+function openLeaderboard() {
+    if (!DOM.leaderboardModal) return;
+    DOM.leaderboardModal.classList.remove('hidden');
+    if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.add('active');
+    if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
+    loadLeaderboardForRound(currentRoundIdx);
+}
+
+function loadLeaderboardForRound(roundIdx) {
+    if (!DOM.leaderboardList) return;
+    DOM.leaderboardList.innerHTML = '<div class="lb-empty">Loading leaderboard...</div>';
+
+    if (window.AndroidLuckyFruit && typeof window.AndroidLuckyFruit.getRoundLeaderboard === 'function') {
+        const callbackName = '_cb_lf_lb_' + Date.now();
+        window[callbackName] = function(jsonStr) {
+            delete window[callbackName];
+            renderLeaderboardItems(jsonStr);
+        };
+        window.AndroidLuckyFruit.getRoundLeaderboard(roundIdx, callbackName);
+    } else {
+        renderLeaderboardItems('[]');
+    }
+}
+
+function renderLeaderboardItems(jsonStr) {
+    if (!DOM.leaderboardList) return;
+    let list = [];
+    try {
+        list = JSON.parse(jsonStr || '[]');
+    } catch(e) {
+        list = [];
+    }
+
+    if (!list || list.length === 0) {
+        DOM.leaderboardList.innerHTML = '<div class="lb-empty">No participants in this round!</div>';
+        return;
+    }
+
+    DOM.leaderboardList.innerHTML = '';
+    list.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'lb-item';
+
+        let rankDisplay = `#${item.rank}`;
+        if (item.rank === 1) rankDisplay = '🥇';
+        else if (item.rank === 2) rankDisplay = '🥈';
+        else if (item.rank === 3) rankDisplay = '🥉';
+
+        const avatarUrl = (item.userAvatar && item.userAvatar.trim() !== '')
+            ? item.userAvatar
+            : 'assets/gold_coin.svg';
+
+        const betFormatted = (item.betAmount || 0).toLocaleString();
+        const winVal = item.winAmount || 0;
+        const winFormatted = winVal > 0 ? `+${winVal.toLocaleString()}` : '0';
+        const winClass = winVal > 0 ? 'lb-win' : 'lb-win zero';
+
+        row.innerHTML = `
+            <div class="lb-left">
+                <div class="lb-rank">${rankDisplay}</div>
+                <img class="lb-avatar" src="${avatarUrl}" onerror="this.src='assets/gold_coin.svg'" alt="Avatar">
+                <div class="lb-name">${escapeHtml(item.userName || 'Player')}</div>
+            </div>
+            <div class="lb-right">
+                <div class="lb-win ${winClass}">Win: ${winFormatted}</div>
+                <div class="lb-bet">Bet: ${betFormatted}</div>
+            </div>
+        `;
+        DOM.leaderboardList.appendChild(row);
     });
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // SET SELECTED BET QUANTITY
 function setSelectedQuantity(amount) {
     state.selectedQuantity = amount;
-
-    // Update chip buttons active state
     DOM.chipBtns.forEach(btn => {
         if (parseInt(btn.getAttribute('data-amount')) === amount) {
             btn.classList.add('active');
@@ -204,6 +368,10 @@ function setSelectedQuantity(amount) {
 
 // PLACE BET ON A SPECIFIC TILE
 function placeBetOnTile(index) {
+    if (state.isSpinning || state.gameState === 'SPINNING') {
+        showToast("Wait for the next round!");
+        return;
+    }
     const totalCurrentBet = getTotalBet();
     if (state.balance < totalCurrentBet + state.selectedQuantity) {
         showToast("Not enough gold coins!");
@@ -247,8 +415,8 @@ function clearAllBets() {
 }
 
 // TRIGGER SPIN / PREDICTION ROUND
-function triggerSpin() {
-    if (state.isSpinning) return;
+function triggerSpin(roundIdx, remainingSpinSec) {
+    spinTriggeredRound = roundIdx;
 
     if (DOM.winModal) {
         DOM.winModal.classList.add('hidden');
@@ -257,62 +425,99 @@ function triggerSpin() {
     let totalBet = getTotalBet();
     const userPlacedBet = (totalBet > 0);
 
-    // If user placed bets, verify balance and deduct bet amount
     if (userPlacedBet) {
         if (state.balance < totalBet) {
             showToast("Not enough gold coins!");
+            clearAllBets();
             return;
         }
-        state.balance -= totalBet;
+
+        if (window.AndroidLuckyFruit) {
+            const callbackName = '_cb_bet_' + roundIdx + '_' + Date.now();
+            window[callbackName] = function(success, newBalance, errorMsg) {
+                delete window[callbackName];
+                if (success) {
+                    if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+                        state.balance = newBalance;
+                    }
+                    state.gameState = 'SPINNING';
+                    state.isSpinning = true;
+                    updateUI();
+                    const winIndex = getLuckyFruitOutcome(roundIdx);
+                    animateSpin(winIndex, totalBet, true, remainingSpinSec);
+                } else {
+                    showToast(errorMsg || "Bet deduction failed!");
+                    clearAllBets();
+                    state.gameState = 'BETTING';
+                    state.isSpinning = false;
+                    updateUI();
+                }
+            };
+            window.AndroidLuckyFruit.deductBetCoins(totalBet, roundIdx, callbackName);
+            return;
+        } else {
+            state.balance -= totalBet;
+        }
     }
 
+    state.gameState = 'SPINNING';
     state.isSpinning = true;
     updateUI();
 
-    // Determine target winning tile
-    let winIndex;
-    if (state.testMode) {
-        winIndex = state.testNextWinIndex; // Lemon 🍋
-    } else {
-        const randomPos = Math.floor(Math.random() * CONFIG.perimeterSequence.length);
-        winIndex = CONFIG.perimeterSequence[randomPos];
-    }
-
-    // Start spin animation
-    animateSpin(winIndex, totalBet, userPlacedBet);
+    const winIndex = getLuckyFruitOutcome(roundIdx);
+    animateSpin(winIndex, totalBet, userPlacedBet, remainingSpinSec);
 }
 
 // ANIMATE SPIN EFFECT AROUND PERIMETER TILES
-function animateSpin(targetIndex, totalBet, userPlacedBet) {
-    const seq = CONFIG.perimeterSequence;
-    let currentStep = 0;
-    const totalSteps = seq.length * 3 + seq.indexOf(targetIndex); // 3 full loops + target
-    let intervalTime = 60; // ms per step
+function animateSpin(targetIndex, totalBet, userPlacedBet, remainingSpinSec) {
+    const seq = CONFIG.perimeterSequence; // [0, 1, 2, 5, 8, 7, 6, 3]
+    const winnerSeqIdx = seq.indexOf(targetIndex);
 
-    // Remove previous highlights
+    const decelDelays = [100, 130, 170, 220, 290, 380, 500, 700];
+    const decelSteps = decelDelays.length;
+
+    // Scale animation to complete cleanly before cyclePos hits 40
+    const targetDurationMs = Math.max(1500, Math.min(7500, (remainingSpinSec - 2) * 1000));
+    const fastDuration = Math.max(500, targetDurationMs - 2490);
+    const fastDelay = Math.max(35, Math.floor(fastDuration / 60));
+
+    let reqRemainder = (winnerSeqIdx + 1 - decelSteps) % seq.length;
+    if (reqRemainder < 0) reqRemainder += seq.length;
+
+    let fastSteps = Math.floor(fastDuration / fastDelay);
+    fastSteps = fastSteps - (fastSteps % seq.length) + reqRemainder;
+    if (fastSteps < seq.length) fastSteps += seq.length;
+
+    let totalSteps = fastSteps + decelSteps;
+    let currentStep = 0;
+
     document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
 
-    const interval = setInterval(() => {
+    function spinStep() {
         const tileIndex = seq[currentStep % seq.length];
 
-        // Highlight active tile in sequence
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
         const currentTile = document.querySelector(`.tile[data-index="${tileIndex}"]`);
         if (currentTile) {
             currentTile.classList.add('highlighted');
         }
 
-        // Animate LEDs and Center number
         animateLEDs(currentStep);
-        DOM.centerDisplay.textContent = Math.floor(Math.random() * 90) + 10;
-
         currentStep++;
 
-        if (currentStep > totalSteps) {
-            clearInterval(interval);
+        if (currentStep < totalSteps) {
+            let nextDelay = fastDelay;
+            if (currentStep >= fastSteps) {
+                let decelIndex = currentStep - fastSteps;
+                nextDelay = decelDelays[decelIndex] || 500;
+            }
+            setTimeout(spinStep, nextDelay);
+        } else {
             finishSpin(targetIndex, totalBet, userPlacedBet);
         }
-    }, intervalTime);
+    }
+
+    spinStep();
 }
 
 // HELPER TO GENERATE FRUIT IMAGE HTML
@@ -340,58 +545,79 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
     state.isSpinning = false;
     state.currentRound++;
 
-    // Set center tile display to winning fruit icon
     const winningFruit = CONFIG.fruits[winIndex];
     state.showResultInCenter = true;
-    DOM.centerDisplay.innerHTML = getFruitIconHtml(winningFruit, 'center-win-img');
+    if (DOM.centerDisplay) {
+        DOM.centerDisplay.innerHTML = getFruitIconHtml(winningFruit, 'center-win-img');
+    }
 
-    // Revert center tile back to countdown timer after 2.5 seconds
     setTimeout(() => {
         state.showResultInCenter = false;
         updateTimerUI();
     }, 2500);
 
-    // Increment Jackpot slightly
     state.jackpot += Math.floor(Math.random() * 500) + 100;
 
-    // Update Recent Results History
     state.recentResults.unshift(winIndex);
     if (state.recentResults.length > 8) {
         state.recentResults.pop();
     }
     renderRecentResults();
 
-    // Process Outcome ONLY if user placed a bet in this round
     if (userPlacedBet) {
         const betOnWinTile = state.tileBets[winIndex] || 0;
         const winMultiplier = winningFruit.multiplier;
         const payout = betOnWinTile * winMultiplier;
 
         if (payout > 0) {
-            state.balance += payout;
-            state.todaysWinnings += payout;
-            showWinModal(winningFruit, winMultiplier, payout);
+            if (window.AndroidLuckyFruit) {
+                const targetRound = spinTriggeredRound || (state.currentRound - 1);
+                const callbackName = '_cb_win_' + state.currentRound + '_' + Date.now();
+                window[callbackName] = function(success, newBalance, errorMsg) {
+                    delete window[callbackName];
+                    if (success && typeof newBalance === 'number' && !isNaN(newBalance)) {
+                        state.balance = newBalance;
+                    } else {
+                        state.balance += payout;
+                    }
+                    state.todaysWinnings += payout;
+                    showWinModal(winningFruit, winMultiplier, payout);
+                    clearAllBets();
+                    updateUI();
+                };
+                window.AndroidLuckyFruit.addWinPayout(payout, targetRound, callbackName);
+            } else {
+                state.balance += payout;
+                state.todaysWinnings += payout;
+                showWinModal(winningFruit, winMultiplier, payout);
+                clearAllBets();
+                updateUI();
+            }
         } else {
             showToast(`Result: ${winningFruit.name}. Better luck next time!`);
+            clearAllBets();
+            updateUI();
         }
+    } else {
+        clearAllBets();
+        updateUI();
     }
 
-    // Reset tile bets for next round
     clearAllBets();
-
     updateUI();
 }
 
 // SHOW WIN MODAL
 function showWinModal(fruit, multiplier, amount) {
-    DOM.winFruitIcon.innerHTML = getFruitIconHtml(fruit, 'modal-win-img');
-    DOM.winMultiplierText.textContent = `${multiplier}x Multiplier! (${fruit.name})`;
-    DOM.winAmountText.textContent = amount.toLocaleString();
-    DOM.winModal.classList.remove('hidden');
+    if (DOM.winFruitIcon) DOM.winFruitIcon.innerHTML = getFruitIconHtml(fruit, 'modal-win-img');
+    if (DOM.winMultiplierText) DOM.winMultiplierText.textContent = `${multiplier}x Multiplier! (${fruit.name})`;
+    if (DOM.winAmountText) DOM.winAmountText.textContent = amount.toLocaleString();
+    if (DOM.winModal) DOM.winModal.classList.remove('hidden');
 }
 
 // SHOW TOAST NOTIFICATION
 function showToast(msg) {
+    if (!DOM.toastMessage || !DOM.toastNotification) return;
     DOM.toastMessage.textContent = msg;
     DOM.toastNotification.classList.remove('hidden');
     setTimeout(() => {
@@ -401,6 +627,7 @@ function showToast(msg) {
 
 // UPDATE RECENT RESULTS STRIP AT BOTTOM
 function renderRecentResults() {
+    if (!DOM.resultsStrip) return;
     DOM.resultsStrip.innerHTML = '';
     state.recentResults.forEach((fruitIndex, idx) => {
         const fruit = CONFIG.fruits[fruitIndex] || CONFIG.fruits[0];
@@ -419,10 +646,10 @@ function renderRecentResults() {
 
 // UPDATE ALL UI COUNTERS
 function updateUI() {
-    DOM.balanceDisplay.textContent = state.balance.toLocaleString();
-    DOM.winningsDisplay.textContent = state.todaysWinnings.toLocaleString();
-    DOM.jackpotValue.textContent = state.jackpot.toLocaleString();
-    DOM.roundCounter.textContent = `Round ${state.currentRound} of today`;
+    if (DOM.balanceDisplay) DOM.balanceDisplay.textContent = state.balance.toLocaleString();
+    if (DOM.winningsDisplay) DOM.winningsDisplay.textContent = state.todaysWinnings.toLocaleString();
+    if (DOM.jackpotValue) DOM.jackpotValue.textContent = state.jackpot.toLocaleString();
+    if (DOM.roundCounter) DOM.roundCounter.textContent = `Round ${state.currentRound} of today`;
     updateBetBadges();
 }
 

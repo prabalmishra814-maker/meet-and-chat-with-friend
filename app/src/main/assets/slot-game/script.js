@@ -232,6 +232,26 @@
     dom.reelStrips.forEach(strip => buildReelStrip(strip));
     createBackgroundParticles();
     bindEvents();
+    startSyncTimer();
+  }
+
+  function startSyncTimer() {
+    const SLOT_CYCLE = 15;
+    setInterval(() => {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const cyclePos = nowSec % SLOT_CYCLE;
+      const rem = SLOT_CYCLE - cyclePos;
+
+      if (dom.btnSpin && !state.isSpinning) {
+        dom.btnSpin.textContent = 'SPIN (' + rem + 's)';
+      } else if (dom.btnSpin && state.isSpinning) {
+        dom.btnSpin.textContent = 'SPINNING';
+      }
+
+      if (cyclePos === 0 && !state.isSpinning && state.balance >= state.totalBet) {
+        spinReels();
+      }
+    }, 1000);
   }
 
   function createBackgroundParticles() {

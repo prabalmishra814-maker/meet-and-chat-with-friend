@@ -16,21 +16,13 @@
     <!-- Main Game Viewport Card -->
     <div class="game-viewport">
 
-      <!-- Top Header -->
+      <!-- Top Action Bar -->
       <header class="game-header">
-        <button id="music-btn" class="music-btn" aria-label="Toggle Sound">
-          <img src="assets/icon_music.svg" alt="Sound Toggle" id="music-icon-img">
-        </button>
-
-        <button id="menu-btn" class="menu-btn" aria-label="Menu">
-          <img src="assets/icon_menu.svg" alt="Menu">
-        </button>
-
-        <div class="jackpot-area">
-          <img src="assets/jackpot_gold.svg" class="jackpot-title" alt="JACKPOT">
-          <div class="jackpot-counter-box">
-            <span id="jackpot-num" class="jackpot-text">21,417,758</span>
-          </div>
+        <div class="header-left">
+          <span class="game-title">Greedy Game</span>
+        </div>
+        <div class="header-right">
+          <button id="leaderboard-btn" class="icon-btn leaderboard-btn" aria-label="Leaderboard">🏆 Leaderboard</button>
         </div>
       </header>
 
@@ -129,7 +121,7 @@
           <div class="chef-glow-ring"></div>
           <img src="assets/chef_greedypro.svg" class="chef-avatar" alt="GreedyPro Chef">
           <div class="select-time-label">Select Time</div>
-          <div id="timer-display" class="timer-oval">28s</div>
+          <div id="timer-display" class="timer-oval">30s</div>
         </div>
       </main>
 
@@ -233,6 +225,23 @@
         <p>Out of coins? Collect free virtual coins to keep playing!</p>
         <button id="claim-coins-btn" class="action-btn gold-btn large-btn">+ 100,000 COINS</button>
         <button id="close-coins-btn" class="modal-close-text">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+      <div class="modal-card leaderboard-card">
+        <div class="modal-header">
+          <h2>🏆 Round Leaderboard</h2>
+          <button id="close-leaderboard-btn" class="modal-close">&times;</button>
+        </div>
+        <div class="leaderboard-tabs">
+          <button class="lb-tab-btn active" id="lb-tab-current">Current Round</button>
+          <button class="lb-tab-btn" id="lb-tab-prev">Previous Round</button>
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+          <div class="lb-empty">Loading leaderboard...</div>
+        </div>
       </div>
     </div>
 

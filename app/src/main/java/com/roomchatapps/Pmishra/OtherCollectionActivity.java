@@ -12,6 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.opensource.svgaplayer.SVGAImageView;
+import com.roomchatapps.Pmishra.utils.FrameUtils;
 import com.roomchatapps.Pmishra.utils.UserProfileCache;
 
 import androidx.annotation.NonNull;
@@ -154,11 +156,11 @@ public class OtherCollectionActivity extends AppCompatActivity {
         }
     }
 
-    private View llProfileContent, llIntimacyContent;
+    private View llProfileContent, llIntimacyContent, llBottomActions;
     private TextView tvGenderAge, tvUserMeta, tvUserLevel;
     private View btnGoLoveStore, btnAddCouplePartner;
     private ImageView ivUserProfileAvatar, ivCoupleLeftAvatar, ivCoupleRightAvatar, ivUserProfileFrame;
-    private com.opensource.svgaplayer.SVGAImageView svgaUserProfileFrame;
+    private SVGAImageView svgaUserProfileFrame;
     private TextView tvCoupleLeftName, tvCoupleRightName;
 
     private void initViews() {
@@ -182,6 +184,7 @@ public class OtherCollectionActivity extends AppCompatActivity {
         tvCollectionHallCount = findViewById(R.id.tvCollectionHallCount);
         btnAddFriend = findViewById(R.id.btnAddFriend);
         btnFollowUser = findViewById(R.id.btnFollowUser);
+        llBottomActions = findViewById(R.id.llBottomActions);
         progressBar = findViewById(R.id.progressBar);
 
         llProfileContent = findViewById(R.id.llProfileContent);
@@ -283,6 +286,20 @@ public class OtherCollectionActivity extends AppCompatActivity {
     private void setupClickListeners() {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
+        if (btnMoreOptions != null) {
+            if (currentUid != null && currentUid.equals(selectedUserId)) {
+                btnMoreOptions.setText("Edit");
+                btnMoreOptions.setTextColor(Color.parseColor("#00FFC6"));
+                btnMoreOptions.setTextSize(14);
+                btnMoreOptions.setOnClickListener(v -> {
+                    Intent intent = new Intent(OtherCollectionActivity.this, EditProfileActivity.class);
+                    startActivity(intent);
+                });
+            } else {
+                btnMoreOptions.setText("•••");
+            }
+        }
+
         if (btnGoLoveStore != null) {
             btnGoLoveStore.setOnClickListener(v -> {
                 Intent intent = new Intent(OtherCollectionActivity.this, StoreActivity.class);
@@ -291,13 +308,31 @@ public class OtherCollectionActivity extends AppCompatActivity {
         }
 
         if (btnAddCouplePartner != null) {
-            btnAddCouplePartner.setOnClickListener(v ->
-                    Toast.makeText(this, "Send a Couple request to this user 💖", Toast.LENGTH_SHORT).show());
+            if (currentUid != null && currentUid.equals(selectedUserId)) {
+                btnAddCouplePartner.setVisibility(View.GONE);
+            } else {
+                btnAddCouplePartner.setVisibility(View.VISIBLE);
+                btnAddCouplePartner.setOnClickListener(v ->
+                        Toast.makeText(this, "Send a Couple request to this user 💖", Toast.LENGTH_SHORT).show());
+            }
         }
     }
 
     private void setupActionButtons() {
         if (currentUid == null || selectedUserId == null) return;
+
+        // User cannot follow, add friend, or send couple request to themselves
+        if (currentUid.equals(selectedUserId)) {
+            if (llBottomActions != null) llBottomActions.setVisibility(View.GONE);
+            if (btnFollowUser != null) btnFollowUser.setVisibility(View.GONE);
+            if (btnAddFriend != null) btnAddFriend.setVisibility(View.GONE);
+            if (btnAddCouplePartner != null) btnAddCouplePartner.setVisibility(View.GONE);
+            return;
+        }
+
+        if (llBottomActions != null) llBottomActions.setVisibility(View.VISIBLE);
+        if (btnFollowUser != null) btnFollowUser.setVisibility(View.VISIBLE);
+        if (btnAddFriend != null) btnAddFriend.setVisibility(View.VISIBLE);
 
         // Follow Button State
         DatabaseReference followRef = FirebaseDatabase.getInstance().getReference("Follow")
@@ -399,7 +434,7 @@ public class OtherCollectionActivity extends AppCompatActivity {
                     }
 
                     String rawProfileId = snapshot.child("profileId").getValue(String.class);
-                    String numericProfileId = com.roomchatapps.Pmishra.utils.UserProfileCache.getDisplayNumericId(selectedUserId, rawProfileId);
+                    String numericProfileId = UserProfileCache.getDisplayNumericId(selectedUserId, rawProfileId);
                     if (rawProfileId == null || !rawProfileId.equals(numericProfileId)) {
                         userProfileRef.child("profileId").setValue(numericProfileId);
                         userProfileRef.child("userId").setValue(numericProfileId);
@@ -422,7 +457,7 @@ public class OtherCollectionActivity extends AppCompatActivity {
 
                     String frame = snapshot.child("equipped_frame").getValue(String.class);
                     if (frame != null && !frame.trim().isEmpty()) {
-                        com.roomchatapps.Pmishra.utils.FrameUtils.displayFrame(OtherCollectionActivity.this, frame, ivUserProfileFrame, svgaUserProfileFrame);
+                        FrameUtils.displayFrame(OtherCollectionActivity.this, frame, ivUserProfileFrame, svgaUserProfileFrame);
                     }
                 }
             }

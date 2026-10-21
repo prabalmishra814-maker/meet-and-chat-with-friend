@@ -19,6 +19,7 @@ import com.roomchatapps.Pmishra.spinwheel.SpinWheelView;
 import com.roomchatapps.Pmishra.spinwheel.SpinWinnerDialog;
 import com.roomchatapps.Pmishra.utils.CoinUtils;
 import com.roomchatapps.Pmishra.utils.RoomFloatingManager;
+import com.roomchatapps.Pmishra.services.RoomAudioService;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -467,6 +468,9 @@ public class RoomChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Keep screen awake while room activity is open
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -684,6 +688,11 @@ public class RoomChatActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopGameCarouselAutoScroll();
+        if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
+            try {
+                activeWebGameDialog.dismiss();
+            } catch (Exception ignored) {}
+        }
     }
 
     @Override
@@ -1012,6 +1021,14 @@ public class RoomChatActivity extends AppCompatActivity {
             showGiftDialog();
         });
 
+        View btnMenuIcon = findViewById(R.id.btnMenuIcon);
+        if (btnMenuIcon != null) {
+            AnimationHelper.applyClickAnimation(btnMenuIcon);
+            btnMenuIcon.setOnClickListener(v -> {
+                // Do nothing on click
+            });
+        }
+
         View btnEmoji = findViewById(R.id.btnEmoji);
         if (btnEmoji != null) {
             AnimationHelper.applyClickAnimation(btnEmoji);
@@ -1040,10 +1057,38 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    private void startAudioRoomService() {
+        try {
+            Intent serviceIntent = new Intent(this, RoomAudioService.class);
+            serviceIntent.setAction(RoomAudioService.ACTION_START);
+            serviceIntent.putExtra("roomID", roomID);
+            serviceIntent.putExtra("room_name", roomNameLabel);
+            serviceIntent.putExtra("img", roomImg);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error starting RoomAudioService", e);
+        }
+    }
+
+    private void stopAudioRoomService() {
+        try {
+            Intent serviceIntent = new Intent(this, RoomAudioService.class);
+            serviceIntent.setAction(RoomAudioService.ACTION_STOP);
+            stopService(serviceIntent);
+        } catch (Exception e) {
+            Log.e("RoomChatActivity", "Error stopping RoomAudioService", e);
+        }
+    }
+
     private void initZego() {
         ZegoManager.getInstance().init(getApplication(), appID, appSign);
         ZegoManager.getInstance().addListener(zegoListener);
         ZegoManager.getInstance().loginRoom(roomID, userID, userName, isHost);
+        startAudioRoomService();
 
         SeatManager.getInstance().addListener(seatListener);
         updateGlobalUserCount();
@@ -2179,6 +2224,7 @@ public class RoomChatActivity extends AppCompatActivity {
         try {
             isRoomLeft = true;
             isMinimized = false; // ROOM MINIMIZE FIX
+            stopAudioRoomService();
             RoomFloatingManager.getInstance().clearRoomState(); // ROOM MINIMIZE FIX
             int mySeatIndex = SeatManager.getInstance().findUserSeatIndex(userID);
             if (mySeatIndex != -1) {
@@ -3577,13 +3623,12 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private void showWebGameDialog(String gameTitle, String gameUrl) {
         if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
-            activeWebGameDialog.dismiss();
+            try {
+                activeWebGameDialog.dismiss();
+            } catch (Exception ignored) {}
         }
         Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
         activeWebGameDialog = dialog;
-        dialog.setOnDismissListener(d -> {
-            if (activeWebGameDialog == d) activeWebGameDialog = null;
-        });
 
         boolean isSlotMachine = gameUrl != null && (gameUrl.contains("slot_machine") || gameUrl.contains("slot-game") || (gameTitle != null && gameTitle.toLowerCase().contains("slot")));
         int layoutId;
@@ -3605,6 +3650,41 @@ public class RoomChatActivity extends AppCompatActivity {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
 
+        WebView webView = dialogView.findViewById(R.id.webViewGame);
+        ProgressBar progressBar = dialogView.findViewById(R.id.progressBarGame);
+        final LuckyFruitBridge[] luckyFruitBridgeHolder = new LuckyFruitBridge[1];
+        final GreedyBridge[] greedyBridgeHolder = new GreedyBridge[1];
+
+        dialog.setOnDismissListener(d -> {
+            if (luckyFruitBridgeHolder[0] != null) {
+                luckyFruitBridgeHolder[0].cleanup();
+                luckyFruitBridgeHolder[0] = null;
+            }
+            if (greedyBridgeHolder[0] != null) {
+                greedyBridgeHolder[0].cleanup();
+                greedyBridgeHolder[0] = null;
+            }
+            if (webView != null) {
+                try {
+                    webView.onPause();
+                    webView.pauseTimers();
+                    webView.evaluateJavascript(
+                        "if (window.AndroidLudo) { try { window.AndroidLudo.leaveMatch(); } catch(e){} }" +
+                        "if (window.AudioContext || window.webkitAudioContext) { try { if (window.audioCtx && typeof window.audioCtx.close === 'function') window.audioCtx.close(); if (window.ac && typeof window.ac.close === 'function') window.ac.close(); } catch(e){} }" +
+                        "if (window.ludoGameInstance && window.ludoGameInstance.sound && window.ludoGameInstance.sound.ctx) { try { window.ludoGameInstance.sound.ctx.close(); } catch(e){} }" +
+                        "if (window.sfx && window.sfx.ctx) { try { window.sfx.ctx.close(); } catch(e){} }",
+                        null
+                    );
+                    webView.loadUrl("about:blank");
+                    webView.stopLoading();
+                    webView.destroy();
+                } catch (Exception e) {
+                    Log.e("RoomChatActivity", "Error stopping game sound on dialog dismiss", e);
+                }
+            }
+            if (activeWebGameDialog == d) activeWebGameDialog = null;
+        });
+
         dialogView.setOnClickListener(v -> dialog.dismiss());
 
         View cardContainer = dialogView.findViewById(R.id.cardGameContainer);
@@ -3622,22 +3702,22 @@ public class RoomChatActivity extends AppCompatActivity {
             btnCloseGame.setOnClickListener(v -> dialog.dismiss());
         }
 
-        WebView webView = dialogView.findViewById(R.id.webViewGame);
-        ProgressBar progressBar = dialogView.findViewById(R.id.progressBarGame);
-
         if (webView != null && isSlotMachine) {
-            int displayWidth = getResources().getDisplayMetrics().widthPixels;
-            int containerWidth = displayWidth - (int) (8 * getResources().getDisplayMetrics().density);
-            if (containerWidth > 0) {
-                int targetHeight = (int) (containerWidth * (650.0 / 830.0));
-                ViewGroup.LayoutParams params = webView.getLayoutParams();
-                if (params != null) {
-                    params.height = targetHeight;
-                    webView.setLayoutParams(params);
-                }
+            int displayHeight = getResources().getDisplayMetrics().heightPixels;
+            float density = getResources().getDisplayMetrics().density;
+            int minHeight = (int) (460 * density);
+            int maxHeight = (int) (displayHeight * 0.62);
+            int targetHeight = Math.max(minHeight, maxHeight);
+
+            ViewGroup.LayoutParams params = webView.getLayoutParams();
+            if (params != null) {
+                params.height = targetHeight;
+                webView.setLayoutParams(params);
             }
         }
         if (webView != null) {
+            webView.resumeTimers();
+            webView.onResume();
             webView.setBackgroundColor(Color.TRANSPARENT);
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
@@ -3670,18 +3750,47 @@ public class RoomChatActivity extends AppCompatActivity {
                 }
             });
 
+            if (gameUrl != null && gameUrl.contains("ludo-game")) {
+                String myAvatar = SessionManager.getInstance(this).getAvatar();
+                LudoBridge ludoBridge = new LudoBridge(this, webView, userID, userName, myAvatar);
+                webView.addJavascriptInterface(ludoBridge, "AndroidLudo");
+            } else if (gameUrl != null && (gameUrl.contains("lucky_fruit") || gameUrl.contains("lucky-fruit"))) {
+                luckyFruitBridgeHolder[0] = new LuckyFruitBridge(this, webView, userID);
+                webView.addJavascriptInterface(luckyFruitBridgeHolder[0], "AndroidLuckyFruit");
+            } else if (gameUrl != null && (gameUrl.contains("greedy-game") || gameUrl.contains("greedy_game"))) {
+                greedyBridgeHolder[0] = new GreedyBridge(this, webView, userID);
+                webView.addJavascriptInterface(greedyBridgeHolder[0], "AndroidGreedy");
+            }
+
             webView.loadUrl(gameUrl);
         }
 
+        final long[] lastBackPressTime = new long[1];
+
         dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
             if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                if (webView != null && webView.canGoBack()) {
-                    webView.goBack();
-                    return true;
-                } else {
+                long currentTime = System.currentTimeMillis();
+
+                // Double back press (within 2 seconds) closes the game dialog
+                if (currentTime - lastBackPressTime[0] < 2000) {
                     dialog.dismiss();
                     return true;
                 }
+
+                lastBackPressTime[0] = currentTime;
+
+                if (webView != null) {
+                    if (webView.canGoBack()) {
+                        webView.goBack();
+                    } else {
+                        webView.evaluateJavascript(
+                            "typeof window.handleAndroidBack === 'function' ? window.handleAndroidBack() : false;",
+                            null
+                        );
+                    }
+                }
+                Toast.makeText(this, "Press back again to exit game", Toast.LENGTH_SHORT).show();
+                return true;
             }
             return false;
         });
@@ -6632,6 +6741,11 @@ public class RoomChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopGameCarouselAutoScroll();
+        if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
+            try {
+                activeWebGameDialog.dismiss();
+            } catch (Exception ignored) {}
+        }
         if (giftTimeoutRunnable != null) giftHandler.removeCallbacks(giftTimeoutRunnable);
         giftEventQueue.clear();
         currentGiftEventPlayId = 0L;
@@ -6656,7 +6770,7 @@ public class RoomChatActivity extends AppCompatActivity {
                 svgaBannerPlayer.clear();
             } catch (Exception ignored) {}
         }
-        if (!isMinimized) {
+        if (!isMinimized && !RoomAudioService.isRunning()) {
             RoomFloatingManager.getInstance().removeFloatingBubble();
             if (!isRoomLeft) {
                 leaveRoom();

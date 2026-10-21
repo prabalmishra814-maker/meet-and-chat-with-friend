@@ -92,16 +92,38 @@ html, body {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  margin-bottom: 0;
+  margin-bottom: 2px;
+}
+
+.ludo-game .header-left {
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 1vw, 6px);
+  margin-right: auto;
+}
+
+.ludo-game .header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
+.ludo-game .header-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 1vw, 6px);
+  margin-left: auto;
 }
 
 .ludo-game .blue-ctrl-btn {
-  width: clamp(32px, 8vw, 38px);
-  height: clamp(32px, 8vw, 38px);
-  border-radius: clamp(9px, 2.2vw, 11px);
+  width: clamp(28px, 7vw, 34px);
+  height: clamp(28px, 7vw, 34px);
+  border-radius: clamp(8px, 2vw, 10px);
   background: linear-gradient(180deg, #00C3FF 0%, #0088FF 65%, #0055D4 100%);
-  border: 2px solid #66E0FF;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.6);
+  border: 1.5px solid #66E0FF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,9 +138,9 @@ html, body {
 }
 
 .ludo-game .blue-ctrl-btn img {
-  width: clamp(15px, 3.8vw, 18px);
-  height: clamp(15px, 3.8vw, 18px);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+  width: clamp(14px, 3.5vw, 16px);
+  height: clamp(14px, 3.5vw, 16px);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 .ludo-game .header-logo-box {
@@ -145,51 +167,90 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: clamp(38px, 9vw, 44px);
-  height: clamp(38px, 9vw, 44px);
+  width: clamp(34px, 8.2vw, 38px);
+  height: clamp(34px, 8.2vw, 38px);
   background: linear-gradient(180deg, #FFFFFF 0%, #E8EEF5 100%);
-  border-radius: clamp(9px, 2.2vw, 11px);
+  border-radius: clamp(8px, 2vw, 10px);
   border: 2px solid #00C3FF;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 2px 0 #FFFFFF;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 1.5px 0 #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   perspective: 400px;
   z-index: 50;
-  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transform: translate3d(var(--dice-x, 0px), var(--dice-y, 0px), 0);
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.2s ease;
   will-change: transform;
 }
 
 .ludo-game .floating-dice-wrapper:active {
-  transform: scale(0.92) translate3d(var(--dice-x, 0px), var(--dice-y, 0px), 0);
+  transform: translate3d(var(--dice-x, 0px), var(--dice-y, 0px), 0) scale(0.92);
 }
 
 .ludo-game .floating-dice-wrapper.glow-active {
   border-color: #FFD600;
-  box-shadow: 0 0 12px #FFD600, 0 0 20px rgba(255, 214, 0, 0.6), 0 5px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 10px #FFD600, 0 0 18px rgba(255, 214, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.ludo-game .floating-dice-wrapper.dice-disabled {
+  pointer-events: none !important;
+  opacity: 0.75;
+  filter: grayscale(0.2);
 }
 
 .ludo-game .dice-3d {
-  width: clamp(28px, 7vw, 34px);
-  height: clamp(28px, 7vw, 34px);
+  width: clamp(26px, 6.5vw, 30px);
+  height: clamp(26px, 6.5vw, 30px);
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.1s linear;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .ludo-game .dice-face {
   position: absolute;
   width: 100%;
   height: 100%;
-  border-radius: 7px;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ludo-game .dice-face img {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: contain;
 }
+
+/* 3D Cube Face Positions */
+.ludo-game .dice-face.face-1 { transform: translateZ(13px); }
+.ludo-game .dice-face.face-2 { transform: rotateY(180deg) translateZ(13px); }
+.ludo-game .dice-face.face-3 { transform: rotateY(-90deg) translateZ(13px); }
+.ludo-game .dice-face.face-4 { transform: rotateY(90deg) translateZ(13px); }
+.ludo-game .dice-face.face-5 { transform: rotateX(90deg) translateZ(13px); }
+.ludo-game .dice-face.face-6 { transform: rotateX(-90deg) translateZ(13px); }
+
+/* Cube Show Classes for 1-6 */
+.ludo-game .dice-3d.show-1 { transform: rotateX(0deg) rotateY(0deg); }
+.ludo-game .dice-3d.show-2 { transform: rotateX(0deg) rotateY(-180deg); }
+.ludo-game .dice-3d.show-3 { transform: rotateX(0deg) rotateY(90deg); }
+.ludo-game .dice-3d.show-4 { transform: rotateX(0deg) rotateY(-90deg); }
+.ludo-game .dice-3d.show-5 { transform: rotateX(-90deg) rotateY(0deg); }
+.ludo-game .dice-3d.show-6 { transform: rotateX(90deg) rotateY(0deg); }
+
+/* Fallback visibility overlay */
+.ludo-game .dice-3d.show-1 .face-1 { z-index: 10; opacity: 1; }
+.ludo-game .dice-3d.show-2 .face-2 { z-index: 10; opacity: 1; }
+.ludo-game .dice-3d.show-3 .face-3 { z-index: 10; opacity: 1; }
+.ludo-game .dice-3d.show-4 .face-4 { z-index: 10; opacity: 1; }
+.ludo-game .dice-3d.show-5 .face-5 { z-index: 10; opacity: 1; }
+.ludo-game .dice-3d.show-6 .face-6 { z-index: 10; opacity: 1; }
 
 .ludo-game .dice-rolling {
   animation: spinDice 0.5s ease-in-out infinite;
@@ -217,6 +278,19 @@ html, body {
 .ludo-game .bottom-profiles {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+/* Ensure player profile cards stay anchored in their respective corners even if an adjacent profile is hidden */
+.ludo-game .green-profile,
+.ludo-game .red-profile {
+  margin-right: auto;
+  flex-direction: row;
+}
+
+.ludo-game .blue-profile,
+.ludo-game .yellow-profile {
+  margin-left: auto;
+  flex-direction: row-reverse;
 }
 
 /* Player Profile Cards */
@@ -341,6 +415,27 @@ html, body {
 .ludo-game .turn-blue   { background: linear-gradient(180deg, #0088FF, #0055D4); border: 1px solid #82B1FF; }
 .ludo-game .turn-red    { background: linear-gradient(180deg, #FF1744, #B71C1C); border: 1px solid #FF8A80; }
 .ludo-game .turn-yellow { background: linear-gradient(180deg, #FFC400, #E65100); border: 1px solid #FFE082; }
+
+.ludo-game .turn-timer-badge {
+  background: rgba(0, 0, 0, 0.45);
+  color: #FFD600;
+  border: 1px solid rgba(255, 214, 0, 0.8);
+  font-size: clamp(10px, 2.5vw, 12px);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  margin-left: 4px;
+}
+
+.ludo-game .turn-timer-badge.urgent {
+  color: #FF1744;
+  border-color: #FF1744;
+  animation: pulseBadge 0.4s infinite alternate;
+}
+
+.ludo-game .turn-timer-badge.hidden {
+  display: none !important;
+}
 
 .ludo-game .extra-roll-badge {
   background: #FFD600;
@@ -757,6 +852,511 @@ html, body {
   justify-content: space-between;
   font-weight: 700;
   font-size: 12px;
+}
+
+/* Find Friends Top Button */
+.ludo-game .find-friends-btn {
+  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+  color: #FFFFFF;
+  border: 1.5px solid #FFE082;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 3px 8px rgba(255, 87, 34, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: findPulse 2s infinite ease-in-out;
+}
+
+@keyframes findPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.6); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(255, 152, 0, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+}
+
+.ludo-game .find-friends-btn:active {
+  transform: scale(0.95);
+}
+
+/* Matchmaking Modal Card */
+.ludo-game .matchmaking-card {
+  text-align: center;
+  width: 92%;
+  max-width: 380px;
+  background: linear-gradient(180deg, #1B0F2E 0%, #0D061A 100%);
+  border: 2px solid #7B1FA2;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(123, 31, 162, 0.4);
+  border-radius: 20px;
+  padding: 18px 14px;
+}
+
+.ludo-game .matchmaking-header h2 {
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #FFD54F;
+  margin-bottom: 2px;
+  text-shadow: 0 2px 6px rgba(255, 213, 79, 0.4);
+}
+
+.ludo-game .matchmaking-subtitle {
+  font-size: 10px;
+  color: #B388FF;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* Radar Pulse Animation */
+.ludo-game .radar-box {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 14px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ludo-game .radar-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid #AB47BC;
+  animation: radarExpand 2s infinite ease-out;
+  opacity: 0;
+}
+
+.ludo-game .ring-1 { width: 30px; height: 30px; animation-delay: 0s; }
+.ludo-game .ring-2 { width: 50px; height: 50px; animation-delay: 0.6s; }
+.ludo-game .ring-3 { width: 70px; height: 70px; animation-delay: 1.2s; }
+
+@keyframes radarExpand {
+  0% { transform: scale(0.3); opacity: 1; border-color: #E1BEE7; }
+  100% { transform: scale(1.3); opacity: 0; border-color: #7B1FA2; }
+}
+
+.ludo-game .radar-center-icon {
+  font-size: 26px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+/* Match Slots Grid (2x2) */
+.ludo-game .match-slots-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ludo-game .match-slot-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.ludo-game .match-slot-card.slot-found {
+  background: rgba(0, 200, 83, 0.12);
+  border-color: #00E676;
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+}
+
+.ludo-game .match-slot-card.slot-searching {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+  animation: slotGlow 1.5s infinite alternate;
+}
+
+@keyframes slotGlow {
+  from { border-color: rgba(179, 136, 255, 0.2); }
+  to { border-color: rgba(179, 136, 255, 0.6); }
+}
+
+.ludo-game .slot-avatar-wrap {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 4px;
+}
+
+.ludo-game .slot-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFD54F;
+  background: #10002B;
+}
+
+.ludo-game .slot-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #7B1FA2;
+  color: #FFF;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.ludo-game .slot-badge.badge-you {
+  background: #00E676;
+  color: #000;
+}
+
+.ludo-game .slot-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.ludo-game .slot-status {
+  font-size: 9px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.ludo-game .status-ready { color: #00E676; }
+.ludo-game .status-wait { color: #FFB74D; }
+
+/* Matchmaking Footer */
+.ludo-game .matchmaking-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.ludo-game .status-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #E0E0E0;
+}
+
+.ludo-game .countdown-badge {
+  background: #FF1744;
+  color: #FFF;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 34px;
+}
+
+.ludo-game .cancel-btn {
+  background: linear-gradient(180deg, #D32F2F 0%, #8E0000 100%);
+  color: #FFF;
+  border: 1px solid #FF5252;
+}
+
+/* ==========================================================================
+   Main Start Menu & Game Options Styling
+   ========================================================================== */
+.ludo-game .main-menu-card {
+  width: 92%;
+  max-width: 380px;
+  background: linear-gradient(180deg, #1B0F2E 0%, #0D061A 100%);
+  border: 2px solid #FFD54F;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 20px rgba(255, 213, 79, 0.3);
+  border-radius: 20px;
+  padding: 16px 14px;
+}
+
+.ludo-game .menu-step-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ludo-game .menu-header {
+  position: relative;
+  text-align: center;
+  padding: 0 52px;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.ludo-game .step-back-btn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #FFE082;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  z-index: 5;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.ludo-game .step-back-btn:active {
+  transform: translateY(-50%) scale(0.92);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ludo-game .menu-logo-badge {
+  display: inline-block;
+  background: linear-gradient(180deg, #FFC400, #E65100);
+  color: #000;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.ludo-game .menu-title {
+  font-size: clamp(13px, 3.6vw, 16px);
+  font-weight: 900;
+  color: #FFD54F;
+  letter-spacing: 0.6px;
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+}
+
+.ludo-game .menu-subtitle {
+  font-size: 11px;
+  color: #B388FF;
+}
+
+/* Option Cards for Step 1 */
+.ludo-game .gametype-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ludo-game .type-option-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.ludo-game .type-option-card:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+.ludo-game .card-passplay {
+  background: linear-gradient(135deg, #FF8F00 0%, #FF6F00 100%);
+  border-color: #FFE082;
+  color: #FFF;
+}
+
+.ludo-game .card-vscomputer {
+  background: linear-gradient(135deg, #00C853 0%, #008D38 100%);
+  border-color: #B9F6CA;
+  color: #FFF;
+}
+
+.ludo-game .card-online {
+  background: linear-gradient(135deg, #00B0FF 0%, #0055D4 100%);
+  border-color: #80D8FF;
+  color: #FFF;
+}
+
+.ludo-game .card-icon-wrap {
+  font-size: 24px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.ludo-game .card-text-wrap {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.ludo-game .card-main-title {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.ludo-game .card-sub-title {
+  font-size: 10px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.ludo-game .card-arrow {
+  font-size: 16px;
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+/* Mode Options Grid for Step 2 */
+.ludo-game .mode-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.ludo-game .mode-option-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #FFF;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.ludo-game .mode-option-card:active {
+  transform: scale(0.95);
+  background: rgba(255, 213, 79, 0.2);
+  border-color: #FFD54F;
+}
+
+.ludo-game .mode-badge {
+  font-size: 8px;
+  font-weight: 900;
+  background: #7B1FA2;
+  color: #FFF;
+  padding: 1px 5px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.ludo-game .mode-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.ludo-game .mode-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #FFD54F;
+}
+
+.ludo-game .mode-desc {
+  font-size: 8px;
+  color: #B0BEC5;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Form inputs for Step 3 */
+.ludo-game .player-names-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ludo-game .name-input-group {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.ludo-game .border-green  { border-color: #00E676; }
+.ludo-game .border-blue   { border-color: #00A2FF; }
+.ludo-game .border-yellow { border-color: #FFD600; }
+.ludo-game .border-red    { border-color: #FF3355; }
+
+.ludo-game .player-color-tag {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.ludo-game .tag-green  { background: #00C853; color: #FFF; }
+.ludo-game .tag-blue   { background: #0066FF; color: #FFF; }
+.ludo-game .tag-yellow { background: #FFD600; color: #000; }
+.ludo-game .tag-red    { background: #FF1744; color: #FFF; }
+
+.ludo-game .player-name-input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ludo-game .start-game-btn {
+  width: 100%;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  padding: 10px;
+  margin-top: 4px;
+}
+
+/* 1v1 Mode Board Inactive Elements */
+.ludo-game .inactive-yard {
+  opacity: 0.25 !important;
+  pointer-events: none !important;
+  filter: grayscale(0.8) !important;
+}
+
+/* Editable Nameplate Pointer in Pass & Play */
+.ludo-game .nameplate-editable {
+  cursor: pointer;
+  position: relative;
+}
+
+.ludo-game .green-profile.nameplate-editable::before,
+.ludo-game .red-profile.nameplate-editable::before {
+  content: "✏️";
+  font-size: 11px;
+  margin-right: 3px;
+  opacity: 0.95;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.ludo-game .blue-profile.nameplate-editable::before,
+.ludo-game .yellow-profile.nameplate-editable::before {
+  content: "✏️";
+  font-size: 11px;
+  margin-left: 3px;
+  opacity: 0.95;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 /* Utility Classes */

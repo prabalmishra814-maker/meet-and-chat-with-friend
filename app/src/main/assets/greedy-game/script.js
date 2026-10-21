@@ -28,7 +28,7 @@
     jackpot: 21417758,
     selectedChip: 1000,
     bets: {},
-    timerSec: 28,
+    timerSec: 30,
     gameState: 'BETTING', // 'BETTING' | 'SPINNING'
     soundEnabled: true,
     resultHistory: ['corn', 'corn', 'cabbage', 'tomato', 'hotdog', 'tomato']
@@ -115,8 +115,10 @@
     winningsNum: document.getElementById('winnings-num'),
     jackpotNum: document.getElementById('jackpot-num'),
     timerDisplay: document.getElementById('timer-display'),
+    selectTimeLabel: document.querySelector('.select-time-label'),
     chipBtns: document.querySelectorAll('.chip-btn'),
     foodBubbles: document.querySelectorAll('.food-bubble'),
+    cornerBtns: document.querySelectorAll('.corner-btn'),
     resultHistory: document.getElementById('result-history'),
     toastMsg: document.getElementById('toast-msg'),
     musicBtn: document.getElementById('music-btn'),
@@ -129,7 +131,13 @@
     addCoinsBtn: document.getElementById('add-coins-btn'),
     coinsModal: document.getElementById('coins-modal'),
     claimCoinsBtn: document.getElementById('claim-coins-btn'),
-    closeCoinsBtn: document.getElementById('close-coins-btn')
+    closeCoinsBtn: document.getElementById('close-coins-btn'),
+    leaderboardBtn: document.getElementById('leaderboard-btn'),
+    leaderboardModal: document.getElementById('leaderboard-modal'),
+    closeLeaderboardBtn: document.getElementById('close-leaderboard-btn'),
+    lbTabCurrent: document.getElementById('lb-tab-current'),
+    lbTabPrev: document.getElementById('lb-tab-prev'),
+    leaderboardList: document.getElementById('leaderboard-list')
   };
 
   // --- Formatting Helpers ---
@@ -145,11 +153,10 @@
 
   // --- UI Update Functions ---
   function updateUI() {
-    el.balanceNum.textContent = formatNum(state.balance);
-    el.winningsNum.textContent = formatNum(state.todayWinnings);
-    el.jackpotNum.textContent = formatNum(state.jackpot);
+    if (el.balanceNum) el.balanceNum.textContent = formatNum(state.balance);
+    if (el.winningsNum) el.winningsNum.textContent = formatNum(state.todayWinnings);
+    if (el.jackpotNum) el.jackpotNum.textContent = formatNum(state.jackpot);
 
-    // Update food bubble bet badges
     el.foodBubbles.forEach(bubble => {
       const food = bubble.getAttribute('data-food');
       const betAmt = state.bets[food] || 0;
@@ -167,6 +174,7 @@
   }
 
   function renderResultHistory() {
+    if (!el.resultHistory) return;
     el.resultHistory.innerHTML = '';
     state.resultHistory.forEach((foodKey, idx) => {
       const food = FOOD_DATA[foodKey] || FOOD_DATA.tomato;
@@ -190,6 +198,7 @@
   }
 
   function showToast(msg, duration = 2500) {
+    if (!el.toastMsg) return;
     el.toastMsg.textContent = msg;
     el.toastMsg.classList.remove('hidden');
     setTimeout(() => {
@@ -209,7 +218,7 @@
     if (state.balance < betAmount) {
       playSound('tick');
       showToast('Insufficient Coins! Click + to add coins!');
-      el.coinsModal.classList.remove('hidden');
+      if (el.coinsModal) el.coinsModal.classList.remove('hidden');
       return;
     }
 
@@ -219,7 +228,6 @@
     updateUI();
   }
 
-  // Attach click handlers to chips
   el.chipBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       initAudio();
@@ -230,7 +238,6 @@
     });
   });
 
-  // Attach click handlers to food bubbles
   el.foodBubbles.forEach(bubble => {
     bubble.addEventListener('click', () => {
       const food = bubble.getAttribute('data-food');
@@ -238,55 +245,137 @@
     });
   });
 
-  // --- Game Loop Timer ---
-  let timerInterval = setInterval(() => {
-    if (state.gameState === 'BETTING') {
-      state.timerSec--;
-      if (state.timerSec <= 5 && state.timerSec > 0) {
-        playSound('tick');
-      }
+  // --- Wall-Clock Synchronized Game Loop Timer & Outcome PRNG ---
+  const CYCLE_DURATION = 40; // 30s betting + 10s spin
+  const BETTING_DURATION = 30;
 
-      if (state.timerSec <= 0) {
-        startSpinRound();
-      } else {
-        el.timerDisplay.textContent = state.timerSec + 's';
-      }
-    }
-  }, 1000);
+  let timerInterval = null;
+  let currentRoundIdx = -1;
+  let spinTriggeredRound = -1;
 
-  // --- Spin & Winner Outcome Generation ---
-  function pickOutcome() {
-    // Weighted selection logic
-    const rand = Math.random();
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function getGreedyOutcome(roundIndex) {
+    const seed = roundIndex * 7919 + 20011;
+    const prng1 = mulberry32(seed);
+    const prng2 = mulberry32(seed + 100);
+    const rand = prng1();
     if (rand < 0.65) {
-      // 65% chance: x5 items (tomato, cabbage, corn, carrot)
       const x5s = ['tomato', 'cabbage', 'corn', 'carrot'];
-      return x5s[Math.floor(Math.random() * x5s.length)];
+      return x5s[Math.floor(prng2() * x5s.length)];
     } else if (rand < 0.88) {
-      // 23% chance: x10/x15 items (hotdog, skewer)
       const x10s = ['hotdog', 'skewer'];
-      return x10s[Math.floor(Math.random() * x10s.length)];
+      return x10s[Math.floor(prng2() * x10s.length)];
     } else {
-      // 12% chance: x25/x45 items (ham, steak)
       const x25s = ['ham', 'steak'];
-      return x25s[Math.floor(Math.random() * x25s.length)];
+      return x25s[Math.floor(prng2() * x25s.length)];
     }
   }
 
-  function startSpinRound() {
-    state.gameState = 'SPINNING';
-    el.timerDisplay.textContent = 'Spin...';
+  function syncTimer() {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cyclePos = nowSec % CYCLE_DURATION; // 0 to 39
+    const roundIdx = Math.floor(nowSec / CYCLE_DURATION);
 
-    const winnerFood = pickOutcome();
+    if (cyclePos < BETTING_DURATION) {
+      const remainingBet = BETTING_DURATION - cyclePos; // 30 down to 1
+      state.timerSec = remainingBet;
+
+      if (state.gameState !== 'BETTING' || roundIdx !== currentRoundIdx) {
+        currentRoundIdx = roundIdx;
+        resetBets();
+        state.gameState = 'BETTING';
+        if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Select Time';
+        updateUI();
+      }
+
+      if (el.timerDisplay) el.timerDisplay.textContent = state.timerSec + 's';
+
+      if (state.timerSec <= 5 && state.timerSec > 0) {
+        playSound('tick');
+      }
+    } else {
+      const remainingSpin = CYCLE_DURATION - cyclePos; // 10 down to 1
+      state.timerSec = remainingSpin;
+
+      if (el.timerDisplay) el.timerDisplay.textContent = state.timerSec + 's';
+
+      if (spinTriggeredRound !== roundIdx) {
+        currentRoundIdx = roundIdx;
+        startSpinRound(roundIdx, remainingSpin);
+      }
+    }
+  }
+
+  syncTimer();
+  timerInterval = setInterval(syncTimer, 1000);
+
+  function startSpinRound(roundIdx, remainingSpinSec) {
+    spinTriggeredRound = roundIdx;
+
+    let totalBet = 0;
+    for (let k in state.bets) {
+      totalBet += state.bets[k] || 0;
+    }
+
+    if (totalBet > 0 && window.AndroidGreedy) {
+      const callbackName = '_cb_greedy_bet_' + roundIdx + '_' + Date.now();
+      window[callbackName] = function(success, newBalance, errorMsg) {
+        delete window[callbackName];
+        if (success) {
+          if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+            state.balance = newBalance;
+          }
+          state.gameState = 'SPINNING';
+          if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+          updateUI();
+          executeSpinAnimation(roundIdx, remainingSpinSec);
+        } else {
+          showToast(errorMsg || "Bet deduction failed!");
+          resetBets();
+          state.gameState = 'BETTING';
+          updateUI();
+        }
+      };
+      window.AndroidGreedy.deductBetCoins(totalBet, roundIdx, callbackName);
+      return;
+    }
+
+    state.gameState = 'SPINNING';
+    if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+    executeSpinAnimation(roundIdx, remainingSpinSec);
+  }
+
+  function executeSpinAnimation(roundIdx, remainingSpinSec) {
+    const winnerFood = getGreedyOutcome(roundIdx);
     let winnerIndex = WHEEL_ITEMS.indexOf(winnerFood);
 
+    const decelDelays = [100, 130, 170, 220, 290, 380, 500, 700];
+    const decelSteps = decelDelays.length;
+
+    const targetDurationMs = Math.max(1500, Math.min(7500, (remainingSpinSec - 2) * 1000));
+    const fastDuration = Math.max(500, targetDurationMs - 2490);
+    const fastDelay = Math.max(35, Math.floor(fastDuration / 60));
+
+    let reqRemainder = (winnerIndex + 1 - decelSteps) % WHEEL_ITEMS.length;
+    if (reqRemainder < 0) reqRemainder += WHEEL_ITEMS.length;
+
+    let fastSteps = Math.floor(fastDuration / fastDelay);
+    fastSteps = fastSteps - (fastSteps % WHEEL_ITEMS.length) + reqRemainder;
+    if (fastSteps < WHEEL_ITEMS.length) fastSteps += WHEEL_ITEMS.length;
+
+    let totalSteps = fastSteps + decelSteps;
     let currentIdx = 0;
-    let totalSteps = WHEEL_ITEMS.length * 3 + winnerIndex;
     let stepCount = 0;
-    let delay = 60;
 
     function spinStep() {
-      // Clear previous spin highlights
       el.foodBubbles.forEach(b => b.classList.remove('active-spin'));
       if (el.cornerBtns) el.cornerBtns.forEach(b => b.classList.remove('active-spin'));
 
@@ -294,28 +383,28 @@
 
       const bubbleEl = document.querySelector(`.food-bubble[data-food="${WHEEL_ITEMS[currentIdx]}"]`);
       if (bubbleEl) bubbleEl.classList.add('active-spin');
-      currentIdx = (currentIdx + 1) % WHEEL_ITEMS.length;
 
       stepCount++;
       if (stepCount < totalSteps) {
-        if (stepCount > totalSteps - 8) {
-          delay += 45; // Slow down near the end
+        currentIdx = (currentIdx + 1) % WHEEL_ITEMS.length;
+        let nextDelay = fastDelay;
+        if (stepCount >= fastSteps) {
+          let decelIndex = stepCount - fastSteps;
+          nextDelay = decelDelays[decelIndex] || 500;
         }
-        setTimeout(spinStep, delay);
+        setTimeout(spinStep, nextDelay);
       } else {
-        // Final Winner Landing
-        finishSpinRound(winnerFood);
+        finishSpinRound(winnerFood, roundIdx);
       }
     }
 
     spinStep();
   }
 
-  function finishSpinRound(winnerFood) {
+  function finishSpinRound(winnerFood, roundIdx) {
     el.foodBubbles.forEach(b => b.classList.remove('active-spin'));
     if (el.cornerBtns) el.cornerBtns.forEach(b => b.classList.remove('active-spin'));
 
-    // Highlight winning element
     let winningEl = document.querySelector(`.food-bubble[data-food="${winnerFood}"]`) ||
                     document.querySelector(`.corner-btn[data-food="${winnerFood}"]`);
 
@@ -324,37 +413,45 @@
       setTimeout(() => winningEl.classList.remove('winner'), 3000);
     }
 
-    // Payout Calculation
-    const foodInfo = FOOD_DATA[winnerFood];
+    const foodInfo = FOOD_DATA[winnerFood] || FOOD_DATA.tomato;
     const userBet = state.bets[winnerFood] || 0;
 
     if (userBet > 0) {
       const winAmount = userBet * foodInfo.mult;
-      state.balance += winAmount;
-      state.todayWinnings += winAmount;
-      playSound('win');
-      showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+      if (window.AndroidGreedy) {
+        const callbackName = '_cb_greedy_win_' + (roundIdx || Date.now()) + '_' + Date.now();
+        window[callbackName] = function(success, newBalance, errorMsg) {
+          delete window[callbackName];
+          if (success && typeof newBalance === 'number' && !isNaN(newBalance)) {
+            state.balance = newBalance;
+          } else {
+            state.balance += winAmount;
+          }
+          state.todayWinnings += winAmount;
+          playSound('win');
+          showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+          resetBets();
+          updateUI();
+        };
+        window.AndroidGreedy.addWinPayout(winAmount, roundIdx, callbackName);
+      } else {
+        state.balance += winAmount;
+        state.todayWinnings += winAmount;
+        playSound('win');
+        showToast(`🎉 WINNER! ${foodInfo.name} (x${foodInfo.mult}) +${formatNum(winAmount)} Coins!`, 3500);
+        resetBets();
+        updateUI();
+      }
     } else {
       showToast(`Round Winner: ${foodInfo.name} (x${foodInfo.mult})`);
+      resetBets();
+      updateUI();
     }
 
-    // Add outcome to history
     state.resultHistory.unshift(winnerFood);
     if (state.resultHistory.length > 8) state.resultHistory.pop();
 
-    // Increment Jackpot slightly
     state.jackpot += Math.floor(Math.random() * 400) + 100;
-
-    updateUI();
-
-    // Reset for next round after delay
-    setTimeout(() => {
-      resetBets();
-      state.timerSec = 28;
-      state.gameState = 'BETTING';
-      el.timerDisplay.textContent = '28s';
-      updateUI();
-    }, 3000);
   }
 
   // --- Modals & Settings Handlers ---
@@ -376,54 +473,186 @@
     });
   }
 
-  el.menuBtn.addEventListener('click', () => {
+  if (el.menuBtn) {
+    el.menuBtn.addEventListener('click', () => {
+      initAudio();
+      if (el.menuModal) el.menuModal.classList.remove('hidden');
+    });
+  }
+
+  if (el.closeMenuBtn) {
+    el.closeMenuBtn.addEventListener('click', () => {
+      if (el.menuModal) el.menuModal.classList.add('hidden');
+    });
+  }
+
+  if (el.soundToggleBtn) {
+    el.soundToggleBtn.addEventListener('click', () => {
+      state.soundEnabled = !state.soundEnabled;
+      el.soundToggleBtn.textContent = state.soundEnabled ? '🔊 ON' : '🔇 OFF';
+    });
+  }
+
+  if (el.modalAddCoins) {
+    el.modalAddCoins.addEventListener('click', () => {
+      state.balance += 50000;
+      playSound('win');
+      updateUI();
+      showToast('+50,000 Coins Added!');
+    });
+  }
+
+  if (el.resetGameBtn) {
+    el.resetGameBtn.addEventListener('click', () => {
+      state.balance = 36871;
+      state.todayWinnings = 0;
+      resetBets();
+      updateUI();
+      showToast('Game Reset!');
+      if (el.menuModal) el.menuModal.classList.add('hidden');
+    });
+  }
+
+  if (el.addCoinsBtn) {
+    el.addCoinsBtn.addEventListener('click', () => {
+      initAudio();
+      if (el.coinsModal) el.coinsModal.classList.remove('hidden');
+    });
+  }
+
+  if (el.claimCoinsBtn) {
+    el.claimCoinsBtn.addEventListener('click', () => {
+      state.balance += 100000;
+      playSound('win');
+      updateUI();
+      showToast('🎉 100,000 Free Coins Claimed!');
+      if (el.coinsModal) el.coinsModal.classList.add('hidden');
+    });
+  }
+
+  if (el.closeCoinsBtn) {
+    el.closeCoinsBtn.addEventListener('click', () => {
+      if (el.coinsModal) el.coinsModal.classList.add('hidden');
+    });
+  }
+
+  // --- Leaderboard Dialog Handlers ---
+  if (el.leaderboardBtn) {
+    el.leaderboardBtn.addEventListener('click', openLeaderboard);
+  }
+  if (el.closeLeaderboardBtn) {
+    el.closeLeaderboardBtn.addEventListener('click', () => {
+      if (el.leaderboardModal) el.leaderboardModal.classList.add('hidden');
+    });
+  }
+  if (el.lbTabCurrent) {
+    el.lbTabCurrent.addEventListener('click', () => {
+      el.lbTabCurrent.classList.add('active');
+      if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
+      loadLeaderboardForRound(currentRoundIdx);
+    });
+  }
+  if (el.lbTabPrev) {
+    el.lbTabPrev.addEventListener('click', () => {
+      el.lbTabPrev.classList.add('active');
+      if (el.lbTabCurrent) el.lbTabCurrent.classList.remove('active');
+      loadLeaderboardForRound(currentRoundIdx - 1);
+    });
+  }
+
+  function openLeaderboard() {
     initAudio();
-    el.menuModal.classList.remove('hidden');
-  });
+    if (!el.leaderboardModal) return;
+    el.leaderboardModal.classList.remove('hidden');
+    if (el.lbTabCurrent) el.lbTabCurrent.classList.add('active');
+    if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
+    loadLeaderboardForRound(currentRoundIdx);
+  }
 
-  el.closeMenuBtn.addEventListener('click', () => {
-    el.menuModal.classList.add('hidden');
-  });
+  function loadLeaderboardForRound(roundIdx) {
+    if (!el.leaderboardList) return;
+    el.leaderboardList.innerHTML = '<div class="lb-empty">Loading leaderboard...</div>';
 
-  el.soundToggleBtn.addEventListener('click', () => {
-    state.soundEnabled = !state.soundEnabled;
-    el.soundToggleBtn.textContent = state.soundEnabled ? '🔊 ON' : '🔇 OFF';
-  });
+    if (window.AndroidGreedy && typeof window.AndroidGreedy.getRoundLeaderboard === 'function') {
+      const callbackName = '_cb_greedy_lb_' + Date.now();
+      window[callbackName] = function(jsonStr) {
+        delete window[callbackName];
+        renderLeaderboardItems(jsonStr);
+      };
+      window.AndroidGreedy.getRoundLeaderboard(roundIdx, callbackName);
+    } else {
+      renderLeaderboardItems('[]');
+    }
+  }
 
-  el.modalAddCoins.addEventListener('click', () => {
-    state.balance += 50000;
-    playSound('win');
-    updateUI();
-    showToast('+50,000 Coins Added!');
-  });
+  function renderLeaderboardItems(jsonStr) {
+    if (!el.leaderboardList) return;
+    let list = [];
+    try {
+      list = JSON.parse(jsonStr || '[]');
+    } catch(e) {
+      list = [];
+    }
 
-  el.resetGameBtn.addEventListener('click', () => {
-    state.balance = 36871;
-    state.todayWinnings = 0;
-    resetBets();
-    updateUI();
-    showToast('Game Reset!');
-    el.menuModal.classList.add('hidden');
-  });
+    if (!list || list.length === 0) {
+      el.leaderboardList.innerHTML = '<div class="lb-empty">No participants in this round!</div>';
+      return;
+    }
 
-  el.addCoinsBtn.addEventListener('click', () => {
-    initAudio();
-    el.coinsModal.classList.remove('hidden');
-  });
+    el.leaderboardList.innerHTML = '';
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'lb-item';
 
-  el.claimCoinsBtn.addEventListener('click', () => {
-    state.balance += 100000;
-    playSound('win');
-    updateUI();
-    showToast('🎉 100,000 Free Coins Claimed!');
-    el.coinsModal.classList.add('hidden');
-  });
+      let rankDisplay = `#${item.rank}`;
+      if (item.rank === 1) rankDisplay = '🥇';
+      else if (item.rank === 2) rankDisplay = '🥈';
+      else if (item.rank === 3) rankDisplay = '🥉';
 
-  el.closeCoinsBtn.addEventListener('click', () => {
-    el.coinsModal.classList.add('hidden');
-  });
+      const avatarUrl = (item.userAvatar && item.userAvatar.trim() !== '')
+        ? item.userAvatar
+        : 'assets/chip_1k.svg';
+
+      const betFormatted = (item.betAmount || 0).toLocaleString();
+      const winVal = item.winAmount || 0;
+      const winFormatted = winVal > 0 ? `+${winVal.toLocaleString()}` : '0';
+      const winClass = winVal > 0 ? 'lb-win' : 'lb-win zero';
+
+      row.innerHTML = `
+        <div class="lb-left">
+          <div class="lb-rank">${rankDisplay}</div>
+          <img class="lb-avatar" src="${avatarUrl}" onerror="this.src='assets/chip_1k.svg'" alt="Avatar">
+          <div class="lb-name">${escapeHtml(item.userName || 'Player')}</div>
+        </div>
+        <div class="lb-right">
+          <div class="lb-win ${winClass}">Win: ${winFormatted}</div>
+          <div class="lb-bet">Bet: ${betFormatted}</div>
+        </div>
+      `;
+      el.leaderboardList.appendChild(row);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   // Initial Render
   updateUI();
+
+  // Connect with Android Bridge if present
+  if (window.AndroidGreedy) {
+    window.updateGreedyBalance = function(newBalance) {
+      if (typeof newBalance === 'number' && !isNaN(newBalance)) {
+        state.balance = newBalance;
+        updateUI();
+      }
+    };
+    try {
+      window.AndroidGreedy.requestUserCoins();
+    } catch(e) {
+      console.error("Error requesting user coins:", e);
+    }
+  }
 
 })();

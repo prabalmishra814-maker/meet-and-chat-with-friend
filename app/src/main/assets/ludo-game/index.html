@@ -20,51 +20,53 @@
 
     <div id="game-viewport" class="game-viewport">
 
-      <!-- 1. Top Controls Bar -->
+      <!-- 1. Top Controls & Profiles Header Row -->
       <div class="top-controls">
-        <button id="btn-back" class="blue-ctrl-btn btn-back" title="Back">
-          <img src="assets/icon_back.svg" alt="Back">
-        </button>
+        <div class="header-left">
+          <button id="btn-back" class="blue-ctrl-btn btn-back" title="Back">
+            <img src="assets/icon_back.svg" alt="Back">
+          </button>
 
-        <div class="header-logo-box">
-          <span class="logo-text">LUDO</span>
+          <!-- Top-Left Player: GREEN (MAX - BOT) -->
+          <div id="profile-green" class="profile-card green-profile active">
+            <div class="avatar-wrapper">
+              <img class="avatar-img" src="assets/avatar_p1.svg" alt="Max">
+              <span class="bot-badge">BOT</span>
+            </div>
+            <div class="nameplate green-pill">
+              <span class="player-name">MAX</span>
+            </div>
+          </div>
         </div>
 
-        <button id="btn-sound" class="blue-ctrl-btn btn-sound" title="Toggle Sound">
-          <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
-        </button>
-      </div>
-
-      <!-- 2. Top Player Profiles Row (Green & Blue) -->
-      <div class="profiles-row top-profiles">
-        <!-- Top-Left Player: GREEN (MAX - BOT) -->
-        <div id="profile-green" class="profile-card green-profile active">
-          <div class="avatar-wrapper">
-            <img class="avatar-img" src="assets/avatar_p1.svg" alt="Max">
-            <span class="bot-badge">BOT</span>
+        <div class="header-center">
+          <div class="header-logo-box">
+            <span class="logo-text">LUDO</span>
           </div>
-          <div class="nameplate green-pill">
-            <span class="player-name">MAX</span>
-          </div>
-          <div class="dice-anchor anchor-right"></div>
         </div>
 
-        <!-- Top-Right Player: BLUE (ALEX - BOT) -->
-        <div id="profile-blue" class="profile-card blue-profile">
-          <div class="dice-anchor anchor-left"></div>
-          <div class="avatar-wrapper">
-            <img class="avatar-img" src="assets/avatar_p2.svg" alt="Alex">
-            <span class="bot-badge">BOT</span>
+        <div class="header-right">
+          <!-- Top-Right Player: BLUE (ALEX - BOT) -->
+          <div id="profile-blue" class="profile-card blue-profile">
+            <div class="avatar-wrapper">
+              <img class="avatar-img" src="assets/avatar_p2.svg" alt="Alex">
+              <span class="bot-badge">BOT</span>
+            </div>
+            <div class="nameplate blue-pill">
+              <span class="player-name">ALEX</span>
+            </div>
           </div>
-          <div class="nameplate blue-pill">
-            <span class="player-name">ALEX</span>
-          </div>
+
+          <button id="btn-sound" class="blue-ctrl-btn btn-sound" title="Toggle Sound">
+            <img id="img-sound" src="assets/icon_sound_on.svg" alt="Sound">
+          </button>
         </div>
       </div>
 
       <!-- Turn & Extra Roll Banner (Floating Notification) -->
       <div id="turn-banner" class="turn-banner turn-green">
         <span id="turn-text">GREEN'S TURN</span>
+        <span id="turn-timer" class="turn-timer-badge hidden">10s</span>
         <span id="extra-roll-badge" class="extra-roll-badge hidden">EXTRA ROLL!</span>
       </div>
 
@@ -95,12 +97,10 @@
           <div class="nameplate red-pill">
             <span class="player-name">VIPER</span>
           </div>
-          <div class="dice-anchor anchor-right"></div>
         </div>
 
         <!-- Bottom-Right Player: YELLOW (YOU - Human Player) -->
         <div id="profile-yellow" class="profile-card yellow-profile">
-          <div class="dice-anchor anchor-left"></div>
           <div class="avatar-wrapper">
             <img class="avatar-img" src="assets/avatar_p4.svg" alt="YOU">
             <span class="you-badge">YOU</span>
@@ -145,6 +145,196 @@
       <!-- Toast Overlay -->
       <div id="toast-message" class="toast-message hidden"></div>
 
+      <!-- Main Game Start Menu Modal (Default view on game start) -->
+      <div id="modal-main-menu" class="modal-overlay">
+        <div class="modal-card main-menu-card">
+
+          <!-- Step 1: Select Primary Game Type -->
+          <div id="menu-step-1" class="menu-step-container">
+            <div class="menu-header">
+              <div class="menu-logo-badge">🎲 LUDO KING</div>
+              <h2 class="menu-title">SELECT GAME TYPE</h2>
+              <p class="menu-subtitle">Choose how you want to play</p>
+            </div>
+
+            <div class="gametype-options-list">
+              <!-- Pass & Play Card -->
+              <button id="btn-select-passplay" class="type-option-card card-passplay">
+                <div class="card-icon-wrap">🤝</div>
+                <div class="card-text-wrap">
+                  <span class="card-main-title">PASS & PLAY</span>
+                  <span class="card-sub-title">Play offline with friends on 1 device</span>
+                </div>
+                <div class="card-arrow">➔</div>
+              </button>
+
+              <!-- VS Computer Card -->
+              <button id="btn-select-vscomputer" class="type-option-card card-vscomputer">
+                <div class="card-icon-wrap">🤖</div>
+                <div class="card-text-wrap">
+                  <span class="card-main-title">VS COMPUTER</span>
+                  <span class="card-sub-title">Practice offline against AI Bots</span>
+                </div>
+                <div class="card-arrow">➔</div>
+              </button>
+
+              <!-- Online Play Card -->
+              <button id="btn-select-online" class="type-option-card card-online">
+                <div class="card-icon-wrap">🌐</div>
+                <div class="card-text-wrap">
+                  <span class="card-main-title">ONLINE PLAY</span>
+                  <span class="card-sub-title">Play live with online players</span>
+                </div>
+                <div class="card-arrow">➔</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Select Sub-Mode (1v1, 1v2, 1v4) -->
+          <div id="menu-step-2" class="menu-step-container hidden">
+            <div class="menu-header">
+              <button id="btn-back-step1" class="step-back-btn">‹ Back</button>
+              <h2 id="step2-title" class="menu-title">SELECT MODE</h2>
+              <p class="menu-subtitle">Choose number of players</p>
+            </div>
+
+            <div class="mode-options-grid">
+              <!-- 1 v 1 Mode -->
+              <button id="btn-mode-1v1" class="mode-option-card">
+                <div class="mode-badge">2 PLAYERS</div>
+                <div class="mode-icon">⚡</div>
+                <span class="mode-title">1 v 1</span>
+                <span class="mode-desc">Fast 2 Player Duel</span>
+              </button>
+
+              <!-- 1 v 2 Mode -->
+              <button id="btn-mode-1v2" class="mode-option-card">
+                <div class="mode-badge">3 PLAYERS</div>
+                <div class="mode-icon">⚔️</div>
+                <span class="mode-title">1 v 2</span>
+                <span class="mode-desc">3 Players Match</span>
+              </button>
+
+              <!-- 1 v 4 Mode -->
+              <button id="btn-mode-1v4" class="mode-option-card">
+                <div class="mode-badge">4 PLAYERS</div>
+                <div class="mode-icon">🎲</div>
+                <span class="mode-title">1 v 4</span>
+                <span class="mode-desc">4 Players Battle</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Pass & Play Player Names Setup -->
+          <div id="menu-step-3" class="menu-step-container hidden">
+            <div class="menu-header">
+              <button id="btn-back-step2" class="step-back-btn">‹ Back</button>
+              <h2 class="menu-title">EDIT PLAYER NAMES</h2>
+              <p class="menu-subtitle">Customize names before starting</p>
+            </div>
+
+            <div id="player-names-inputs" class="player-names-form">
+              <div id="field-wrap-green" class="name-input-group border-green">
+                <span class="player-color-tag tag-green">P1 (GREEN)</span>
+                <input type="text" id="input-name-green" class="player-name-input" value="Player 1" maxlength="12" placeholder="Player 1 Name">
+              </div>
+
+              <div id="field-wrap-blue" class="name-input-group border-blue">
+                <span class="player-color-tag tag-blue">P2 (BLUE)</span>
+                <input type="text" id="input-name-blue" class="player-name-input" value="Player 2" maxlength="12" placeholder="Player 2 Name">
+              </div>
+
+              <div id="field-wrap-yellow" class="name-input-group border-yellow">
+                <span class="player-color-tag tag-yellow">P3 (YELLOW)</span>
+                <input type="text" id="input-name-yellow" class="player-name-input" value="Player 3" maxlength="12" placeholder="Player 3 Name">
+              </div>
+
+              <div id="field-wrap-red" class="name-input-group border-red">
+                <span class="player-color-tag tag-red">P4 (RED)</span>
+                <input type="text" id="input-name-red" class="player-name-input" value="Player 4" maxlength="12" placeholder="Player 4 Name">
+              </div>
+            </div>
+
+            <div class="menu-actions">
+              <button id="btn-start-game" class="action-btn gold-btn start-game-btn">▶ START GAME</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Online Matchmaking / Finding Friends Modal -->
+      <div id="modal-matchmaking" class="modal-overlay hidden">
+        <div class="modal-card matchmaking-card">
+          <div class="matchmaking-header">
+            <h2>FINDING FRIENDS</h2>
+            <span class="matchmaking-subtitle">Searching Online Players (1 to 4 Players)</span>
+          </div>
+
+          <!-- Radar Pulse Animation -->
+          <div class="radar-box">
+            <div class="radar-ring ring-1"></div>
+            <div class="radar-ring ring-2"></div>
+            <div class="radar-ring ring-3"></div>
+            <div class="radar-center-icon">🎲</div>
+          </div>
+
+          <!-- 4 Player Slots Grid -->
+          <div class="match-slots-grid">
+            <!-- Player 1 (Yellow / You) -->
+            <div id="slot-card-0" class="match-slot-card slot-found">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-0" class="slot-avatar" src="assets/avatar_p4.svg" alt="P1">
+                <span class="slot-badge badge-you">YOU</span>
+              </div>
+              <span id="slot-name-0" class="slot-name">YOU</span>
+              <span id="slot-status-0" class="slot-status status-ready">CONNECTED</span>
+            </div>
+
+            <!-- Player 2 (Green) -->
+            <div id="slot-card-1" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-1" class="slot-avatar" src="assets/avatar_p1.svg" alt="P2">
+                <span class="slot-badge">P2</span>
+              </div>
+              <span id="slot-name-1" class="slot-name">Searching...</span>
+              <span id="slot-status-1" class="slot-status status-wait">SEARCHING</span>
+            </div>
+
+            <!-- Player 3 (Blue) -->
+            <div id="slot-card-2" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-2" class="slot-avatar" src="assets/avatar_p2.svg" alt="P3">
+                <span class="slot-badge">P3</span>
+              </div>
+              <span id="slot-name-2" class="slot-name">Searching...</span>
+              <span id="slot-status-2" class="slot-status status-wait">SEARCHING</span>
+            </div>
+
+            <!-- Player 4 (Red) -->
+            <div id="slot-card-3" class="match-slot-card slot-searching">
+              <div class="slot-avatar-wrap">
+                <img id="slot-avatar-3" class="slot-avatar" src="assets/avatar_p3.svg" alt="P4">
+                <span class="slot-badge">P4</span>
+              </div>
+              <span id="slot-name-3" class="slot-name">Searching...</span>
+              <span id="slot-status-3" class="slot-status status-wait">SEARCHING</span>
+            </div>
+          </div>
+
+          <!-- Timer and Status Text -->
+          <div class="matchmaking-footer">
+            <div id="matchmaking-status-text" class="status-progress-text">Finding online players... (1/4)</div>
+            <div id="matchmaking-timer" class="countdown-badge">25s</div>
+          </div>
+
+          <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
+            <button id="btn-start-now" class="action-btn gold-btn hidden">▶ START GAME NOW</button>
+            <button id="btn-cancel-matchmaking" class="action-btn cancel-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Settings Modal -->
       <div id="modal-settings" class="modal-overlay hidden">
         <div class="modal-card">
@@ -156,6 +346,7 @@
             <div class="setting-item">
               <label for="select-game-mode">Game Mode:</label>
               <select id="select-game-mode" class="custom-select">
+                <option value="online_4p" selected>Finding Friends (Online 4 Players)</option>
                 <option value="vs_ai">1 Player vs 3 AI Bots</option>
                 <option value="pass_play">4 Players (Pass & Play)</option>
               </select>
@@ -171,8 +362,9 @@
               <input type="checkbox" id="check-auto-move" checked>
             </div>
 
-            <div class="modal-actions">
-              <button id="btn-restart-game" class="action-btn gold-btn">Restart Game</button>
+            <div class="modal-actions" style="display: flex; flex-direction: column; gap: 8px;">
+              <button id="btn-open-main-menu" class="action-btn gold-btn large-btn">🏠 Main Menu / Select Mode</button>
+              <button id="btn-restart-game" class="action-btn cancel-btn large-btn">🔄 Restart Current Game</button>
             </div>
           </div>
         </div>
