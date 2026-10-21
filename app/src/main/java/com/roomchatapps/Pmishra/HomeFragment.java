@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.denzcoskun.imageslider.ImageSlider;
 import com.denzcoskun.imageslider.constants.ScaleTypes;
 import com.denzcoskun.imageslider.models.SlideModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,7 +27,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HomeFragment extends Fragment {
 
@@ -35,7 +39,15 @@ public class HomeFragment extends Fragment {
     private TextView tvNoRooms;
     private RoomAdapter roomAdapter;
     private List<RoomModel> roomList;
+    private final List<RoomModel> allRoomList = new ArrayList<>();
+    private final Set<String> followingUidSet = new HashSet<>();
+    private int selectedTab = 0; // 0: Popular, 1: Following
+
     private DatabaseReference databaseReference;
+    private ValueEventListener roomsListener;
+
+    private DatabaseReference followRef;
+    private ValueEventListener followListener;
 
     private View tabPopular, tabFollowing;
     private TextView tvPopular, tvFollowing;
@@ -63,6 +75,7 @@ public class HomeFragment extends Fragment {
 
         setupImageSlider(view);
         setupRecyclerView();
+        loadFollowingList();
         loadRoomsFromFirebase();
         setupClickListeners(view);
     }
@@ -95,28 +108,63 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    private void loadFollowingList() {
+        try {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser == null) return;
+
+            String currentUid = currentUser.getUid();
+            followRef = FirebaseDatabase.getInstance().getReference("Follow")
+                    .child(currentUid).child("following");
+
+            followListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!isAdded() || getContext() == null) return;
+
+                    followingUidSet.clear();
+                    if (snapshot.exists()) {
+                        for (DataSnapshot ds : snapshot.getChildren()) {
+                            if (ds.getKey() != null) {
+                                followingUidSet.add(ds.getKey());
+                            }
+                        }
+                    }
+                    if (selectedTab == 1) {
+                        filterAndDisplayRooms();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e(TAG, "Error loading following list: " + error.getMessage());
+                }
+            };
+            followRef.addValueEventListener(followListener);
+        } catch (Exception e) {
+            Log.e(TAG, "Error in loadFollowingList", e);
+        }
+    }
+
     private void loadRoomsFromFirebase() {
         try {
             databaseReference = FirebaseDatabase.getInstance().getReference("rooms");
             if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-            databaseReference.addValueEventListener(new ValueEventListener() {
+            roomsListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (!isAdded() || getContext() == null) return;
 
-                    roomList.clear();
+                    allRoomList.clear();
                     if (snapshot.exists()) {
                         for (DataSnapshot ds : snapshot.getChildren()) {
                             RoomModel room = ds.getValue(RoomModel.class);
-                            if (room != null) roomList.add(room);
+                            if (room != null) allRoomList.add(room);
                         }
                     }
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    if (tvNoRooms != null) {
-                        tvNoRooms.setVisibility(roomList.isEmpty() ? View.VISIBLE : View.GONE);
-                    }
-                    if (roomAdapter != null) roomAdapter.notifyDataSetChanged();
+                    filterAndDisplayRooms();
                 }
 
                 @Override
@@ -128,9 +176,42 @@ public class HomeFragment extends Fragment {
                         android.widget.Toast.makeText(getContext(), "Database Error: " + error.getMessage(), android.widget.Toast.LENGTH_LONG).show();
                     }
                 }
-            });
+            };
+            databaseReference.addValueEventListener(roomsListener);
         } catch (Exception e) {
             Log.e(TAG, "Error in loadRoomsFromFirebase", e);
+        }
+    }
+
+    private void filterAndDisplayRooms() {
+        if (roomList == null) {
+            roomList = new ArrayList<>();
+        } else {
+            roomList.clear();
+        }
+
+        if (selectedTab == 0) {
+            // Popular Tab: Show all rooms
+            roomList.addAll(allRoomList);
+            if (tvNoRooms != null) {
+                tvNoRooms.setText("No rooms available");
+                tvNoRooms.setVisibility(roomList.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+        } else if (selectedTab == 1) {
+            // Following Tab: Show only rooms whose host/creator UID is in followingUidSet
+            for (RoomModel room : allRoomList) {
+                if (room != null && room.getUid() != null && followingUidSet.contains(room.getUid())) {
+                    roomList.add(room);
+                }
+            }
+            if (tvNoRooms != null) {
+                tvNoRooms.setText("No active rooms from people you follow");
+                tvNoRooms.setVisibility(roomList.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        if (roomAdapter != null) {
+            roomAdapter.notifyDataSetChanged();
         }
     }
 
@@ -199,6 +280,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void selectTab(int index) {
+        selectedTab = index;
+
         if (tvPopular != null) {
             tvPopular.setTextColor(index == 0 ? 0xFFFFFFFF : 0x80FFFFFF);
             tvPopular.setTextSize(index == 0 ? 20 : 16);
@@ -209,6 +292,8 @@ public class HomeFragment extends Fragment {
             tvFollowing.setTextSize(index == 1 ? 20 : 16);
             if (indicatorFollowing != null) indicatorFollowing.setVisibility(index == 1 ? View.VISIBLE : View.INVISIBLE);
         }
+
+        filterAndDisplayRooms();
     }
 
     private void setupCategoryChips(View view) {
@@ -240,6 +325,21 @@ public class HomeFragment extends Fragment {
                     categoryChips[i].setTextColor(0xD0FFFFFF);
                 }
             }
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        try {
+            if (databaseReference != null && roomsListener != null) {
+                databaseReference.removeEventListener(roomsListener);
+            }
+            if (followRef != null && followListener != null) {
+                followRef.removeEventListener(followListener);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onDestroyView", e);
         }
     }
 
