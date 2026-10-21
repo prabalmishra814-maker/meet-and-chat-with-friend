@@ -98,22 +98,30 @@ public class ReferralActivity extends AppCompatActivity {
 
     private void setupTabs() {
         if (tabInviteTasks != null) {
-            tabInviteTasks.setOnClickListener(v -> selectTab(true));
+            tabInviteTasks.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(v);
+                selectTab(true);
+            });
         }
         if (tabNewUserTasks != null) {
-            tabNewUserTasks.setOnClickListener(v -> selectTab(false));
+            tabNewUserTasks.setOnClickListener(v -> {
+                AnimationHelper.bounceAnimation(v);
+                selectTab(false);
+            });
         }
     }
 
     private void selectTab(boolean isInviteTasks) {
         if (tabInviteTasks != null) {
-            tabInviteTasks.setBackgroundResource(isInviteTasks ? R.drawable.chip_charm_bg : R.drawable.chip_room_bg);
-            tabInviteTasks.setTextColor(isInviteTasks ? Color.WHITE : Color.parseColor("#80FFFFFF"));
+            tabInviteTasks.setBackgroundResource(isInviteTasks ? R.drawable.bg_referral_tab_selected : R.drawable.bg_referral_tab_unselected);
+            tabInviteTasks.setTextColor(isInviteTasks ? Color.parseColor("#050E1E") : Color.parseColor("#80FFFFFF"));
+            tabInviteTasks.setTypeface(null, isInviteTasks ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         }
 
         if (tabNewUserTasks != null) {
-            tabNewUserTasks.setBackgroundResource(isInviteTasks ? R.drawable.chip_room_bg : R.drawable.chip_charm_bg);
-            tabNewUserTasks.setTextColor(isInviteTasks ? Color.parseColor("#80FFFFFF") : Color.WHITE);
+            tabNewUserTasks.setBackgroundResource(isInviteTasks ? R.drawable.bg_referral_tab_unselected : R.drawable.bg_referral_tab_selected);
+            tabNewUserTasks.setTextColor(isInviteTasks ? Color.parseColor("#80FFFFFF") : Color.parseColor("#050E1E"));
+            tabNewUserTasks.setTypeface(null, isInviteTasks ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
         }
 
         if (llInviteTasksHeader != null) llInviteTasksHeader.setVisibility(isInviteTasks ? View.VISIBLE : View.GONE);
