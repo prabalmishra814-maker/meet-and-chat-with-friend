@@ -1,7 +1,7 @@
 package com.roomchatapps.Pmishra;
 
 public class Post {
-    private String title, poster, datetime, uid, postId;
+    private String title, poster, datetime, uid, postId, country;
     private String username, userProfile; // Derived from Users node usually, but keeping here for simplicity if needed
     private long commentCount;
     private java.util.Map<String, Boolean> likes = new java.util.HashMap<>();
@@ -32,6 +32,10 @@ public class Post {
 
     public String getPostId() { return postId; }
     public void setPostId(String postId) { this.postId = postId; }
+
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+    public void setCountryName(String country) { this.country = country; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

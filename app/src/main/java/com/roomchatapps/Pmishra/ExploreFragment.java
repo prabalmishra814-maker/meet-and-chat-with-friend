@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,7 +23,9 @@ import com.roomchatapps.Pmishra.databinding.FragmentExploreBinding;
 import com.roomchatapps.Pmishra.databinding.ItemCategoryPillBinding;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ExploreFragment extends Fragment {
 
@@ -32,8 +35,10 @@ public class ExploreFragment extends Fragment {
     private PostAdapter postAdapter;
     private DatabaseReference postsRef;
     private ValueEventListener postsListener;
+    private DatabaseReference followRef;
+    private ValueEventListener followListener;
     private boolean isFollowingTab = false;
-    private List<String> followingList = new ArrayList<>();
+    private final Set<String> followingSet = new HashSet<>();
     private String selectedCategory = "All";
 
     @Nullable
@@ -56,6 +61,7 @@ public class ExploreFragment extends Fragment {
         
         setupTabs();
         setupCategories();
+        listenToFollowingList();
         setupPosts();
 
         if (binding.btnSearch != null) {
@@ -77,15 +83,17 @@ public class ExploreFragment extends Fragment {
 
     private void setupTabs() {
         binding.tabSquare.setOnClickListener(v -> {
+            if (!isFollowingTab) return;
             isFollowingTab = false;
             updateTabUI();
-            setupPosts();
+            filterAndDisplayPosts();
         });
 
         binding.tabFollow.setOnClickListener(v -> {
+            if (isFollowingTab) return;
             isFollowingTab = true;
             updateTabUI();
-            fetchFollowingListAndLoadPosts();
+            filterAndDisplayPosts();
         });
     }
 
@@ -103,26 +111,32 @@ public class ExploreFragment extends Fragment {
         }
     }
 
-    private void fetchFollowingListAndLoadPosts() {
-        String currentUid = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+    private void listenToFollowingList() {
+        String currentUid = FirebaseAuth.getInstance().getUid();
         if (currentUid == null) return;
 
-        FirebaseDatabase.getInstance().getReference("Follow")
-                .child(currentUid).child("following")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!isAdded() || getContext() == null || binding == null) return;
-                        followingList.clear();
-                        for (DataSnapshot ds : snapshot.getChildren()) {
-                            followingList.add(ds.getKey());
-                        }
-                        setupPosts();
-                    }
+        followRef = FirebaseDatabase.getInstance().getReference("Follow")
+                .child(currentUid).child("following");
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+        followListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || getContext() == null || binding == null) return;
+                followingSet.clear();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    if (ds.getKey() != null) {
+                        followingSet.add(ds.getKey());
+                    }
+                }
+                if (isFollowingTab) {
+                    filterAndDisplayPosts();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        followRef.addValueEventListener(followListener);
     }
 
     public static class CategoryItem {
@@ -198,7 +212,7 @@ public class ExploreFragment extends Fragment {
             if (post == null) continue;
 
             if (isFollowingTab) {
-                if (followingList.contains(post.getUid())) {
+                if (followingSet.contains(post.getUid())) {
                     matched.add(post);
                 }
             } else {
@@ -212,7 +226,8 @@ public class ExploreFragment extends Fragment {
             for (Post p : matched) {
                 String title = p.getTitle() != null ? p.getTitle().toLowerCase() : "";
                 String user = p.getUsername() != null ? p.getUsername().toLowerCase() : "";
-                if (title.contains(cat) || user.contains(cat)) {
+                String country = p.getCountry() != null ? p.getCountry().toLowerCase() : "";
+                if (title.contains(cat) || user.contains(cat) || country.contains(cat)) {
                     categoryMatched.add(p);
                 }
             }
@@ -229,6 +244,21 @@ public class ExploreFragment extends Fragment {
         if (postAdapter != null) {
             postAdapter.notifyDataSetChanged();
         }
+
+        if (binding.layoutEmptyPosts != null) {
+            if (postList.isEmpty()) {
+                binding.layoutEmptyPosts.setVisibility(View.VISIBLE);
+                binding.rvPosts.setVisibility(View.GONE);
+                if (isFollowingTab) {
+                    binding.tvEmptyPosts.setText("No posts from users you follow yet.");
+                } else {
+                    binding.tvEmptyPosts.setText("No posts yet. Be the first to share!");
+                }
+            } else {
+                binding.layoutEmptyPosts.setVisibility(View.GONE);
+                binding.rvPosts.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     @Override
@@ -237,6 +267,10 @@ public class ExploreFragment extends Fragment {
         if (postsRef != null && postsListener != null) {
             postsRef.removeEventListener(postsListener);
             postsListener = null;
+        }
+        if (followRef != null && followListener != null) {
+            followRef.removeEventListener(followListener);
+            followListener = null;
         }
         binding = null;
     }

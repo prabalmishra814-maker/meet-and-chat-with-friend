@@ -122,8 +122,6 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Post Feed RecyclerView -->
-
-    <!-- Floating Create Post Button -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPosts"
         android:layout_width="match_parent"
@@ -137,6 +135,38 @@
         app:layout_constraintVertical_bias="1.0"
         tools:layout_editor_absoluteX="0dp"
         tools:listitem="@layout/item_post_card" />
+
+    <!-- Empty Feed State -->
+    <LinearLayout
+        android:id="@+id/layoutEmptyPosts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/filterLayout">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:alpha="0.4"
+            android:src="@drawable/ic_search"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/tvEmptyPosts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:alpha="0.6"
+            android:fontFamily="sans-serif-medium"
+            android:text="No posts yet. Be the first to share!"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabPost"

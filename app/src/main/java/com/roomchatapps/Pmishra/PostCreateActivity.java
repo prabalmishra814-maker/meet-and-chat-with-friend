@@ -86,10 +86,18 @@ public class PostCreateActivity extends AppCompatActivity {
         });
 
         btnSend.setOnClickListener(view -> {
+            String textContent = etWord.getText().toString().trim();
+            if (textContent.isEmpty() && imageUri == null) {
+                Toast.makeText(this, "Please write something or select an image", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            btnSend.setEnabled(false);
             if (imageUri != null) {
                 uploadImage();
             } else {
-                Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
+                imgUrl = "";
+                savePost();
             }
         });
     }
@@ -122,7 +130,10 @@ public class PostCreateActivity extends AppCompatActivity {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    runOnUiThread(() -> Toast.makeText(PostCreateActivity.this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        btnSend.setEnabled(true);
+                        Toast.makeText(PostCreateActivity.this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
                 }
 
                 @Override
@@ -134,15 +145,22 @@ public class PostCreateActivity extends AppCompatActivity {
                             imgUrl = jsonObject.getJSONObject("data").getString("url");
                             runOnUiThread(() -> savePost());
                         } catch (Exception e) {
-                            runOnUiThread(() -> Toast.makeText(PostCreateActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            runOnUiThread(() -> {
+                                btnSend.setEnabled(true);
+                                Toast.makeText(PostCreateActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                         }
                     } else {
-                        runOnUiThread(() -> Toast.makeText(PostCreateActivity.this, "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> {
+                            btnSend.setEnabled(true);
+                            Toast.makeText(PostCreateActivity.this, "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 }
             });
 
         } catch (Exception e) {
+            btnSend.setEnabled(true);
             Toast.makeText(this, "File error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -162,6 +180,7 @@ public class PostCreateActivity extends AppCompatActivity {
     private void savePost() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
+            btnSend.setEnabled(true);
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -173,16 +192,16 @@ public class PostCreateActivity extends AppCompatActivity {
         Locale locale = Locale.getDefault();
 
         String country = locale.getDisplayCountry();
-        //upload to firebase
 
         HashMap<String, Object> postMap = new HashMap<>();
         postMap.put("title", etWord.getText().toString().trim());
-        postMap.put("poster", imgUrl);
+        postMap.put("poster", imgUrl != null ? imgUrl : "");
         postMap.put("uid", uid);
         postMap.put("datetime", dateTime);
         postMap.put("postId", postId);
         postMap.put("commentCount", 0);
-        postMap.put("Country",country);
+        postMap.put("country", country);
+        postMap.put("Country", country);
 
         if (postId != null) {
             databaseReference.child(postId).setValue(postMap).addOnCompleteListener(task -> {
@@ -190,6 +209,7 @@ public class PostCreateActivity extends AppCompatActivity {
                     Toast.makeText(PostCreateActivity.this, "Post shared", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
+                    btnSend.setEnabled(true);
                     Toast.makeText(PostCreateActivity.this, "Failed to share post", Toast.LENGTH_SHORT).show();
                 }
             });
