@@ -246,6 +246,7 @@ function syncTimer() {
             currentRoundIdx = roundIdx;
             state.gameState = 'BETTING';
             state.isSpinning = false;
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
             clearAllBets();
             updateUI();
         }
@@ -343,6 +344,7 @@ function attachEventListeners() {
     if (DOM.winCloseBtn) {
         DOM.winCloseBtn.addEventListener('click', () => {
             DOM.winModal.classList.add('hidden');
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
         });
     }
 
@@ -665,6 +667,7 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
 
     setTimeout(() => {
         state.showResultInCenter = false;
+        document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
         updateTimerUI();
     }, 2500);
 
@@ -682,6 +685,7 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
         const payout = betOnWinTile * winMultiplier;
 
         if (payout > 0) {
+            playSound('win');
             if (window.AndroidLuckyFruit) {
                 const targetRound = spinTriggeredRound || (state.currentRound - 1);
                 const callbackName = '_cb_win_' + state.currentRound + '_' + Date.now();
@@ -693,7 +697,6 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
                         state.balance += payout;
                     }
                     state.todaysWinnings += payout;
-                    showWinModal(winningFruit, winMultiplier, payout);
                     clearAllBets();
                     updateUI();
                 };
@@ -701,7 +704,6 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
             } else {
                 state.balance += payout;
                 state.todaysWinnings += payout;
-                showWinModal(winningFruit, winMultiplier, payout);
                 clearAllBets();
                 updateUI();
             }
@@ -725,13 +727,10 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
     }, 1200);
 }
 
-// SHOW WIN MODAL
+// SHOW WIN MODAL (Disabled: Leaderboard auto-opens instead)
 function showWinModal(fruit, multiplier, amount) {
     playSound('win');
-    if (DOM.winFruitIcon) DOM.winFruitIcon.innerHTML = getFruitIconHtml(fruit, 'modal-win-img');
-    if (DOM.winMultiplierText) DOM.winMultiplierText.textContent = `${multiplier}x Multiplier! (${fruit.name})`;
-    if (DOM.winAmountText) DOM.winAmountText.textContent = amount.toLocaleString();
-    if (DOM.winModal) DOM.winModal.classList.remove('hidden');
+}
 }
 
 // SHOW TOAST NOTIFICATION

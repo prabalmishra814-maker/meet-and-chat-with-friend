@@ -1202,6 +1202,7 @@ function syncTimer() {
             currentRoundIdx = roundIdx;
             state.gameState = 'BETTING';
             state.isSpinning = false;
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
             clearAllBets();
             updateUI();
         }
@@ -1476,6 +1477,7 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
     // Revert center tile back to countdown timer after 2.5 seconds
     setTimeout(() => {
         state.showResultInCenter = false;
+        document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlighted'));
         updateTimerUI();
     }, 2500);
 
@@ -1498,7 +1500,7 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
         if (payout > 0) {
             state.balance += payout;
             state.todaysWinnings += payout;
-            showWinModal(winningFruit, winMultiplier, payout);
+            playSound('win');
         } else {
             showToast(`Result: ${winningFruit.name}. Better luck next time!`);
         }
@@ -1510,12 +1512,10 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
     updateUI();
 }
 
-// SHOW WIN MODAL
+// SHOW WIN MODAL (Disabled)
 function showWinModal(fruit, multiplier, amount) {
-    DOM.winFruitIcon.innerHTML = getFruitIconHtml(fruit, 'modal-win-img');
-    DOM.winMultiplierText.textContent = `${multiplier}x Multiplier! (${fruit.name})`;
-    DOM.winAmountText.textContent = amount.toLocaleString();
-    DOM.winModal.classList.remove('hidden');
+    playSound('win');
+}
 }
 
 // SHOW TOAST NOTIFICATION
