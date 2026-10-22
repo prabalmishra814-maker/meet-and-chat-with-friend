@@ -68,24 +68,28 @@
                     <div class="tile fruit-tile" data-index="0" data-fruit="orange">
                         <div class="bet-badge hidden" id="badge-0">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_orange.svg" alt="Orange"></div>
+                        <div class="multiplier-badge">5x</div>
                     </div>
 
                     <!-- Tile 1: Lemon -->
                     <div class="tile fruit-tile" data-index="1" data-fruit="lemon">
                         <div class="bet-badge hidden" id="badge-1">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_lemon.svg" alt="Lemon"></div>
+                        <div class="multiplier-badge">5x</div>
                     </div>
 
                     <!-- Tile 2: Grapes -->
                     <div class="tile fruit-tile" data-index="2" data-fruit="grapes">
                         <div class="bet-badge hidden" id="badge-2">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_grapes.svg" alt="Grapes"></div>
+                        <div class="multiplier-badge">5x</div>
                     </div>
 
                     <!-- Tile 3: Cherries -->
                     <div class="tile fruit-tile" data-index="3" data-fruit="cherries">
                         <div class="bet-badge hidden" id="badge-3">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_cherries.svg" alt="Cherries"></div>
+                        <div class="multiplier-badge">5x</div>
                     </div>
 
                     <!-- Tile 4: Center Display Tile -->
@@ -97,24 +101,28 @@
                     <div class="tile fruit-tile" data-index="5" data-fruit="apple">
                         <div class="bet-badge hidden" id="badge-5">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_apple.svg" alt="Green Apple"></div>
+                        <div class="multiplier-badge">10x</div>
                     </div>
 
                     <!-- Tile 6: Watermelon -->
                     <div class="tile fruit-tile" data-index="6" data-fruit="watermelon">
                         <div class="bet-badge hidden" id="badge-6">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_watermelon.svg" alt="Watermelon"></div>
+                        <div class="multiplier-badge">15x</div>
                     </div>
 
                     <!-- Tile 7: Mango -->
                     <div class="tile fruit-tile" data-index="7" data-fruit="mango">
                         <div class="bet-badge hidden" id="badge-7">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_mango.svg" alt="Mango"></div>
+                        <div class="multiplier-badge">25x</div>
                     </div>
 
                     <!-- Tile 8: Strawberry -->
                     <div class="tile fruit-tile" data-index="8" data-fruit="strawberry">
                         <div class="bet-badge hidden" id="badge-8">0</div>
                         <div class="fruit-icon"><img class="fruit-img-icon" src="assets/fruit_strawberry.svg" alt="Strawberry"></div>
+                        <div class="multiplier-badge">45x</div>
                     </div>
                 </div>
             </div>
@@ -151,8 +159,8 @@
 
             <!-- Bottom Stats Panel -->
             <div class="stats-panel-row">
-                <div class="stat-card balance-card">
-                    <div class="info-badge">!</div>
+                <div class="stat-card balance-card" id="balanceCard">
+                    <div class="info-badge">+</div>
                     <div class="stat-label">Balance</div>
                     <div class="stat-value">
                         <span class="coin-icon"><img class="coin-img-icon" src="assets/gold_coin.svg" alt="Coin"></span>
@@ -201,12 +209,8 @@
     <div class="leaderboard-modal-overlay hidden" id="leaderboardModal">
         <div class="leaderboard-modal-card">
             <div class="leaderboard-header">
-                <h2>🏆 Round Leaderboard</h2>
+                <h2>🏆 Current Round Leaderboard</h2>
                 <button class="modal-close-btn" id="closeLeaderboardBtn">✕</button>
-            </div>
-            <div class="leaderboard-tabs">
-                <button class="lb-tab-btn active" id="lbTabCurrent">Current Round</button>
-                <button class="lb-tab-btn" id="lbTabPrev">Previous Round</button>
             </div>
             <div class="leaderboard-list" id="leaderboardList">
                 <div class="lb-empty">Loading leaderboard...</div>

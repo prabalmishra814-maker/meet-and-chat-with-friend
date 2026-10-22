@@ -376,7 +376,60 @@ html, body {
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease;
-    padding: 1px;
+    padding: 1px 1px 9px 1px;
+}
+
+/* MULTIPLIER BADGE ON TILE */
+.multiplier-badge {
+    position: absolute;
+    bottom: 2px;
+    background: linear-gradient(180deg, #ffd700 0%, #ff8c00 100%);
+    color: #120221;
+    font-size: clamp(8.5px, 2.3vw, 11px);
+    font-weight: 900;
+    padding: 1px clamp(5px, 1.4vw, 8px);
+    border-radius: 8px;
+    border: 1px solid #fff5a0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 215, 0, 0.6);
+    z-index: 4;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+    pointer-events: none;
+}
+
+/* Higher Multipliers Color Variations */
+.tile[data-fruit="apple"] .multiplier-badge {
+    background: linear-gradient(180deg, #a3ff47 0%, #2e8b00 100%);
+    color: #ffffff;
+    border-color: #d4ff99;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 8px rgba(163, 255, 71, 0.6);
+}
+
+.tile[data-fruit="watermelon"] .multiplier-badge {
+    background: linear-gradient(180deg, #00f0ff 0%, #0066cc 100%);
+    color: #ffffff;
+    border-color: #a6f7ff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+.tile[data-fruit="mango"] .multiplier-badge {
+    background: linear-gradient(180deg, #ff00ff 0%, #9900cc 100%);
+    color: #ffffff;
+    border-color: #f5a6ff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 0, 255, 0.6);
+}
+
+.tile[data-fruit="strawberry"] .multiplier-badge {
+    background: linear-gradient(180deg, #ff3300 0%, #990000 100%);
+    color: #ffffff;
+    border-color: #ff9980;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 51, 0, 0.8);
+    animation: highMultPulse 1.5s infinite alternate;
+}
+
+@keyframes highMultPulse {
+    0% { transform: scale(1); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 6px rgba(255, 51, 0, 0.6); }
+    100% { transform: scale(1.06); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 14px rgba(255, 102, 0, 0.9); }
 }
 
 /* ENLARGED 3D FRUIT ARTWORK */
@@ -622,22 +675,30 @@ html, body {
     backdrop-filter: blur(4px);
 }
 
+.balance-card {
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+.balance-card:active {
+    transform: scale(0.95);
+}
+
 .balance-card .info-badge {
     position: absolute;
     left: 5px;
     top: 50%;
     transform: translateY(-50%);
-    background: #7b1fa2;
-    color: #fff;
-    width: 12px;
-    height: 12px;
+    background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
+    color: #ffffff;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    font-size: 8px;
+    font-size: 11px;
     font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 4px #7b1fa2;
+    box-shadow: 0 0 6px #00e676;
 }
 
 .stat-label {

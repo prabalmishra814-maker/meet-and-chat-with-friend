@@ -146,9 +146,26 @@ function playSound(type) {
 }
 
 // INITIALIZATION
+function initMultiplierBadges() {
+    const tiles = document.querySelectorAll('.fruit-tile');
+    tiles.forEach(tile => {
+        const idx = tile.getAttribute('data-index');
+        if (idx !== null && CONFIG.fruits[idx]) {
+            let badge = tile.querySelector('.multiplier-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'multiplier-badge';
+                tile.appendChild(badge);
+            }
+            badge.textContent = `${CONFIG.fruits[idx].multiplier}x`;
+        }
+    });
+}
+
 function startLuckyFruitApp() {
     initLEDs();
     initParticleCanvas();
+    initMultiplierBadges();
     updateUI();
     renderRecentResults();
     attachEventListeners();
@@ -304,6 +321,22 @@ function initLEDs() {
     }
 }
 
+function handleRequestAddCoins() {
+    const totalBet = getTotalBet();
+    if (state.isSpinning || state.gameState === 'SPINNING' || totalBet > 0) {
+        showToast("Please wait for the result");
+        if (window.AndroidLuckyFruit && typeof window.AndroidLuckyFruit.setActiveBetState === 'function') {
+            window.AndroidLuckyFruit.setActiveBetState(true);
+        }
+        return;
+    }
+    if (window.AndroidLuckyFruit && typeof window.AndroidLuckyFruit.openRechargePage === 'function') {
+        window.AndroidLuckyFruit.openRechargePage();
+    } else {
+        showToast("Opening recharge page...");
+    }
+}
+
 // ATTACH EVENT LISTENERS
 function attachEventListeners() {
     const fruitTiles = document.querySelectorAll('.fruit-tile');
@@ -314,6 +347,12 @@ function attachEventListeners() {
             placeBetOnTile(index);
         });
     });
+
+    const balanceCard = document.querySelector('.balance-card');
+    if (balanceCard) {
+        balanceCard.style.cursor = 'pointer';
+        balanceCard.addEventListener('click', handleRequestAddCoins);
+    }
 
     DOM.chipBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -358,35 +397,15 @@ function attachEventListeners() {
     }
     if (DOM.lbTabCurrent) {
         DOM.lbTabCurrent.addEventListener('click', () => {
-            DOM.lbTabCurrent.classList.add('active');
-            if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
             loadLeaderboardForRound(currentRoundIdx);
-        });
-    }
-    if (DOM.lbTabPrev) {
-        DOM.lbTabPrev.addEventListener('click', () => {
-            DOM.lbTabPrev.classList.add('active');
-            if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.remove('active');
-            loadLeaderboardForRound(currentRoundIdx - 1);
         });
     }
 }
 
 function openLeaderboard() {
-    openLeaderboardForRound(currentRoundIdx);
-}
-
-function openLeaderboardForRound(roundIdx) {
     if (!DOM.leaderboardModal) return;
     DOM.leaderboardModal.classList.remove('hidden');
-    if (roundIdx === currentRoundIdx) {
-        if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.add('active');
-        if (DOM.lbTabPrev) DOM.lbTabPrev.classList.remove('active');
-    } else {
-        if (DOM.lbTabPrev) DOM.lbTabPrev.classList.add('active');
-        if (DOM.lbTabCurrent) DOM.lbTabCurrent.classList.remove('active');
-    }
-    loadLeaderboardForRound(roundIdx);
+    loadLeaderboardForRound(currentRoundIdx);
 }
 
 function loadLeaderboardForRound(roundIdx) {
@@ -720,17 +739,15 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
     clearAllBets();
     updateUI();
 
-    // Auto-open Round Leaderboard when result arrives
-    const finishedRound = spinTriggeredRound > 0 ? spinTriggeredRound : (state.currentRound - 1);
+    // Auto-open Round Leaderboard for current round
     setTimeout(() => {
-        openLeaderboardForRound(finishedRound);
+        openLeaderboard();
     }, 1200);
 }
 
 // SHOW WIN MODAL (Disabled: Leaderboard auto-opens instead)
 function showWinModal(fruit, multiplier, amount) {
     playSound('win');
-}
 }
 
 // SHOW TOAST NOTIFICATION

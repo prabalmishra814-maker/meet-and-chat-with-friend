@@ -3426,6 +3426,15 @@ public class RoomChatActivity extends AppCompatActivity {
 
     private BottomSheetDialog roomGameDialog;
     private Dialog activeWebGameDialog;
+
+    public void dismissActiveWebGameDialog() {
+        if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
+            try {
+                activeWebGameDialog.dismiss();
+            } catch (Exception ignored) {}
+        }
+    }
+
     private ViewPager2 vpGameCarousel;
     private View layoutGameCarouselContainer;
     private final Handler gameCarouselHandler = new Handler(Looper.getMainLooper());
@@ -3622,13 +3631,22 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    public void closeGameAndOpenRecharge() {
+        if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
+            try {
+                activeWebGameDialog.dismiss();
+            } catch (Exception ignored) {}
+        }
+        startActivity(new Intent(this, CoinRechargeActivity.class));
+    }
+
     private boolean checkCanCloseGameDialog(GreedyBridge greedyBridge, LuckyFruitBridge luckyFruitBridge) {
         if (greedyBridge != null && greedyBridge.hasActiveBet()) {
-            Toast.makeText(this, "Active bet in progress! Cannot exit during round.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please wait for the result", Toast.LENGTH_SHORT).show();
             return false;
         }
         if (luckyFruitBridge != null && luckyFruitBridge.hasActiveBet()) {
-            Toast.makeText(this, "Active bet in progress! Cannot exit during round.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please wait for the result", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;

@@ -1,11 +1,13 @@
 package com.roomchatapps.Pmishra;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -28,6 +30,7 @@ import java.util.Locale;
  */
 public class LuckyFruitBridge {
     private static final String TAG = "LuckyFruitBridge";
+    private final Context context;
     private final WebView webView;
     private final String userId;
     private DatabaseReference userCoinsRef;
@@ -45,9 +48,27 @@ public class LuckyFruitBridge {
     }
 
     public LuckyFruitBridge(Context context, WebView webView, String userId) {
+        this.context = context;
         this.webView = webView;
         this.userId = userId;
         listenToUserCoins();
+    }
+
+    @JavascriptInterface
+    public void openRechargePage() {
+        mainHandler.post(() -> {
+            if (hasActiveBet()) {
+                Toast.makeText(context, "Please wait for the result", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (context instanceof RoomChatActivity) {
+                ((RoomChatActivity) context).closeGameAndOpenRecharge();
+            } else if (context != null) {
+                Intent intent = new Intent(context, CoinRechargeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+        });
     }
 
     private void listenToUserCoins() {

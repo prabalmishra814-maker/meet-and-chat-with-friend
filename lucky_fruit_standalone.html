@@ -371,7 +371,24 @@ html, body {
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease;
-    padding: 1px;
+    padding: 1px 1px 9px 1px;
+}
+
+/* MULTIPLIER BADGE ON TILE */
+.multiplier-badge {
+    position: absolute;
+    bottom: 2px;
+    background: linear-gradient(180deg, #ffd700 0%, #ff8c00 100%);
+    color: #120221;
+    font-size: clamp(8px, 2.2vw, 10.5px);
+    font-weight: 900;
+    padding: 0.5px clamp(4px, 1.2vw, 6px);
+    border-radius: 8px;
+    border: 1px solid #fff5a0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 6px rgba(255, 215, 0, 0.5);
+    z-index: 4;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
 }
 
 /* ENLARGED 3D FRUIT ARTWORK */
@@ -1146,10 +1163,27 @@ const DOM = {
     chipBtns: document.querySelectorAll('.chip-btn')
 };
 
+function initMultiplierBadges() {
+    const tiles = document.querySelectorAll('.fruit-tile');
+    tiles.forEach(tile => {
+        const idx = tile.getAttribute('data-index');
+        if (idx !== null && CONFIG.fruits[idx]) {
+            let badge = tile.querySelector('.multiplier-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'multiplier-badge';
+                tile.appendChild(badge);
+            }
+            badge.textContent = `${CONFIG.fruits[idx].multiplier}x`;
+        }
+    });
+}
+
 // INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
     initLEDs();
     initParticleCanvas();
+    initMultiplierBadges();
     updateUI();
     renderRecentResults();
     attachEventListeners();
@@ -1515,7 +1549,6 @@ function finishSpin(winIndex, totalBet, userPlacedBet) {
 // SHOW WIN MODAL (Disabled)
 function showWinModal(fruit, multiplier, amount) {
     playSound('win');
-}
 }
 
 // SHOW TOAST NOTIFICATION

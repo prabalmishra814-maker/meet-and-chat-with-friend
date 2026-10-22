@@ -540,13 +540,25 @@
     });
   }
 
+  function handleRequestAddCoins() {
+    initAudio();
+    let totalBet = 0;
+    for (let k in state.bets) {
+      totalBet += state.bets[k] || 0;
+    }
+    if (totalBet > 0 || state.gameState === 'SPINNING') {
+      showToast('Please wait for the result');
+      return;
+    }
+    if (window.AndroidGreedy && typeof window.AndroidGreedy.openRechargePage === 'function') {
+      window.AndroidGreedy.openRechargePage();
+    } else if (el.coinsModal) {
+      el.coinsModal.classList.remove('hidden');
+    }
+  }
+
   if (el.modalAddCoins) {
-    el.modalAddCoins.addEventListener('click', () => {
-      state.balance += 50000;
-      playSound('win');
-      updateUI();
-      showToast('+50,000 Coins Added!');
-    });
+    el.modalAddCoins.addEventListener('click', handleRequestAddCoins);
   }
 
   if (el.resetGameBtn) {
@@ -561,20 +573,11 @@
   }
 
   if (el.addCoinsBtn) {
-    el.addCoinsBtn.addEventListener('click', () => {
-      initAudio();
-      if (el.coinsModal) el.coinsModal.classList.remove('hidden');
-    });
+    el.addCoinsBtn.addEventListener('click', handleRequestAddCoins);
   }
 
   if (el.claimCoinsBtn) {
-    el.claimCoinsBtn.addEventListener('click', () => {
-      state.balance += 100000;
-      playSound('win');
-      updateUI();
-      showToast('🎉 100,000 Free Coins Claimed!');
-      if (el.coinsModal) el.coinsModal.classList.add('hidden');
-    });
+    el.claimCoinsBtn.addEventListener('click', handleRequestAddCoins);
   }
 
   if (el.closeCoinsBtn) {
@@ -594,35 +597,15 @@
   }
   if (el.lbTabCurrent) {
     el.lbTabCurrent.addEventListener('click', () => {
-      el.lbTabCurrent.classList.add('active');
-      if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
       loadLeaderboardForRound(currentRoundIdx);
-    });
-  }
-  if (el.lbTabPrev) {
-    el.lbTabPrev.addEventListener('click', () => {
-      el.lbTabPrev.classList.add('active');
-      if (el.lbTabCurrent) el.lbTabCurrent.classList.remove('active');
-      loadLeaderboardForRound(currentRoundIdx - 1);
     });
   }
 
   function openLeaderboard() {
     initAudio();
-    openLeaderboardForRound(currentRoundIdx);
-  }
-
-  function openLeaderboardForRound(roundIdx) {
     if (!el.leaderboardModal) return;
     el.leaderboardModal.classList.remove('hidden');
-    if (roundIdx === currentRoundIdx) {
-      if (el.lbTabCurrent) el.lbTabCurrent.classList.add('active');
-      if (el.lbTabPrev) el.lbTabPrev.classList.remove('active');
-    } else {
-      if (el.lbTabPrev) el.lbTabPrev.classList.add('active');
-      if (el.lbTabCurrent) el.lbTabCurrent.classList.remove('active');
-    }
-    loadLeaderboardForRound(roundIdx);
+    loadLeaderboardForRound(currentRoundIdx);
   }
 
   function loadLeaderboardForRound(roundIdx) {
