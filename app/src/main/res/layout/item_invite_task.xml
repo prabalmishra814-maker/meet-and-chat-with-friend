@@ -19,12 +19,12 @@
         <!-- Left Circular Icon Container -->
         <FrameLayout
             android:id="@+id/flIconBg"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="@drawable/bg_glass_icon_pill"
-            android:padding="6dp">
+            android:padding="3dp">
 
             <ImageView
                 android:id="@+id/ivTaskIcon"
@@ -33,7 +33,7 @@
                 android:adjustViewBounds="true"
                 android:contentDescription="Task Icon"
                 android:scaleType="fitCenter"
-                android:src="@drawable/gift_icon" />
+                android:src="@drawable/ic_ref_bind_person" />
         </FrameLayout>
 
         <!-- Right Side Reward Count Badge (e.g. 0 🍀 or 0 🪙) -->
