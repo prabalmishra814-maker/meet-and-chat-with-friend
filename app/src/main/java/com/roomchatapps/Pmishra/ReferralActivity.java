@@ -205,14 +205,14 @@ public class ReferralActivity extends AppCompatActivity {
     private void loadDefaultTasks() {
         taskList.clear();
 
-        // 7 Tasks matching design screenshots with dedicated task icons:
+        // 7 Tasks matching design screenshots with unique 3D task icons:
         taskList.add(new InviteTaskModel("task_bind_code", "Friends bind your invitation code", "1 friend = 200000 🍀", R.drawable.ic_ref_bind_person, "CHIP", 0, false));
         taskList.add(new InviteTaskModel("task_first_recharge", "Invite friends for first recharge", "1 friend = 8000000 🍀", R.drawable.ic_ref_recharge_box, "CHIP", 0, true));
         taskList.add(new InviteTaskModel("task_recharge_5d", "Friend recharges 5000000 coins (5$)", "1 friend = 30000000 🪙", R.drawable.ic_ref_wallet, "COIN", 0, true));
         taskList.add(new InviteTaskModel("task_share_daily", "Share Room Chat once daily", "1 Time = 20000 🍀", R.drawable.ic_ref_share, "CHIP", 0, false));
         taskList.add(new InviteTaskModel("task_spend_gifts", "Friends spend coins to send gifts", "Gift amount * 8% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
-        taskList.add(new InviteTaskModel("task_send_gifts", "You send gifts to friends", "Gift amount * 4% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
-        taskList.add(new InviteTaskModel("task_receive_gifts", "Friends send gifts to you", "Gift amount * 4% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
+        taskList.add(new InviteTaskModel("task_send_gifts", "You send gifts to friends", "Gift amount * 4% 🪙", R.drawable.ic_ref_slot, "COIN", 0, true));
+        taskList.add(new InviteTaskModel("task_receive_gifts", "Friends send gifts to you", "Gift amount * 4% 🪙", R.drawable.gift_104_icon, "COIN", 0, true));
 
         if (taskAdapter != null) taskAdapter.notifyDataSetChanged();
         if (progressBar != null) progressBar.setVisibility(View.GONE);
@@ -221,14 +221,14 @@ public class ReferralActivity extends AppCompatActivity {
     private void loadNewUserTasks() {
         taskList.clear();
 
-        // New User Tasks matching screenshot with dedicated task icons:
+        // New User Tasks matching screenshot with unique 3D task icons:
         taskList.add(new InviteTaskModel("new_user_profile", "Friends bind your invitation code", "1 friend = 200000 🍀", R.drawable.ic_ref_bind_person, "CHIP", 0, false));
         taskList.add(new InviteTaskModel("new_user_recharge", "Invite friends for first recharge", "1 friend = 8000000 🍀", R.drawable.ic_ref_recharge_box, "CHIP", 0, true));
         taskList.add(new InviteTaskModel("new_user_recharge_5d", "Friend recharges 5000000 coins (5$)", "1 friend = 30000000 🪙", R.drawable.ic_ref_wallet, "COIN", 0, true));
         taskList.add(new InviteTaskModel("new_user_share", "Share Hayi once daily", "1 Time = 20000 🍀", R.drawable.ic_ref_share, "CHIP", 0, false));
         taskList.add(new InviteTaskModel("new_user_spend_gifts", "Friends spend coins to send gifts", "Gift amount * 8% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
-        taskList.add(new InviteTaskModel("new_user_send_gifts", "You send gifts to friends", "Gift amount * 4% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
-        taskList.add(new InviteTaskModel("new_user_receive_gifts", "Friends send gifts to you", "Gift amount * 4% 🪙", R.drawable.ic_ref_spend_gifts, "COIN", 0, true));
+        taskList.add(new InviteTaskModel("new_user_send_gifts", "You send gifts to friends", "Gift amount * 4% 🪙", R.drawable.ic_ref_slot, "COIN", 0, true));
+        taskList.add(new InviteTaskModel("new_user_receive_gifts", "Friends send gifts to you", "Gift amount * 4% 🪙", R.drawable.gift_104_icon, "COIN", 0, true));
 
         if (taskAdapter != null) taskAdapter.notifyDataSetChanged();
         if (progressBar != null) progressBar.setVisibility(View.GONE);
