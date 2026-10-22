@@ -30,6 +30,16 @@ public class GreedyBridge {
     private DatabaseReference userCoinsRef;
     private ValueEventListener coinsEventListener;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean activeBet = false;
+
+    @JavascriptInterface
+    public void setActiveBetState(boolean hasActiveBet) {
+        this.activeBet = hasActiveBet;
+    }
+
+    public boolean hasActiveBet() {
+        return activeBet;
+    }
 
     public GreedyBridge(Context context, WebView webView, String userId) {
         this.webView = webView;

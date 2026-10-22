@@ -312,6 +312,8 @@
         stateObj.lastAction = lastActionObj;
       }
 
+      console.log(`[LUDO_SYNC] Publishing online state: turnSlot=${this.turnIndex}, phase=${this.phase}, diceVal=${this.diceValue}, seq=${this.actionSeq}`);
+
       if (window.AndroidLudo && window.AndroidLudo.sendGameState) {
         window.AndroidLudo.sendGameState(JSON.stringify(stateObj));
       }
@@ -319,33 +321,49 @@
 
     applyRemoteGameState(gameState) {
       if (!gameState || !this.isOnlineActive) return;
-      if (gameState.actionSeq !== undefined && gameState.actionSeq <= (this.actionSeq || 0)) {
+
+      const remoteSeq = gameState.actionSeq || 0;
+      if (remoteSeq > 0 && remoteSeq <= (this.lastProcessedSeq || 0)) {
+        console.log(`[LUDO_SYNC] Rejected stale state packet seq ${remoteSeq} <= ${this.lastProcessedSeq}`);
         return; // Ignore stale or duplicate state update
       }
 
+      if (remoteSeq > 0) {
+        this.lastProcessedSeq = remoteSeq;
+        this.actionSeq = Math.max(this.actionSeq || 0, remoteSeq);
+      }
+
+      console.log(`[LUDO_SYNC] Applying remote state: turnSlot=${gameState.turnSlot}, phase=${gameState.phase}, diceVal=${gameState.diceVal}, seq=${remoteSeq}`);
+
+      if (this.phase === 'ANIMATING' || this.isRolling) {
+        this.pendingRemoteState = gameState;
+        if (gameState.turnSlot !== undefined) {
+          this.turnIndex = gameState.turnSlot;
+        }
+        return;
+      }
+
       this.isSyncingState = true;
-      this.actionSeq = gameState.actionSeq || (this.actionSeq || 0) + 1;
 
       if (gameState.turnSlot !== undefined) {
         this.turnIndex = gameState.turnSlot;
       }
 
-      // Only update phase and diceVal if not currently rolling dice or animating token
-      if (!this.isRolling && this.phase !== 'ANIMATING') {
-        if (gameState.phase !== undefined) {
-          this.phase = gameState.phase;
-        }
-        if (gameState.diceVal !== undefined) {
-          this.diceValue = gameState.diceVal;
-          if (this.dice3d) {
-            this.dice3d.className = `dice-3d show-${this.diceValue}`;
-          }
+      if (gameState.phase !== undefined) {
+        this.phase = gameState.phase;
+      }
+
+      if (gameState.diceVal !== undefined) {
+        this.diceValue = gameState.diceVal;
+        if (this.dice3d) {
+          this.dice3d.className = `dice-3d show-${this.diceValue}`;
         }
       }
 
       if (gameState.consecutiveSixes !== undefined) {
         this.consecutiveSixes = gameState.consecutiveSixes;
       }
+
       if (gameState.turnDeadline !== undefined) {
         this.turnDeadline = gameState.turnDeadline;
       }
@@ -388,6 +406,7 @@
       const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
 
       this.turnTimerSeconds = seconds;
+      this.turnDeadline = Date.now() + (seconds * 1000);
 
       // Private Countdown Presentation (Phase 7):
       // Active player sees countdown timer ("10s", "9s"...).
@@ -441,14 +460,30 @@
     handleTurnTimeout(phaseAtStart, colorAtStart) {
       if (this.phase !== phaseAtStart || this.getCurrentColor() !== colorAtStart) return;
 
+      const currentColor = this.getCurrentColor();
+      const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
+      const isHost = !this.isOnlineActive || (this.mySlot === 0);
+
+      if (!isMyTurn && !isHost) return;
+
       if (phaseAtStart === 'WAIT_ROLL') {
-        this.showToast("Time's up! Auto rolling dice...");
-        this.rollDice();
+        if (isMyTurn) {
+          this.showToast("Time's up! Auto rolling dice...");
+          this.rollDice();
+        } else if (isHost) {
+          this.showToast(`Time's up! Auto rolling for ${currentColor.toUpperCase()}...`);
+          this.rollDice();
+        }
       } else if (phaseAtStart === 'WAIT_MOVE') {
-        this.showToast("Time's up! Auto moving token...");
         const validTokens = this.getValidMoveTokens(colorAtStart, this.diceValue);
         if (validTokens.length > 0) {
-          this.makeAiMove(validTokens);
+          if (isMyTurn) {
+            this.showToast("Time's up! Auto moving token...");
+            this.makeAiMove(validTokens);
+          } else if (isHost) {
+            this.showToast(`Time's up! Auto moving for ${currentColor.toUpperCase()}...`);
+            this.makeAiMove(validTokens);
+          }
         } else {
           this.nextTurn();
         }
@@ -941,11 +976,13 @@
           const color = tokenEl.dataset.color;
           const id = parseInt(tokenEl.dataset.id, 10);
 
+          if (this.isOnlineActive) {
+            if (this.getCurrentColor() !== this.myColor) return; // Strict turn check
+            if (color !== this.myColor) return; // Strict ownership check
+          }
+
           if (color === this.getCurrentColor() && this.phase === 'WAIT_MOVE') {
-            const isMyTurn = !this.isOnlineActive || (color === this.myColor);
-            if (isMyTurn) {
-              this.onTokenSelected(color, id);
-            }
+            this.onTokenSelected(color, id);
           }
         });
       }
@@ -1093,13 +1130,18 @@
     }
 
     rollDice() {
-      if (this.isRolling || this.phase !== 'WAIT_ROLL') return;
+      if (this.isRolling || this.phase !== 'WAIT_ROLL') {
+        console.log(`[LUDO_DICE] Roll rejected: isRolling=${this.isRolling}, phase=${this.phase}`);
+        return;
+      }
 
       const currentColor = this.getCurrentColor();
       const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
 
-      // Security & Turn Control (Phase 4):
-      if (this.isOnlineActive && !isMyTurn && (this.forcedRoll === null || this.forcedRoll === undefined)) return;
+      if (this.isOnlineActive && !isMyTurn && (this.forcedRoll === null || this.forcedRoll === undefined)) {
+        console.log(`[LUDO_DICE] Roll rejected: not my turn! currentColor=${currentColor}, myColor=${this.myColor}`);
+        return;
+      }
 
       this.stopTurnTimer();
 
@@ -1114,6 +1156,8 @@
       this.sound.playRoll();
       this.dice3d.classList.add('dice-rolling');
 
+      console.log(`[LUDO_DICE] Rolling dice: slot=${this.mySlot}, color=${currentColor}, isMyTurn=${isMyTurn}`);
+
       setTimeout(() => {
         this.dice3d.classList.remove('dice-rolling');
 
@@ -1126,6 +1170,8 @@
 
         this.dice3d.className = `dice-3d show-${this.diceValue}`;
         this.isRolling = false;
+
+        console.log(`[LUDO_DICE] Roll finished: diceVal=${this.diceValue}`);
 
         // Process dice result and update phase (e.g. WAIT_MOVE or nextTurn)
         this.handleDiceResult();
@@ -1215,10 +1261,14 @@
     }
 
     onTokenSelected(color, tokenId) {
-      if (this.phase !== 'WAIT_MOVE' || color !== this.getCurrentColor()) return;
+      if (this.phase !== 'WAIT_MOVE') return;
 
-      const isMyTurn = !this.isOnlineActive || (color === this.myColor);
-      if (this.isOnlineActive && !isMyTurn && !this.isSyncingState) return;
+      if (this.isOnlineActive && !this.isSyncingState) {
+        if (this.getCurrentColor() !== this.myColor) return; // Strict turn check
+        if (color !== this.myColor) return; // Strict ownership check
+      }
+
+      if (color !== this.getCurrentColor()) return;
 
       const token = this.tokens[color][tokenId];
       const validTokens = this.getValidMoveTokens(color, this.diceValue);
@@ -1320,6 +1370,21 @@
       const currentColor = this.getCurrentColor();
       const isMyTurn = !this.isOnlineActive || (currentColor === this.myColor);
 
+      if (this.isOnlineActive && this.isSyncingState) {
+        // Remote move animation completed on remote client
+        if (this.pendingRemoteState) {
+          if (this.pendingRemoteState.turnSlot !== undefined) {
+            this.turnIndex = this.pendingRemoteState.turnSlot;
+          }
+          if (this.pendingRemoteState.phase !== undefined) {
+            this.phase = this.pendingRemoteState.phase;
+          }
+          this.pendingRemoteState = null;
+        }
+        this.updateUiState();
+        return; // Remote client DOES NOT increment turn locally!
+      }
+
       if (grantExtraRoll && this.players[currentColor].finishedCount < 4) {
         this.grantExtraRoll = true;
         this.phase = 'WAIT_ROLL';
@@ -1407,6 +1472,7 @@
     nextTurn() {
       if (this.phase === 'GAME_OVER') return;
 
+      const oldTurn = this.turnIndex;
       this.stopTurnTimer();
       this.extraRollBadge.classList.add('hidden');
       this.consecutiveSixes = 0;
@@ -1421,6 +1487,8 @@
         attempts < COLORS.length * 2
       );
 
+      console.log(`[LUDO_TURN] Turn transitioned: oldTurn=${oldTurn} -> newTurn=${this.turnIndex} (${this.getCurrentColor()})`);
+
       if (this.checkGameFinishCondition()) {
         this.endGame();
         return;
@@ -1428,6 +1496,10 @@
 
       this.phase = 'WAIT_ROLL';
       this.updateUiState();
+
+      if (this.isOnlineActive && !this.isSyncingState) {
+        this.syncOnlineState();
+      }
 
       if (this.players[this.getCurrentColor()].isAi) {
         if (this.btnRoll) this.btnRoll.disabled = true;
@@ -1674,6 +1746,8 @@
 
       this.stopTurnTimer();
 
+      this.isSyncingState = true;
+
       if (action.type === 'ROLL') {
         if (action.diceVal && action.diceVal >= 1 && action.diceVal <= 6) {
           this.forcedRoll = action.diceVal;
@@ -1687,6 +1761,8 @@
           this.onTokenSelected(action.color, action.tokenId);
         }
       }
+
+      this.isSyncingState = false;
     }
   }
 

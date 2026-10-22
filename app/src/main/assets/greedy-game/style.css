@@ -335,10 +335,22 @@ html, body {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.greedy-game .food-bubble.active-spin .bubble-orb,
-.greedy-game .food-bubble.has-bet .bubble-orb {
+/* Prediction Spinner running over item */
+.greedy-game .food-bubble.active-spin .bubble-orb {
   border-color: #ffd700;
-  box-shadow: 0 0 20px #ffd700, inset 0 0 14px #ffd700;
+  box-shadow: 0 0 22px #ffd700, inset 0 0 14px #ffd700;
+}
+
+/* User Selected Item (bet placed) - Neon Cyan/Green border for clear distinction from yellow spinner */
+.greedy-game .food-bubble.has-bet .bubble-orb {
+  border-color: #00ffcc;
+  box-shadow: 0 0 20px #00ffcc, inset 0 0 14px rgba(0, 255, 204, 0.6);
+}
+
+/* Prediction Spinner lands on user's selected item */
+.greedy-game .food-bubble.has-bet.active-spin .bubble-orb {
+  border-color: #ffffff;
+  box-shadow: 0 0 25px #ffd700, 0 0 35px #00ffcc, inset 0 0 16px #ffffff;
 }
 
 /* Fruit Image inside Bubble - Extra Large & Ultra Sharp */

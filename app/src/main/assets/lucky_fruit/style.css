@@ -322,22 +322,29 @@ html, body {
 }
 
 .tile.selected-tile {
-    border-color: #ffd700;
-    box-shadow: 0 0 16px #ffd700, inset 0 0 12px rgba(255, 215, 0, 0.5);
+    border: 2px solid #00f0ff !important;
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.9), inset 0 0 10px rgba(0, 240, 255, 0.45) !important;
+    background: radial-gradient(circle at 50% 30%, rgba(0, 240, 255, 0.22) 0%, #1c0833 100%), url('assets/bg_tile.svg') center center / cover no-repeat !important;
 }
 
 .tile.highlighted {
-    background: radial-gradient(circle, #fff7a0 0%, #ffd700 40%, #2f0850 100%), url('assets/bg_tile.svg') center center / cover no-repeat !important;
-    border: 3px solid #ffff00 !important;
-    box-shadow: 0 0 30px #ffff00, 0 0 50px #ffd700, inset 0 0 22px #ffff00 !important;
-    transform: scale(1.12) !important;
-    z-index: 20 !important;
-    animation: yellowSpinGlow 0.15s ease-in-out infinite alternate;
+    background: radial-gradient(circle, rgba(255, 230, 0, 0.35) 0%, rgba(255, 215, 0, 0.12) 55%, rgba(47, 8, 80, 0.95) 100%), url('assets/bg_tile.svg') center center / cover no-repeat !important;
+    border: 2.5px solid #ffe600 !important;
+    box-shadow: 0 0 12px rgba(255, 230, 0, 0.8), inset 0 0 10px rgba(255, 230, 0, 0.5) !important;
+    transform: scale(1.05) !important;
+    z-index: 10 !important;
+    animation: goldSpinGlow 0.25s ease-in-out infinite alternate;
 }
 
-@keyframes yellowSpinGlow {
-    0% { filter: drop-shadow(0 0 12px #ffff00); }
-    100% { filter: drop-shadow(0 0 24px #ffd700) drop-shadow(0 0 36px #ffea00); }
+@keyframes goldSpinGlow {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.7), inset 0 0 8px rgba(255, 230, 0, 0.4);
+        border-color: #ffd700 !important;
+    }
+    100% {
+        box-shadow: 0 0 16px rgba(255, 230, 0, 0.9), inset 0 0 12px rgba(255, 255, 180, 0.6);
+        border-color: #ffff00 !important;
+    }
 }
 
 /* BET BADGE ABOVE TILE */

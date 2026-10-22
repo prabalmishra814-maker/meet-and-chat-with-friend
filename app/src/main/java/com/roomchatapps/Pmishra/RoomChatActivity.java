@@ -3622,6 +3622,18 @@ public class RoomChatActivity extends AppCompatActivity {
         }
     }
 
+    private boolean checkCanCloseGameDialog(GreedyBridge greedyBridge, LuckyFruitBridge luckyFruitBridge) {
+        if (greedyBridge != null && greedyBridge.hasActiveBet()) {
+            Toast.makeText(this, "Active bet in progress! Cannot exit during round.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (luckyFruitBridge != null && luckyFruitBridge.hasActiveBet()) {
+            Toast.makeText(this, "Active bet in progress! Cannot exit during round.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
     private void showWebGameDialog(String gameTitle, String gameUrl) {
         if (activeWebGameDialog != null && activeWebGameDialog.isShowing()) {
             try {
@@ -3686,7 +3698,21 @@ public class RoomChatActivity extends AppCompatActivity {
             if (activeWebGameDialog == d) activeWebGameDialog = null;
         });
 
-        dialogView.setOnClickListener(v -> dialog.dismiss());
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                if (!checkCanCloseGameDialog(greedyBridgeHolder[0], luckyFruitBridgeHolder[0])) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        dialogView.setOnClickListener(v -> {
+            if (checkCanCloseGameDialog(greedyBridgeHolder[0], luckyFruitBridgeHolder[0])) {
+                dialog.dismiss();
+            }
+        });
 
         View cardContainer = dialogView.findViewById(R.id.cardGameContainer);
         if (cardContainer != null) {
@@ -3700,7 +3726,11 @@ public class RoomChatActivity extends AppCompatActivity {
 
         View btnCloseGame = dialogView.findViewById(R.id.btnCloseGame);
         if (btnCloseGame != null) {
-            btnCloseGame.setOnClickListener(v -> dialog.dismiss());
+            btnCloseGame.setOnClickListener(v -> {
+                if (checkCanCloseGameDialog(greedyBridgeHolder[0], luckyFruitBridgeHolder[0])) {
+                    dialog.dismiss();
+                }
+            });
         }
 
         if (webView != null && isSlotMachine) {

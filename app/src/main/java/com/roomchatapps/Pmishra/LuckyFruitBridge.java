@@ -15,7 +15,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roomchatapps.Pmishra.utils.GameLeaderboardManager;
+import com.roomchatapps.Pmishra.utils.UserProfileCache;
 import com.roomchatapps.Pmishra.utils.WalletManager;
+
+import org.json.JSONObject;
 
 import java.util.Locale;
 
@@ -30,6 +33,16 @@ public class LuckyFruitBridge {
     private DatabaseReference userCoinsRef;
     private ValueEventListener coinsEventListener;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean activeBet = false;
+
+    @JavascriptInterface
+    public void setActiveBetState(boolean hasActiveBet) {
+        this.activeBet = hasActiveBet;
+    }
+
+    public boolean hasActiveBet() {
+        return activeBet;
+    }
 
     public LuckyFruitBridge(Context context, WebView webView, String userId) {
         this.webView = webView;
@@ -159,6 +172,43 @@ public class LuckyFruitBridge {
                     webView.evaluateJavascript(js, null);
                 }
             });
+        });
+    }
+
+    @JavascriptInterface
+    public String getUserId() {
+        return userId != null ? userId : "";
+    }
+
+    @JavascriptInterface
+    public void requestUserProfile(String callbackJsMethod) {
+        if (callbackJsMethod == null || callbackJsMethod.isEmpty()) return;
+        if (userId == null || userId.isEmpty()) {
+            sendJsonCallback(callbackJsMethod, "{}");
+            return;
+        }
+        UserProfileCache.getUserProfile(userId, profile -> {
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("userId", userId);
+                obj.put("userName", profile != null && profile.name != null ? profile.name : "Player");
+                obj.put("userAvatar", profile != null && profile.avatarUrl != null ? profile.avatarUrl : "");
+                obj.put("profileId", profile != null && profile.profileId != null ? profile.profileId : "");
+                sendJsonCallback(callbackJsMethod, obj.toString());
+            } catch (Exception e) {
+                sendJsonCallback(callbackJsMethod, "{}");
+            }
+        });
+    }
+
+    private void sendJsonCallback(String method, String jsonStr) {
+        if (method == null || method.isEmpty()) return;
+        mainHandler.post(() -> {
+            if (webView != null) {
+                String safeJson = jsonStr != null ? jsonStr.replace("'", "\\'") : "{}";
+                String js = String.format(Locale.US, "if (window['%s']) { window['%s']('%s'); }", method, method, safeJson);
+                webView.evaluateJavascript(js, null);
+            }
         });
     }
 

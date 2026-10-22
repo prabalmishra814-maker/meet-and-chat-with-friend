@@ -152,15 +152,8 @@ function startLuckyFruitApp() {
     renderRecentResults();
     attachEventListeners();
     startCountdownTimer();
-}
 
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    startLuckyFruitApp();
-} else {
-    document.addEventListener('DOMContentLoaded', startLuckyFruitApp);
-}
-
-    // Check for Android Bridge to load real user coin balance
+    // Check for Android Bridge to load real user coin balance & user profile
     if (window.AndroidLuckyFruit) {
         window.updateLuckyFruitBalance = function(newBalance) {
             if (typeof newBalance === 'number' && !isNaN(newBalance)) {
@@ -168,13 +161,35 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
                 updateUI();
             }
         };
+        window.updateLuckyFruitUserProfile = function(jsonStr) {
+            try {
+                const profile = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+                if (profile && profile.userId) {
+                    state.user = profile;
+                }
+            } catch(e) {}
+        };
         try {
             window.AndroidLuckyFruit.requestUserCoins();
+            if (typeof window.AndroidLuckyFruit.requestUserProfile === 'function') {
+                const cbName = '_cb_uf_' + Date.now();
+                window[cbName] = function(jsonStr) {
+                    delete window[cbName];
+                    window.updateLuckyFruitUserProfile(jsonStr);
+                };
+                window.AndroidLuckyFruit.requestUserProfile(cbName);
+            }
         } catch(e) {
-            console.error("Error requesting user coins:", e);
+            console.error("Error requesting user info:", e);
         }
     }
-});
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    startLuckyFruitApp();
+} else {
+    document.addEventListener('DOMContentLoaded', startLuckyFruitApp);
+}
 
 let timerInterval = null;
 let currentRoundIdx = -1;
@@ -219,7 +234,7 @@ function syncTimer() {
     if (isFirstSync) {
         isFirstSync = false;
         currentRoundIdx = roundIdx;
-        spinTriggeredRound = roundIdx;
+        // Do NOT set spinTriggeredRound = roundIdx on initial sync so spin activates cleanly at 10s mark
     }
 
     if (cyclePos < BETTING_DURATION) {
@@ -451,6 +466,14 @@ function setSelectedQuantity(amount) {
     });
 }
 
+function notifyActiveBetState() {
+    let totalBet = getTotalBet();
+    const hasActive = totalBet > 0 || state.isSpinning;
+    if (window.AndroidLuckyFruit && typeof window.AndroidLuckyFruit.setActiveBetState === 'function') {
+        window.AndroidLuckyFruit.setActiveBetState(hasActive);
+    }
+}
+
 // PLACE BET ON A SPECIFIC TILE
 function placeBetOnTile(index) {
     if (state.isSpinning || state.gameState === 'SPINNING') {
@@ -463,6 +486,7 @@ function placeBetOnTile(index) {
         return;
     }
     state.tileBets[index] = (state.tileBets[index] || 0) + state.selectedQuantity;
+    notifyActiveBetState();
     playSound('chip');
     updateBetBadges();
 }
@@ -480,6 +504,7 @@ function getTotalBet() {
 function updateBetBadges() {
     for (let idx in CONFIG.fruits) {
         const badge = document.getElementById(`badge-${idx}`);
+        const tile = document.querySelector(`.tile[data-index="${idx}"]`);
         const betAmount = state.tileBets[idx] || 0;
         if (badge) {
             if (betAmount > 0) {
@@ -487,6 +512,13 @@ function updateBetBadges() {
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
+            }
+        }
+        if (tile) {
+            if (betAmount > 0) {
+                tile.classList.add('selected-tile');
+            } else {
+                tile.classList.remove('selected-tile');
             }
         }
     }
@@ -497,6 +529,7 @@ function clearAllBets() {
     for (let idx in state.tileBets) {
         state.tileBets[idx] = 0;
     }
+    notifyActiveBetState();
     updateBetBadges();
 }
 

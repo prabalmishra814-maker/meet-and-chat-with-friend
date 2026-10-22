@@ -34,12 +34,24 @@
     resultHistory: ['corn', 'corn', 'cabbage', 'tomato', 'hotdog', 'tomato']
   };
 
+  function notifyActiveBetState() {
+    let totalBet = 0;
+    for (let k in state.bets) {
+      totalBet += state.bets[k] || 0;
+    }
+    const hasActive = totalBet > 0 || state.gameState === 'SPINNING';
+    if (window.AndroidGreedy && typeof window.AndroidGreedy.setActiveBetState === 'function') {
+      window.AndroidGreedy.setActiveBetState(hasActive);
+    }
+  }
+
   // Clear bets helper
   function resetBets() {
     state.bets = {
       tomato: 0, cabbage: 0, corn: 0, carrot: 0, hotdog: 0,
       skewer: 0, ham: 0, steak: 0
     };
+    notifyActiveBetState();
   }
   resetBets();
 
@@ -224,6 +236,7 @@
 
     state.balance -= betAmount;
     state.bets[foodKey] = (state.bets[foodKey] || 0) + betAmount;
+    notifyActiveBetState();
     playSound('chip');
     updateUI();
   }
@@ -280,6 +293,7 @@
   }
 
   let isFirstSync = true;
+  let activeSpinTimeout = null;
 
   function syncTimer() {
     const nowSec = Math.floor(Date.now() / 1000);
@@ -289,7 +303,7 @@
     if (isFirstSync) {
       isFirstSync = false;
       currentRoundIdx = roundIdx;
-      spinTriggeredRound = roundIdx;
+      // Do NOT set spinTriggeredRound = roundIdx here so spin activates cleanly at 10s mark!
     }
 
     if (cyclePos < BETTING_DURATION) {
@@ -336,23 +350,35 @@
 
     if (totalBet > 0 && window.AndroidGreedy) {
       const callbackName = '_cb_greedy_bet_' + roundIdx + '_' + Date.now();
-      window[callbackName] = function(success, newBalance, errorMsg) {
-        delete window[callbackName];
+      let hasExecuted = false;
+
+      const runSpin = (success, newBalance, errorMsg) => {
+        if (hasExecuted) return;
+        hasExecuted = true;
+        if (window[callbackName]) delete window[callbackName];
+
         if (success) {
           if (typeof newBalance === 'number' && !isNaN(newBalance)) {
             state.balance = newBalance;
           }
-          state.gameState = 'SPINNING';
-          if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
-          updateUI();
-          executeSpinAnimation(roundIdx, remainingSpinSec);
-        } else {
-          showToast(errorMsg || "Bet deduction failed!");
-          resetBets();
-          state.gameState = 'BETTING';
-          updateUI();
+        } else if (errorMsg) {
+          showToast(errorMsg);
         }
+        state.gameState = 'SPINNING';
+        if (el.selectTimeLabel) el.selectTimeLabel.textContent = 'Predicting...';
+        updateUI();
+        executeSpinAnimation(roundIdx, remainingSpinSec);
       };
+
+      window[callbackName] = function(success, newBalance, errorMsg) {
+        runSpin(success, newBalance, errorMsg);
+      };
+
+      // Safety timeout: Never delay spin animation by more than 800ms
+      setTimeout(() => {
+        runSpin(true, state.balance, null);
+      }, 800);
+
       window.AndroidGreedy.deductBetCoins(totalBet, roundIdx, callbackName);
       return;
     }
@@ -363,13 +389,18 @@
   }
 
   function executeSpinAnimation(roundIdx, remainingSpinSec) {
+    if (activeSpinTimeout) {
+      clearTimeout(activeSpinTimeout);
+      activeSpinTimeout = null;
+    }
+
     const winnerFood = getGreedyOutcome(roundIdx);
     let winnerIndex = WHEEL_ITEMS.indexOf(winnerFood);
 
     const decelDelays = [100, 130, 170, 220, 290, 380, 500, 700];
     const decelSteps = decelDelays.length;
 
-    const targetDurationMs = Math.max(1500, Math.min(7500, (remainingSpinSec - 2) * 1000));
+    const targetDurationMs = Math.max(1500, Math.min(8000, (remainingSpinSec - 1.5) * 1000));
     const fastDuration = Math.max(500, targetDurationMs - 2490);
     const fastDelay = Math.max(35, Math.floor(fastDuration / 60));
 
@@ -401,8 +432,9 @@
           let decelIndex = stepCount - fastSteps;
           nextDelay = decelDelays[decelIndex] || 500;
         }
-        setTimeout(spinStep, nextDelay);
+        activeSpinTimeout = setTimeout(spinStep, nextDelay);
       } else {
+        activeSpinTimeout = null;
         finishSpinRound(winnerFood, roundIdx);
       }
     }
